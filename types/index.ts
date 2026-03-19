@@ -7,6 +7,8 @@ export type Profile = {
   email: string;
   device_id: string | null;
   registration_ip: string | null;
+  country_code: string | null;
+  is_geo_limited: boolean;
   registered_at: string;
   needs_review: boolean;
   review_reason: string | null;

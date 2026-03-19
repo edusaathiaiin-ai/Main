@@ -16,9 +16,19 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';
+const UPSTASH_REDIS_REST_URL = Deno.env.get('UPSTASH_REDIS_REST_URL') ?? '';
+const UPSTASH_REDIS_REST_TOKEN = Deno.env.get('UPSTASH_REDIS_REST_TOKEN') ?? '';
 
 const DAILY_QUOTA = 20;
+const GEO_LIMITED_DAILY_QUOTA = 5;
+const GEO_LIMITED_INSTITUTION_DAILY_QUOTA = 2;
 const COOLING_HOURS = 48;
+const MAX_MESSAGE_LENGTH = 2000;
+const CHAT_RATE_WINDOW_SECONDS = 60;
+const CHAT_RATE_MAX_REQUESTS = 20;
+const GEO_LIMITED_CHAT_RATE_MAX_REQUESTS = 8;
+const GEO_LIMITED_INSTITUTION_RATE_MAX_REQUESTS = 4;
+const GEO_LIMITED_ALLOWED_SLOTS = new Set([1, 5]);
 // Slots 1, 2, 5 use Groq; Slots 3, 4 use Claude
 const GROQ_SLOTS = new Set([1, 2, 5]);
 
@@ -35,6 +45,42 @@ function todayIST(): string {
   const now = new Date();
   const ist = new Date(now.getTime() + 330 * 60 * 1000); // UTC+5:30
   return ist.toISOString().split('T')[0];
+}
+
+async function checkUpstashRateLimit(key: string, maxRequests: number): Promise<boolean> {
+  if (!UPSTASH_REDIS_REST_URL || !UPSTASH_REDIS_REST_TOKEN) {
+    // Fail open when Upstash is not configured to avoid accidental outage.
+    return true;
+  }
+
+  try {
+    const incrRes = await fetch(`${UPSTASH_REDIS_REST_URL}/incr/${encodeURIComponent(key)}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}`,
+      },
+    });
+
+    if (!incrRes.ok) return true;
+    const incrJson = (await incrRes.json()) as { result?: number };
+    const count = Number(incrJson.result ?? 0);
+
+    if (count === 1) {
+      await fetch(
+        `${UPSTASH_REDIS_REST_URL}/expire/${encodeURIComponent(key)}/${CHAT_RATE_WINDOW_SECONDS}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}`,
+          },
+        }
+      );
+    }
+
+    return count <= maxRequests;
+  } catch {
+    return true;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -83,11 +129,12 @@ async function incrementQuota(
   saathiId: string,
   botSlot: number,
   dateIst: string,
-  currentCount: number
+  currentCount: number,
+  dailyQuota: number
 ): Promise<void> {
   const newCount = currentCount + 1;
   const coolingUntil =
-    newCount >= DAILY_QUOTA
+    newCount >= dailyQuota
       ? new Date(Date.now() + COOLING_HOURS * 60 * 60 * 1000).toISOString()
       : null;
 
@@ -406,6 +453,32 @@ Deno.serve(async (req: Request) => {
     const userId = user.id;
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    const { data: profile, error: profileError } = await admin
+      .from('profiles')
+      .select('role, is_geo_limited')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profileError) {
+      return new Response(JSON.stringify({ error: 'Failed to load profile' }), {
+        status: 500,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const role = typeof profile?.role === 'string' ? profile.role : null;
+    const isGeoLimited = Boolean(profile?.is_geo_limited);
+    const dailyQuota = isGeoLimited
+      ? role === 'institution'
+        ? GEO_LIMITED_INSTITUTION_DAILY_QUOTA
+        : GEO_LIMITED_DAILY_QUOTA
+      : DAILY_QUOTA;
+    const rateMax = isGeoLimited
+      ? role === 'institution'
+        ? GEO_LIMITED_INSTITUTION_RATE_MAX_REQUESTS
+        : GEO_LIMITED_CHAT_RATE_MAX_REQUESTS
+      : CHAT_RATE_MAX_REQUESTS;
+
     type RequestBody = {
       saathiId: string;
       botSlot: number;
@@ -422,8 +495,40 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (isGeoLimited && !GEO_LIMITED_ALLOWED_SLOTS.has(botSlot)) {
+      return new Response(
+        JSON.stringify({
+          error: 'This bot slot is not available in your region yet.',
+          allowedSlots: Array.from(GEO_LIMITED_ALLOWED_SLOTS),
+        }),
+        {
+          status: 403,
+          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    if (message.length > MAX_MESSAGE_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: `Message too long. Max ${MAX_MESSAGE_LENGTH} characters.` }),
+        {
+          status: 400,
+          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const rateKey = `rate:chat:${userId}`;
+    const allowedByRateLimit = await checkUpstashRateLimit(rateKey, rateMax);
+    if (!allowedByRateLimit) {
+      return new Response(JSON.stringify({ error: 'Too many requests. Please slow down.' }), {
+        status: 429,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Sanitize message input
-    const sanitized = message.replace(/[<>]/g, '').slice(0, 2000).trim();
+    const sanitized = message.replace(/[<>]/g, '').trim();
     if (!sanitized) {
       return new Response(JSON.stringify({ error: 'Empty message' }), {
         status: 400,
@@ -458,7 +563,7 @@ Deno.serve(async (req: Request) => {
       quotaRow.message_count = 0;
     }
 
-    if (quotaRow.message_count >= DAILY_QUOTA) {
+    if (quotaRow.message_count >= dailyQuota) {
       return new Response(JSON.stringify({ error: 'quota_exhausted', remaining: 0 }), {
         status: 429,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -510,14 +615,14 @@ Deno.serve(async (req: Request) => {
               content: assistantText,
             });
           }
-          await incrementQuota(admin, userId, saathiId, botSlot, dateIst, quotaRow.message_count);
+          await incrementQuota(admin, userId, saathiId, botSlot, dateIst, quotaRow.message_count, dailyQuota);
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
         }
       },
     });
 
-    const remaining = Math.max(0, DAILY_QUOTA - quotaRow.message_count - 1);
+    const remaining = Math.max(0, dailyQuota - quotaRow.message_count - 1);
 
     return new Response(stream, {
       status: 200,

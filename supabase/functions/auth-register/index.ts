@@ -27,6 +27,21 @@ type RequestBody = {
   deviceId?: string;
 };
 
+function extractCountryCode(req: Request): string | null {
+  const cfCountry = req.headers.get('cf-ipcountry')?.trim().toUpperCase();
+  if (cfCountry && cfCountry.length === 2) return cfCountry;
+
+  const vercelCountry = req.headers.get('x-vercel-ip-country')?.trim().toUpperCase();
+  if (vercelCountry && vercelCountry.length === 2) return vercelCountry;
+
+  return null;
+}
+
+function isGeoLimitedCountry(countryCode: string | null): boolean {
+  if (!countryCode) return false;
+  return countryCode !== 'IN';
+}
+
 function extractDomain(email: string): string {
   const normalized = email.trim().toLowerCase();
   const at = normalized.lastIndexOf('@');
@@ -162,6 +177,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const ip = extractClientIp(req);
+    const countryCode = extractCountryCode(req);
+    const isGeoLimited = isGeoLimitedCountry(countryCode);
 
     const fullNameRaw = user.user_metadata?.full_name;
     const fullName = typeof fullNameRaw === 'string' && fullNameRaw.trim().length > 0
@@ -184,6 +201,10 @@ Deno.serve(async (req: Request) => {
     if (existing) {
       const nextDevice = existing.device_id ?? (deviceId || null);
       const nextIp = existing.registration_ip ?? ip;
+      const nextCountry = existing.country_code ?? countryCode;
+      const nextGeoLimited = typeof existing.is_geo_limited === 'boolean'
+        ? existing.is_geo_limited
+        : isGeoLimited;
 
       const { data: updated, error: updateError } = await admin
         .from('profiles')
@@ -192,6 +213,8 @@ Deno.serve(async (req: Request) => {
           full_name: existing.full_name ?? fullName,
           device_id: nextDevice,
           registration_ip: nextIp,
+          country_code: nextCountry,
+          is_geo_limited: nextGeoLimited,
           registered_at: existing.registered_at ?? new Date().toISOString(),
         })
         .eq('id', user.id)
@@ -220,6 +243,8 @@ Deno.serve(async (req: Request) => {
         role: null,
         device_id: deviceId || null,
         registration_ip: ip,
+        country_code: countryCode,
+        is_geo_limited: isGeoLimited,
         registered_at: new Date().toISOString(),
       })
       .select('*')
