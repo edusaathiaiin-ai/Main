@@ -203,7 +203,7 @@ export function ChatScreen() {
 
             {canShowCheckin ? (
               <Pressable
-                onPress={() => router.push('/checkin')}
+                onPress={() => router.push('/(tabs)/checkin')}
                 className="rounded-full px-3 py-2"
                 style={{ backgroundColor: '#C9993A' }}
               >

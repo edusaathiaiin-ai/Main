@@ -45,6 +45,10 @@ export default function TabsLayout() {
         name="profile"
         options={{ title: 'Profile', tabBarIcon: tabIcon('person', 'person-outline') }}
       />
+      <Tabs.Screen
+        name="checkin"
+        options={{ href: null }}
+      />
     </Tabs>
   );
 }
