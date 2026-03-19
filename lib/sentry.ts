@@ -7,7 +7,7 @@ export function initializeSentry() {
     return;
   }
 
-  const dsn = process.env.SENTRY_DSN;
+  const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
   Sentry.init({
     dsn,

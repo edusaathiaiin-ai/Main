@@ -3,6 +3,7 @@
     "name": "EdUsaathiAI",
     "slug": "EdUsaathiAI",
     "version": "1.0.0",
+    "scheme": "edusaathiai",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -27,7 +28,10 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-font"
     ],
     "extra": {
       "eas": {

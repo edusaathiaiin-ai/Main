@@ -1,10 +1,17 @@
+export type UserRole = 'student' | 'faculty' | 'public' | 'institution';
+
 export type Profile = {
   id: string;
-  role: 'student' | 'faculty' | 'public' | 'institution';
-  fullName: string;
+  /** null means the user has authenticated but not yet completed onboarding */
+  role: UserRole | null;
+  email: string;
+  full_name: string | null;
   city: string | null;
-  institution: string | null;
-  primarySaathiId: string | null;
+  institution_name: string | null;
+  year_of_study: string | null;
+  exam_target: string | null;
+  primary_saathi_id: string | null;
+  is_active: boolean;
 };
 
 export type SoulProfile = {
