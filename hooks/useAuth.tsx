@@ -21,6 +21,8 @@ type AuthContextValue = {
   verifyOTP: (email: string, token: string) => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
+  /** Re-fetches the profile from DB and updates context state. Call after any profile update. */
+  refreshProfile: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -230,6 +232,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
   }
 
+  async function refreshProfile(): Promise<void> {
+    if (!user) return;
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      if (fetchError) {
+        Sentry.captureException(fetchError, { tags: { action: 'profile_refresh' } });
+      } else if (data) {
+        setProfile(data as Profile);
+      }
+    } catch (err) {
+      Sentry.captureException(err, { tags: { action: 'profile_refresh' } });
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -243,6 +263,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         verifyOTP,
         signOut,
         clearError,
+        refreshProfile,
       }}
     >
       {children}

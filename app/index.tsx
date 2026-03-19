@@ -1,5 +1,11 @@
-import { View } from 'react-native';
+import { Redirect } from 'expo-router';
 
-export default function AppIndex() {
-  return <View className="flex-1 bg-white" />;
+/**
+ * Root index — always start at splash.
+ * AuthRedirect in _layout.tsx handles returning users (redirects to home
+ * near-instantly, before the 2-second splash timer fires).
+ */
+export default function Index() {
+  return <Redirect href="/(auth)/splash" />;
 }
+
