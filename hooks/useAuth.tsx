@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import * as WebBrowser from 'expo-web-browser';
+import * as SecureStore from 'expo-secure-store';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as Sentry from '@sentry/react-native';
 
@@ -9,6 +10,57 @@ import type { Profile } from '@/types';
 
 // Required for iOS to properly close the auth session after redirect
 WebBrowser.maybeCompleteAuthSession();
+
+const DEVICE_ID_KEY = 'edusaathiai.device_id.v1';
+
+type AuthRegisterAction = 'precheck' | 'register_profile';
+
+type AuthRegisterResponse = {
+  ok?: boolean;
+  error?: string;
+  profile?: Profile;
+};
+
+async function getOrCreateDeviceId(): Promise<string> {
+  const existing = await SecureStore.getItemAsync(DEVICE_ID_KEY);
+  if (existing) return existing;
+
+  const generated = `dev_${Date.now().toString(36)}_${Math.random()
+    .toString(36)
+    .slice(2, 12)}`;
+  await SecureStore.setItemAsync(DEVICE_ID_KEY, generated);
+  return generated;
+}
+
+async function callAuthRegister(
+  action: AuthRegisterAction,
+  payload: Record<string, unknown>,
+  accessToken?: string
+): Promise<AuthRegisterResponse> {
+  const url = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/auth-register`;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
+  };
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ action, ...payload }),
+  });
+
+  const json = (await res.json()) as AuthRegisterResponse;
+  if (!res.ok) {
+    throw new Error(json.error || 'Registration validation failed');
+  }
+
+  return json;
+}
 
 type AuthContextValue = {
   user: User | null;
@@ -48,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(storedSession);
       setUser(storedSession?.user ?? null);
       if (storedSession?.user) {
-        void loadOrCreateProfile(storedSession.user);
+        void loadOrCreateProfile(storedSession.user, storedSession.access_token);
       } else {
         setIsLoading(false);
       }
@@ -61,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(newSession?.user ?? null);
 
       if (event === 'SIGNED_IN' && newSession?.user) {
-        await loadOrCreateProfile(newSession.user);
+        await loadOrCreateProfile(newSession.user, newSession.access_token);
       } else if (event === 'SIGNED_OUT') {
         setProfile(null);
         setIsLoading(false);
@@ -76,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
-  async function loadOrCreateProfile(authUser: User) {
+  async function loadOrCreateProfile(authUser: User, accessToken?: string) {
     try {
       const { data, error: fetchError } = await supabase
         .from('profiles')
@@ -85,22 +137,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (fetchError && fetchError.code === 'PGRST116') {
-        // No profile yet → create stub with role = null (permitted after migration 023)
-        const { data: newProfile, error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authUser.id,
-            email: authUser.email ?? '',
-            full_name: authUser.user_metadata?.full_name ?? null,
-            role: null,
-          })
-          .select('*')
-          .single();
+        const deviceId = await getOrCreateDeviceId();
 
-        if (insertError) {
-          Sentry.captureException(insertError, { tags: { action: 'profile_create' } });
-        } else {
-          setProfile(newProfile as Profile);
+        let token = accessToken;
+        if (!token) {
+          const {
+            data: { session: currentSession },
+          } = await supabase.auth.getSession();
+          token = currentSession?.access_token;
+        }
+
+        if (!token) {
+          throw new Error('Unable to validate registration session');
+        }
+
+        const registerRes = await callAuthRegister('register_profile', { deviceId }, token);
+        if (registerRes.profile) {
+          setProfile(registerRes.profile);
         }
       } else if (data) {
         setProfile(data as Profile);
@@ -108,7 +161,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         Sentry.captureException(fetchError, { tags: { action: 'profile_load' } });
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Profile setup failed';
+      setError(message);
       Sentry.captureException(err, { tags: { action: 'profile_bootstrap' } });
+
+      if (
+        message.includes('permanent email') ||
+        message.includes('Account exists on this device')
+      ) {
+        await supabase.auth.signOut();
+      }
     } finally {
       setIsLoading(false);
     }
@@ -172,6 +234,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!sanitized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitized)) {
         throw new Error('Please enter a valid email address');
       }
+
+      const deviceId = await getOrCreateDeviceId();
+      await callAuthRegister('precheck', { email: sanitized, deviceId });
 
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: sanitized,

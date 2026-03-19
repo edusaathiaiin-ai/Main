@@ -5,6 +5,11 @@ export type Profile = {
   /** null means the user has authenticated but not yet completed onboarding */
   role: UserRole | null;
   email: string;
+  device_id: string | null;
+  registration_ip: string | null;
+  registered_at: string;
+  needs_review: boolean;
+  review_reason: string | null;
   full_name: string | null;
   city: string | null;
   institution_name: string | null;
