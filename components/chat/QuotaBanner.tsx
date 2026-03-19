@@ -22,7 +22,7 @@ export function QuotaBanner({ remaining, limit }: QuotaBannerProps) {
         style={{ fontFamily: 'DMSans-Medium', color, flex: 1 }}
       >
         {remaining === 0
-          ? `All ${limit} chats used for today — come back tomorrow.`
+          ? `All ${limit} chats used — your Saathi will be ready for you in 48 hours.`
           : `${remaining} ${remaining === 1 ? 'chat' : 'chats'} remaining for today`}
       </Text>
     </View>

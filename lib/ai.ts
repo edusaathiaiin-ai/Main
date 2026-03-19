@@ -1,4 +1,5 @@
 import { BOTS } from '@/constants/bots';
+import { supabase } from './supabase';
 
 const STREAM_DELAY_MS = 28;
 
@@ -39,6 +40,10 @@ function buildLocalReply(params: StreamParams): string {
 export async function* streamLocalBotResponse(
   params: StreamParams
 ): AsyncGenerator<string, void, void> {
+  if (process.env.APP_ENV === 'production') {
+    throw new Error('streamLocalBotResponse must not be called in production');
+  }
+
   const reply = buildLocalReply(params);
   const tokens = reply.split(' ');
 
@@ -51,8 +56,6 @@ export async function* streamLocalBotResponse(
 // ---------------------------------------------------------------------------
 // Real Edge Function streaming — all AI keys stay server-side
 // ---------------------------------------------------------------------------
-
-import { supabase } from './supabase';
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -83,6 +86,7 @@ export async function sendChatMessage(params: {
   onError: (err: ChatError) => void;
 }): Promise<void> {
   const { saathiId, botSlot, message, history, onChunk, onComplete, onError } = params;
+  const cappedHistory = history.slice(-10);
 
   const {
     data: { session },
@@ -102,7 +106,7 @@ export async function sendChatMessage(params: {
         Authorization: `Bearer ${session.access_token}`,
         apikey: SUPABASE_ANON_KEY,
       },
-      body: JSON.stringify({ saathiId, botSlot, message, history }),
+      body: JSON.stringify({ saathiId, botSlot, message, history: cappedHistory }),
     });
   } catch (err) {
     onError({ type: 'error', message: err instanceof Error ? err.message : 'Network error' });

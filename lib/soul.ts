@@ -294,13 +294,16 @@ You are not just answering questions. You are shaping a future.`.trim();
 // Soul update helpers
 // ---------------------------------------------------------------------------
 
-function detectPreferredTone(messages: ChatMessage[]): 'formal' | 'casual' | 'neutral' {
+function detectPreferredTone(
+  messages: ChatMessage[],
+  existingPreferredTone: 'formal' | 'casual' | 'neutral'
+): 'formal' | 'casual' | 'neutral' {
   const userText = messages
     .filter((m) => m.role === 'user')
     .map((m) => m.content)
     .join(' ');
 
-  if (userText.length === 0) return 'neutral';
+  if (userText.length === 0) return existingPreferredTone;
 
   const formalPatterns = [
     /\b(therefore|hence|thus|regarding|furthermore|moreover|consequently|accordingly)\b/i,
@@ -317,9 +320,29 @@ function detectPreferredTone(messages: ChatMessage[]): 'formal' | 'casual' | 'ne
   const formalScore = formalPatterns.filter((rx) => rx.test(userText)).length;
   const casualScore = casualPatterns.filter((rx) => rx.test(userText)).length;
 
-  if (formalScore > casualScore) return 'formal';
-  if (casualScore > formalScore) return 'casual';
-  return 'neutral';
+  let detectedTone: 'formal' | 'casual' | 'neutral' = 'neutral';
+  let detectedScore = 0;
+
+  if (formalScore > casualScore) {
+    detectedTone = 'formal';
+    detectedScore = formalScore;
+  } else if (casualScore > formalScore) {
+    detectedTone = 'casual';
+    detectedScore = casualScore;
+  }
+
+  if (detectedTone !== 'neutral' && detectedScore >= 2) {
+    return detectedTone;
+  }
+
+  if (
+    detectedTone === 'neutral' &&
+    (existingPreferredTone === 'formal' || existingPreferredTone === 'casual')
+  ) {
+    return existingPreferredTone;
+  }
+
+  return existingPreferredTone;
 }
 
 function extractTopics(messages: ChatMessage[], limit: number): string[] {
@@ -447,7 +470,7 @@ export async function updateSoulProfile(
 
   const current = await fetchStudentSoul(client, userId, saathiId);
 
-  const newTone = detectPreferredTone(messages);
+  const newTone = detectPreferredTone(messages, current.preferredTone);
   const sessionTopics = extractTopics(messages, 10);
   const newStruggleTopics = detectStruggleTopics(messages);
 

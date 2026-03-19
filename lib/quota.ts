@@ -23,7 +23,8 @@ export type QuotaState = {
 };
 
 export const DAILY_CHAT_LIMIT = 20;
-export const COOLING_SECONDS = 20;
+export const COOLING_HOURS = 48;
+export const COOLING_MS = COOLING_HOURS * 60 * 60 * 1000;
 
 const STORE_KEY = 'edusaathiai.quota.v1';
 let memoryStore: QuotaStore = {};
@@ -59,11 +60,16 @@ async function writeStore(next: QuotaStore): Promise<void> {
 
 function normalizeRecord(record: QuotaRecord | undefined): QuotaRecord {
   const today = getTodayIsoDate();
+  const now = Date.now();
+
+  const coolingUntil =
+    record?.coolingUntil && record.coolingUntil > now ? record.coolingUntil : null;
+
   if (!record || record.date !== today) {
-    return { date: today, used: 0, coolingUntil: null };
+    return { date: today, used: 0, coolingUntil };
   }
 
-  if (record.coolingUntil && record.coolingUntil <= Date.now()) {
+  if (record.coolingUntil && record.coolingUntil <= now) {
     return { ...record, coolingUntil: null };
   }
 
@@ -108,10 +114,13 @@ export async function consumeQuota(params: QuotaKeyParams): Promise<QuotaState> 
     return toQuotaState(capped);
   }
 
+  const nextUsed = current.used + 1;
+  const hitLimit = nextUsed >= DAILY_CHAT_LIMIT;
+
   const next: QuotaRecord = {
     date: current.date,
-    used: current.used + 1,
-    coolingUntil: Date.now() + COOLING_SECONDS * 1000,
+    used: nextUsed,
+    coolingUntil: hitLimit ? Date.now() + COOLING_MS : current.coolingUntil,
   };
 
   await writeStore({ ...store, [key]: next });

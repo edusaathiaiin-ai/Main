@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,6 +17,7 @@ import { SAATHIS } from '@/constants/saathis';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuota } from '@/hooks/useQuota';
 import { useSaathi } from '@/hooks/useSaathi';
+import { useSoul } from '@/hooks/useSoul';
 import { sendChatMessage, type ChatError, type MessageParam } from '@/lib/ai';
 import { CoolingBanner } from './CoolingBanner';
 import { MessageBubble } from './MessageBubble';
@@ -47,7 +49,9 @@ function ApiProviderBadge({ provider }: ApiProviderBadgeProps) {
 
 export function ChatScreen() {
   const { profile, user } = useAuth();
+  const router = useRouter();
   const { currentSaathiId } = useSaathi();
+  const { soul } = useSoul(currentSaathiId);
   const [selectedBotSlot, setSelectedBotSlot] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -57,6 +61,7 @@ export function ChatScreen() {
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
   const saathi = currentSaathiId ? SAATHIS.find((s) => s.id === currentSaathiId) : null;
+  const canShowCheckin = (soul?.sessionCount ?? 0) >= 5;
 
   const allowedBots = useMemo(() => {
     const role = profile?.role ?? 'student';
@@ -195,6 +200,18 @@ export function ChatScreen() {
                 {saathi.tagline}
               </Text>
             </View>
+
+            {canShowCheckin ? (
+              <Pressable
+                onPress={() => router.push('/checkin')}
+                className="rounded-full px-3 py-2"
+                style={{ backgroundColor: '#C9993A' }}
+              >
+                <Text style={{ fontFamily: 'DMSans-Bold', fontSize: 12, color: '#0B1F3A' }}>
+                  ✦ Check-in
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         ) : null}
 

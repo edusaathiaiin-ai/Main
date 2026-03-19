@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, Text, View } from 'react-native';
 
 type CoolingBannerProps = {
   coolingUntil: Date;
@@ -46,16 +47,19 @@ export function CoolingBanner({ coolingUntil, saathiName }: CoolingBannerProps) 
         </Text>
       </Text>
       {saathiName ? (
-        <Text
-          style={{
-            fontFamily: 'DMSans-Regular',
-            fontSize: 12,
-            color: '#92400ECC',
-            marginTop: 4,
-          }}
-        >
-          Explore what's happening in {saathiName} while you wait.
-        </Text>
+        <Pressable onPress={() => router.push('/(tabs)/news')} hitSlop={6}>
+          <Text
+            style={{
+              fontFamily: 'DMSans-Regular',
+              fontSize: 12,
+              color: '#92400ECC',
+              marginTop: 4,
+              textDecorationLine: 'underline',
+            }}
+          >
+            Explore what's happening in {saathiName} while you wait.
+          </Text>
+        </Pressable>
       ) : null}
     </View>
   );
