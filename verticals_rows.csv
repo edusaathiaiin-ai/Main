@@ -1,0 +1,21 @@
+id,name,emoji,tagline,primary_color,accent_color,bg_color,is_active,created_at,updated_at,slug,is_live
+04a40fcd-dff7-4f4b-9318-4fc9ced52ff2,MedicoSaathi,🏥,Healing starts with understanding,#1A4A5C,#0EA5E9,#E4F0F5,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,medicosaathi,false
+066cf79f-6988-4b1b-9023-3bb1a95cf1ef,ArchSaathi,🏛️,"Design thinking, built different",#6B4A00,#D97706,#FFF4D6,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,archsaathi,false
+2b3d9904-71d9-4275-a3f1-4bbdbf15e0c9,KanoonSaathi,⚖️,Where law meets intelligence,#1E3A5F,#3B82F6,#E8F0FE,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,kanoonsaathi,true
+3938e9ca-27f3-496c-b257-9085c88b6086,MaathSaathi,📐,Numbers made neighbourly,#0F4C2A,#22C55E,#EAF3DE,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,maathsaathi,false
+3a1d5d47-8f74-41c0-a65f-a9f6bb9ac513,MktSaathi,📣,From insight to influence,#5C1A00,#F97316,#FFF0E8,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,mktsaathi,false
+3ceed581-23e7-430d-9bc5-cc3c1a6c1525,EconSaathi,📊,"Markets explained, policies demystified",#2C4A00,#4D7C0F,#EEF6E0,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,econsaathi,false
+3ed543a3-b8a6-4eb7-a3db-aff77b441561,NursingSaathi,🩺,Care grounded in knowledge,#5C001A,#F43F5E,#FCEAF0,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,nursingsaathi,false
+4b17ee05-843d-4834-ae06-bdb00de88698,HistorySaathi,🏺,Every era has a lesson,#5C3A00,#B45309,#FFF0E0,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,historysaathi,false
+4f1c2dc8-e8ef-465c-9d85-60693614d2ca,ChemSaathi,🧪,"Reactions decoded, concepts unlocked",#5C1A6B,#A855F7,#F5E8FE,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,chemsaathi,false
+58751e29-7335-4810-aee6-aed7653d024a,PsychSaathi,🧠,"Understanding minds, building empathy",#3A1C5C,#8B5CF6,#F0E8FC,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,psychsaathi,false
+66c4593f-2e5e-4b0b-99f7-9aceb432cd93,FinSaathi,💰,"Money matters, demystified",#1A3A2A,#059669,#E4F5EE,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,finsaathi,false
+766c728f-0ac5-47b8-977e-3d53171befef,BioSaathi,🧬,"Life explained, cell by cell",#1A5C2E,#10B981,#E6F7EC,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,biosaathi,false
+7d035944-518c-4226-98cb-4afc84dc170a,CompSaathi,💻,"Code, conquer, create",#1C1C5C,#6366F1,#EEEEF8,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,compsaathi,false
+8bb0ee78-cee4-4a38-85fe-3216ad7223de,HRSaathi,🤝,"People first, always",#3A003A,#EC4899,#F8E8F8,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,hrsaathi,false
+91cd2776-064e-49a0-a943-473aab99c681,EnviroSaathi,🌍,Engineering a sustainable tomorrow,#0F3A1A,#84CC16,#E4F5E8,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,envirosathi,false
+ae58dc64-c007-4e86-91de-9fef02d6ed9e,CivilSaathi,🏗️,Structures that stand the test of time,#3A2800,#F59E0B,#FFF3E0,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,civilsaathi,false
+b44bcc52-f5c9-4d6c-8ded-6e9f0ea4e6f9,BizSaathi,📈,"Business thinking, sharpened daily",#1A3A00,#65A30D,#EEF8E4,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,bizsaathi,false
+c9050111-cb49-4807-a067-01f71d08d0b9,ElecSaathi,⚡,"Current knowledge, grounded thinking",#003A5C,#06B6D4,#E0F0FA,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,elecsaathi,false
+da86768e-14ab-4614-b579-7f4915b2ceca,PharmaSaathi,💊,Every molecule has a story,#7A1C1C,#EF4444,#FDEAEA,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,pharmasaathi,false
+fc2d4095-7570-4e70-94d4-133b02d92f02,MechSaathi,⚙️,"Engineering minds, precision built",#1A3A5C,#0EA5E9,#E6EEF8,true,2026-03-19 02:00:35.825699+00,2026-03-19 02:00:35.825699+00,mechsaathi,false
