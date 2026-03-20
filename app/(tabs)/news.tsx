@@ -354,7 +354,9 @@ export default function NewsScreen() {
       if (a.kind === 'exam' && b.kind === 'exam') {
         return a.daysAway - b.daysAway;
       }
-      return new Date(b.fetchedAt).getTime() - new Date(a.fetchedAt).getTime();
+      const aTime = 'fetchedAt' in a ? new Date((a as { fetchedAt: string }).fetchedAt).getTime() : 0;
+      const bTime = 'fetchedAt' in b ? new Date((b as { fetchedAt: string }).fetchedAt).getTime() : 0;
+      return bTime - aTime;
     });
   }, [examRows, newsRows, researchArea, selectedTab]);
 

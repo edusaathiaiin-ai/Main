@@ -15,14 +15,15 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
-const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';
+const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';           // gsk_… (Groq LPU cloud)
+const GROK_API_KEY = Deno.env.get('GROK_API_KEY') ?? '';           // xai-… (xAI Grok — fallback)
 const UPSTASH_REDIS_REST_URL = Deno.env.get('UPSTASH_REDIS_REST_URL') ?? '';
 const UPSTASH_REDIS_REST_TOKEN = Deno.env.get('UPSTASH_REDIS_REST_TOKEN') ?? '';
 
-const DAILY_QUOTA = 20;
+const DAILY_QUOTA = 20;               // fallback (plus plan default)
 const GEO_LIMITED_DAILY_QUOTA = 5;
 const GEO_LIMITED_INSTITUTION_DAILY_QUOTA = 2;
-const COOLING_HOURS = 48;
+const COOLING_HOURS = 48;             // fallback
 const MAX_MESSAGE_LENGTH = 2000;
 const CHAT_RATE_WINDOW_SECONDS = 60;
 const CHAT_RATE_MAX_REQUESTS = 20;
@@ -31,6 +32,36 @@ const GEO_LIMITED_INSTITUTION_RATE_MAX_REQUESTS = 4;
 const GEO_LIMITED_ALLOWED_SLOTS = new Set([1, 5]);
 // Slots 1, 2, 5 use Groq; Slots 3, 4 use Claude
 const GROQ_SLOTS = new Set([1, 2, 5]);
+
+// ── Plan-specific quota config (mirrors constants/plans.ts) ──────────────────
+// Inlined here because Deno cannot import from the React Native app layer.
+type PlanQuotaConfig = { dailyChatLimit: number; coolingHours: number };
+const PLAN_QUOTA: Record<string, PlanQuotaConfig> = {
+  free:      { dailyChatLimit: 5,    coolingHours: 48 },
+  plus:      { dailyChatLimit: 20,   coolingHours: 48 },
+  pro:       { dailyChatLimit: 50,   coolingHours: 24 },
+  unlimited: { dailyChatLimit: 9999, coolingHours: 0  }, // 0 = no cooling
+};
+
+function getPlanQuota(planId: string | null | undefined): PlanQuotaConfig {
+  return PLAN_QUOTA[planId ?? 'free'] ?? PLAN_QUOTA['plus'];
+}
+
+/** Milliseconds until midnight IST — for Unlimited plan zero-cooling reset */
+function msUntilMidnightIST(): number {
+  const now = new Date();
+  const ist = new Date(now.getTime() + 330 * 60 * 1000);
+  const midnight = new Date(ist);
+  midnight.setUTCHours(18, 30, 0, 0); // 18:30 UTC = midnight IST
+  if (midnight <= ist) midnight.setUTCDate(midnight.getUTCDate() + 1);
+  return midnight.getTime() - now.getTime();
+}
+
+// ── Model versions — update here when new models release ────────────────────
+const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
+const GROQ_MODEL   = 'llama-3.3-70b-versatile';   // Groq primary
+const GROK_MODEL   = 'grok-3-fast';                // xAI fallback
+// ─────────────────────────────────────────────────────────────────────────────
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -130,13 +161,20 @@ async function incrementQuota(
   botSlot: number,
   dateIst: string,
   currentCount: number,
-  dailyQuota: number
+  dailyQuota: number,
+  coolingHours: number
 ): Promise<void> {
   const newCount = currentCount + 1;
-  const coolingUntil =
-    newCount >= dailyQuota
-      ? new Date(Date.now() + COOLING_HOURS * 60 * 60 * 1000).toISOString()
-      : null;
+  let coolingUntil: string | null = null;
+
+  if (newCount >= dailyQuota) {
+    if (coolingHours > 0) {
+      coolingUntil = new Date(Date.now() + coolingHours * 60 * 60 * 1000).toISOString();
+    } else {
+      // Unlimited plan: no cooling period, just reset at midnight IST
+      coolingUntil = new Date(Date.now() + msUntilMidnightIST()).toISOString();
+    }
+  }
 
   const { error } = await admin
     .from('chat_sessions')
@@ -306,7 +344,7 @@ async function streamClaude(
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: CLAUDE_MODEL,
       max_tokens: 1024,
       stream: true,
       system: systemPrompt,
@@ -366,7 +404,7 @@ async function streamGroq(
       Authorization: `Bearer ${GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
+      model: GROQ_MODEL,
       stream: true,
       max_tokens: 1024,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
@@ -407,6 +445,95 @@ async function streamGroq(
   }
 
   return fullText;
+}
+
+// ---------------------------------------------------------------------------
+// xAI Grok streaming helper (OpenAI-compatible API)
+// Used as PANIC FALLBACK when Groq is unavailable.
+// ---------------------------------------------------------------------------
+
+async function streamXaiGrok(
+  systemPrompt: string,
+  messages: MessageParam[],
+  controller: ReadableStreamDefaultController<Uint8Array>
+): Promise<string> {
+  const encoder = new TextEncoder();
+  let fullText = '';
+
+  const res = await fetch('https://api.x.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${GROK_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: GROK_MODEL,
+      stream: true,
+      max_tokens: 1024,
+      messages: [{ role: 'system', content: systemPrompt }, ...messages],
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`xAI Grok API ${res.status}: ${text}`);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error('No response body from xAI Grok');
+
+  const decoder = new TextDecoder();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value, { stream: true });
+    for (const line of chunk.split('\n')) {
+      if (!line.startsWith('data: ')) continue;
+      const data = line.slice(6).trim();
+      if (data === '[DONE]') continue;
+      try {
+        const parsed = JSON.parse(data) as {
+          choices?: Array<{ delta?: { content?: string } }>;
+        };
+        const delta = parsed.choices?.[0]?.delta?.content;
+        if (delta) {
+          fullText += delta;
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));
+        }
+      } catch {
+        // skip malformed chunks
+      }
+    }
+  }
+
+  return fullText;
+}
+
+// ---------------------------------------------------------------------------
+// Groq → xAI Grok fallback wrapper
+// Tries Groq first (low latency, LPU cloud).
+// On ANY Groq failure, retries transparently with xAI Grok.
+// If both fail, throws the xAI error so the outer catch can handle it.
+// ---------------------------------------------------------------------------
+
+async function streamGroqWithFallback(
+  systemPrompt: string,
+  messages: MessageParam[],
+  controller: ReadableStreamDefaultController<Uint8Array>
+): Promise<string> {
+  try {
+    return await streamGroq(systemPrompt, messages, controller);
+  } catch (groqErr) {
+    const groqMsg = groqErr instanceof Error ? groqErr.message : String(groqErr);
+    console.warn(`[chat] Groq failed (${groqMsg}). Falling back to xAI Grok…`);
+
+    if (!GROK_API_KEY) {
+      // No fallback configured — re-throw original Groq error
+      throw groqErr;
+    }
+    return await streamXaiGrok(systemPrompt, messages, controller);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -455,7 +582,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: profile, error: profileError } = await admin
       .from('profiles')
-      .select('role, is_geo_limited')
+      .select('role, is_geo_limited, plan_id, subscription_status')
       .eq('id', userId)
       .maybeSingle();
 
@@ -468,11 +595,20 @@ Deno.serve(async (req: Request) => {
 
     const role = typeof profile?.role === 'string' ? profile.role : null;
     const isGeoLimited = Boolean(profile?.is_geo_limited);
+    const rawPlanId = typeof profile?.plan_id === 'string' ? profile.plan_id : 'free';
+    // Paused users get free-tier limits
+    const isPaused = profile?.subscription_status === 'paused';
+    const effectivePlanId = isPaused ? 'free' : rawPlanId;
+    const planQuota = getPlanQuota(effectivePlanId);
+
     const dailyQuota = isGeoLimited
       ? role === 'institution'
         ? GEO_LIMITED_INSTITUTION_DAILY_QUOTA
         : GEO_LIMITED_DAILY_QUOTA
-      : DAILY_QUOTA;
+      : planQuota.dailyChatLimit;
+
+    const effectiveCoolingHours = isGeoLimited ? COOLING_HOURS : planQuota.coolingHours;
+
     const rateMax = isGeoLimited
       ? role === 'institution'
         ? GEO_LIMITED_INSTITUTION_RATE_MAX_REQUESTS
@@ -535,6 +671,35 @@ Deno.serve(async (req: Request) => {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
+
+    // ── Injection detection — log silently, never block ──────────────────────
+    // Guardrails in the system prompt handle the actual deflection.
+    // Logging gives admin visibility without alerting the attacker.
+    const INJECTION_PATTERNS = [
+      /ignore.{0,20}(previous|above|all).{0,20}instruction/i,
+      /you are now/i,
+      /pretend you (are|have no)/i,
+      /jailbreak/i,
+      /DAN mode/i,
+      /act as if you/i,
+    ];
+
+    const isInjectionAttempt = INJECTION_PATTERNS.some(rx => rx.test(sanitized));
+
+    if (isInjectionAttempt) {
+      // Fire-and-forget — don't await, don't let a DB error affect the response
+      admin.from('moderation_flags').insert({
+        target_type:       'chat_injection',
+        target_id:         userId,
+        reporter_user_id:  userId,
+        reason:            'prompt_injection_attempt',
+        details:           sanitized.slice(0, 100),
+        status:            'pending',
+      }).then(({ error }: { error: { message: string } | null }) => {
+        if (error) console.warn('injection flag insert failed:', error.message);
+      });
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     // Quota enforcement
     const dateIst = todayIST();
@@ -600,13 +765,14 @@ Deno.serve(async (req: Request) => {
       async start(controller) {
         try {
           assistantText = useGroq
-            ? await streamGroq(systemPrompt, messages, controller)
+            ? await streamGroqWithFallback(systemPrompt, messages, controller)
             : await streamClaude(systemPrompt, messages, controller);
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'Stream error';
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
         } finally {
-          if (assistantText) {
+          if (assistantText && assistantText.length > 0) {
+            // AI responded with content — save message and charge quota
             await admin.from('chat_messages').insert({
               user_id: userId,
               vertical_id: saathiId,
@@ -614,8 +780,9 @@ Deno.serve(async (req: Request) => {
               role: 'assistant',
               content: assistantText,
             });
+            await incrementQuota(admin, userId, saathiId, botSlot, dateIst, quotaRow.message_count, dailyQuota, effectiveCoolingHours);
           }
-          await incrementQuota(admin, userId, saathiId, botSlot, dateIst, quotaRow.message_count, dailyQuota);
+          // [DONE] is always sent so the client stream closes cleanly
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
         }

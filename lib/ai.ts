@@ -178,3 +178,42 @@ export async function sendChatMessage(params: {
     reader.releaseLock();
   }
 }
+
+// ---------------------------------------------------------------------------
+// Soul update trigger — fire-and-forget after each session completes
+// ---------------------------------------------------------------------------
+
+/**
+ * triggerSoulUpdate
+ *
+ * Sends the completed session messages to the soul-update Edge Function.
+ * Called after every chat session ends (non-blocking — never awaited in UI).
+ * Failures are swallowed silently; soul memory is best-effort.
+ */
+export async function triggerSoulUpdate(params: {
+  saathiId: string;
+  sessionMessages: MessageParam[];
+}): Promise<void> {
+  const { saathiId, sessionMessages } = params;
+  if (!saathiId || sessionMessages.length === 0) return;
+
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) return;
+
+    await fetch(`${SUPABASE_URL}/functions/v1/soul-update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ saathiId, sessionMessages }),
+    });
+    // Result is not awaited in UI — fire and forget
+  } catch {
+    // Non-fatal — soul update is best-effort
+  }
+}

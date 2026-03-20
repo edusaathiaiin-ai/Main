@@ -7,6 +7,7 @@ import * as Sentry from '@sentry/react-native';
 
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types';
+import { checkConversionShouldShow, markConversionShown } from '@/hooks/useConversionTrigger';
 
 // Required for iOS to properly close the auth session after redirect
 WebBrowser.maybeCompleteAuthSession();
@@ -68,6 +69,8 @@ type AuthContextValue = {
   profile: Profile | null;
   isLoading: boolean;
   error: string | null;
+  /** Set to true once day_45 conversion check fires on this session */
+  showDay45Popup: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmailOTP: (email: string) => Promise<void>;
   verifyOTP: (email: string, token: string) => Promise<void>;
@@ -75,6 +78,7 @@ type AuthContextValue = {
   clearError: () => void;
   /** Re-fetches the profile from DB and updates context state. Call after any profile update. */
   refreshProfile: () => Promise<void>;
+  clearDay45Popup: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -87,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDay45Popup, setShowDay45Popup] = useState(false);
 
   // OAuth redirect URI — expo-auth-session handles Expo Go vs standalone automatically
   const redirectUri = makeRedirectUri({
@@ -156,7 +161,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(registerRes.profile);
         }
       } else if (data) {
-        setProfile(data as Profile);
+        const p = data as Profile;
+        setProfile(p);
+
+        // ── Increment login_count (fire-and-forget) ──────────────────────
+        const newCount = (p.login_count ?? 0) + 1;
+        supabase
+          .from('profiles')
+          .update({ login_count: newCount })
+          .eq('id', authUser.id)
+          .then(({ error: updateErr }) => {
+            if (updateErr) console.warn('login_count update failed:', updateErr.message);
+          });
+
+        // ── day_45 conversion check ───────────────────────────────────────
+        const createdAt = new Date(p.created_at ?? Date.now());
+        const daysSince = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSince >= 45 && daysSince < 60) {
+          checkConversionShouldShow(authUser.id, 'day_45')
+            .then(async (should) => {
+              if (should) {
+                setShowDay45Popup(true);
+                await markConversionShown(authUser.id, 'day_45');
+              }
+            })
+            .catch((err: unknown) =>
+              Sentry.captureException(err, { tags: { action: 'day45_check' } })
+            );
+        }
       } else if (fetchError) {
         Sentry.captureException(fetchError, { tags: { action: 'profile_load' } });
       }
@@ -297,6 +329,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
   }
 
+  function clearDay45Popup() {
+    setShowDay45Popup(false);
+  }
+
   async function refreshProfile(): Promise<void> {
     if (!user) return;
     try {
@@ -323,12 +359,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profile,
         isLoading,
         error,
+        showDay45Popup,
         signInWithGoogle,
         signInWithEmailOTP,
         verifyOTP,
         signOut,
         clearError,
         refreshProfile,
+        clearDay45Popup,
       }}
     >
       {children}

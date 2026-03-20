@@ -49,6 +49,10 @@ export default function TabsLayout() {
         name="checkin"
         options={{ href: null }}
       />
+      <Tabs.Screen
+        name="pricing"
+        options={{ href: null }}
+      />
     </Tabs>
   );
 }

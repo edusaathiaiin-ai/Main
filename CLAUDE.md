@@ -337,12 +337,26 @@ consent_log         — consent audit trail
 
 ## 11. User Roles & Access
 
+
 | Role | Color | Bot Access | Board | News | Interns |
 |---|---|---|---|---|---|
 | Student 🎓 | #4F46E5 Indigo | All 5 bots (20/day each) | Read + Post | Full | Browse + Apply |
 | Faculty 👨‍🏫 | #16A34A Emerald | All 5 bots (20/day each) | Read + Post + Verified badge | Full | None |
 | General Public 🌐 | #EA580C Amber | Bot 1 + Bot 5 only (5/day) | Read + Post | Full | None |
 | Institution 🏢 | #7C3AED Violet | None | Saathi Spotlight only | None | Post + Browse |
+| Global Guest 🌍 | #6366F1 Blue | Bot 5 only (3/day) | Read-only | Full | None |
+
+### Global Guest role
+- Triggered when country != India at registration
+- `is_global_guest = true` in profiles
+- 3 chats/day, Bot 5 only
+- Board read-only
+- No intern marketplace
+- No Saathi Check-in
+- Warm banner shown throughout app
+- Country + Saathi interest tracked for expansion analytics
+- Future: paid Global Plus tier at $4.99/month  
+  Note: $4.99/month globally vs ₹199 in India. Same soul, right price for each market.
 
 ---
 

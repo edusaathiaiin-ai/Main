@@ -18,10 +18,25 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuota } from '@/hooks/useQuota';
 import { useSaathi } from '@/hooks/useSaathi';
 import { useSoul } from '@/hooks/useSoul';
-import { sendChatMessage, type ChatError, type MessageParam } from '@/lib/ai';
+import { sendChatMessage, triggerSoulUpdate, type ChatError, type MessageParam } from '@/lib/ai';
 import { CoolingBanner } from './CoolingBanner';
 import { MessageBubble } from './MessageBubble';
+import { PaywallBanner } from './PaywallBanner';
 import { QuotaBanner } from './QuotaBanner';
+import { ConversionModal } from '@/components/ui/ConversionModal';
+import {
+  checkConversionShouldShow,
+  markConversionShown,
+  markConversionDismissed,
+  markConversionActedOn,
+  fetchShownNudgeIds,
+  markNudgeShown,
+} from '@/hooks/useConversionTrigger';
+import { selectNudge } from '@/lib/nudgeSelector';
+import type { NudgeMessage } from '@/constants/nudges';
+import type { TriggerType } from '@/constants/copy';
+
+import { useSubscription } from '@/hooks/useSubscription';
 
 import type { ChatMessage } from '@/types';
 
@@ -52,6 +67,7 @@ export function ChatScreen() {
   const router = useRouter();
   const { currentSaathiId } = useSaathi();
   const { soul } = useSoul(currentSaathiId);
+  const { isPremium } = useSubscription();
   const [selectedBotSlot, setSelectedBotSlot] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -59,6 +75,10 @@ export function ChatScreen() {
   const [sending, setSending] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
+
+  // Conversion modal state
+  const [conversionNudge, setConversionNudge] = useState<NudgeMessage | null>(null);
+  const [conversionTrigger, setConversionTrigger] = useState<TriggerType>('quota_hit');
 
   const saathi = currentSaathiId ? SAATHIS.find((s) => s.id === currentSaathiId) : null;
   const canShowCheckin = (soul?.sessionCount ?? 0) >= 5;
@@ -146,6 +166,49 @@ export function ChatScreen() {
         setStreamingId(null);
         void refreshQuota();
         scrollToBottom();
+        // Fire-and-forget soul update — never blocks the UI
+        if (currentSaathiId) {
+          const sessionMsgs: MessageParam[] = [
+            ...messages
+              .filter((m) => m.role === 'user' || m.role === 'assistant')
+              .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+            { role: 'assistant' as const, content: fullText },
+          ];
+          void triggerSoulUpdate({ saathiId: currentSaathiId, sessionMessages: sessionMsgs });
+        }
+        // quota_hit trigger — wait 1.5s so student reads the response first
+        if (!user?.id || !profile) return;
+        const uid = user.id;
+        setTimeout(() => {
+          // remaining is stale here — check the refreshed value via DB
+          checkConversionShouldShow(uid, 'quota_hit')
+            .then(async (should) => {
+              // Extra guard: only fire when quota is actually 0 after refresh
+              if (!should || remaining > 1) return;
+              const trigger: TriggerType = 'quota_hit';
+              const { shownNudgeIds, lastNudgeId } = await fetchShownNudgeIds(uid, trigger);
+              const nudge = selectNudge({
+                userId: uid,
+                triggerType: trigger,
+                userProfile: {
+                  displayName: profile.full_name?.split(' ')[0] ?? 'Friend',
+                  city: profile.city,
+                  examTarget: profile.exam_target,
+                  preferredTone: soul?.preferredTone ?? null,
+                  daysUntilExam: null,
+                },
+                shownNudgeIds,
+                lastNudgeId,
+              });
+              setConversionTrigger(trigger);
+              setConversionNudge(nudge);
+              await markConversionShown(uid, trigger);
+              await markNudgeShown(uid, trigger, nudge.id, shownNudgeIds);
+            })
+            .catch((err: unknown) =>
+              Sentry.captureException(err, { tags: { action: 'quota_hit_check' } })
+            );
+        }, 1500);
       },
       onError: (err: ChatError) => {
         setSending(false);
@@ -171,6 +234,7 @@ export function ChatScreen() {
   }
 
   return (
+    <>
     <KeyboardAvoidingView
       className="flex-1 bg-cream"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -223,6 +287,38 @@ export function ChatScreen() {
               <Pressable
                 key={bot.slot}
                 onPress={() => {
+                  // plus_bot_tap: block free users from switching to Plus bots
+                  if (!isPremium && bot.slot >= 2 && bot.slot <= 4) {
+                    if (!user?.id || !profile) return;
+                    const uid = user.id;
+                    const trigger: TriggerType = 'plus_bot_tap';
+                    checkConversionShouldShow(uid, trigger)
+                      .then(async (should) => {
+                        if (!should) return;
+                        const { shownNudgeIds, lastNudgeId } = await fetchShownNudgeIds(uid, trigger);
+                        const nudge = selectNudge({
+                          userId: uid,
+                          triggerType: trigger,
+                          userProfile: {
+                            displayName: profile.full_name?.split(' ')[0] ?? 'Friend',
+                            city: profile.city,
+                            examTarget: profile.exam_target,
+                            preferredTone: soul?.preferredTone ?? null,
+                            daysUntilExam: null,
+                          },
+                          shownNudgeIds,
+                          lastNudgeId,
+                        });
+                        setConversionTrigger(trigger);
+                        setConversionNudge(nudge);
+                        await markConversionShown(uid, trigger);
+                        await markNudgeShown(uid, trigger, nudge.id, shownNudgeIds);
+                      })
+                      .catch((err: unknown) =>
+                        Sentry.captureException(err, { tags: { action: 'plus_bot_tap_check' } })
+                      );
+                    return; // ← do NOT switch slot
+                  }
                   setSelectedBotSlot(bot.slot);
                   setChatError(null);
                 }}
@@ -258,6 +354,11 @@ export function ChatScreen() {
               {activeBot.purpose}
             </Text>
           </View>
+        ) : null}
+
+        {/* Paywall banner for premium bot slots */}
+        {!isPremium && selectedBotSlot >= 2 && selectedBotSlot <= 4 ? (
+          <PaywallBanner botSlot={selectedBotSlot} saathiPrimary={saathi?.primary} />
         ) : null}
 
         {/* Quota + cooling banners */}
@@ -378,5 +479,25 @@ export function ChatScreen() {
         </Pressable>
       </View>
     </KeyboardAvoidingView>
+
+    {/* Conversion modal — quota_hit and plus_bot_tap */}
+    {conversionNudge ? (
+      <ConversionModal
+        visible
+        triggerType={conversionTrigger}
+        nudge={conversionNudge}
+        accentColor={saathi?.accent ?? '#C9993A'}
+        onDismiss={async () => {
+          if (user?.id) await markConversionDismissed(user.id, conversionTrigger);
+          setConversionNudge(null);
+        }}
+        onCta={async () => {
+          if (user?.id) await markConversionActedOn(user.id, conversionTrigger);
+          setConversionNudge(null);
+          router.push('/(tabs)/pricing');
+        }}
+      />
+    ) : null}
+    </>
   );
 }

@@ -19,6 +19,19 @@ export type Profile = {
   exam_target: string | null;
   primary_saathi_id: string | null;
   is_active: boolean;
+  created_at: string;
+  // Subscription fields added in migration 028
+  plan_id: string;
+  subscription_status: string;
+  subscription_expires_at: string | null;
+  razorpay_customer_id: string | null;
+  razorpay_subscription_id: string | null;
+  // Login tracking — added in migration 037
+  login_count: number;
+  // Subscription pause — added in migration 039
+  pause_until: string | null;
+  pause_count_this_year: number;
+  cancellation_reason: string | null;
 };
 
 export type SoulProfile = {

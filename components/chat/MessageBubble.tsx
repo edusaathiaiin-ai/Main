@@ -27,10 +27,11 @@ export function MessageBubble({ message, isStreaming = false }: MessageBubblePro
       if (!user) return;
 
       const { error } = await supabase.from('moderation_flags').insert({
-        target_type: 'chat_message',
-        target_id: message.id,
-        reason: 'user_flagged',
-        flagged_by: user.id,
+        target_type:      'chat_message',
+        target_id:        message.id,
+        reason:           'user_flagged',
+        reporter_user_id: user.id,
+        status:           'pending',
       });
 
       if (error) return;

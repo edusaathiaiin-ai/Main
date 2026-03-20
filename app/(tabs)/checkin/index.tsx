@@ -100,7 +100,7 @@ export default function CheckinEntryScreen() {
           style={{ backgroundColor: available ? '#C9993A' : '#E5E7EB' }}
         >
           <Text style={{ fontFamily: 'DMSans-Bold', fontSize: 14, color: '#0B1F3A' }}>
-            Let's do it ->
+            {"Let's do it →"}
           </Text>
         </Pressable>
 

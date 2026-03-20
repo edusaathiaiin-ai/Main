@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EdUsaathiAI — Nudge Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #0B1F3A;
+      --gold: #C9993A;
+      --cream: #FAF6F0;
+      --white: #ffffff;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      min-height: 100vh;
+      padding: 32px 20px 60px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+    .logo span { color: var(--gold); }
+    .subtitle {
+      font-size: 13px;
+      color: #7a8a9a;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Category tabs ── */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 28px;
+      max-width: 680px;
+      margin-inline: auto;
+    }
+    .tab {
+      background: white;
+      border: 1.5px solid #d0dae8;
+      border-radius: 99px;
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--navy);
+      cursor: pointer;
+      transition: all 0.18s;
+      user-select: none;
+    }
+    .tab:hover { border-color: var(--gold); color: var(--gold); }
+    .tab.active {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: white;
+    }
+    .tab.all.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--navy);
+    }
+
+    /* ── Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    /* ── Nudge Card ── */
+    .card {
+      background: var(--navy);
+      border-radius: 22px;
+      padding: 24px 22px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.18s, box-shadow 0.18s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(201,153,58,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(11,31,58,0.18);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nudge-id {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 2px 8px;
+      letter-spacing: 0.03em;
+    }
+    .cat-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gold);
+      background: rgba(201,153,58,0.14);
+      border-radius: 6px;
+      padding: 2px 10px;
+    }
+    .tone-badge {
+      font-size: 10px;
+      font-weight: 500;
+      border-radius: 6px;
+      padding: 2px 8px;
+      margin-left: auto;
+    }
+    .tone-funny    { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .tone-logical  { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .tone-emotional{ background: rgba(167,139,250,0.15); color: #a78bfa; }
+    .tone-urgent   { background: rgba(248,113,113,0.15); color: #f87171; }
+
+    .hindi-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 19px;
+      color: white;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+    .english-text {
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.55);
+      font-style: italic;
+      line-height: 1.6;
+    }
+    .cta-row {
+      margin-top: 4px;
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: 700;
+      font-size: 13px;
+      border-radius: 10px;
+      padding: 10px 14px;
+      text-align: center;
+    }
+
+    /* Tags */
+    .tags {
+      display: flex; flex-wrap: wrap; gap: 5px;
+    }
+    .tag {
+      font-size: 10px;
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.45);
+      border-radius: 5px;
+      padding: 2px 8px;
+    }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      color: #9aabb8;
+      grid-column: 1/-1;
+      padding: 60px 20px;
+      font-size: 15px;
+    }
+
+    /* Counter */
+    .counter {
+      text-align: center;
+      font-size: 12px;
+      color: #9aabb8;
+      margin-bottom: 18px;
+      margin-top: -10px;
+    }
+    .counter strong { color: var(--navy); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">EdU<span>saathi</span>AI</div>
+  <div class="subtitle">Nudge Library — 20 rotating Hinglish conversion messages</div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab all active" data-cat="all">All (20)</button>
+  <button class="tab" data-cat="petrol_transport">⛽ Petrol &amp; Transport</button>
+  <button class="tab" data-cat="chai_food">☕ Chai &amp; Food</button>
+  <button class="tab" data-cat="ott_comparison">📺 OTT</button>
+  <button class="tab" data-cat="upsc_special">🏛️ UPSC</button>
+  <button class="tab" data-cat="funny_witty">😂 Funny</button>
+  <button class="tab" data-cat="regional">🗺️ Regional</button>
+  <button class="tab" data-cat="exam_panic">🔥 Exam Panic</button>
+</div>
+
+<div class="counter" id="counter"><strong>20</strong> nudges</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const NUDGES = [
+  {
+    id: 1, category: 'petrol_transport', categoryLabel: 'Petrol & Transport', tone: 'logical',
+    hindi: 'Ek liter petrol ₹95 ka,\n[Name].\nSaathi Plus? ₹199 mein poora mahina.',
+    english: "One litre of petrol costs Rs 95. Saathi Plus is Rs 199 for the whole month.",
+    cta: 'Petrol se zyada important →',
+    triggers: ['session_5','quota_hit','day_45'],
+    cities: [], exams: []
+  },
+  {
+    id: 2, category: 'petrol_transport', categoryLabel: 'Petrol & Transport', tone: 'logical',
+    hindi: 'Mumbai Local ka monthly pass ₹480+.\nSaathi Plus sirf ₹199.\nKaunsa investment zyada samajhdaari ka hai?',
+    english: 'Mumbai local monthly pass: Rs 480+. Saathi Plus: Rs 199. Smarter investment.',
+    cta: 'Local se sasta, results better →',
+    triggers: ['session_5','quota_hit','day_45','checkin_complete','plus_bot_tap'],
+    cities: ['Mumbai','Thane','Navi Mumbai'], exams: []
+  },
+  {
+    id: 3, category: 'chai_food', categoryLabel: 'Chai & Food', tone: 'funny',
+    hindi: 'Roz ek chai ₹30.\nMahine mein ₹900.\nSaathi Plus? Sirf ₹199.',
+    english: 'Daily chai = Rs 900/month. Saathi Plus = Rs 199/month. Do the math.',
+    cta: 'Chai chhod de, Saathi rakh →',
+    triggers: ['session_5','quota_hit','checkin_complete'],
+    cities: [], exams: []
+  },
+  {
+    id: 4, category: 'chai_food', categoryLabel: 'Chai & Food', tone: 'funny',
+    hindi: 'Teen vada pav ka kharcha.\nEk mahine ka unlimited padhai.\n[Name], choose kar.',
+    english: '3 vada pavs = Rs 90-150. Saathi Plus = Rs 199/month unlimited access.',
+    cta: 'Vada pav baad mein, padhai pehle →',
+    triggers: ['quota_hit','session_5'],
+    cities: [], exams: []
+  },
+  {
+    id: 5, category: 'chai_food', categoryLabel: 'Chai & Food', tone: 'logical',
+    hindi: 'Ek pizza ke paise mein\npura mahina ka Saathi.\nPizza bhoolega, rank nahi.',
+    english: "One pizza = Rs 300-500. Saathi Plus = Rs 199. Pizza you'll forget. Rank, you won't.",
+    cta: 'Smart trade-off →',
+    triggers: ['session_5','day_45','plus_bot_tap'],
+    cities: [], exams: []
+  },
+  {
+    id: 6, category: 'ott_comparison', categoryLabel: 'OTT Comparison', tone: 'logical',
+    hindi: 'Netflix ke liye ₹649.\nPrime ke liye ₹299.\nSaathi ke liye ₹199 mein soch raha hai?',
+    english: "Netflix Rs 649. Prime Rs 299. And you're hesitating on Rs 199 for your future?",
+    cta: 'Invest in yourself →',
+    triggers: ['session_5','quota_hit','day_45'],
+    cities: [], exams: []
+  },
+  {
+    id: 7, category: 'ott_comparison', categoryLabel: 'OTT Comparison', tone: 'funny',
+    hindi: 'Hotstar cricket ke liye ₹899.\nLekin padhai ke liye ₹199 zyada lagta hai?\n[Name], yeh equation galat hai.',
+    english: 'Hotstar for cricket: Rs 899. Education for Rs 199: "too expensive." Wrong equation.',
+    cta: 'Fix the equation →',
+    triggers: ['session_5','quota_hit','plus_bot_tap'],
+    cities: [], exams: []
+  },
+  {
+    id: 8, category: 'upsc_special', categoryLabel: 'UPSC Special', tone: 'logical',
+    hindi: 'The Hindu subscription: ₹499.\nMukherjee Nagar coaching: ₹20,000+.\nSaathi Plus: ₹199.\n[Name], yeh decision easy hai.',
+    english: 'The Hindu Rs 499. Coaching Rs 20,000+. Saathi Plus Rs 199. This is an easy decision.',
+    cta: 'Smarter than coaching →',
+    triggers: ['session_5','quota_hit','day_45','plus_bot_tap'],
+    cities: [], exams: ['UPSC','IAS']
+  },
+  {
+    id: 9, category: 'upsc_special', categoryLabel: 'UPSC Special', tone: 'emotional',
+    hindi: 'LBSNAA tak pohonchne wale log\nhaar nahi maante, [Name].\n₹199 pe "sochna" nahi karte.',
+    english: "People who reach LBSNAA don't give up. They don't \"think about\" Rs 199.",
+    cta: 'IAS wali soch rakh →',
+    triggers: ['session_5','quota_hit','day_45','checkin_complete'],
+    cities: [], exams: ['UPSC','IAS']
+  },
+  {
+    id: 10, category: 'upsc_special', categoryLabel: 'UPSC Special', tone: 'logical',
+    hindi: 'Prelims mein ek wrong answer\n₹2 marks ghata deta hai.\n₹199 ka Saathi ek mark bhi nahi ghatata.',
+    english: 'One wrong UPSC answer costs you 2 marks. Saathi Plus costs you nothing but Rs 199.',
+    cta: 'No negative marking here →',
+    triggers: ['quota_hit','plus_bot_tap','session_5'],
+    cities: [], exams: ['UPSC','IAS']
+  },
+  {
+    id: 11, category: 'funny_witty', categoryLabel: 'Funny & Witty', tone: 'funny',
+    hindi: '"Kal se pakka" wala\nkabhi topper nahi bana, [Name].\nAaj start kar.',
+    english: "The 'I'll start tomorrow' guy never topped. You're not that guy.",
+    cta: 'Start karo abhi →',
+    triggers: ['quota_hit','session_5','day_45'],
+    cities: [], exams: []
+  },
+  {
+    id: 12, category: 'funny_witty', categoryLabel: 'Funny & Witty', tone: 'funny',
+    hindi: 'Tere dost Insta scroll kar rahe hain.\nTu Saathi se padh raha hai.\nDifference result mein dikhai dega.',
+    english: "Your friends are scrolling Insta. You're studying with Saathi. The difference will show.",
+    cta: 'Teri choice, tera result →',
+    triggers: ['session_5','checkin_complete','plus_bot_tap'],
+    cities: [], exams: []
+  },
+  {
+    id: 13, category: 'funny_witty', categoryLabel: 'Funny & Witty', tone: 'funny',
+    hindi: 'Baal katane ke ₹200.\nSaathi Plus ₹199.\nBaal wapas aate hain,\nchance nahi aata.',
+    english: "Haircut: Rs 200. Saathi Plus: Rs 199. Hair grows back. This chance won't.",
+    cta: 'Baal baad mein, future pehle →',
+    triggers: ['session_5','quota_hit','day_45'],
+    cities: [], exams: []
+  },
+  {
+    id: 14, category: 'funny_witty', categoryLabel: 'Funny & Witty', tone: 'funny',
+    hindi: 'Jio ke reels 3 ghante roz.\nSaathi 20 min roz.\nDono free shuru hue.\nSirf ek kaam ka hai, [Name].',
+    english: 'Jio reels: 3 hours/day. Saathi: 20 mins/day. Both started free. Only one works.',
+    cta: 'Woh 20 min karo →',
+    triggers: ['session_5','quota_hit','checkin_complete'],
+    cities: [], exams: []
+  },
+  {
+    id: 15, category: 'regional', categoryLabel: 'Regional', tone: 'funny',
+    hindi: 'Gujju bhai, ₹199 mein itna fayda?\nYeh toh seedha profit hai!\nLo kem cho padhai?',
+    english: 'Gujju bhai, Rs 199 for all this? Pure profit. Classic smart investment.',
+    cta: 'Ghanu saru deal →',
+    triggers: ['session_5','quota_hit','day_45','checkin_complete','plus_bot_tap'],
+    cities: ['Ahmedabad','Surat','Vadodara','Rajkot'], exams: []
+  },
+  {
+    id: 16, category: 'regional', categoryLabel: 'Regional', tone: 'logical',
+    hindi: 'Dilli-wale coaching pe lakhon lutate hain.\n[Name], Saathi Plus ₹199 mein\nmuft ki coaching se zyada sharp hai.',
+    english: 'Delhi students spend lakhs on coaching. Saathi Plus at Rs 199 is sharper.',
+    cta: 'Dilli wala shortcut →',
+    triggers: ['session_5','quota_hit','day_45','plus_bot_tap'],
+    cities: ['Delhi','Noida','Gurgaon'], exams: ['UPSC','IAS']
+  },
+  {
+    id: 17, category: 'regional', categoryLabel: 'Regional', tone: 'funny',
+    hindi: 'Mumbai mein sab kuch mahenga hai.\nSaathi Plus ₹199 mein?\nYeh toh bargain hai, [Name].',
+    english: 'Everything in Mumbai is expensive. Saathi Plus at Rs 199 is the rare bargain.',
+    cta: 'Mumbai ka best deal →',
+    triggers: ['session_5','quota_hit','day_45','checkin_complete','plus_bot_tap'],
+    cities: ['Mumbai','Thane','Pune'], exams: []
+  },
+  {
+    id: 18, category: 'exam_panic', categoryLabel: 'Exam Panic', tone: 'urgent',
+    hindi: 'Sirf [Days] din bache hain exam mein.\nAbhi nahi toh kab, [Name]?\nQuota khatam ho gaya — upgrade kar.',
+    english: '[Days] days to exam. Quota gone. This is exactly the moment to upgrade.',
+    cta: 'Unlimited abhi chahiye →',
+    triggers: ['quota_hit','day_45'],
+    cities: [], exams: []
+  },
+  {
+    id: 19, category: 'exam_panic', categoryLabel: 'Exam Panic', tone: 'urgent',
+    hindi: 'Jo student abhi padh raha hai\nwoh teri seat le jayega, [Name].\nTera Saathi wait kar raha hai.',
+    english: "The student studying right now is taking your seat. Your Saathi is waiting.",
+    cta: 'Seat bachao →',
+    triggers: ['quota_hit','session_5','day_45','plus_bot_tap'],
+    cities: [], exams: []
+  },
+  {
+    id: 20, category: 'exam_panic', categoryLabel: 'Exam Panic', tone: 'urgent',
+    hindi: '18 din mein exam.\nAaj quota khatam.\nKal quota khatam.\nHar din ek chance gaya.\n[Name], yeh waqt nahi ruk sakta.',
+    english: '18 days to exam. Quota gone today. Gone tomorrow. Every day is a chance lost.',
+    cta: 'Abhi upgrade — no more limits →',
+    triggers: ['quota_hit'],
+    cities: [], exams: []
+  },
+];
+
+const grid = document.getElementById('grid');
+const counter = document.getElementById('counter');
+let activeFilter = 'all';
+
+function render(filter) {
+  activeFilter = filter;
+  const filtered = filter === 'all' ? NUDGES : NUDGES.filter(n => n.category === filter);
+
+  counter.innerHTML = `<strong>${filtered.length}</strong> nudge${filtered.length !== 1 ? 's' : ''}`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty">No nudges in this category.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(n => `
+    <div class="card">
+      <div class="card-top">
+        <span class="nudge-id">#${n.id}</span>
+        <span class="cat-badge">${n.categoryLabel}</span>
+        <span class="tone-badge tone-${n.tone}">${n.tone}</span>
+      </div>
+      <div class="hindi-text">${n.hindi.replace(/\[Name\]/g, 'Arjun').replace(/\[Days\]/g, '18')}</div>
+      <div class="english-text">${n.english.replace(/\[Days\]/g, '18')}</div>
+      <div class="cta-row">${n.cta}</div>
+      <div class="tags">
+        ${n.triggers.map(t => `<span class="tag">${t}</span>`).join('')}
+        ${n.cities.map(c => `<span class="tag">📍${c}</span>`).join('')}
+        ${n.exams.map(e => `<span class="tag">🎯${e}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('tabs').addEventListener('click', e => {
+  const tab = e.target.closest('[data-cat]');
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  render(tab.dataset.cat);
+});
+
+render('all');
+</script>
+</body>
+</html>
