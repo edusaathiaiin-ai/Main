@@ -17,7 +17,6 @@ export default function LoginPage() {
     const { error: err } = await sb.auth.signInWithOtp({
       email,
       options: {
-        shouldCreateUser: false,
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -25,7 +24,6 @@ export default function LoginPage() {
     setStep('otp');
     setLoading(false);
   };
-
 
   const verifyOtp = async () => {
     setLoading(true); setError('');
