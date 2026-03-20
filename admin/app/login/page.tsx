@@ -14,11 +14,18 @@ export default function LoginPage() {
   const sendOtp = async () => {
     setLoading(true); setError('');
     const sb = getBrowserClient();
-    const { error: err } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    const { error: err } = await sb.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
     if (err) { setError(err.message); setLoading(false); return; }
     setStep('otp');
     setLoading(false);
   };
+
 
   const verifyOtp = async () => {
     setLoading(true); setError('');
