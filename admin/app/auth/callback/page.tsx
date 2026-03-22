@@ -9,21 +9,35 @@ function CallbackHandler() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      // With implicit flow, Supabase auto-reads tokens from the URL hash.
-      // Just call getSession() — the client handles the rest.
-      const { data: { session }, error } = await supabaseBrowser.auth.getSession();
+      // Read code from URL (PKCE flow appends ?code=...)
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
 
-      if (error || !session) {
-        console.error('Session error:', error?.message);
-        router.push('/login?error=no_session');
-        return;
+      if (code) {
+        // PKCE: exchange code for session (client-side — verifier is in browser cookies)
+        const { error } = await supabaseBrowser.auth.exchangeCodeForSession(code);
+        if (error) {
+          console.error('Exchange error:', error.message);
+          router.push('/login?error=exchange_failed');
+          return;
+        }
+      } else {
+        // Implicit: session already set via hash, just read it
+        const { data: { session } } = await supabaseBrowser.auth.getSession();
+        if (!session) {
+          router.push('/login?error=no_session');
+          return;
+        }
       }
 
       // Check admin role
+      const { data: { user } } = await supabaseBrowser.auth.getUser();
+      if (!user) { router.push('/login?error=no_user'); return; }
+
       const { data: profile } = await supabaseBrowser
         .from('profiles')
         .select('role')
-        .eq('id', session.user.id)
+        .eq('id', user.id)
         .single();
 
       if (profile?.role === 'admin') {
@@ -40,13 +54,8 @@ function CallbackHandler() {
 
   return (
     <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      background: '#0f172a',
-      color: '#f8fafc',
-      fontFamily: 'sans-serif',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      minHeight: '100vh', background: '#0f172a', color: '#f8fafc', fontFamily: 'sans-serif',
     }}>
       <p>{status}</p>
     </div>
