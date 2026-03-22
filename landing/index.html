@@ -2,9 +2,33 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>EdUsaathiAI — Where Every Subject Finds Its Saathi</title>
 <meta name="description" content="20 AI learning companions. Built for India. ₹199/month. Your Saathi knows your name, remembers your journey, and shapes your future.">
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#C9993A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EdUsaathiAI">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+
+<!-- Open Graph (investor share previews) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="EdUsaathiAI — Where Every Subject Finds Its Saathi">
+<meta property="og:description" content="20 AI subject companions. Built for India. ₹199/month. Your Saathi knows your name, remembers your journey.">
+<meta property="og:image" content="https://edusaathiai-landing.vercel.app/icon-512.png">
+<meta property="og:url" content="https://edusaathiai.in">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="EdUsaathiAI — Where Every Subject Finds Its Saathi">
+<meta name="twitter:description" content="20 AI subject companions. Built for India. ₹199/month.">
+<meta name="twitter:image" content="https://edusaathiai-landing.vercel.app/icon-512.png">
+<meta name="twitter:site" content="@EdUsaathiAI">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -287,6 +311,15 @@ document.querySelectorAll('.saathi-card').forEach((card,i)=>{
 });
 const nav=document.querySelector('nav');
 window.addEventListener('scroll',()=>{nav.style.background=window.scrollY>80?'rgba(6,15,29,0.97)':'linear-gradient(to bottom,rgba(6,15,29,0.95),transparent)'});
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('[SW] Registered:', reg.scope))
+      .catch(err => console.warn('[SW] Registration failed:', err));
+  });
+}
 </script>
 </body>
 </html>
