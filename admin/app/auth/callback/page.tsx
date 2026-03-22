@@ -1,41 +1,29 @@
 'use client';
 import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 
 function CallbackHandler() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [status, setStatus] = useState('Verifying your login…');
 
   useEffect(() => {
-    const code = searchParams.get('code');
-
     const handleCallback = async () => {
-      if (!code) {
-        router.push('/login?error=no_code');
-        return;
-      }
+      // With implicit flow, Supabase auto-reads tokens from the URL hash.
+      // Just call getSession() — the client handles the rest.
+      const { data: { session }, error } = await supabaseBrowser.auth.getSession();
 
-      // Exchange the PKCE code for a session (browser client has the verifier)
-      const { error: exchangeError } = await supabaseBrowser.auth.exchangeCodeForSession(code);
-      if (exchangeError) {
-        console.error('Exchange error:', exchangeError.message);
-        router.push('/login?error=exchange_failed');
+      if (error || !session) {
+        console.error('Session error:', error?.message);
+        router.push('/login?error=no_session');
         return;
       }
 
       // Check admin role
-      const { data: { user } } = await supabaseBrowser.auth.getUser();
-      if (!user) {
-        router.push('/login?error=no_user');
-        return;
-      }
-
       const { data: profile } = await supabaseBrowser
         .from('profiles')
         .select('role')
-        .eq('id', user.id)
+        .eq('id', session.user.id)
         .single();
 
       if (profile?.role === 'admin') {

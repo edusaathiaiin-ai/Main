@@ -33,10 +33,27 @@ export default function LoginPage() {
   const verifyOtp = async () => {
     setLoading(true); setError('');
     const sb = getBrowserClient();
-    const { error: err } = await sb.auth.verifyOtp({ email, token: otp, type: 'email' });
+    const { error: err } = await sb.auth.verifyOtp({
+      email: email.trim().toLowerCase(),
+      token: otp,
+      type: 'email',
+    });
     if (err) { setError(err.message); setLoading(false); return; }
-    router.push('/users');
+
+    // Verify admin role
+    const { data: { user } } = await sb.auth.getUser();
+    if (user) {
+      const { data: profile } = await sb.from('profiles').select('role').eq('id', user.id).single();
+      if (profile?.role === 'admin') {
+        router.push('/users');
+        return;
+      }
+      await sb.auth.signOut();
+    }
+    setError('Admin access only.');
+    setLoading(false);
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">

@@ -1,6 +1,7 @@
 /**
  * lib/supabase-browser.ts
  * Client-side Supabase client for login / session reads in the browser.
+ * Uses implicit flow so magic links work regardless of which browser opens them.
  */
 import { createBrowserClient } from '@supabase/ssr';
 
@@ -9,7 +10,7 @@ export const supabaseBrowser = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   {
     auth: {
-      flowType: 'pkce',
+      flowType: 'implicit',
       detectSessionInUrl: true,
     },
   }
