@@ -1,9 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 
-export default function AuthCallbackPage() {
+function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState('Verifying your login…');
@@ -59,9 +59,20 @@ export default function AuthCallbackPage() {
       background: '#0f172a',
       color: '#f8fafc',
       fontFamily: 'sans-serif',
-      fontSize: '1rem',
     }}>
       <p>{status}</p>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f172a', color: '#f8fafc' }}>
+        <p>Loading…</p>
+      </div>
+    }>
+      <CallbackHandler />
+    </Suspense>
   );
 }
