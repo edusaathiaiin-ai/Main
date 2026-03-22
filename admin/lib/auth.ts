@@ -1,11 +1,13 @@
 /**
  * lib/auth.ts
  * Server-side session guard. Returns the admin user or null.
- * Usage: const admin = await requireAdmin(); if (!admin) redirect('/login');
  */
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import { redirect } from 'next/navigation';
+
+// Allowed admin emails — keep in sync with login/page.tsx
+const ADMIN_EMAILS = ['edusaathiai.in@gmail.com'];
 
 export async function getAdminSession() {
   const cookieStore = await cookies();
@@ -27,15 +29,10 @@ export async function getAdminSession() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Verify admin role via profiles table
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  // Check email allowlist (no DB query required)
+  if (!ADMIN_EMAILS.includes(user.email?.toLowerCase() ?? '')) return null;
 
-  if (profile?.role !== 'admin') return null;
-  return { user, profile };
+  return { user };
 }
 
 export async function requireAdmin() {
