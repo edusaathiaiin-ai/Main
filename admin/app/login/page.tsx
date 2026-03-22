@@ -3,10 +3,14 @@ import { useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase-browser';
 import { useRouter } from 'next/navigation';
 
+// Allowed admin emails
+const ADMIN_EMAILS = ['edusaathiai.in@gmail.com'];
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -14,27 +18,21 @@ export default function LoginPage() {
     setLoading(true); setError('');
     const sb = getBrowserClient();
 
-    const { error: err } = await sb.auth.signInWithPassword({
+    const { data, error: err } = await sb.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
     });
 
     if (err) { setError(err.message); setLoading(false); return; }
 
-    // Verify admin role
-    const { data: { user } } = await sb.auth.getUser();
-    if (user) {
-      const { data: profile } = await sb
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-      if (profile?.role === 'admin') {
-        router.push('/users');
-        return;
-      }
-      await sb.auth.signOut();
+    const userEmail = data.user?.email?.toLowerCase() ?? '';
+    if (ADMIN_EMAILS.includes(userEmail)) {
+      router.push('/users');
+      return;
     }
+
+    // Not an admin email — sign out and block
+    await sb.auth.signOut();
     setError('Admin access only.');
     setLoading(false);
   };
@@ -58,14 +56,24 @@ export default function LoginPage() {
         />
 
         <label className="block text-sm text-slate-400 mb-1">Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && signIn()}
-          placeholder="••••••••"
-          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 mb-4"
-        />
+        <div className="relative mb-4">
+          <input
+            type={showPw ? 'text' : 'password'}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && signIn()}
+            placeholder="••••••••"
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPw(v => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+            tabIndex={-1}
+          >
+            {showPw ? '🙈' : '👁️'}
+          </button>
+        </div>
 
         <button
           onClick={signIn}
