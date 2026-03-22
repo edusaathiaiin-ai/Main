@@ -14,16 +14,21 @@ export default function LoginPage() {
   const sendOtp = async () => {
     setLoading(true); setError('');
     const sb = getBrowserClient();
+    const redirectTo =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/callback`
+        : 'https://edusaathiai-admin.vercel.app/auth/callback';
     const { error: err } = await sb.auth.signInWithOtp({
-      email,
+      email: email.trim().toLowerCase(),
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: redirectTo,
       },
     });
     if (err) { setError(err.message); setLoading(false); return; }
     setStep('otp');
     setLoading(false);
   };
+
 
   const verifyOtp = async () => {
     setLoading(true); setError('');
