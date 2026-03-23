@@ -172,14 +172,37 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
     { url: 'https://rss.sciencedaily.com/releases/computers_math/computer_science.xml', source: 'Science Daily', category: 'Electronics' },
   ],
   compsaathi: [
-    { url: 'https://arxiv.org/rss/cs.AI', source: 'arXiv AI', category: 'Computer Science Research' },
-    { url: 'https://arxiv.org/rss/cs.LG', source: 'arXiv Machine Learning', category: 'Machine Learning' },
-    { url: 'https://arxiv.org/rss/cs.SE', source: 'arXiv Software Engineering', category: 'Software Engineering' },
-    { url: 'https://rss.sciencedaily.com/releases/computers_math/artificial_intelligence.xml', source: 'Science Daily', category: 'Computer Science' },
+    // ── ACM Computing Surveys (elite survey journal — #1 in CS by citations)
+    { url: 'https://dl.acm.org/action/showFeed?ui-lang=en&type=etoc&feed=rss&jc=csur', source: 'ACM Computing Surveys', category: 'CS Surveys' },
+    // ── IEEE TPAMI (flagship for vision/AI, IF ~24 — hugely cited globally)
     { url: 'https://ieeexplore.ieee.org/rss/recentArticles/34.rss', source: 'IEEE TPAMI', category: 'AI & Computer Vision' },
-    { url: 'https://cacm.acm.org/browse-by-subject/rss', source: 'CACM', category: 'Computer Science Research' },
-    { url: 'https://spectrum.ieee.org/feeds/feed.rss', source: 'IEEE Spectrum', category: 'Technology' },
+    // ── Communications of the ACM (broad flagship — ACM's premier outlet)
+    { url: 'https://cacm.acm.org/rss/acmTechNews.xml', source: 'ACM CACM', category: 'CS Research' },
+    // ── Journal of Machine Learning Research (open-access gold standard for ML)
+    { url: 'https://www.jmlr.org/jmlr.xml', source: 'JMLR', category: 'Machine Learning' },
+    // ── Journal of the ACM (top for theoretical CS — Turing-adjacent results)
+    { url: 'https://dl.acm.org/action/showFeed?ui-lang=en&type=etoc&feed=rss&jc=jacm', source: 'Journal of the ACM', category: 'Theoretical CS' },
+    // ── Nature Machine Intelligence (elite for AI/ML breakthroughs)
+    { url: 'https://www.nature.com/natmachintell.rss', source: 'Nature Machine Intelligence', category: 'AI Research' },
+    // ── IEEE TNNLS (Transactions on Neural Networks and Learning Systems)
+    { url: 'https://ieeexplore.ieee.org/rss/recentArticles/5962385.rss', source: 'IEEE TNNLS', category: 'Neural Networks & ML' },
+    // ── International Journal of Computer Vision (Springer — leading in vision)
+    { url: 'https://link.springer.com/search.rss?search-within=Journal&facet-journal-id=11263', source: 'Int. Journal of Computer Vision', category: 'Computer Vision' },
+    // ── Artificial Intelligence Journal (Elsevier — long-standing top AI journal since 1970)
+    { url: 'https://rss.sciencedirect.com/publication/science/00043702', source: 'Artificial Intelligence (Elsevier)', category: 'Artificial Intelligence' },
+    // ── ACM Transactions on Database Systems (elite for databases)
+    { url: 'https://dl.acm.org/action/showFeed?ui-lang=en&type=etoc&feed=rss&jc=tods', source: 'ACM TODS', category: 'Database Systems' },
+    // ── ACM Transactions on Computer Systems (top for systems/architecture)
+    { url: 'https://dl.acm.org/action/showFeed?ui-lang=en&type=etoc&feed=rss&jc=tocs', source: 'ACM TOCS', category: 'Computer Systems' },
+    // ── arXiv subfields — primary global preprint server
+    { url: 'https://rss.arxiv.org/rss/cs.AI', source: 'arXiv CS.AI', category: 'AI Preprints' },
+    { url: 'https://rss.arxiv.org/rss/cs.LG', source: 'arXiv CS.LG', category: 'Machine Learning Preprints' },
+    { url: 'https://rss.arxiv.org/rss/cs.CV', source: 'arXiv CS.CV', category: 'Computer Vision Preprints' },
+    { url: 'https://rss.arxiv.org/rss/cs.CL', source: 'arXiv CS.CL', category: 'NLP Preprints' },
+    // ── Science Daily for accessible CS headline news
+    { url: 'https://rss.sciencedaily.com/releases/computers_math/artificial_intelligence.xml', source: 'Science Daily CS', category: 'CS News' },
   ],
+
 
   envirosaathi: [
     { url: 'https://rss.sciencedaily.com/releases/earth_climate.xml', source: 'Science Daily', category: 'Environmental Science' },
