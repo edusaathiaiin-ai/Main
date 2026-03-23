@@ -29,6 +29,14 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const CRON_SECRET = Deno.env.get('CRON_SECRET') ?? '';
 
+// Startup env check
+console.log('[rss-fetch] ENV check:', {
+  hasUrl: !!SUPABASE_URL,
+  hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY,
+  servicekeyPrefix: SUPABASE_SERVICE_ROLE_KEY.slice(0, 10) || 'MISSING',
+  hasCronSecret: !!CRON_SECRET,
+});
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -49,15 +57,51 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
     { url: 'https://www.barandbench.com/feed', source: 'Bar & Bench', category: 'Law' },
     { url: 'https://www.livelaw.in/feed', source: 'Live Law', category: 'Law' },
     { url: 'https://feeds.feedburner.com/TheHinduLegal', source: 'The Hindu Legal', category: 'Law' },
+    { url: 'https://lawmin.gov.in/rss', source: 'Ministry of Law', category: 'Indian Legislation' },
+    { url: 'https://main.sci.gov.in/rss', source: 'Supreme Court of India', category: 'Supreme Court' },
+    { url: 'https://prsindia.org/rss.xml', source: 'PRS India', category: 'Legislative Research' },
+    { url: 'https://www.indiacode.nic.in/rss', source: 'India Code', category: 'Indian Acts & Statutes' },
   ],
+
   medicosaathi: [
+    { url: 'https://www.nejm.org/action/showFeed?type=etoc&pub=nejm&jc=nejm', source: 'NEJM', category: 'Medical Research' },
+    { url: 'https://www.thelancet.com/rssfeed/lancet_current.xml', source: 'The Lancet', category: 'Medical Research' },
+    { url: 'https://jamanetwork.com/rss/site_3/67.xml', source: 'JAMA', category: 'Medical Research' },
+    { url: 'https://www.bmj.com/rss/thebmj_current.xml', source: 'BMJ', category: 'Medical Research' },
+    { url: 'https://www.nature.com/nm.rss', source: 'Nature Medicine', category: 'Medical Research' },
+    { url: 'https://www.cochranelibrary.com/cdsr/reviews.rss', source: 'Cochrane Library', category: 'Evidence-Based Medicine' },
     { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=medical+education&format=rss', source: 'PubMed', category: 'Medical Research' },
+    { url: 'https://www.who.int/rss-feeds/news-english.xml', source: 'WHO', category: 'Global Health' },
     { url: 'https://rss.sciencedaily.com/releases/health_medicine.xml', source: 'Science Daily', category: 'Health' },
   ],
+
   pharmasaathi: [
-    { url: 'https://www.pharmacytimes.com/rss/all', source: 'Pharmacy Times', category: 'Pharmacy' },
-    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=pharmacology&format=rss', source: 'PubMed', category: 'Pharmacology Research' },
+    // ── #1 — Nature Reviews Drug Discovery (IF ~120, gold standard for drug discovery reviews)
+    { url: 'https://www.nature.com/nrd.rss', source: 'Nature Reviews Drug Discovery', category: 'Drug Discovery' },
+    // ── Trends in Pharmacological Sciences (Cell Press elite review journal)
+    { url: 'https://www.cell.com/trends/pharmacological-sciences/rss/current', source: 'Trends in Pharmacological Sciences', category: 'Pharmacology Reviews' },
+    // ── Advanced Drug Delivery Reviews (Elsevier — top for delivery/formulation/pharmaceutics)
+    { url: 'https://rss.sciencedirect.com/publication/science/0169409X', source: 'Advanced Drug Delivery Reviews', category: 'Drug Delivery' },
+    // ── Journal of Controlled Release (Elsevier — leading for drug delivery systems)
+    { url: 'https://rss.sciencedirect.com/publication/science/01683659', source: 'Journal of Controlled Release', category: 'Controlled Release' },
+    // ── Clinical Pharmacology & Therapeutics (Wiley/ASCPT — flagship for translational PK/PD)
+    { url: 'https://ascpt.onlinelibrary.wiley.com/action/showFeed?jc=15326535&type=etoc&feed=rss', source: 'Clinical Pharmacology & Therapeutics', category: 'Clinical Pharmacology' },
+    // ── The AAPS Journal (Springer — American Association of Pharmaceutical Scientists flagship)
+    { url: 'https://link.springer.com/search.rss?search-within=Journal&facet-journal-id=12248', source: 'The AAPS Journal', category: 'Pharmaceutical Sciences' },
+    // ── Pharmaceutical Research (Springer — core AAPS journal, widely used)
+    { url: 'https://link.springer.com/search.rss?search-within=Journal&facet-journal-id=11095', source: 'Pharmaceutical Research', category: 'Pharmaceutical Research' },
+    // ── Journal of Pharmaceutical Sciences (Elsevier/APhA — broad pharmaceutics/pharmacy)
+    { url: 'https://rss.sciencedirect.com/publication/science/00223549', source: 'Journal of Pharmaceutical Sciences', category: 'Pharmaceutics' },
+    // ── Molecular Pharmaceutics (ACS — elite for pharma/chemistry interface)
+    { url: 'https://pubs.acs.org/action/showFeed?type=axatoc&feed=rss&jc=mpohbp', source: 'Molecular Pharmaceutics (ACS)', category: 'Molecular Pharmaceutics' },
+    // ── European Journal of Pharmaceutical Sciences (Elsevier — key European/global outlet)
+    { url: 'https://rss.sciencedirect.com/publication/science/09280987', source: 'European Journal of Pharmaceutical Sciences', category: 'Pharmaceutical Sciences' },
+    // ── PubMed — pharmacology/drug discovery (NIH — primary global index)
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=pharmacology+drug+discovery&format=rss', source: 'PubMed Pharmacology', category: 'Pharmacology Research' },
+    // ── Science Daily pharmacy/pharma for accessible headline news
+    { url: 'https://rss.sciencedaily.com/releases/health_medicine/pharmacology.xml', source: 'Science Daily Pharmacology', category: 'Pharmacology News' },
   ],
+
   nursingsaathi: [
     { url: 'https://rss.sciencedaily.com/releases/health_medicine.xml', source: 'Science Daily', category: 'Nursing' },
   ],
@@ -67,31 +111,76 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
   ],
   maathsaathi: [
     { url: 'https://rss.sciencedaily.com/releases/computers_math.xml', source: 'Science Daily', category: 'Mathematics' },
-    { url: 'https://arxiv.org/rss/math', source: 'arXiv', category: 'Mathematics Research' },
+    { url: 'https://arxiv.org/rss/math', source: 'arXiv Math', category: 'Mathematics Research' },
+    { url: 'https://arxiv.org/rss/math.NT', source: 'arXiv Number Theory', category: 'Number Theory' },
+    { url: 'https://arxiv.org/rss/math.AG', source: 'arXiv Algebraic Geometry', category: 'Algebraic Geometry' },
+    { url: 'https://www.ams.org/rss/notices.rss', source: 'AMS Notices', category: 'Mathematics Community' },
+    { url: 'https://www.ams.org/rss/jams.rss', source: 'JAMS', category: 'Mathematics Research' },
+    { url: 'https://link.springer.com/search.rss?search-within=Journal&facet-journal-id=209', source: 'Inventiones Mathematicae', category: 'Mathematics Research' },
+    { url: 'https://link.springer.com/search.rss?search-within=Journal&facet-journal-id=10240', source: 'IHÉS Publications', category: 'Mathematics Research' },
+    { url: 'https://projecteuclid.org/feeds/euclid.dmj.xml', source: 'Duke Mathematical Journal', category: 'Mathematics Research' },
+    { url: 'https://www.mathunion.org/feed', source: 'IMU', category: 'Global Mathematics' },
   ],
+
   chemsaathi: [
     { url: 'https://feeds.rsc.org/rss/cc', source: 'Royal Society of Chemistry', category: 'Chemistry' },
     { url: 'https://rss.sciencedaily.com/releases/chemistry.xml', source: 'Science Daily', category: 'Chemistry' },
   ],
   biosaathi: [
+    // Flagship multidisciplinary
+    { url: 'https://www.cell.com/cell/rss/current', source: 'Cell', category: 'Biology Research' },
+    { url: 'https://www.nature.com/nature.rss', source: 'Nature', category: 'Biology Research' },
+    { url: 'https://www.science.org/rss/news_current.xml', source: 'Science', category: 'Biology Research' },
+    { url: 'https://www.pnas.org/rss/current.xml', source: 'PNAS', category: 'Biology Research' },
+    // Elite Nature Reviews
+    { url: 'https://www.nature.com/nrm.rss', source: 'Nature Reviews Molecular Cell Biology', category: 'Cell Biology' },
+    { url: 'https://www.nature.com/nrg.rss', source: 'Nature Reviews Genetics', category: 'Genetics' },
+    { url: 'https://www.nature.com/nrmicro.rss', source: 'Nature Reviews Microbiology', category: 'Microbiology' },
+    // Open access leaders
+    { url: 'https://elifesciences.org/rss/recent.xml', source: 'eLife', category: 'Biology Research' },
+    { url: 'https://journals.plos.org/plosbiology/feed/atom', source: 'PLOS Biology', category: 'Biology Research' },
+    // Key databases & reviews
+    { url: 'https://academic.oup.com/rss/site_5507/advanceAccess_5181.xml', source: 'Nucleic Acids Research', category: 'Molecular Biology' },
+    { url: 'https://www.annualreviews.org/rss/content/journals/biochem/loi', source: 'Annual Review of Biochemistry', category: 'Biochemistry' },
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=biology+research&format=rss', source: 'PubMed Biology', category: 'Biology Research' },
+    { url: 'https://arxiv.org/rss/q-bio', source: 'arXiv q-bio', category: 'Quantitative Biology' },
     { url: 'https://rss.sciencedaily.com/releases/biology.xml', source: 'Science Daily', category: 'Biology' },
-    { url: 'https://arxiv.org/rss/q-bio', source: 'arXiv', category: 'Biology Research' },
   ],
+
   mechsaathi: [
     { url: 'https://spectrum.ieee.org/feeds/feed.rss', source: 'IEEE Spectrum', category: 'Engineering' },
     { url: 'https://rss.sciencedaily.com/releases/matter_energy/engineering.xml', source: 'Science Daily', category: 'Mechanical Engineering' },
+    { url: 'https://asmedigitalcollection.asme.org/rss/site_5/5.xml', source: 'ASME Journals', category: 'Mechanical Engineering' },
+    { url: 'https://www.nature.com/nmat.rss', source: 'Nature Materials', category: 'Materials Engineering' },
+    { url: 'https://www.annualreviews.org/rss/content/journals/fluid/loi', source: 'Annual Review of Fluid Mechanics', category: 'Fluid Mechanics' },
+    { url: 'https://onlinelibrary.wiley.com/feed/15214095/most-recent', source: 'Advanced Materials', category: 'Materials Science' },
+    { url: 'https://www.science.org/rss/news_current.xml', source: 'Science', category: 'Engineering Research' },
   ],
   civilsaathi: [
     { url: 'https://rss.sciencedaily.com/releases/matter_energy/civil_engineering.xml', source: 'Science Daily', category: 'Civil Engineering' },
+    { url: 'https://ascelibrary.org/rss/mostread', source: 'ASCE Library', category: 'Civil Engineering' },
+    { url: 'https://www.nature.com/natsustain.rss', source: 'Nature Sustainability', category: 'Sustainable Engineering' },
+    { url: 'https://rss.sciencedaily.com/releases/earth_climate/geology.xml', source: 'Science Daily Geoscience', category: 'Geotechnical Engineering' },
+    { url: 'https://spectrum.ieee.org/feeds/feed.rss', source: 'IEEE Spectrum', category: 'Engineering' },
   ],
   elecsaathi: [
     { url: 'https://spectrum.ieee.org/feeds/feed.rss', source: 'IEEE Spectrum', category: 'Electronics' },
+    { url: 'https://www.nature.com/natelectron.rss', source: 'Nature Electronics', category: 'Electronics Research' },
+    { url: 'https://ieeexplore.ieee.org/rss/recentArticles/5498878.rss', source: 'Proceedings of the IEEE', category: 'Electronics Research' },
+    { url: 'https://ieeexplore.ieee.org/rss/recentArticles/9648.rss', source: 'IEEE Comms Surveys', category: 'Telecommunications' },
+    { url: 'https://onlinelibrary.wiley.com/feed/15214095/most-recent', source: 'Advanced Materials', category: 'Electronic Materials' },
     { url: 'https://rss.sciencedaily.com/releases/computers_math/computer_science.xml', source: 'Science Daily', category: 'Electronics' },
   ],
   compsaathi: [
     { url: 'https://arxiv.org/rss/cs.AI', source: 'arXiv AI', category: 'Computer Science Research' },
+    { url: 'https://arxiv.org/rss/cs.LG', source: 'arXiv Machine Learning', category: 'Machine Learning' },
+    { url: 'https://arxiv.org/rss/cs.SE', source: 'arXiv Software Engineering', category: 'Software Engineering' },
     { url: 'https://rss.sciencedaily.com/releases/computers_math/artificial_intelligence.xml', source: 'Science Daily', category: 'Computer Science' },
+    { url: 'https://ieeexplore.ieee.org/rss/recentArticles/34.rss', source: 'IEEE TPAMI', category: 'AI & Computer Vision' },
+    { url: 'https://cacm.acm.org/browse-by-subject/rss', source: 'CACM', category: 'Computer Science Research' },
+    { url: 'https://spectrum.ieee.org/feeds/feed.rss', source: 'IEEE Spectrum', category: 'Technology' },
   ],
+
   envirosaathi: [
     { url: 'https://rss.sciencedaily.com/releases/earth_climate.xml', source: 'Science Daily', category: 'Environmental Science' },
     { url: 'https://arxiv.org/rss/eess.SP', source: 'arXiv', category: 'Environmental Research' },
@@ -113,16 +202,41 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
   ],
   archsaathi: [
     { url: 'https://www.archdaily.com/feed', source: 'ArchDaily', category: 'Architecture' },
-    { url: 'https://www.dezeen.com/feed/', source: 'Dezeen', category: 'Architecture & Design' },
+    { url: 'https://www.dezeen.com/architecture/feed/', source: 'Dezeen Architecture', category: 'Architecture & Design' },
+    { url: 'https://www.architecturalrecord.com/rss/topic/news', source: 'Architectural Record', category: 'Architecture News' },
+    { url: 'https://www.architectural-review.com/rss', source: 'Architectural Review', category: 'Architecture & Criticism' },
+    { url: 'https://www.domusweb.it/en.rss.xml', source: 'Domus', category: 'Architecture & Design' },
+    { url: 'https://www.tandfonline.com/feed/rss/rjar20', source: 'Tandfonline RJAR', category: 'Architecture Research' },
+    { url: 'https://www.tandfonline.com/feed/rss/tasr20', source: 'Architectural Science Review', category: 'Architecture Research' },
+    { url: 'https://rss.sciencedirect.com/publication/science/20952635', source: 'Frontiers of Arch Research', category: 'Architecture Research' },
+    { url: 'https://www.ribapublishing.com/rss', source: 'RIBA Publishing', category: 'Architecture Practice' },
   ],
+
   historysaathi: [
     { url: 'https://www.historytoday.com/rss.xml', source: 'History Today', category: 'History' },
     { url: 'https://rss.sciencedaily.com/releases/fossils_ruins.xml', source: 'Science Daily', category: 'Archaeology' },
   ],
   econsaathi: [
-    { url: 'https://rbi.org.in/rss/Rss.aspx', source: 'RBI', category: 'Economics' },
-    { url: 'https://economictimes.indiatimes.com/rssfeeds/7771282.cms', source: 'Economic Times', category: 'Economics' },
+    // Top 5 global economics journals
+    { url: 'https://academic.oup.com/rss/site_5504/advanceAccess_5171.xml', source: 'QJE', category: 'Economics Research' },
+    { url: 'https://www.aeaweb.org/journals/aer/rss.xml', source: 'American Economic Review', category: 'Economics Research' },
+    { url: 'https://onlinelibrary.wiley.com/feed/14680262/most-recent', source: 'Econometrica', category: 'Economics Research' },
+    { url: 'https://www.journals.uchicago.edu/action/showFeed?type=etoc&feed=rss&jc=jpe', source: 'Journal of Political Economy', category: 'Economics Research' },
+    { url: 'https://academic.oup.com/rss/site_5508/advanceAccess_5174.xml', source: 'Review of Economic Studies', category: 'Economics Research' },
+    // AEA journals suite
+    { url: 'https://www.aeaweb.org/journals/aeli/rss.xml', source: 'AER: Insights', category: 'Economics Research' },
+    { url: 'https://www.aeaweb.org/journals/app/rss.xml', source: 'AEJ: Applied Economics', category: 'Applied Economics' },
+    { url: 'https://www.aeaweb.org/journals/pol/rss.xml', source: 'AEJ: Economic Policy', category: 'Economic Policy' },
+    { url: 'https://www.aeaweb.org/journals/mac/rss.xml', source: 'AEJ: Macroeconomics', category: 'Macroeconomics' },
+    { url: 'https://www.aeaweb.org/journals/mic/rss.xml', source: 'AEJ: Microeconomics', category: 'Microeconomics' },
+    { url: 'https://www.aeaweb.org/journals/jel/rss.xml', source: 'Journal of Economic Literature', category: 'Economics Surveys' },
+    { url: 'https://www.aeaweb.org/journals/jep/rss.xml', source: 'Journal of Economic Perspectives', category: 'Economics Overview' },
+    // Working papers & news
+    { url: 'https://feeds.nberwp.org/feed', source: 'NBER Working Papers', category: 'Economics Research' },
+    { url: 'https://rbi.org.in/rss/Rss.aspx', source: 'RBI', category: 'Indian Economics' },
+    { url: 'https://economictimes.indiatimes.com/rssfeeds/7771282.cms', source: 'Economic Times', category: 'Economics News' },
   ],
+
 };
 
 // UPSC feeds shared across all verticals
@@ -243,6 +357,19 @@ Deno.serve(async (req: Request) => {
   // ────────────────────────────────────────────────────────────────────────────
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  console.log('Using service role:', !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+  console.log('SUPABASE_URL set:', !!SUPABASE_URL);
+
+  // Build slug → UUID map: 'KanoonSaathi'.toLowerCase() === 'kanoonsaathi'
+  const { data: verticalRows } = await admin.from('verticals').select('id, name');
+  const verticalUUIDs: Record<string, string> = {};
+  for (const v of (verticalRows ?? [])) {
+    const slug = (v.name as string).toLowerCase().replace(/\s+/g, '');
+    verticalUUIDs[slug] = v.id as string;
+  }
+  // Handle typo: RSS_FEEDS uses 'envirosaathi', DB has 'EnviroSaathi' → 'envirosathi'
+  if (verticalUUIDs['envirosathi']) verticalUUIDs['envirosaathi'] = verticalUUIDs['envirosathi'];
+  console.log('[rss-fetch] Vertical UUID map:', JSON.stringify(verticalUUIDs));
 
   const failedFeeds: { vertical: string; url: string; source: string; reason: string }[] = [];
   const results: Record<string, { inserted: number; skipped: number; errors: string[] }> = {};
@@ -268,9 +395,15 @@ Deno.serve(async (req: Request) => {
       const items = parseRssFeed(xml, 10);
 
       for (const item of items) {
-        const { error } = await admin.from('news_items').upsert(
+        const verticalUUID = verticalUUIDs[verticalId] ?? null;
+        if (!verticalUUID) {
+          console.error('NO UUID for vertical:', verticalId, '— skipping item');
+          continue;
+        }
+
+        const { error: upsertError } = await admin.from('news_items').upsert(
           {
-            vertical_id: verticalId,
+            vertical_id: verticalUUID,
             source: feed.source,
             category: feed.category,
             title: item.title.slice(0, 500),
@@ -282,19 +415,27 @@ Deno.serve(async (req: Request) => {
           { onConflict: 'url', ignoreDuplicates: false }
         );
 
-        if (error) {
+        if (upsertError) {
+          console.error('UPSERT ERROR:', JSON.stringify({
+            vertical: verticalId,
+            source: feed.source,
+            url: item.url.slice(0, 80),
+            error: upsertError,
+          }));
           // Duplicate URL = expected — silently skip
-          if (!error.message.includes('duplicate') && !error.message.includes('unique')) {
-            results[verticalId].errors.push(`DB error for ${item.url}: ${error.message}`);
+          if (!upsertError.message.includes('duplicate') && !upsertError.message.includes('unique')) {
+            results[verticalId].errors.push(`DB error for ${item.url}: ${upsertError.message}`);
             results[verticalId].skipped++;
           } else {
             results[verticalId].skipped++;
           }
         } else {
+          console.log('INSERTED:', item.title.slice(0, 50));
           results[verticalId].inserted++;
           totalInserted++;
         }
       }
+
 
       // 200ms between fetches to avoid rate limiting from RSS providers
       await new Promise(r => setTimeout(r, 200));
