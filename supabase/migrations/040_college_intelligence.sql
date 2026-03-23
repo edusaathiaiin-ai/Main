@@ -41,8 +41,8 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX IF NOT EXISTS idx_colleges_name_trgm
   ON public.colleges USING gin(name gin_trgm_ops);
 
-CREATE INDEX IF NOT EXISTS idx_colleges_aliases_trgm
-  ON public.colleges USING gin(aliases gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_colleges_aliases_gin
+  ON public.colleges USING gin(aliases);  -- plain GIN for ANY(aliases) queries
 
 CREATE INDEX IF NOT EXISTS idx_colleges_city
   ON public.colleges (city);
@@ -53,8 +53,8 @@ CREATE INDEX IF NOT EXISTS idx_colleges_state
 CREATE INDEX IF NOT EXISTS idx_courses_name_trgm
   ON public.courses USING gin(name gin_trgm_ops);
 
-CREATE INDEX IF NOT EXISTS idx_courses_abbrev_trgm
-  ON public.courses USING gin(abbreviations gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_courses_abbrev_gin
+  ON public.courses USING gin(abbreviations);  -- plain GIN for ANY(abbreviations) queries
 
 -- ── 4. PROFILES SCHEMA EXTENSION ──────────────────────────────────────────────
 
