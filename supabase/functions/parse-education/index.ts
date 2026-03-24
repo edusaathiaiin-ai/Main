@@ -81,7 +81,7 @@ Extract from the student's free text the following fields:
 - degree_name: abbreviated form (e.g. "B.Pharm", "LLB", "MBBS", "B.Tech CSE", "BBA", "B.Com", "MBA", "B.Sc Nursing", "B.Arch")
 - institution_name: college/university name as written or corrected from common abbreviations
 - city: city of the institution if mentioned or implied
-- saathi_suggestion: one of the EdUsaathiAI Saathi slugs: kanoonsaathi, medicosaathi, pharmasaathi, nursingsaathi, psychsaathi, compsaathi, elecsaathi, mechsaathi, civilsaathi, chemsaathi, biosaathi, bizsaathi, finsaathi, mktsaathi, hrsaathi, archsaathi, historysaathi, econsaathi, maathsaathi, envirosathi
+- saathi_suggestion: one of the EdUsaathiAI Saathi slugs: kanoonsaathi, medicosaathi, pharmasaathi, nursingsaathi, psychsaathi, compsaathi, elecsaathi, mechsaathi, civilsaathi, chemsaathi, biosaathi, bizsaathi, finsaathi, mktsaathi, hrsaathi, archsaathi, historysaathi, econsaathi, maathsaathi, envirosathi, chemengg saathi, biotechsaathi, aerospacesaathi, electronicssaathi
 
 Rules:
 - Return ONLY a valid JSON object. No markdown, no explanation.
@@ -92,6 +92,7 @@ Rules:
 - "1st" / "first" / "fresher" → 1
 - Set null for any field you cannot determine.
 - Never hallucinate institution names — only output what's clearly implied.
+- Degree-to-saathi mappings: "chemical engineering"/"chem engg"/"chemE" → "chemengg saathi"; "biotechnology"/"biotech" → "biotechsaathi"; "aerospace"/"aeronautical" → "aerospacesaathi"; "electronics" (without "computer") / "e&tc" / "telecommunication" → "electronicssaathi"; "electronics and computer" → compsaathi; ECE → ask user to confirm.
 
 Examples:
 Input: "2nd yr bpharm lm college ahmedabad"
@@ -107,7 +108,19 @@ Input: "mba 1st sem iit bombay"
 Output: {"year":1,"degree":"MBA","institution":"IIT Bombay","city":"Mumbai","saathi_suggestion":"bizsaathi"}
 
 Input: "BE CSE 4th year VIT vellore"
-Output: {"year":4,"degree":"B.Tech CSE","institution":"Vellore Institute of Technology","city":"Vellore","saathi_suggestion":"compsaathi"}`;
+Output: {"year":4,"degree":"B.Tech CSE","institution":"Vellore Institute of Technology","city":"Vellore","saathi_suggestion":"compsaathi"}
+
+Input: "3rd year B.Tech chemical engineering NIT Surat"
+Output: {"year":3,"degree":"B.Tech Chemical Engineering","institution":"NIT Surat","city":"Surat","saathi_suggestion":"chemengg saathi"}
+
+Input: "2nd year Biotechnology Amity"
+Output: {"year":2,"degree":"B.Tech Biotechnology","institution":"Amity University","city":null,"saathi_suggestion":"biotechsaathi"}
+
+Input: "1st year aerospace IIT Bombay"
+Output: {"year":1,"degree":"B.Tech Aerospace Engineering","institution":"IIT Bombay","city":"Mumbai","saathi_suggestion":"aerospacesaathi"}
+
+Input: "B.Tech Electronics 3rd year SPCE"
+Output: {"year":3,"degree":"B.Tech Electronics Engineering","institution":"SPCE","city":null,"saathi_suggestion":"electronicssaathi"}`;
 
 async function callClaude(rawInput: string): Promise<ClaudeExtraction> {
   const res = await fetch('https://api.anthropic.com/v1/messages', {

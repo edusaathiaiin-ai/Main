@@ -368,6 +368,31 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
     { url: 'https://economictimes.indiatimes.com/rssfeeds/7771282.cms', source: 'Economic Times', category: 'Economics News' },
   ],
 
+  // ── New Saathis (migration 047) ────────────────────────────────────────────
+  'chemengg saathi': [
+    { url: 'https://www.aiche.org/rss/news', source: 'AIChE', category: 'Chemical Engineering' },
+    { url: 'https://rss.sciencedaily.com/releases/matter_energy/chemistry.xml', source: 'Science Daily', category: 'Chemical Engineering' },
+    { url: 'https://www.chemengonline.com/feed/', source: 'Chem Eng Online', category: 'Process Engineering' },
+  ],
+
+  biotechsaathi: [
+    { url: 'https://www.nature.com/nbt.rss', source: 'Nature Biotechnology', category: 'Biotechnology' },
+    { url: 'https://rss.sciencedaily.com/releases/biology/biotechnology.xml', source: 'Science Daily Biotech', category: 'Biotechnology' },
+    { url: 'https://www.fiercebiotech.com/rss/xml', source: 'Fierce Biotech', category: 'Biotech Industry' },
+  ],
+
+  aerospacesaathi: [
+    { url: 'https://www.aiaa.org/rss/news', source: 'AIAA', category: 'Aerospace' },
+    { url: 'https://rss.sciencedaily.com/releases/matter_energy/aerospace.xml', source: 'Science Daily Aerospace', category: 'Aerospace' },
+    { url: 'https://www.isro.gov.in/rss', source: 'ISRO', category: 'Space Technology' },
+  ],
+
+  electronicssaathi: [
+    { url: 'https://spectrum.ieee.org/feeds/feed.rss', source: 'IEEE Spectrum', category: 'Electronics' },
+    { url: 'https://rss.sciencedaily.com/releases/computers_math/electronics.xml', source: 'Science Daily Electronics', category: 'Electronics' },
+    { url: 'https://www.electronicsforu.com/feed', source: 'Electronics For You', category: 'Electronics India' },
+  ],
+
 };
 
 // UPSC feeds shared across all verticals
