@@ -1,9 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import * as WebBrowser from 'expo-web-browser';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as Sentry from '@sentry/react-native';
+import * as Device from 'expo-device';
+import * as Application from 'expo-application';
 
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types';
@@ -63,6 +66,30 @@ async function callAuthRegister(
   return json;
 }
 
+async function callSessionRegister(accessToken: string): Promise<void> {
+  const url = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/session-register`;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        deviceInfo: {
+          platform: Platform.OS,
+          model: Device.modelName ?? 'unknown',
+          os: Device.osVersion ?? 'unknown',
+          appVersion: Application.nativeApplicationVersion ?? 'unknown',
+        },
+      }),
+    });
+  } catch (err) {
+    Sentry.captureException(err, { tags: { action: 'session_register' } });
+  }
+}
+
 type AuthContextValue = {
   user: User | null;
   session: Session | null;
@@ -71,6 +98,8 @@ type AuthContextValue = {
   error: string | null;
   /** Set to true once day_45 conversion check fires on this session */
   showDay45Popup: boolean;
+  /** True when user is forcibly signed out by another device login */
+  forcedLogout: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmailOTP: (email: string) => Promise<void>;
   verifyOTP: (email: string, token: string) => Promise<void>;
@@ -79,6 +108,8 @@ type AuthContextValue = {
   /** Re-fetches the profile from DB and updates context state. Call after any profile update. */
   refreshProfile: () => Promise<void>;
   clearDay45Popup: () => void;
+  /** Reset forced logout flag after showing ForcedLogoutScreen */
+  clearForcedLogout: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -92,6 +123,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDay45Popup, setShowDay45Popup] = useState(false);
+  const [forcedLogout, setForcedLogout] = useState(false);
+  // Track whether we had an active session before a sign-out event
+  const wasLoggedIn = useRef(false);
 
   // OAuth redirect URI — expo-auth-session handles Expo Go vs standalone automatically
   const redirectUri = makeRedirectUri({
@@ -118,8 +152,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(newSession?.user ?? null);
 
       if (event === 'SIGNED_IN' && newSession?.user) {
+        wasLoggedIn.current = true;
         await loadOrCreateProfile(newSession.user, newSession.access_token);
       } else if (event === 'SIGNED_OUT') {
+        // Distinguish forced logout (by another device) from manual sign-out
+        if (wasLoggedIn.current) {
+          // This SIGNED_OUT was triggered externally — likely forced by session-register
+          setForcedLogout(true);
+        }
+        wasLoggedIn.current = false;
         setProfile(null);
         setIsLoading(false);
       } else {
@@ -159,20 +200,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const registerRes = await callAuthRegister('register_profile', { deviceId }, token);
         if (registerRes.profile) {
           setProfile(registerRes.profile);
+          if (token) void callSessionRegister(token);
         }
       } else if (data) {
         const p = data as Profile;
         setProfile(p);
 
-        // ── Increment login_count (fire-and-forget) ──────────────────────
-        const newCount = (p.login_count ?? 0) + 1;
-        supabase
-          .from('profiles')
-          .update({ login_count: newCount })
-          .eq('id', authUser.id)
-          .then(({ error: updateErr }) => {
-            if (updateErr) console.warn('login_count update failed:', updateErr.message);
-          });
+        // ── Session enforcement (fire-and-forget) ────────────────────────
+        if (accessToken) void callSessionRegister(accessToken);
 
         // ── day_45 conversion check ───────────────────────────────────────
         const createdAt = new Date(p.created_at ?? Date.now());
@@ -316,6 +351,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signOut(): Promise<void> {
     try {
       setIsLoading(true);
+      wasLoggedIn.current = false; // manual sign-out — don't trigger forced logout screen
       const { error: signOutError } = await supabase.auth.signOut();
       if (signOutError) throw signOutError;
     } catch (err) {
@@ -331,6 +367,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   function clearDay45Popup() {
     setShowDay45Popup(false);
+  }
+
+  function clearForcedLogout() {
+    setForcedLogout(false);
   }
 
   async function refreshProfile(): Promise<void> {
@@ -360,6 +400,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         error,
         showDay45Popup,
+        forcedLogout,
         signInWithGoogle,
         signInWithEmailOTP,
         verifyOTP,
@@ -367,6 +408,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         clearError,
         refreshProfile,
         clearDay45Popup,
+        clearForcedLogout,
       }}
     >
       {children}

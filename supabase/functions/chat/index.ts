@@ -703,6 +703,42 @@ Deno.serve(async (req: Request) => {
     const effectivePlanId = isPaused ? 'free' : rawPlanId;
     const planQuota = getPlanQuota(effectivePlanId);
 
+    // ── Single-device session enforcement ─────────────────────────────────────
+    // Plans with maxSessions=1 (free, plus-monthly, plus-annual) are strictly
+    // enforced. If the incoming JWT's suffix doesn't match the registered
+    // active_session_id in the DB the session was superseded by a newer device.
+    const STRICT_PLANS = new Set(['free', 'plus-monthly', 'plus-annual']);
+    if (STRICT_PLANS.has(effectivePlanId)) {
+      // Use last 20 chars of the access token as a lightweight session fingerprint
+      // (same as session-register uses to stamp active_session_id)
+      const incomingToken = (authHeader ?? '').replace('Bearer ', '');
+      const incomingFingerprint = incomingToken.slice(-20);
+
+      type SessionRow = { active_session_id: string | null };
+      const { data: sessionRow } = await admin
+        .from('profiles')
+        .select('active_session_id')
+        .eq('id', userId)
+        .maybeSingle() as { data: SessionRow | null };
+
+      if (
+        sessionRow?.active_session_id &&
+        sessionRow.active_session_id !== incomingFingerprint
+      ) {
+        return new Response(
+          JSON.stringify({
+            error: 'session_expired',
+            message: 'Your account was accessed from another device. Please log in again.',
+          }),
+          {
+            status: 401,
+            headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     const dailyQuota = isGeoLimited
       ? role === 'institution'
         ? GEO_LIMITED_INSTITUTION_DAILY_QUOTA
