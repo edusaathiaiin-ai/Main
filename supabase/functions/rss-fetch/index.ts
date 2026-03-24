@@ -103,11 +103,60 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
   ],
 
   nursingsaathi: [
-    { url: 'https://rss.sciencedaily.com/releases/health_medicine.xml', source: 'Science Daily', category: 'Nursing' },
+    // ── International Journal of Nursing Studies (Elsevier — #1 in nursing by impact, IF ~7.5)
+    { url: 'https://rss.sciencedirect.com/publication/science/00207489', source: 'Int. Journal of Nursing Studies', category: 'Nursing Research' },
+    // ── Journal of Advanced Nursing (Wiley — elite empirical nursing, IF ~3.8)
+    { url: 'https://onlinelibrary.wiley.com/feed/13652648/most-recent', source: 'Journal of Advanced Nursing', category: 'Nursing Research' },
+    // ── Journal of Clinical Nursing (Wiley — top clinical practice journal)
+    { url: 'https://onlinelibrary.wiley.com/feed/13652702/most-recent', source: 'Journal of Clinical Nursing', category: 'Clinical Nursing' },
+    // ── Worldviews on Evidence-Based Nursing (Wiley/Sigma Theta Tau — premier for EBP in nursing)
+    { url: 'https://onlinelibrary.wiley.com/feed/17416787/most-recent', source: 'Worldviews on Evidence-Based Nursing', category: 'Evidence-Based Nursing' },
+    // ── Nursing Outlook (Elsevier — AAN flagship for policy and leadership)
+    { url: 'https://rss.sciencedirect.com/publication/science/00296554', source: 'Nursing Outlook', category: 'Nursing Policy & Leadership' },
+    // ── Nurse Education Today (Elsevier — leading for nursing education research)
+    { url: 'https://rss.sciencedirect.com/publication/science/02606917', source: 'Nurse Education Today', category: 'Nursing Education' },
+    // ── Journal of Nursing Management (Wiley — top for nursing administration/management)
+    { url: 'https://onlinelibrary.wiley.com/feed/13652834/most-recent', source: 'Journal of Nursing Management', category: 'Nursing Management' },
+    // ── Intensive and Critical Care Nursing (Elsevier — specialist critical care nursing)
+    { url: 'https://rss.sciencedirect.com/publication/science/09645395', source: 'Intensive and Critical Care Nursing', category: 'Critical Care Nursing' },
+    // ── PubMed nursing — comprehensive nursing research index (NIH)
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=nursing+research+evidence+based&format=rss', source: 'PubMed Nursing', category: 'Nursing Research' },
+    // ── Annual Review of Nursing Research (Springer — authoritative reviews for nursing science)
+    { url: 'https://link.springer.com/search.rss?search-within=Journal&facet-journal-id=11547', source: 'Annual Review of Nursing Research', category: 'Nursing Reviews' },
+    // ── Science Daily health/medicine headlines for accessible nursing news
+    { url: 'https://rss.sciencedaily.com/releases/health_medicine.xml', source: 'Science Daily Health', category: 'Nursing News' },
+    // ── WHO — global nursing/health policy and evidence
+    { url: 'https://www.who.int/rss-feeds/news-english.xml', source: 'WHO', category: 'Global Health & Nursing' },
   ],
   psychsaathi: [
-    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=psychology+education&format=rss', source: 'PubMed', category: 'Psychology' },
-    { url: 'https://rss.sciencedaily.com/releases/mind_brain.xml', source: 'Science Daily', category: 'Psychology' },
+    // ── Annual Review of Psychology (IF ~26 — consistently #1 review journal in psychology)
+    { url: 'https://www.annualreviews.org/rss/content/journals/psych/loi', source: 'Annual Review of Psychology', category: 'Psychology Reviews' },
+    // ── Psychological Bulletin (APA — #1 for meta-analyses and comprehensive reviews, IF ~16)
+    { url: 'https://content.apa.org/journals/bul.rss', source: 'Psychological Bulletin', category: 'Psychology Reviews & Meta-Analyses' },
+    // ── Psychological Review (APA — top theoretical and computational modeling journal)
+    { url: 'https://content.apa.org/journals/rev.rss', source: 'Psychological Review', category: 'Theoretical Psychology' },
+    // ── American Psychologist (APA flagship — broad high-impact articles across all subfields)
+    { url: 'https://content.apa.org/journals/amp.rss', source: 'American Psychologist', category: 'Psychology' },
+    // ── Psychological Science (APS flagship — highest-ranked empirical journal, IF ~8)
+    { url: 'https://journals.sagepub.com/action/showFeed?jc=pss&type=etoc&feed=rss', source: 'Psychological Science', category: 'Empirical Psychology' },
+    // ── Perspectives on Psychological Science (APS — high-impact reviews with societal implications)
+    { url: 'https://journals.sagepub.com/action/showFeed?jc=pps&type=etoc&feed=rss', source: 'Perspectives on Psychological Science', category: 'Psychology Perspectives' },
+    // ── Nature Human Behaviour (Nature portfolio — elite multidisciplinary behavioral science, IF ~29)
+    { url: 'https://www.nature.com/nathumbehav.rss', source: 'Nature Human Behaviour', category: 'Behavioral Science' },
+    // ── Behavioral and Brain Sciences (Cambridge — major theoretical papers with open peer commentary)
+    { url: 'https://www.cambridge.org/core/journals/behavioral-and-brain-sciences/rss', source: 'Behavioral and Brain Sciences', category: 'Theoretical Psychology' },
+    // ── Journal of Abnormal Psychology (APA — leading clinical/psychopathology journal)
+    { url: 'https://content.apa.org/journals/abn.rss', source: 'Journal of Abnormal Psychology', category: 'Clinical Psychology' },
+    // ── Journal of Personality and Social Psychology (APA — definitive social/personality, IF ~8)
+    { url: 'https://content.apa.org/journals/psp.rss', source: 'Journal of Personality and Social Psychology', category: 'Social Psychology' },
+    // ── Current Directions in Psychological Science (APS — concise reviews across all subfields)
+    { url: 'https://journals.sagepub.com/action/showFeed?jc=cdp&type=etoc&feed=rss', source: 'Current Directions in Psychological Science', category: 'Psychology Updates' },
+    // ── Developmental Psychology (APA — top developmental science outlet)
+    { url: 'https://content.apa.org/journals/dev.rss', source: 'Developmental Psychology', category: 'Developmental Psychology' },
+    // ── PubMed psychology — comprehensive cross-disciplinary psychology research index
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=psychology+mental+health&format=rss', source: 'PubMed Psychology', category: 'Psychology Research' },
+    // ── Science Daily mind/brain headlines (accessible news layer across all psych subfields)
+    { url: 'https://rss.sciencedaily.com/releases/mind_brain.xml', source: 'Science Daily Mind & Brain', category: 'Psychology News' },
   ],
   maathsaathi: [
     { url: 'https://rss.sciencedaily.com/releases/computers_math.xml', source: 'Science Daily', category: 'Mathematics' },
@@ -148,20 +197,79 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
   ],
 
   mechsaathi: [
-    { url: 'https://spectrum.ieee.org/feeds/feed.rss', source: 'IEEE Spectrum', category: 'Engineering' },
-    { url: 'https://rss.sciencedaily.com/releases/matter_energy/engineering.xml', source: 'Science Daily', category: 'Mechanical Engineering' },
+    // ── International Journal of Machine Tools and Manufacture (Elsevier — #1 for manufacturing, IF ~14)
+    { url: 'https://rss.sciencedirect.com/publication/science/08906955', source: 'Int. Journal of Machine Tools and Manufacture', category: 'Manufacturing Engineering' },
+    // ── International Journal of Mechanical Sciences (Elsevier — elite broad mechanics, IF ~7.3)
+    { url: 'https://rss.sciencedirect.com/publication/science/00207403', source: 'Int. Journal of Mechanical Sciences', category: 'Mechanical Sciences' },
+    // ── Applied Thermal Engineering (Elsevier — top for heat transfer applications, IF ~6.4)
+    { url: 'https://rss.sciencedirect.com/publication/science/13594311', source: 'Applied Thermal Engineering', category: 'Thermal Engineering' },
+    // ── Composite Structures (Elsevier — leading for composites/fiber-reinforced, IF ~6.3)
+    { url: 'https://rss.sciencedirect.com/publication/science/02638223', source: 'Composite Structures', category: 'Composite Materials' },
+    // ── Mechanical Systems and Signal Processing (Elsevier — top for dynamics/condition monitoring, IF ~8.4)
+    { url: 'https://rss.sciencedirect.com/publication/science/08883270', source: 'Mechanical Systems and Signal Processing', category: 'Structural Dynamics' },
+    // ── Progress in Energy and Combustion Science (Elsevier — #1 review journal for energy/combustion, IF ~26)
+    { url: 'https://rss.sciencedirect.com/publication/science/03601285', source: 'Progress in Energy and Combustion Science', category: 'Combustion & Energy' },
+    // ── Tribology International (Elsevier — gold standard for friction, wear, lubrication, IF ~6.2)
+    { url: 'https://rss.sciencedirect.com/publication/science/0301679X', source: 'Tribology International', category: 'Tribology' },
+    // ── Journal of Sound and Vibration (Elsevier — definitive for acoustics/vibration, IF ~4.7)
+    { url: 'https://rss.sciencedirect.com/publication/science/0022460X', source: 'Journal of Sound and Vibration', category: 'Vibrations & Acoustics' },
+    // ── ASME Digital Collection — aggregated most-read across all ASME mechanical journals
     { url: 'https://asmedigitalcollection.asme.org/rss/site_5/5.xml', source: 'ASME Journals', category: 'Mechanical Engineering' },
-    { url: 'https://www.nature.com/nmat.rss', source: 'Nature Materials', category: 'Materials Engineering' },
-    { url: 'https://www.annualreviews.org/rss/content/journals/fluid/loi', source: 'Annual Review of Fluid Mechanics', category: 'Fluid Mechanics' },
-    { url: 'https://onlinelibrary.wiley.com/feed/15214095/most-recent', source: 'Advanced Materials', category: 'Materials Science' },
-    { url: 'https://www.science.org/rss/news_current.xml', source: 'Science', category: 'Engineering Research' },
+    // ── ASME Journal of Mechanical Design (elite for design/optimization/mechanisms)
+    { url: 'https://asmedigitalcollection.asme.org/mechanicaldesign/rss/site_5/38.xml', source: 'ASME Journal of Mechanical Design', category: 'Mechanical Design' },
+    // ── ASME Journal of Heat and Mass Transfer (flagship for thermal/heat transfer)
+    { url: 'https://asmedigitalcollection.asme.org/heattransfer/rss/site_5/11.xml', source: 'ASME Journal of Heat and Mass Transfer', category: 'Heat Transfer' },
+    // ── ASME Journal of Fluids Engineering (top for fluid mechanics in engineering)
+    { url: 'https://asmedigitalcollection.asme.org/fluidsengineering/rss/site_5/10.xml', source: 'ASME Journal of Fluids Engineering', category: 'Fluids Engineering' },
+    // ── Wiley — Computer-Aided Engineering & Fatigue (Int. J. for Numerical Methods in Engineering)
+    { url: 'https://onlinelibrary.wiley.com/feed/10969853/most-recent', source: 'Int. J. for Numerical Methods in Engineering', category: 'Computational Mechanics' },
+    // ── arXiv Fluid Dynamics preprints (global physics-based fluid/thermal research pipeline)
+    { url: 'https://arxiv.org/rss/physics.flu-dyn', source: 'arXiv Fluid Dynamics', category: 'Fluid Mechanics Preprints' },
+    // ── arXiv Condensed Matter — Materials Science (fundamental materials research for mech engineering)
+    { url: 'https://arxiv.org/rss/cond-mat.mtrl-sci', source: 'arXiv Materials Science', category: 'Engineering Materials Preprints' },
+    // ── Annual Review of Fluid Mechanics (review gold standard, IF ~26)
+    { url: 'https://www.annualreviews.org/rss/content/journals/fluid/loi', source: 'Annual Review of Fluid Mechanics', category: 'Fluid Mechanics Reviews' },
+    // ── Nature Materials (Nature portfolio — elite for advanced materials, IF ~41)
+    { url: 'https://www.nature.com/nmat.rss', source: 'Nature Materials', category: 'Advanced Materials' },
+    // ── Science Daily mechanical/energy engineering headlines
+    { url: 'https://rss.sciencedaily.com/releases/matter_energy/engineering.xml', source: 'Science Daily Engineering', category: 'Mechanical Engineering News' },
   ],
   civilsaathi: [
-    { url: 'https://rss.sciencedaily.com/releases/matter_energy/civil_engineering.xml', source: 'Science Daily', category: 'Civil Engineering' },
-    { url: 'https://ascelibrary.org/rss/mostread', source: 'ASCE Library', category: 'Civil Engineering' },
+    // ── #1 — Automation in Construction (Elsevier — top-cited, IF ~9.6; AI/robotics in construction)
+    { url: 'https://rss.sciencedirect.com/publication/science/09265805', source: 'Automation in Construction', category: 'Construction Automation' },
+    // ── Computer-Aided Civil and Infrastructure Engineering (Wiley — premier computational civil journal)
+    { url: 'https://onlinelibrary.wiley.com/feed/14678667/most-recent', source: 'Computer-Aided Civil & Infrastructure Engineering', category: 'Computational Civil Engineering' },
+    // ── Construction and Building Materials (Elsevier — #1 by volume for materials/structures, IF ~7.4)
+    { url: 'https://rss.sciencedirect.com/publication/science/09500618', source: 'Construction and Building Materials', category: 'Building Materials' },
+    // ── Cement and Concrete Research (Elsevier — gold standard for cement science, IF ~11)
+    { url: 'https://rss.sciencedirect.com/publication/science/00088846', source: 'Cement and Concrete Research', category: 'Cement & Concrete' },
+    // ── Cement and Concrete Composites (Elsevier — elite for composite cementitious systems)
+    { url: 'https://rss.sciencedirect.com/publication/science/09589465', source: 'Cement and Concrete Composites', category: 'Concrete Composites' },
+    // ── Sustainable Cities and Society (Elsevier — leading for urban infra & sustainability, IF ~11)
+    { url: 'https://rss.sciencedirect.com/publication/science/22106707', source: 'Sustainable Cities and Society', category: 'Sustainable Infrastructure' },
+    // ── Energy and Buildings (Elsevier — top for building energy systems & efficiency, IF ~6.7)
+    { url: 'https://rss.sciencedirect.com/publication/science/03787788', source: 'Energy and Buildings', category: 'Building Energy' },
+    // ── ASCE Library — most-read articles across 35+ civil engineering journals
+    { url: 'https://ascelibrary.org/rss/mostread', source: 'ASCE Library Most Read', category: 'Civil Engineering' },
+    // ── ASCE Journal of Structural Engineering (flagship for structural analysis & design)
+    { url: 'https://ascelibrary.org/action/showFeed?type=etoc&feed=rss&jc=jbenf2', source: 'ASCE Journal of Bridge Engineering', category: 'Bridge Engineering' },
+    // ── ASCE Journal of Computing in Civil Engineering (BIM, GIS, digital twins)
+    { url: 'https://ascelibrary.org/action/showFeed?type=etoc&feed=rss&jc=jccee5', source: 'ASCE Journal of Computing in Civil Engineering', category: 'Civil Computing' },
+    // ── ASCE Journal of Materials in Civil Engineering
+    { url: 'https://ascelibrary.org/action/showFeed?type=etoc&feed=rss&jc=jmcee7', source: 'ASCE Journal of Materials in Civil Engineering', category: 'Civil Materials' },
+    // ── ASCE Journal of Infrastructure Systems
+    { url: 'https://ascelibrary.org/action/showFeed?type=etoc&feed=rss&jc=jitse4', source: 'ASCE Journal of Infrastructure Systems', category: 'Infrastructure' },
+    // ── arXiv civil & structural engineering preprints (global research pipeline)
+    { url: 'https://arxiv.org/rss/eess.SY', source: 'arXiv Systems & Control', category: 'Structural Control Preprints' },
+    { url: 'https://arxiv.org/rss/physics.geo-ph', source: 'arXiv Geophysics', category: 'Geotechnical Preprints' },
+    // ── Science Daily civil engineering headlines (accessible news layer)
+    { url: 'https://rss.sciencedaily.com/releases/matter_energy/civil_engineering.xml', source: 'Science Daily Civil', category: 'Civil Engineering News' },
+    // ── Nature Sustainability (Nature portfolio — high-impact for sustainable infra & cities)
     { url: 'https://www.nature.com/natsustain.rss', source: 'Nature Sustainability', category: 'Sustainable Engineering' },
+    // ── PubMed civil/structural engineering research (cross-disciplinary & health-infra)
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=civil+engineering+infrastructure&format=rss', source: 'PubMed Civil Engineering', category: 'Civil Engineering Research' },
+    // ── Science Daily geoscience for geotechnical sub-discipline
     { url: 'https://rss.sciencedaily.com/releases/earth_climate/geology.xml', source: 'Science Daily Geoscience', category: 'Geotechnical Engineering' },
-    { url: 'https://spectrum.ieee.org/feeds/feed.rss', source: 'IEEE Spectrum', category: 'Engineering' },
   ],
   elecsaathi: [
     { url: 'https://spectrum.ieee.org/feeds/feed.rss', source: 'IEEE Spectrum', category: 'Electronics' },
@@ -478,7 +586,7 @@ Deno.serve(async (req: Request) => {
   if (failedFeeds.length > 0) {
     admin.from('rss_feed_health').upsert(
       failedFeeds.map(f => ({
-        vertical_id:   f.vertical,
+        vertical_id:   verticalUUIDs[f.vertical] ?? f.vertical,
         feed_url:      f.url,
         source_name:   f.source,
         error_message: f.reason,
