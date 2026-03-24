@@ -17,6 +17,8 @@ import * as Sentry from '@sentry/react-native';
 import { SAATHIS } from '@/constants/saathis';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import SmartEducationInput from '@/components/profile/SmartEducationInput';
+import { ACADEMIC_LEVEL_CARDS, instantCalibrate, type AcademicLevel, type AcademicLevelCard } from '@/lib/instantSoulCalibration';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -46,29 +48,38 @@ const HIGH_AMBITION_EXAMS = new Set(['UPSC', 'GATE', 'NEET', 'Bar Exam']);
 
 const SUBJECT_NAMES = SAATHIS.map(s => ({ id: s.id, name: s.name, emoji: s.emoji }));
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type PickerType = 'city' | 'year' | null;
-
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function ProfileSetupScreen() {
   const router = useRouter();
   const { user, profile, refreshProfile } = useAuth();
 
+  // ── Academic level step (Step 0 — before everything else) ────────────────
+  type ProfileSetupStep = 'academic' | 'profile';
+  const [setupStep, setSetupStep] = useState<ProfileSetupStep>('academic');
+  const [academicLevel, setAcademicLevel] = useState<AcademicLevel>('bachelor');
+  const [academicCard, setAcademicCard] = useState<AcademicLevelCard | null>(null);
+  const [selectedYearIdx, setSelectedYearIdx] = useState<number | null>(null);
+  const [selectedExamTarget, setSelectedExamTarget] = useState<string | null>(null);
+
   // Form fields
   const [fullName, setFullName] = useState('');
-  const [city, setCity] = useState('');
-  const [institutionName, setInstitutionName] = useState('');
-  const [yearOfStudy, setYearOfStudy] = useState('');
   const [enrolledSubjects, setEnrolledSubjects] = useState<string[]>([]);
   const [futureSubjects, setFutureSubjects] = useState<string[]>([]);
   const [researchArea, setResearchArea] = useState('');
   const [examTarget, setExamTarget] = useState('');
 
+  // Smart education parse result
+  const [educationData, setEducationData] = useState<{
+    collegeId: string | null;
+    courseId: string | null;
+    year: number | null;
+    currentSubjects: string[];
+    saathiSuggestion: string | null;
+    rawInput: string;
+  } | null>(null);
+
   // UI state
-  const [openPicker, setOpenPicker] = useState<PickerType>(null);
-  const [citySearch, setCitySearch] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,19 +102,17 @@ export default function ProfileSetupScreen() {
       });
   }, []);
 
-  // Progress: count how many of 8 "desirable" fields are filled
+  // Progress: count how many of 6 "desirable" fields are filled
   const progress = useMemo(() => {
     let filled = 0;
     if (fullName.trim()) filled++;
-    if (city) filled++;
-    if (institutionName.trim()) filled++;
-    if (yearOfStudy) filled++;
+    if (educationData) filled += 2; // college + year bundled
     if (enrolledSubjects.length > 0) filled++;
     if (futureSubjects.length > 0) filled++;
     if (researchArea.trim()) filled++;
     if (examTarget) filled++;
-    return Math.round((filled / 8) * 100);
-  }, [fullName, city, institutionName, yearOfStudy, enrolledSubjects, futureSubjects, researchArea, examTarget]);
+    return Math.round((filled / 7) * 100);
+  }, [fullName, educationData, enrolledSubjects, futureSubjects, researchArea, examTarget]);
 
   // Subject toggle helper
   function toggleSubject(name: string, type: 'enrolled' | 'future') {
@@ -120,8 +129,8 @@ export default function ProfileSetupScreen() {
 
   // Save handler
   async function handleSave() {
-    if (!fullName.trim() || !city) {
-      setError('Full name and city are required.');
+    if (!fullName.trim()) {
+      setError('Full name is required.');
       return;
     }
     if (!user || !profile) return;
@@ -130,23 +139,31 @@ export default function ProfileSetupScreen() {
     setError(null);
 
     try {
-      // 1 — Update profiles
+      // 1 — Update profiles (includes parsed education fields)
       const { error: profileErr } = await supabase
         .from('profiles')
         .update({
           full_name: fullName.trim().slice(0, 100),
-          city: city.slice(0, 100),
-          institution_name: institutionName.trim().slice(0, 200) || null,
-          year_of_study: yearOfStudy || null,
+          raw_education_input: educationData?.rawInput ?? null,
+          parsed_college_id: educationData?.collegeId ?? null,
+          parsed_course_id: educationData?.courseId ?? null,
+          parsed_year: educationData?.year ?? null,
+          parse_confirmed: !!educationData,
           exam_target: examTarget || null,
         })
         .eq('id', user.id);
 
       if (profileErr) throw profileErr;
 
+      // 2 — Merge parse-education current subjects into enrolled subjects
+      const mergedEnrolled = [
+        ...enrolledSubjects,
+        ...(educationData?.currentSubjects ?? []).filter(s => !enrolledSubjects.includes(s)),
+      ];
+
       // 2 — Batch insert enrolled subjects
-      if (enrolledSubjects.length > 0) {
-        const rows = enrolledSubjects.map(name => ({
+      if (mergedEnrolled.length > 0) {
+        const rows = mergedEnrolled.map(name => ({
           user_id: user.id,
           vertical_id: verticalMapRef.current[name] ?? null,
           subject_name: name,
@@ -174,16 +191,34 @@ export default function ProfileSetupScreen() {
         if (futureErr) throw futureErr;
       }
 
-      // 4 — Create student_soul row (upsert in case of retry)
+      // 4 — Create student_soul row with calibration
       if (profile.primary_saathi_id) {
-        const ambitionLevel = HIGH_AMBITION_EXAMS.has(examTarget) ? 'high' : 'medium';
+        const calibration = instantCalibrate({
+          academicLevel,
+          currentYear: academicLevel === 'competitive' || !academicCard?.yearOptions.length
+            ? null
+            : (selectedYearIdx !== null ? selectedYearIdx + 1 : null),
+          totalYears: academicCard?.yearOptions.length
+            ? academicCard.yearOptions.length
+            : null,
+          examTarget: selectedExamTarget ?? (examTarget || null),
+          previousDegree: null,
+        });
+
         const { error: soulErr } = await supabase.from('student_soul').upsert(
           {
             user_id: user.id,
             vertical_id: profile.primary_saathi_id,
             display_name: fullName.trim(),
-            ambition_level: ambitionLevel,
-            enrolled_subjects: enrolledSubjects,
+            academic_level: academicLevel,
+            depth_calibration: calibration.depth_calibration,
+            peer_mode: calibration.peer_mode,
+            exam_mode: calibration.exam_mode,
+            ambition_level: calibration.ambition_level,
+            flame_stage: calibration.flame_stage,
+            career_discovery_stage: calibration.career_discovery_stage,
+            prior_knowledge_base: calibration.prior_knowledge_base,
+            enrolled_subjects: mergedEnrolled,
             future_subjects: futureSubjects,
             future_research_area: researchArea.trim().slice(0, 500) || null,
           },
@@ -266,55 +301,16 @@ export default function ProfileSetupScreen() {
           onChangeText={text => setFullName(text.replace(/[<>]/g, '').slice(0, 100))}
         />
 
-        {/* ── City ──────────────────────────────────────────────────── */}
-        <Label text="City" required />
-        <Pressable
-          onPress={() => setOpenPicker('city')}
-          className="rounded-xl border border-navy/20 px-4 py-3.5 mb-5 bg-white flex-row justify-between items-center"
-        >
-          <Text
-            style={{
-              fontFamily: 'DMSans-Regular',
-              color: city ? '#0B1F3A' : '#0B1F3A55',
-              fontSize: 16,
-            }}
-          >
-            {city || 'Select your city'}
-          </Text>
-          <Text className="text-navy/40">▼</Text>
-        </Pressable>
-
-        {/* ── Institution ───────────────────────────────────────────── */}
-        <Label text="College / Institution" />
-        <TextInput
-          className="rounded-xl border border-navy/20 px-4 py-3.5 text-navy text-base mb-5 bg-white"
-          style={{ fontFamily: 'DMSans-Regular' }}
-          placeholder="Your college or institution"
-          placeholderTextColor="#0B1F3A55"
-          autoCapitalize="words"
-          autoCorrect={false}
-          maxLength={200}
-          value={institutionName}
-          onChangeText={text => setInstitutionName(text.replace(/[<>]/g, '').slice(0, 200))}
+        {/* ── Smart Education Input — replaces city + institution + year ── */}
+        <SmartEducationInput
+          currentSaathiId={profile?.primary_saathi_id ?? undefined}
+          primaryColor="#C9993A"
+          onConfirmed={(data) => setEducationData(data)}
+          onSaathiSwitch={(slug) => {
+            // Future: prompt to switch saathi from onboarding
+            console.log('[ProfileSetup] Saathi switch suggested:', slug);
+          }}
         />
-
-        {/* ── Year of study ─────────────────────────────────────────── */}
-        <Label text="Year of study" />
-        <Pressable
-          onPress={() => setOpenPicker('year')}
-          className="rounded-xl border border-navy/20 px-4 py-3.5 mb-5 bg-white flex-row justify-between items-center"
-        >
-          <Text
-            style={{
-              fontFamily: 'DMSans-Regular',
-              color: yearOfStudy ? '#0B1F3A' : '#0B1F3A55',
-              fontSize: 16,
-            }}
-          >
-            {yearOfStudy || 'Select year'}
-          </Text>
-          <Text className="text-navy/40">▼</Text>
-        </Pressable>
 
         {/* ── Enrolled subjects ─────────────────────────────────────── */}
         <Label text="Subjects you are currently studying" />
@@ -437,35 +433,7 @@ export default function ProfileSetupScreen() {
         </Pressable>
       </View>
 
-      {/* City picker modal */}
-      <PickerModal
-        visible={openPicker === 'city'}
-        title="Select your city"
-        options={INDIAN_CITIES}
-        onSelect={val => {
-          setCity(val);
-          setOpenPicker(null);
-          setCitySearch('');
-        }}
-        onClose={() => {
-          setOpenPicker(null);
-          setCitySearch('');
-        }}
-        search={citySearch}
-        onSearchChange={setCitySearch}
-      />
-
-      {/* Year picker modal */}
-      <PickerModal
-        visible={openPicker === 'year'}
-        title="Year of study"
-        options={YEARS_OF_STUDY}
-        onSelect={val => {
-          setYearOfStudy(val);
-          setOpenPicker(null);
-        }}
-        onClose={() => setOpenPicker(null)}
-      />
+      {/* City / Year pickers removed — replaced by SmartEducationInput */}
     </KeyboardAvoidingView>
   );
 }

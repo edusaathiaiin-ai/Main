@@ -1,0 +1,332 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { createClient } from '@/lib/supabase/client';
+import { useAuthStore } from '@/stores/authStore';
+import { useChatStore } from '@/stores/chatStore';
+import { SAATHIS } from '@/constants/saathis';
+import { QuestionCard } from './QuestionCard';
+import { PostQuestionModal } from './PostQuestionModal';
+import { FilterBar } from './FilterBar';
+import { BoardSidebar } from './BoardSidebar';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { MobileNav } from '@/components/layout/MobileNav';
+import type { BoardQuestion, Saathi, QuotaState } from '@/types';
+
+// ── Skeleton loader ────────────────────────────────────────────────────────────
+
+function QuestionSkeleton() {
+  return (
+    <div className="rounded-2xl p-5 mb-3 animate-pulse" style={{ background: '#0A1929', border: '0.5px solid rgba(255,255,255,0.05)' }}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-8 h-8 rounded-full bg-white/8" />
+        <div className="space-y-1.5">
+          <div className="w-28 h-2.5 rounded-full bg-white/8" />
+          <div className="w-16 h-2 rounded-full bg-white/5" />
+        </div>
+      </div>
+      <div className="space-y-1.5 mb-3">
+        <div className="w-full h-3 rounded-full bg-white/8" />
+        <div className="w-3/4 h-3 rounded-full bg-white/5" />
+      </div>
+      <div className="w-16 h-2.5 rounded-full bg-white/5" />
+    </div>
+  );
+}
+
+type Filter = 'all' | 'unanswered' | 'mine' | 'faculty_verified';
+
+type QWithMeta = BoardQuestion & {
+  authorName?: string;
+  authorRole?: string;
+  aiAnswer?: string | null;
+  facultyVerified?: boolean;
+};
+
+const PAGE_SIZE = 20;
+const DEFAULT_QUOTA: QuotaState = { limit: 5, used: 0, remaining: 5, coolingUntil: null, isCooling: false };
+
+export function QuestionFeed() {
+  const { profile } = useAuthStore();
+  const { activeSaathiId, activeBotSlot, setActiveBotSlot } = useChatStore();
+
+  const saathiId = activeSaathiId ?? profile?.primary_saathi_id ?? SAATHIS[0].id;
+  const activeSaathi: Saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
+
+  const [questions, setQuestions] = useState<QWithMeta[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [filter, setFilter] = useState<Filter>('all');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [newBanner, setNewBanner] = useState<string | null>(null);
+  const newQuestionRef = useRef<HTMLDivElement>(null);
+
+  const canPost = !profile?.is_geo_limited;
+
+  // Fetch questions
+  async function fetchQuestions(newFilter: Filter, newPage: number, append = false) {
+    if (!profile) return;
+    if (newPage === 0) setLoading(true); else setLoadingMore(true);
+
+    const supabase = createClient();
+    let query = supabase
+      .from('board_questions')
+      .select('*', { count: 'exact' })
+      .eq('vertical_id', saathiId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .range(newPage * PAGE_SIZE, (newPage + 1) * PAGE_SIZE - 1);
+
+    if (newFilter === 'unanswered') query = query.is('ai_answer', null);
+    if (newFilter === 'mine') query = query.eq('user_id', profile.id);
+    if (newFilter === 'faculty_verified') query = query.eq('faculty_verified', true);
+
+    const { data, count } = await query;
+    setTotalCount(count ?? 0);
+
+    const withMeta: QWithMeta[] = (data ?? []).map((q) => ({
+      ...q,
+      authorName: q.is_anonymous ? undefined : q.user_id?.slice(0, 8),
+      aiAnswer: (q as Record<string, unknown>).ai_answer as string | null,
+      facultyVerified: (q as Record<string, unknown>).faculty_verified as boolean,
+    }));
+
+    if (append) setQuestions((prev) => [...prev, ...withMeta]);
+    else setQuestions(withMeta);
+
+    setLoading(false);
+    setLoadingMore(false);
+  }
+
+  useEffect(() => {
+    if (profile) { setPage(0); fetchQuestions(filter, 0, false); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, saathiId, filter]);
+
+  // Realtime subscription
+  useEffect(() => {
+    if (!profile) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel('board-inserts')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'board_questions', filter: `vertical_id=eq.${saathiId}` },
+        (payload) => {
+          const newQ = payload.new as QWithMeta;
+          if (newQ.user_id === profile.id) return; // skip own
+          setQuestions((prev) => [newQ, ...prev]);
+          setNewBanner(newQ.id);
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [profile, saathiId]);
+
+  function handlePosted(newId: string) {
+    // Refresh from top
+    setPage(0);
+    fetchQuestions(filter, 0, false);
+    setNewBanner(newId);
+    setTimeout(() => setNewBanner(null), 5000);
+  }
+
+  function handleLoadMore() {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchQuestions(filter, nextPage, true);
+  }
+
+  function handleFilterChange(f: Filter) {
+    setFilter(f);
+    setPage(0);
+  }
+
+  const hasMore = questions.length < totalCount;
+
+  return (
+    <div
+      className="flex h-screen overflow-hidden w-full"
+      style={{ background: '#060F1D' }}
+    >
+      {/* App Sidebar */}
+      <Sidebar
+        profile={profile!}
+        activeSaathi={activeSaathi}
+        activeSlot={activeBotSlot}
+        quota={DEFAULT_QUOTA}
+        onSlotChange={(slot) => setActiveBotSlot(slot)}
+        onLockedTap={() => {}}
+        onSignOut={async () => {
+          const supabase = createClient();
+          await supabase.auth.signOut();
+        }}
+      />
+
+      {/* Main */}
+      <main className="flex flex-col flex-1 min-w-0 h-full overflow-y-auto">
+        {/* New question banner */}
+        <AnimatePresence>
+          {newBanner && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="flex items-center justify-center py-2 text-sm cursor-pointer"
+              style={{ background: `${activeSaathi.primary}22`, borderBottom: `0.5px solid ${activeSaathi.primary}44` }}
+              onClick={() => { setNewBanner(null); newQuestionRef.current?.scrollIntoView({ behavior: 'smooth' }); }}
+            >
+              <span style={{ color: activeSaathi.primary }}>
+                ↑ New question posted — click to view
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Toast when user posts */}
+        <AnimatePresence>
+          {newBanner === questions[0]?.id && (
+            <motion.div
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              className="mx-6 mt-4 px-4 py-3 rounded-xl text-sm"
+              style={{ background: 'rgba(34,197,94,0.1)', border: '0.5px solid rgba(34,197,94,0.3)', color: '#4ADE80' }}
+            >
+              ✓ Posted! AI is generating an answer...
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex gap-6 px-6 py-6 max-w-6xl w-full mx-auto">
+          {/* Feed column */}
+          <div className="flex-1 min-w-0">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h1 className="font-playfair text-2xl font-bold text-white mb-1">
+                  {activeSaathi.name} Community
+                </h1>
+                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  {totalCount > 0 ? `${totalCount} questions` : 'Ask anything'}
+                </p>
+              </div>
+              {/* Mobile ask button */}
+              <button
+                onClick={() => canPost && setModalOpen(true)}
+                className="lg:hidden px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                style={{ background: '#C9993A', color: '#060F1D' }}
+              >
+                + Ask
+              </button>
+            </div>
+
+            {/* Filter bar */}
+            <div className="mb-5">
+              <FilterBar active={filter} onChange={handleFilterChange} primaryColor={activeSaathi.primary} />
+            </div>
+
+            {/* Questions */}
+            {loading ? (
+              <div>
+                {[0, 1, 2, 3].map((i) => <QuestionSkeleton key={i} />)}
+              </div>
+            ) : questions.length === 0 ? (
+              /* ── Empty state ────────────────────────────────────────────────── */
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <span className="text-5xl mb-4">{activeSaathi.emoji}</span>
+                {filter === 'all' ? (
+                  <>
+                    <p className="font-playfair text-lg text-white/50 mb-4">
+                      Be the first to ask a question in {activeSaathi.name}!
+                    </p>
+                    {canPost && (
+                      <button
+                        onClick={() => setModalOpen(true)}
+                        className="px-5 py-2.5 rounded-xl text-sm font-bold"
+                        style={{ background: '#C9993A', color: '#060F1D' }}
+                      >
+                        Ask a Question
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="font-playfair text-lg text-white/50 mb-2">
+                      No questions match this filter
+                    </p>
+                    <button
+                      onClick={() => setFilter('all')}
+                      className="text-sm underline underline-offset-2"
+                      style={{ color: activeSaathi.primary }}
+                    >
+                      Show all →
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div ref={newQuestionRef}>
+                {questions.map((q) => (
+                  <QuestionCard
+                    key={q.id}
+                    question={q}
+                    currentUserId={profile?.id}
+                    primaryColor={activeSaathi.primary}
+                  />
+                ))}
+
+                {/* Pagination */}
+                <div className="flex flex-col items-center gap-2 py-6">
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    Showing {questions.length} of {totalCount} questions
+                  </p>
+                  {hasMore && (
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+                      style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '0.5px solid rgba(255,255,255,0.1)',
+                        color: 'rgba(255,255,255,0.6)',
+                      }}
+                    >
+                      {loadingMore ? 'Loading...' : 'Load more questions'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right sidebar */}
+          <BoardSidebar
+            activeSaathi={activeSaathi}
+            onAskQuestion={() => setModalOpen(true)}
+            canPost={canPost}
+          />
+        </div>
+      </main>
+
+      {/* Mobile nav */}
+      <MobileNav />
+
+      {/* Post modal */}
+      {profile && (
+        <PostQuestionModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          saathiId={saathiId}
+          saathiName={activeSaathi.name}
+          primaryColor={activeSaathi.primary}
+          profile={profile}
+          onPosted={handlePosted}
+        />
+      )}
+    </div>
+  );
+}

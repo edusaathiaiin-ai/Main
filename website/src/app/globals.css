@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+:root {
+  --navy: #0B1F3A;
+  --navy-deep: #060F1D;
+  --gold: #C9993A;
+  --gold-light: #E5B86A;
+  --cream: #FAF7F2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--navy-deep);
+  color: #fff;
+}
+
+/* Font utilities */
+.font-playfair {
+  font-family: var(--font-playfair), serif;
+}
+
+.font-sans {
+  font-family: var(--font-dm-sans), sans-serif;
+}

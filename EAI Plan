@@ -1,0 +1,200 @@
+# EdUsaathiAI Web App — Implementation Plan
+
+## Overview
+
+A student-facing web portal built inside `website/` — the same Supabase backend, same edge
+functions, same 20 Saathi verticals. Students who cannot install the Expo mobile app can 
+use this on any browser. Also serves as the investor demo URL.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Where does this live?**  
+> Plan: scaffold inside `C:\Users\JAYDEEP\EdUsaathiAI\website\` (already exists, only has a README).
+> Deploy as a **new Vercel project** (`edusaathiai-web`) under the same Vercel org.
+> The domain `app.edusaathiai.in` (or `edusaathiai.in/app`) would point here.
+
+> [!IMPORTANT]
+> **Phase approach** — to keep this shipable fast, we do it in 2 phases:
+> - **Phase 1 (now):** Scaffold + Auth + Saathi Selection + Chat — investor-ready, functional
+> - **Phase 2 (later):** News Feed, Community Board, Profile/Soul editing, Subscription (Razorpay)
+
+---
+
+## Tech Stack
+
+| Layer | Choice | Why |
+|---|---|---|
+| Framework | Next.js 15 App Router | SSR, streaming, server actions |
+| Language | TypeScript strict | Consistent with mobile + admin |
+| Styling | Tailwind CSS v4 | CSS-first config, faster |
+| Components | shadcn/ui | Accessible, themeable, battle-tested |
+| Animation | Framer Motion v11 | Investor-ready transitions |
+| Backend | Supabase JS v2 | Same DB, Auth, Edge Functions |
+| State | Zustand | Lightweight, no boilerplate |
+| Data fetching | React Query v5 (TanStack) | Caching, real-time, mutations |
+| Error tracking | Sentry | Already have DSN |
+| Deploy | Vercel | Same org, zero config |
+
+---
+
+## Project Structure
+
+```
+website/
+├── app/
+│   ├── layout.tsx              ← root layout (Sentry, fonts, providers)
+│   ├── page.tsx                ← marketing redirect → /saathis or /login
+│   ├── (auth)/
+│   │   ├── login/page.tsx      ← email OTP login
+│   │   ├── signup/page.tsx     ← email + full_name signup
+│   │   └── profile-setup/     ← soul profile wizard (name, exam, tone)
+│   └── (dashboard)/
+│       ├── layout.tsx          ← auth-guarded, nav sidebar
+│       ├── saathis/page.tsx    ← saathi selection grid (like landing page)
+│       ├── chat/[id]/page.tsx  ← chat with a saathi (streaming)
+│       ├── news/page.tsx       ← news feed by vertical
+│       └── profile/page.tsx    ← view/edit soul profile
+├── components/
+│   ├── ui/                     ← shadcn primitives (Button, Card, etc.)
+│   ├── auth/                   ← LoginForm, SignupForm, OTP input
+│   ├── saathi/                 ← SaathiCard, SaathiGrid
+│   ├── chat/                   ← ChatBubble, ChatInput, StreamingText
+│   ├── news/                   ← NewsCard, NewsFeed
+│   └── layout/                 ← Navbar, Sidebar, MobileNav
+├── lib/
+│   ├── supabase/
+│   │   ├── client.ts           ← browser client (createBrowserClient)
+│   │   └── server.ts           ← server client (createServerClient + cookies)
+│   ├── constants/
+│   │   └── saathis.ts          ← all 20 saathis with id/name/emoji/colors
+│   └── utils.ts                ← cn(), formatDate(), etc.
+├── hooks/
+│   ├── useSession.ts           ← Zustand session store + Supabase auth listener
+│   ├── useChat.ts              ← streaming chat with React Query mutation
+│   └── useNews.ts              ← paginated news items by vertical
+├── store/
+│   └── session.ts              ← Zustand: user, profile, saathiId
+├── middleware.ts               ← auth redirect guard
+├── next.config.ts
+├── tailwind.config.ts          ← v4 CSS-first (postcss plugin)
+├── tsconfig.json               ← strict mode, path aliases
+├── .env.local                  ← NEXT_PUBLIC_SUPABASE_URL/ANON_KEY, SENTRY_DSN
+└── vercel.json
+```
+
+---
+
+## Proposed Changes
+
+### 1 — Scaffold
+
+#### [NEW] `website/` — Next.js 15 app
+
+- `npx create-next-app@latest website --typescript --tailwind --app --src-dir no --import-alias "@/*"`
+- Install: `shadcn@latest`, `framer-motion`, `@supabase/ssr`, `@supabase/supabase-js`, `zustand`, `@tanstack/react-query`, `@sentry/nextjs`
+- Tailwind v4: replace `tailwind.config.js` with CSS `@import "tailwindcss"` approach
+
+---
+
+### 2 — Auth Layer
+
+#### [NEW] `website/middleware.ts`
+- Reads Supabase session from cookie
+- Redirects `/` and `/(dashboard)/**` to `/login` if unauthenticated
+- Redirects `/login` and `/signup` to `/saathis` if already logged in
+
+#### [NEW] `website/lib/supabase/client.ts` + `server.ts`
+- Uses `@supabase/ssr` package (Next.js 15 compatible cookie handling)
+- Server client uses `cookies()` from `next/headers`
+
+#### [NEW] `website/app/(auth)/login/page.tsx`
+- Email + OTP (same as mobile)
+- Animated with Framer Motion fadeUp
+
+#### [NEW] `website/app/(auth)/signup/page.tsx`
+- Email, full_name, password
+
+#### [NEW] `website/app/(auth)/profile-setup/page.tsx`
+- Multi-step wizard: name → exam target → preferred tone → primary saathi
+
+---
+
+### 3 — Dashboard Shell
+
+#### [NEW] `website/app/(dashboard)/layout.tsx`
+- Left sidebar (desktop): logo, saathi nav links, profile, logout
+- Bottom tab bar (mobile)
+- Reads auth, redirects if unauthenticated
+
+---
+
+### 4 — Saathi Selection
+
+#### [NEW] `website/app/(dashboard)/saathis/page.tsx`
+- Same 20-card grid as landing page but interactive
+- Click → routes to `/chat/[id]`
+- Preserves last-used saathi via Zustand
+
+#### [NEW] `website/lib/constants/saathis.ts`
+- All 20 saathis with `id`, `name`, `emoji`, `tagline`, `primary`, `accent` colours
+
+---
+
+### 5 — Chat Interface
+
+#### [NEW] `website/app/(dashboard)/chat/[id]/page.tsx`
+- Calls `POST /functions/v1/chat` with `Authorization: Bearer <session_token>`
+- **Streaming** via `ReadableStream` — text appears word by word
+- Message history stored in React Query cache (per saathi)
+- Input: textarea with Shift+Enter support
+
+#### [NEW] `website/hooks/useChat.ts`
+- Handles streaming response from the edge function
+- Mutation with optimistic UI
+
+---
+
+### 6 — News Feed
+
+#### [NEW] `website/app/(dashboard)/news/page.tsx`
+- Filter tabs per vertical
+- Reads from `news_items` table via Supabase JS (RLS: authenticated = can read active items)
+- Paginated with React Query `useInfiniteQuery`
+
+---
+
+### 7 — Error Tracking
+
+#### [NEW] `website/sentry.client.config.ts` + `sentry.server.config.ts`
+- Uses existing `SENTRY_DSN`
+
+---
+
+## Environment Variables (website/.env.local)
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://vpmpuxosyrijknbxautx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<from root .env>
+NEXT_PUBLIC_SENTRY_DSN=<from root .env>
+SUPABASE_SERVICE_ROLE_KEY=<server only, for admin actions>
+```
+
+---
+
+## Verification Plan
+
+### Phase 1 Checklist (Investor Demo)
+- [ ] `npm run dev` starts cleanly on port 3000
+- [ ] Login with email OTP → redirected to `/saathis`
+- [ ] Select KanoonSaathi → opens `/chat/kanoonsaathi`
+- [ ] Chat sends a message → streams back AI response
+- [ ] Middleware blocks `/saathis` for unauthenticated → redirects to `/login`
+- [ ] Run `npx tsc --noEmit` → zero TypeScript errors
+- [ ] Deploy to Vercel preview URL
+
+### Manual
+- Test on iPhone Safari + Android Chrome
+- Verify JWT is passed correctly to chat edge function (check Supabase logs)

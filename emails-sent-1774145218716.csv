@@ -1,0 +1,5 @@
+id,created_at,subject,from,to,cc,bcc,reply_to,last_event,sent_at,scheduled_at,api_key_id
+e9905679-f277-4a19-a19f-7b89a8c930dd,2026-03-20 17:09:25.351523+00,Your Magic Link,"""EdUsaathiAI"" <noreply@edusaathiai.in>",edusaathiai.in@gmail.com,,,,delivered,2026-03-20 17:09:25.854+00,,f606099f-d7a9-4cf3-b99a-a30248df714d
+aa3cb2c2-887b-4e46-89d7-b6781f1b4031,2026-03-20 17:14:03.502888+00,Confirm Your Signup,"""EdUsaathiAI"" <noreply@edusaathiai.in>",edusaathai.in@gmail.com,,,,bounced,2026-03-20 17:14:04.013+00,,f606099f-d7a9-4cf3-b99a-a30248df714d
+51c11064-1c0b-481b-8462-03f724caa735,2026-03-20 17:16:00.289333+00,Confirm Your Signup,"""EdUsaathiAI"" <noreply@edusaathiai.in>",edusaathai.in@gmail.com,,,,suppressed,2026-03-20 17:16:00.753+00,,f606099f-d7a9-4cf3-b99a-a30248df714d
+30ed0ed1-8370-4ca0-b56a-7c61f61d0fe0,2026-03-20 17:19:15.485235+00,Confirm Your Signup,"""EdUsaathiAI"" <noreply@edusaathiai.in>",edusaathai.in@gmail.com,,,,suppressed,2026-03-20 17:19:15.983+00,,f606099f-d7a9-4cf3-b99a-a30248df714d

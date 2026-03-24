@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS public.courses (
   abbreviations       TEXT[]    NOT NULL DEFAULT '{}',
   degree_type         TEXT,           -- bachelor / master / diploma / phd
   duration_years      INTEGER,
-  saathi_slug         TEXT      REFERENCES public.verticals(slug),
+  saathi_slug         TEXT,     -- e.g. 'pharmasaathi' — no FK, verticals uses UUID id
   year_wise_subjects  JSONB,
   -- Structure: {"1": {"sem1": [...], "sem2": [...]}, "2": {...}}
   common_aliases      TEXT[]    NOT NULL DEFAULT '{}'

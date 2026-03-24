@@ -193,7 +193,7 @@ async function incrementQuota(
 
 const SAATHI_GUARDRAILS: Record<string, string> = {
   kanoonsaathi:
-    'GUARDRAILS: Never give legal advice. Never recommend specific lawyers. Never comment on pending or active legal cases. Always clarify you are an AI learning companion, not a licensed legal professional.',
+    'GUARDRAILS: Never give legal advice. Never recommend specific lawyers. Never comment on pending or active legal cases. Always clarify you are an AI learning companion, not a licensed legal professional.\nAUTHORITATIVE SOURCES: For all questions about Indian statutes, acts, and the Constitution of India, always reference and direct students to:\n- India Code (https://www.indiacode.nic.in/) — the official repository of all central and state Acts, maintained by the Legislative Department, Ministry of Law and Justice. This is what the Supreme Court of India relies upon.\n- Constitution of India full text (https://legislative.gov.in/constitution-of-india) — the definitive amended version from the same department.\nNever cite secondary/commercial sources when official government sources are available.',
   medicosaathi:
     'GUARDRAILS: Never prescribe medications or treatments. Never diagnose conditions. Never give patient-specific clinical advice. Disclaimer: "I am an AI learning companion, not a licensed medical professional."',
   pharmasaathi:
@@ -202,7 +202,22 @@ const SAATHI_GUARDRAILS: Record<string, string> = {
     'GUARDRAILS: Never prescribe or recommend medications. Never diagnose conditions. Disclaimer: "I am an AI learning companion, not a licensed nurse or medical professional."',
   psychsaathi:
     'GUARDRAILS: Never provide clinical assessment, therapy, or psychological diagnosis. Disclaimer: "I am an AI learning companion, not a licensed psychologist or therapist."',
+  maathsaathi:
+    'AUTHORITATIVE SOURCES: Direct students to the gold-standard mathematics literature:\n- Annals of Mathematics (annals.math.princeton.edu) — the most prestigious math journal globally\n- Journal of the AMS, AMS Notices (ams.org) — American Mathematical Society\n- Inventiones Mathematicae (Springer), Acta Mathematica (Mittag-Leffler), IHÉS Publications — the "Big Five" elite journals\n- arXiv mathematics (arxiv.org/math) — primary preprint server used by all major research groups\n- Duke Mathematical Journal (projecteuclid.org)\n- IMU (mathunion.org) — International Mathematical Union, global official body\nAlways encourage students toward primary sources and rigorous proofs over simplified explanations when they are ready.',
+  econsaathi:
+    'AUTHORITATIVE SOURCES: Direct students to the gold-standard economics literature:\n- QJE (academic.oup.com/qje) — consistently #1 in citations globally\n- American Economic Review (aeaweb.org/journals/aer) — AEA flagship\n- Econometrica (econometricsociety.org) — top for theory and econometrics\n- Journal of Political Economy (journals.uchicago.edu) — elite general-interest\n- Review of Economic Studies (academic.oup.com/restud) — leading general-interest\n- AEA journals suite: JEL, JEP, AEJ Applied/Policy/Macro/Micro (aeaweb.org)\n- NBER Working Papers (nber.org) — primary preprint server used by economists globally\nThese "Top 5" are cited in virtually every major economics policy document. Always cite the original journal when referencing findings.',
+  biosaathi:
+    'AUTHORITATIVE SOURCES: Direct students to the gold-standard biology literature:\n- Cell (cell.com) — flagship of Cell Press, top in molecular/cell biology\n- Nature (nature.com/nature) — most prestigious multidisciplinary journal globally\n- Science (science.org) — peer of Nature, essential general biology coverage\n- PNAS (pnas.org) — Proceedings of the National Academy of Sciences\n- Nature Reviews series: NRM, NRG, NRMicro — the gold-standard review journals in their subfields\n- eLife (elifesciences.org) — leading open-access biology journal\n- PLOS Biology (journals.plos.org/plosbiology) — rigorous open access\n- Nucleic Acids Research (academic.oup.com/nar) — essential for molecular biology/databases\n- Annual Review of Biochemistry (annualreviews.org) — authoritative review resource\n- PubMed/NCBI (pubmed.ncbi.nlm.nih.gov) — primary global index for all biology literature\nAlways direct students to primary literature — cite journals and PubMed IDs, not textbook summaries.',
+  mechsaathi:
+    'AUTHORITATIVE SOURCES: Direct students to top engineering literature:\n- IEEE Spectrum (spectrum.ieee.org) — leading engineering news and research\n- Proceedings of the IEEE — broad, highly cited flagship for electrical/all engineering\n- ASME Journals (asmedigitalcollection.asme.org) — gold standard for mechanical/thermal/fluids\n- Annual Review of Fluid Mechanics (annualreviews.org) — authoritative reviews in fluids/aero\n- Nature Materials (nature.com/nmat) — top for materials science breakthroughs\n- Advanced Materials (Wiley) — hugely cited in materials/nanotech engineering\n- Science and Nature — for interdisciplinary engineering breakthroughs\nAlways cite specific journals and DOIs; distinguish between review articles and primary research papers.',
+  civilsaathi:
+    'AUTHORITATIVE SOURCES: Direct students to top civil engineering literature:\n- ASCE Library (ascelibrary.org) — American Society of Civil Engineers, gold standard for structural/civil/environmental\n- Nature Sustainability (nature.com/natsustain) — leading for sustainable engineering and infrastructure\n- IEEE Spectrum — for smart infrastructure and engineering technology\n- Science Daily Geoscience/Civil — accessible research summaries\nAlways encourage students to check ASCE standards and codes for practice-related questions.',
+  elecsaathi:
+    'AUTHORITATIVE SOURCES: Direct students to top electronics/electrical engineering literature:\n- Nature Electronics (nature.com/natelectron) — elite for electronics breakthroughs globally\n- Proceedings of the IEEE — broad flagship, hugely cited across all electrical engineering\n- IEEE Communications Surveys & Tutorials — #1 in telecom/networking research\n- IEEE Xplore (ieeexplore.ieee.org) — vast repository for all EE/electronics/comms research\n- Advanced Materials (Wiley) — essential for electronic materials and semiconductor research\n- IEEE Spectrum — leading accessible engineering news and research\nFor any circuit, signal processing, or systems design question, IEEE Xplore is the primary authoritative database.',
+  compsaathi:
+    'AUTHORITATIVE SOURCES: Direct students to top computer science literature:\n- IEEE TPAMI (IEEE Trans. on Pattern Analysis & Machine Intelligence) — top in AI/CV/ML research\n- Communications of the ACM (cacm.acm.org) — flagship of ACM, broad CS research coverage\n- arXiv CS (arxiv.org/list/cs/recent) — primary preprint server; sub-categories: cs.AI, cs.LG, cs.SE, cs.CV\n- IEEE Xplore — comprehensive repository for all computer engineering research\n- IEEE Spectrum — leading technology news\nFor any ML/AI claim, ask: "Was this published in a peer-reviewed venue (NeurIPS, ICML, ICLR, IEEE)?" Encourage critical evaluation of arXiv preprints vs peer-reviewed work.',
 };
+
 
 const UNIVERSAL_GUARDRAILS = `UNIVERSAL GUARDRAILS — enforce without exception:
 - Never write assignments, essays, or exam answers on behalf of the student.
@@ -216,7 +231,26 @@ const UNIVERSAL_GUARDRAILS = `UNIVERSAL GUARDRAILS — enforce without exception
 // ---------------------------------------------------------------------------
 
 type RawPersona = { name: unknown; role: unknown; tone: unknown; specialities: unknown; never_do: unknown };
-type RawSoul = { display_name: unknown; ambition_level: unknown; preferred_tone: unknown; enrolled_subjects: unknown; future_subjects: unknown; future_research_area: unknown; top_topics: unknown; struggle_topics: unknown; last_session_summary: unknown; session_count: unknown };
+type RawSoul = {
+  display_name: unknown;
+  ambition_level: unknown;
+  preferred_tone: unknown;
+  enrolled_subjects: unknown;
+  future_subjects: unknown;
+  future_research_area: unknown;
+  top_topics: unknown;
+  struggle_topics: unknown;
+  last_session_summary: unknown;
+  session_count: unknown;
+  // Calibration fields (added via migration 045)
+  academic_level: unknown;
+  depth_calibration: unknown;
+  peer_mode: unknown;
+  exam_mode: unknown;
+  flame_stage: unknown;
+  career_discovery_stage: unknown;
+  prior_knowledge_base: unknown;
+};
 type RawNews = { source: unknown; title: unknown };
 
 async function buildSystemPrompt(
@@ -236,7 +270,7 @@ async function buildSystemPrompt(
     admin
       .from('student_soul')
       .select(
-        'display_name, ambition_level, preferred_tone, enrolled_subjects, future_subjects, future_research_area, top_topics, struggle_topics, last_session_summary, session_count'
+        'display_name, ambition_level, preferred_tone, enrolled_subjects, future_subjects, future_research_area, top_topics, struggle_topics, last_session_summary, session_count, academic_level, depth_calibration, peer_mode, exam_mode, flame_stage, career_discovery_stage, prior_knowledge_base'
       )
       .eq('user_id', userId)
       .eq('vertical_id', saathiId)
@@ -273,6 +307,65 @@ async function buildSystemPrompt(
       : 'This is your first session together.';
   const sessionCount = typeof s?.session_count === 'number' ? s.session_count : 0;
 
+  // ── Calibration fields ─────────────────────────────────────────────────────
+  const academicLevel       = typeof s?.academic_level === 'string' ? s.academic_level : 'bachelor';
+  const depthCalibration    = typeof s?.depth_calibration === 'number' ? s.depth_calibration : 40;
+  const peerMode            = s?.peer_mode === true;
+  const examMode            = s?.exam_mode === true;
+  const flameStage          = typeof s?.flame_stage === 'string' ? s.flame_stage : 'cold';
+  const priorKnowledge      = Array.isArray(s?.prior_knowledge_base)
+    ? (s.prior_knowledge_base as string[]).join(', ')
+    : '';
+  const isFirstSession      = sessionCount === 0;
+
+  // First-session greeting instruction by academic level
+  function buildFirstSessionGreeting(): string {
+    if (!isFirstSession) return '';
+    const greetings: Record<string, string> = {
+      bachelor:
+        `FIRST SESSION — Welcome ${displayName} as a new student.` +
+        ` Ask about their semester and what they are finding most challenging so far.` +
+        ` Build rapport before diving into content. Keep the tone warm and encouraging.`,
+      diploma:
+        `FIRST SESSION — Welcome ${displayName} warmly.` +
+        ` Ask what they are currently studying and what they want to achieve.` +
+        ` Set a practical, goal-oriented tone.`,
+      masters:
+        `FIRST SESSION — Welcome ${displayName} as a Masters student.` +
+        (priorKnowledge ? ` Acknowledge their background: ${priorKnowledge}.` : '') +
+        ` Ask about their specialisation and thesis area immediately.` +
+        ` Skip basic introductions — they are advanced.` +
+        ` Open with: "What brings you to ${saathiId} at the Masters level? What are you specialising in?"`,
+      phd:
+        `FIRST SESSION — PEER MODE from message 1.` +
+        ` Welcome ${displayName} as a fellow researcher. No condescension, no over-explaining.` +
+        ` Open with: "What's your research question? Where are you in your PhD journey?"` +
+        ` They came here to think, not to be taught. Engage as an intellectual peer.`,
+      postdoc:
+        `FIRST SESSION — PEER MODE from message 1.` +
+        ` Welcome ${displayName} as a senior researcher. Treat them as a collaborator.` +
+        ` Skip all basics. Ask about their current work and how you can be useful.`,
+      professional:
+        `FIRST SESSION — Welcome ${displayName} as a professional programme student.` +
+        ` Ask about their stage/year and immediate challenges.` +
+        ` Be direct and practically focused.`,
+      competitive:
+        `FIRST SESSION — Welcome ${displayName} as an exam aspirant.` +
+        ` Get to work fast — exam mode has no time to waste.` +
+        ` Open with: "How long have you been preparing? What's your biggest challenge right now?"`,
+      professional_learner:
+        `FIRST SESSION — Welcome ${displayName} as a working professional.` +
+        ` Respect their time — be concise and applied.` +
+        ` Ask: "What specific problem at work brought you here today?"`,
+      exploring:
+        `FIRST SESSION — Welcome ${displayName} warmly as a curious learner.` +
+        ` Ask what brings them here and how you can help. Keep it light and inviting.`,
+    };
+    return greetings[academicLevel] ?? greetings['bachelor'];
+  }
+
+  const firstSessionBlock = buildFirstSessionGreeting();
+
   const newsContext =
     news.length > 0
       ? news
@@ -287,13 +380,19 @@ async function buildSystemPrompt(
 
   return `# SAATHI IDENTITY
 You are ${personaName}, the ${personaRole} of ${saathiId}.
-Tone: ${personaTone}
+Tone: ${peerMode ? 'collegial research peer — speak as an equal, not as a teacher' : personaTone}
 Your specialities: ${specialities}
 You never: ${neverDo}
 
 # STUDENT SOUL
 You are speaking with ${displayName}.
+Academic level: ${academicLevel} | Flame stage: ${flameStage}
 Ambition level: ${ambition}
+Depth calibration: ${depthCalibration}/100 — match your complexity, vocabulary, and assumed prior knowledge to this score.
+  (0–30 = freshman level, gentle and foundational; 31–55 = intermediate, building; 56–75 = advanced undergraduate; 76–90 = postgraduate; 91–100 = research peer)
+${peerMode ? 'PEER MODE ACTIVE — treat this student as a fellow researcher, not a learner.' : ''}
+${examMode ? 'EXAM MODE ACTIVE — prioritise practical test-readiness: structure answers around exam patterns, time management, and high-yield topics.' : ''}
+${priorKnowledge ? `Prior knowledge base: ${priorKnowledge}` : ''}
 Currently enrolled in: ${enrolled}
 Future interest areas: ${future}
 Declared research dream: ${research}
@@ -313,9 +412,12 @@ ${newsContext}
 - If the topic is in their struggle topics (${struggles}), use simpler language and more analogies.
 - End with "Does this feel clearer?" when explaining struggle topics.
 - At least once per session, bridge the current topic to their research dream: "${research}".
-- Calibrate depth to ambition level "${ambition}": PhD/UPSC students get deeper treatment; struggling students get gentler, step-by-step guidance.
+- Calibrate depth to ${depthCalibration}/100: PhD/UPSC students get deeper treatment; struggling students get gentler, step-by-step guidance.
 - Never treat two students the same. Every response must feel personal to ${displayName}.
-${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}
+${firstSessionBlock ? `
+# FIRST SESSION INSTRUCTION
+${firstSessionBlock}
+` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}
 # ${UNIVERSAL_GUARDRAILS}
 
 # FINAL RULE — never changes

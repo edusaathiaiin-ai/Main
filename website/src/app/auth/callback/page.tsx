@@ -1,0 +1,100 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { createClient } from '@/lib/supabase/client';
+
+function CallbackInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [status, setStatus] = useState<'verifying' | 'error'>('verifying');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    async function handleCallback() {
+      try {
+        // Give Supabase a moment to exchange the PKCE code
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error || !session) {
+          // Session may not be ready yet — wait 800ms and retry once
+          await new Promise((r) => setTimeout(r, 800));
+          const { data: { session: retrySession }, error: retryError } =
+            await supabase.auth.getSession();
+
+          if (retryError || !retrySession) {
+            setStatus('error');
+            setErrorMsg(retryError?.message ?? 'Session not found');
+            setTimeout(() => router.push('/login?error=unauthorized'), 1500);
+            return;
+          }
+        }
+
+        // Check profile completion
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', (session ?? (await supabase.auth.getSession()).data.session)!.user.id)
+          .single();
+
+        if (!profile || profile.role === null) {
+          router.push('/onboard');
+        } else {
+          router.push('/chat');
+        }
+      } catch (err) {
+        setStatus('error');
+        setErrorMsg(err instanceof Error ? err.message : 'Unknown error');
+        setTimeout(() => router.push('/login?error=unauthorized'), 1500);
+      }
+    }
+
+    handleCallback();
+  }, [router, searchParams]);
+
+  return (
+    <main
+      className="min-h-screen flex flex-col items-center justify-center gap-6 px-4"
+      style={{ background: 'linear-gradient(180deg, #060F1D 0%, #0B1F3A 100%)' }}
+    >
+      {status === 'verifying' ? (
+        <>
+          {/* Spinner */}
+          <div
+            className="w-12 h-12 rounded-full border-2 border-white/10 animate-spin"
+            style={{ borderTopColor: '#C9993A' }}
+          />
+          <div className="text-center">
+            <p className="font-playfair text-xl text-white font-semibold mb-1">
+              Verifying your identity...
+            </p>
+            <p className="text-white/40 text-sm">
+              Connecting you to your Saathi
+            </p>
+          </div>
+        </>
+      ) : (
+        <div className="text-center">
+          <p className="text-red-400 text-sm mb-2">Authentication failed</p>
+          <p className="text-white/30 text-xs">{errorMsg}</p>
+          <p className="text-white/40 text-xs mt-2">Redirecting to login...</p>
+        </div>
+      )}
+    </main>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center" style={{ background: '#060F1D' }}>
+        <div className="w-12 h-12 rounded-full border-2 border-white/10 animate-spin" style={{ borderTopColor: '#C9993A' }} />
+      </main>
+    }>
+      <CallbackInner />
+    </Suspense>
+  );
+}
