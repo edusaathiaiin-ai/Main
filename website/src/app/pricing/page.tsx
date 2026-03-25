@@ -84,6 +84,7 @@ export default function PricingPage() {
 
   useEffect(() => {
     const supabase = createClient();
+    // getSession() is fine here — only used for UI state (show login button)
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsLoggedIn(!!session);
     });
@@ -99,10 +100,14 @@ export default function PricingPage() {
       return;
     }
 
-    // Payments active — call Razorpay Edge Function
+    // Payment path: use getUser() for cryptographically verified identity
     setIsLoading(true);
     try {
       const supabase = createClient();
+      // getUser() verifies JWT signature with Supabase Auth servers
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push('/login?redirect=/pricing'); return; }
+      // Get the current session to extract the access_token for Bearer header
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { router.push('/login?redirect=/pricing'); return; }
 

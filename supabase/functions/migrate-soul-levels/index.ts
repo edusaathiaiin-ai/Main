@@ -16,10 +16,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL             = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const CRON_SECRET               = Deno.env.get('CRON_SECRET') ?? '';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret',
 };
 
 // ── Inline calibration logic (mirrors lib/instantSoulCalibration.ts) ──────────
@@ -87,6 +88,15 @@ function instantCalibrate(level: AcademicLevel): InstantCalibration {
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+  // ── Security gate: require CRON_SECRET to prevent accidental re-runs ────────
+  const providedSecret = req.headers.get('x-cron-secret');
+  if (!CRON_SECRET || providedSecret !== CRON_SECRET) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403, headers: CORS,
+    });
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 

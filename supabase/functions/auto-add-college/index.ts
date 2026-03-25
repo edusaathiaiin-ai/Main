@@ -43,6 +43,24 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'institution_name is required' }), { status: 400, headers: CORS });
     }
 
+    // ── Input length validation ────────────────────────────────────────────────
+    if (institution_name.trim().length > 200) {
+      return new Response(JSON.stringify({ error: 'institution_name too long (max 200 chars)' }), { status: 400, headers: CORS });
+    }
+    if (city && city.trim().length > 100) {
+      return new Response(JSON.stringify({ error: 'city too long (max 100 chars)' }), { status: 400, headers: CORS });
+    }
+    if (state && state.trim().length > 100) {
+      return new Response(JSON.stringify({ error: 'state too long (max 100 chars)' }), { status: 400, headers: CORS });
+    }
+    if (!Array.isArray(courses) || courses.length > 50) {
+      return new Response(JSON.stringify({ error: 'courses must be an array of max 50 items' }), { status: 400, headers: CORS });
+    }
+    if (courses.some((c: unknown) => typeof c !== 'string' || c.length > 20)) {
+      return new Response(JSON.stringify({ error: 'each course code must be a string ≤20 chars' }), { status: 400, headers: CORS });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     // ── Step 1: Check if already exists (similarity > 0.8 = very close match) ──

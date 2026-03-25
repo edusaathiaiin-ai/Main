@@ -37,7 +37,7 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  const PROTECTED = ['/chat', '/board', '/news', '/profile'];
+  const PROTECTED = ['/chat', '/board', '/news', '/profile', '/onboard'];
   const isProtected = PROTECTED.some((p) => url.pathname.startsWith(p));
 
   if (!user && isProtected) {
