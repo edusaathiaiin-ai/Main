@@ -105,9 +105,17 @@ function CallbackInner() {
         // Single-device enforcement — fire-and-forget, must not block redirect
         void callSessionRegister(resolvedSession.access_token);
 
-        // Read role and saathi from URL params (forwarded from login page)
-        const roleParam = searchParams.get('role') as DbUserRole | null;
-        const saathiSlug = searchParams.get('saathi');
+        // Read role and saathi — sessionStorage (set by login page before OAuth redirect)
+        // or URL params as fallback (magic link preserves them in some flows)
+        const roleParam = (
+          sessionStorage.getItem('pending_role') ??
+          searchParams.get('role')
+        ) as DbUserRole | null;
+        const saathiSlug = sessionStorage.getItem('pending_saathi') ?? searchParams.get('saathi');
+
+        // Clear so they don't persist across future logins
+        sessionStorage.removeItem('pending_role');
+        sessionStorage.removeItem('pending_saathi');
 
         // ── Ensure profile row exists before any further DB calls ─────────────
         const { isActive } = await ensureProfile(

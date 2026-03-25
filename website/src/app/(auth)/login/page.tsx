@@ -43,16 +43,19 @@ function LoginForm() {
   async function handleGoogle() {
     setGoogleLoading(true);
     setError('');
-    
-    // Forward all searchParams
-    const redirectUrl = new URL(`${window.location.origin}/auth/callback`);
-    searchParams.forEach((val, key) => redirectUrl.searchParams.set(key, val));
+
+    // Store role/saathi in sessionStorage — query params on redirectTo
+    // cause Google OAuth 400 (redirect_uri mismatch). Callback reads these.
+    const role = searchParams.get('role');
+    const saathi = searchParams.get('saathi');
+    if (role) sessionStorage.setItem('pending_role', role);
+    if (saathi) sessionStorage.setItem('pending_saathi', saathi);
 
     const supabase = createClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: redirectUrl.toString(),
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
     if (oauthError) {
@@ -67,16 +70,18 @@ function LoginForm() {
     if (!email.trim()) return;
     setMagicLoading(true);
     setError('');
-    
-    // Forward all searchParams
-    const redirectUrl = new URL(`${window.location.origin}/auth/callback`);
-    searchParams.forEach((val, key) => redirectUrl.searchParams.set(key, val));
+
+    // Store role/saathi in sessionStorage (same reason as Google OAuth above)
+    const role = searchParams.get('role');
+    const saathi = searchParams.get('saathi');
+    if (role) sessionStorage.setItem('pending_role', role);
+    if (saathi) sessionStorage.setItem('pending_saathi', saathi);
 
     const supabase = createClient();
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
       options: {
-        emailRedirectTo: redirectUrl.toString(),
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         shouldCreateUser: true,
       },
     });
