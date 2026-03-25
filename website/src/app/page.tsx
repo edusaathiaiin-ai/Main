@@ -225,8 +225,8 @@ export default async function RootPage() {
           <div className="footer-tagline">Unified Soul Partnership · Built under IAES, Ahmedabad</div>
         </div>
         <ul className="footer-links">
-          <li><a href="#">Privacy Policy</a></li>
-          <li><a href="#">Terms of Use</a></li>
+          <li><Link href="/privacy">Privacy Policy</Link></li>
+          <li><Link href="/terms">Terms of Use</Link></li>
           <li><a href="#">Contact</a></li>
           <li><a href="#">For Institutions</a></li>
           <li><a href="https://x.com/EdUsaathiAI" target="_blank" rel="noopener noreferrer">@EdUsaathiAI</a></li>

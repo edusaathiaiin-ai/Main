@@ -224,13 +224,13 @@ function LoginForm() {
       </div>
 
       {/* Footer */}
-      <p className="text-center text-xs mt-6" style={{ color: 'rgba(255,255,255,0.2)' }}>
-        By continuing, you agree to our{' '}
-        <a href="/terms" className="underline underline-offset-2 hover:text-white/40 transition-colors">
-          Terms
-        </a>{' '}
-        and{' '}
-        <a href="/privacy" className="underline underline-offset-2 hover:text-white/40 transition-colors">
+      <p style={{fontSize:'11px', color:'rgba(255,255,255,0.35)', textAlign:'center', marginTop:'16px'}}>
+        By signing in you agree to our{' '}
+        <a href="/terms" style={{color:'rgba(255,255,255,0.5)'}} className="hover:text-white transition-colors">
+          Terms of Service
+        </a>
+        {' '}and{' '}
+        <a href="/privacy" style={{color:'rgba(255,255,255,0.5)'}} className="hover:text-white transition-colors">
           Privacy Policy
         </a>
       </p>
