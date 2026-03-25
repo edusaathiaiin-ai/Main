@@ -4,6 +4,28 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import type { Session } from '@supabase/supabase-js';
+
+// ── Session register (fire-and-forget after every successful login) ─────────
+
+async function callSessionRegister(accessToken: string): Promise<void> {
+  const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/session-register`;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ deviceInfo: { platform: 'web' } }),
+    });
+  } catch {
+    // fire-and-forget — silently swallow; login flow must not be blocked
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function CallbackInner() {
   const router = useRouter();
@@ -17,6 +39,8 @@ function CallbackInner() {
     async function handleCallback() {
       try {
         // Give Supabase a moment to exchange the PKCE code
+        let resolvedSession: Session | null = null;
+
         const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error || !session) {
@@ -31,16 +55,22 @@ function CallbackInner() {
             setTimeout(() => router.push('/login?error=unauthorized'), 1500);
             return;
           }
+          resolvedSession = retrySession;
+        } else {
+          resolvedSession = session;
         }
 
-        // Check profile completion
+        // Single-device enforcement — fire-and-forget, must not block redirect
+        void callSessionRegister(resolvedSession.access_token);
+
+        // Check profile completion — use is_active as the canonical onboard signal
         const { data: profile } = await supabase
           .from('profiles')
-          .select('role')
-          .eq('id', (session ?? (await supabase.auth.getSession()).data.session)!.user.id)
+          .select('is_active')
+          .eq('id', resolvedSession.user.id)
           .single();
 
-        if (!profile || profile.role === null) {
+        if (!profile || !profile.is_active) {
           router.push('/onboard');
         } else {
           router.push('/chat');

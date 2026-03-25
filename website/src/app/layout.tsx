@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, DM_Sans } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/components/AuthProvider';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -34,8 +35,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
       <body className="min-h-screen bg-[#060F1D] text-white antialiased font-sans">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
 }
+

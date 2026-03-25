@@ -202,6 +202,17 @@ export function ChatWindow() {
       }
     } catch (err) {
       setStreaming(false);
+      // Distinguish forced logout (another device) from normal errors
+      if (
+        err instanceof Error &&
+        (err as Error & { code?: string }).code === 'FORCED_LOGOUT'
+      ) {
+        // Sign out silently and redirect to login with forced=1 flag
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        router.replace('/login?forced=1');
+        return;
+      }
       setErrorBanner(err instanceof Error ? err.message : 'Something went wrong. Try again.');
     }
   }, [profile, isStreaming, quota, messages, saathiId, activeBotSlot, addMessage, setStreaming, appendStreamChunk, commitStreamedMessage, router]);

@@ -50,7 +50,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && (url.pathname === '/login' || url.pathname === '/onboard')) {
+  if (user && url.pathname === '/login') {
     url.pathname = '/chat';
     return NextResponse.redirect(url);
   }

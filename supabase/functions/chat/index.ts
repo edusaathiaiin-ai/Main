@@ -655,6 +655,13 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // ── Observability trace setup ───────────────────────────────────────────
+    const traceId = crypto.randomUUID();
+    const t0 = Date.now();
+    let ttfbMs: number | null = null;
+    let lastError: { code?: string; message: string } | null = null;
+    // ────────────────────────────────────────────────────────────────────────
+
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Missing authorization' }), {
@@ -902,11 +909,25 @@ Deno.serve(async (req: Request) => {
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         try {
-          assistantText = useGroq
-            ? await streamGroqWithFallback(systemPrompt, messages, controller)
-            : await streamClaude(systemPrompt, messages, controller);
+          const streamFn = useGroq ? streamGroqWithFallback : streamClaude;
+
+          // Wrap streaming to capture TTFB on first token
+          let firstToken = true;
+          const wrappedController: ReadableStreamDefaultController<Uint8Array> = {
+            ...controller,
+            enqueue(chunk: Uint8Array) {
+              if (firstToken) {
+                ttfbMs = Date.now() - t0;
+                firstToken = false;
+              }
+              controller.enqueue(chunk);
+            },
+          };
+
+          assistantText = await streamFn(systemPrompt, messages, wrappedController as ReadableStreamDefaultController<Uint8Array>);
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'Stream error';
+          lastError = { code: 'STREAM_ERROR', message: msg.slice(0, 500) };
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
         } finally {
           if (assistantText && assistantText.length > 0) {
@@ -920,6 +941,28 @@ Deno.serve(async (req: Request) => {
             });
             await incrementQuota(admin, userId, saathiId, botSlot, dateIst, quotaRow.message_count, dailyQuota, effectiveCoolingHours);
           }
+
+          // ── Write observability trace (fire-and-forget) ─────────────────
+          admin.from('traces').insert({
+            trace_id:          traceId,
+            user_id:           userId,
+            action_type:       'chat',
+            saathi_id:         saathiId,
+            bot_slot:          botSlot,
+            started_at:        new Date(t0).toISOString(),
+            completed_at:      new Date().toISOString(),
+            duration_ms:       Date.now() - t0,
+            ttfb_ms:           ttfbMs,
+            ai_provider:       useGroq ? 'groq' : 'claude',
+            outcome:           assistantText ? 'success' : (lastError ? 'error' : 'empty'),
+            error_code:        lastError?.code ?? null,
+            error_message:     lastError?.message ?? null,
+            soul_updated:      false, // Updated by dedicated soul-update function
+          }).then(({ error: traceErr }: { error: { message: string } | null }) => {
+            if (traceErr) console.warn('[chat] trace insert failed:', traceErr.message);
+          });
+          // ─────────────────────────────────────────────────────────────────
+
           // [DONE] is always sent so the client stream closes cleanly
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();

@@ -20,5 +20,10 @@ export const SAATHIS: Saathi[] = [
   { id: 'hrsaathi',     name: 'HRSaathi',      emoji: '🤝',  tagline: 'People first, always',                   primary: '#3A003A', accent: '#EC4899', bg: '#F8E8F8' },
   { id: 'archsaathi',   name: 'ArchSaathi',    emoji: '🏛️',  tagline: 'Design thinking, built different',       primary: '#6B4A00', accent: '#D97706', bg: '#FFF4D6' },
   { id: 'historysaathi',name: 'HistorySaathi', emoji: '🏺',  tagline: 'Every era has a lesson',                 primary: '#5C3A00', accent: '#B45309', bg: '#FFF0E0' },
-  { id: 'econsaathi',   name: 'EconSaathi',    emoji: '📊',  tagline: 'Markets explained, policies demystified', primary: '#2C4A00', accent: '#4D7C0F', bg: '#EEF6E0' },
+  { id: 'econsaathi',      name: 'EconSaathi',        emoji: '📊',  tagline: 'Markets explained, policies demystified',      primary: '#2C4A00', accent: '#4D7C0F', bg: '#EEF6E0' },
+  // ── New Saathis (IDs filled from DB after migration 047) ──────────────
+  { id: 'chemengg saathi',  name: 'ChemEnggSaathi',    emoji: '⚗️',  tagline: 'Where chemistry meets industry',             primary: '#7C2D12', accent: '#EA580C', bg: '#FFF1E6' },
+  { id: 'biotechsaathi',    name: 'BioTechSaathi',     emoji: '🦠',  tagline: 'Engineering life, one cell at a time',        primary: '#064E3B', accent: '#10B981', bg: '#ECFDF5' },
+  { id: 'aerospacesaathi',  name: 'AerospaceSaathi',   emoji: '✈️',  tagline: 'From ground to orbit, engineered',            primary: '#1E3A5F', accent: '#3B82F6', bg: '#EFF6FF' },
+  { id: 'electronicssaathi',name: 'ElectronicsSaathi', emoji: '📡',  tagline: 'Signals, systems, and beyond',               primary: '#312E81', accent: '#6366F1', bg: '#EEF2FF' },
 ];

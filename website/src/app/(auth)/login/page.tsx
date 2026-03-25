@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
+import ForcedLogoutScreen from '@/components/ui/ForcedLogoutScreen';
 
 // ── Google icon ───────────────────────────────────────────────────────────────
 function GoogleIcon() {
@@ -26,12 +27,18 @@ function LoginForm() {
   const [magicLoading, setMagicLoading] = useState(false);
   const [magicSent, setMagicSent] = useState(false);
   const [error, setError] = useState('');
+  const isForced = searchParams.get('forced') === '1';
 
   useEffect(() => {
     if (searchParams.get('error') === 'unauthorized') {
       setError('Authentication failed. Please try again.');
     }
   }, [searchParams]);
+
+  // Show kicked-out screen if redirected from ChatWindow after forced logout
+  if (isForced) {
+    return <ForcedLogoutScreen />;
+  }
 
   async function handleGoogle() {
     setGoogleLoading(true);

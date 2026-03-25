@@ -44,10 +44,15 @@ export async function* streamChat(
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
+    const err = await res.json().catch(() => ({ error: res.statusText })) as { error?: string };
+    // Distinguish forced-logout (kicked off by another device) from generic errors
+    if (res.status === 401 && err.error === 'session_expired') {
+      const sessionErr = new Error('session_expired') as Error & { code: string };
+      sessionErr.code = 'FORCED_LOGOUT';
+      throw sessionErr;
+    }
     throw new Error(err.error ?? `Chat API error ${res.status}`);
   }
-
   const reader = res.body?.getReader();
   if (!reader) throw new Error('No response body from chat API');
 
