@@ -48,7 +48,7 @@ async function ensureProfile(
       .insert({
         id: userId,
         email,
-        full_name: '',          // NOT NULL — onboard will fill this in
+        full_name: null,         // onboard will fill this in
         role: roleParam ?? 'student',
         is_active: false,
         plan_id: 'free',

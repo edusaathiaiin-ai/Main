@@ -25,18 +25,31 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refreshes the session — must be called before any redirects
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Refresh session — must be called before any redirects
+  const { data: { user } } = await supabase.auth.getUser();
 
   const url = request.nextUrl.clone();
 
-  // Always allow auth callback (PKCE flow)
-  if (url.pathname.startsWith('/auth/callback')) {
+  // ── Always allow these paths ──────────────────────────────────────────────
+  // /auth/* — PKCE callback & OAuth exchange
+  // /login  — sign-in page (always public, even for logged-in users)
+  // /       — landing page (page.tsx handles its own auth-based redirect)
+  // /privacy, /terms, /pricing — public marketing pages
+  if (
+    url.pathname.startsWith('/auth') ||
+    url.pathname === '/login'     ||
+    url.pathname === '/'          ||
+    url.pathname === '/privacy'   ||
+    url.pathname === '/terms'     ||
+    url.pathname === '/pricing'
+  ) {
     return supabaseResponse;
   }
 
+  // ── Protected routes — redirect to /login if not authenticated ────────────
+  // NOTE: /onboard is in this list but onboard/page.tsx manages ALL its own
+  // internal routing (academic → saathi → profile → chat). Middleware only
+  // gates the door; it does NOT redirect onboard → chat.
   const PROTECTED = ['/chat', '/board', '/news', '/profile', '/onboard'];
   const isProtected = PROTECTED.some((p) => url.pathname.startsWith(p));
 
@@ -45,15 +58,6 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && url.pathname === '/') {
-    url.pathname = '/chat';
-    return NextResponse.redirect(url);
-  }
-
-  if (user && url.pathname === '/login') {
-    url.pathname = '/chat';
-    return NextResponse.redirect(url);
-  }
-
+  // ── Everything else — pass through ───────────────────────────────────────
   return supabaseResponse;
 }
