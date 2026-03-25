@@ -25,6 +25,48 @@ async function callSessionRegister(accessToken: string): Promise<void> {
   }
 }
 
+// ── Ensure profile row exists ─────────────────────────────────────────────────
+
+type DbUserRole = 'student' | 'faculty' | 'public' | 'institution';
+
+async function ensureProfile(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  email: string,
+  roleParam: DbUserRole | null,
+): Promise<{ isActive: boolean }> {
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('id, is_active')
+    .eq('id', userId)
+    .single();
+
+  if (error || !profile) {
+    // Profile row missing — create it now so onboard never hits a 500
+    const { error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        email,
+        role: roleParam ?? 'student',
+        is_active: false,
+        plan_id: 'free',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+    if (insertError) {
+      // Row may already exist (race condition) — ignore duplicate key errors
+      if (!insertError.code?.startsWith('23')) {
+        throw new Error(`Profile creation failed: ${insertError.message}`);
+      }
+    }
+    return { isActive: false };
+  }
+
+  return { isActive: profile.is_active ?? false };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 function CallbackInner() {
@@ -52,7 +94,7 @@ function CallbackInner() {
           if (retryError || !retrySession) {
             setStatus('error');
             setErrorMsg(retryError?.message ?? 'Session not found');
-            setTimeout(() => router.push('/login?error=unauthorized'), 1500);
+            setTimeout(() => router.replace('/login?error=unauthorized'), 1500);
             return;
           }
           resolvedSession = retrySession;
@@ -63,14 +105,21 @@ function CallbackInner() {
         // Single-device enforcement — fire-and-forget, must not block redirect
         void callSessionRegister(resolvedSession.access_token);
 
-        // ── Saathi instant bonding ────────────────────────────────────────────
-        // If student clicked "Can I be your Saathi?" from the hero grid,
-        // the saathi slug is passed as ?saathi= through the login URL.
-        // We pre-set primary_saathi_id before they hit onboarding.
+        // Read role and saathi from URL params (forwarded from login page)
+        const roleParam = searchParams.get('role') as DbUserRole | null;
         const saathiSlug = searchParams.get('saathi');
+
+        // ── Ensure profile row exists before any further DB calls ─────────────
+        const { isActive } = await ensureProfile(
+          supabase,
+          resolvedSession.user.id,
+          resolvedSession.user.email ?? '',
+          roleParam,
+        );
+
+        // ── Saathi instant bonding ────────────────────────────────────────────
         if (saathiSlug) {
           try {
-            // Look up the vertical by slug in Supabase
             const { data: vertical } = await supabase
               .from('verticals')
               .select('id')
@@ -89,23 +138,19 @@ function CallbackInner() {
         }
         // ─────────────────────────────────────────────────────────────────────
 
-        // Check profile completion — use is_active as the canonical onboard signal
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_active')
-          .eq('id', resolvedSession.user.id)
-          .single();
-
-        if (!profile || !profile.is_active) {
-          // If saathi was pre-set, skip directly to profile step
-          router.push(saathiSlug ? '/onboard?step=profile' : '/onboard');
+        if (!isActive) {
+          // Build onboard URL preserving role + saathi params
+          const onboardUrl = new URL('/onboard', window.location.origin);
+          if (roleParam) onboardUrl.searchParams.set('role', roleParam);
+          if (saathiSlug) onboardUrl.searchParams.set('saathi', saathiSlug);
+          router.replace(onboardUrl.pathname + onboardUrl.search);
         } else {
-          router.push('/chat');
+          router.replace('/chat');
         }
       } catch (err) {
         setStatus('error');
         setErrorMsg(err instanceof Error ? err.message : 'Unknown error');
-        setTimeout(() => router.push('/login?error=unauthorized'), 1500);
+        setTimeout(() => router.replace('/login?error=unauthorized'), 1500);
       }
     }
 

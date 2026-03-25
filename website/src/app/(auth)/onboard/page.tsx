@@ -754,16 +754,48 @@ function OnboardInner() {
     const roleParam = searchParams.get('role') as DbUserRole | null;
     if (roleParam) setUrlRole(roleParam);
 
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) { router.push('/login'); return; }
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, role, primary_saathi_id, full_name, academic_level')
-        .eq('id', session.user.id)
-        .single();
+    let cancelled = false;
 
-      if (!data) { router.push('/login'); return; }
+    async function loadProfile() {
+      const supabase = createClient();
+
+      // ── Auth check ──────────────────────────────────────────────────────────
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { router.replace('/login'); return; }
+
+      // ── Fetch profile with max 3 retries (3 s gap) — never infinite ─────────
+      let data: {
+        id: string;
+        role: DbUserRole | null;
+        primary_saathi_id: string | null;
+        full_name: string | null;
+        academic_level: string | null;
+      } | null = null;
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (cancelled) return;
+        const { data: row, error } = await supabase
+          .from('profiles')
+          .select('id, role, primary_saathi_id, full_name, academic_level')
+          .eq('id', session.user.id)
+          .single();
+
+        if (!error && row) { data = row as unknown as MinProfile; break; }
+
+        if (attempt < 2) {
+          // Wait 3 s before next attempt
+          await new Promise((r) => setTimeout(r, 3000));
+        }
+      }
+
+      if (cancelled) return;
+
+      if (!data) {
+        // Profile still missing after 3 attempts — session is broken, back to login
+        router.replace('/login?error=profile_missing');
+        return;
+      }
+
       const p = data as MinProfile;
       setLocalProfile(p);
 
@@ -777,9 +809,15 @@ function OnboardInner() {
       } else if (!p.full_name) {
         setStep('profile');
       } else {
-        router.push('/chat');
+        router.replace('/chat');
       }
+    }
+
+    loadProfile().catch(() => {
+      if (!cancelled) router.replace('/login?error=profile_missing');
     });
+
+    return () => { cancelled = true; };
   }, [router, searchParams]);
 
   // ── Step 0: Academic level ─────────────────────────────────────────────────
