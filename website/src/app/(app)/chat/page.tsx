@@ -27,15 +27,15 @@ export default async function ChatPage() {
     redirect('/onboard');
   }
 
-  // Fetch soul data for welcome overlay (session_count)
+  // Fetch soul data — only columns guaranteed to exist in DB
+  // first_session_welcomed is managed client-side in WelcomeOverlay via localStorage
+  // to avoid server errors from migration timing
   const { data: soul } = await supabase
     .from('student_soul')
-    .select('session_count, academic_level, first_session_welcomed')
+    .select('session_count, academic_level')
     .eq('user_id', user.id)
     .eq('saathi_id', profile.primary_saathi_id ?? '')
-    .single();
-
-  const showWelcome = soul && soul.session_count === 0 && !soul.first_session_welcomed;
+    .maybeSingle();
 
   return (
     <ChatWelcomeGate
@@ -43,7 +43,7 @@ export default async function ChatPage() {
       profileName={profile.full_name ?? user.email ?? 'Student'}
       saathiId={profile.primary_saathi_id ?? null}
       academicLevel={soul?.academic_level ?? 'bachelor'}
-      sessionCount={showWelcome ? 0 : 1}
+      sessionCount={soul?.session_count ?? 1}
     >
       <ChatWindow />
     </ChatWelcomeGate>
