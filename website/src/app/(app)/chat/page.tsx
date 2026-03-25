@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ChatWindow } from '@/components/chat/ChatWindow';
+import { ChatWelcomeGate } from '@/components/chat/WelcomeOverlay';
 
 export const metadata = {
   title: 'Chat with your Saathi · EdUsaathiAI',
@@ -26,5 +27,25 @@ export default async function ChatPage() {
     redirect('/onboard');
   }
 
-  return <ChatWindow />;
+  // Fetch soul data for welcome overlay (session_count)
+  const { data: soul } = await supabase
+    .from('student_soul')
+    .select('session_count, academic_level, first_session_welcomed')
+    .eq('user_id', user.id)
+    .eq('saathi_id', profile.primary_saathi_id ?? '')
+    .single();
+
+  const showWelcome = soul && soul.session_count === 0 && !soul.first_session_welcomed;
+
+  return (
+    <ChatWelcomeGate
+      userId={user.id}
+      profileName={profile.full_name ?? user.email ?? 'Student'}
+      saathiId={profile.primary_saathi_id ?? null}
+      academicLevel={soul?.academic_level ?? 'bachelor'}
+      sessionCount={showWelcome ? 0 : 1}
+    >
+      <ChatWindow />
+    </ChatWelcomeGate>
+  );
 }

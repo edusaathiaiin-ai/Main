@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { SaathiGrid } from '@/components/saathi/SaathiGrid';
 
 /**
  * Root page — authenticated users go to /chat.
@@ -75,13 +76,10 @@ export default async function RootPage() {
         .step-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:12px;line-height:1.2}
         .step-body{font-size:15px;font-weight:300;color:rgba(255,255,255,0.55);line-height:1.7}
         .saathis-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px;flex-wrap:wrap;gap:24px}
-        .saathis-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
-        .saathi-card{background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.07);border-radius:16px;padding:24px 20px;cursor:pointer;transition:all 0.3s ease;position:relative;overflow:hidden;text-decoration:none;display:block}
-        .saathi-card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,0.15);box-shadow:0 20px 60px rgba(0,0,0,0.4)}
-        .saathi-emoji{font-size:28px;margin-bottom:12px;display:block}
-        .saathi-name{font-size:14px;font-weight:600;color:#fff;margin-bottom:4px}
-        .saathi-tagline{font-size:11px;color:rgba(255,255,255,0.4);line-height:1.5}
-        .saathi-live-badge{position:absolute;top:12px;right:12px;background:rgba(34,197,94,0.15);border:0.5px solid rgba(34,197,94,0.3);color:#4ADE80;font-size:9px;font-weight:600;padding:2px 7px;border-radius:100px;letter-spacing:0.5px}
+        /* SaathiGrid responsive columns: 4 → 3 → 2 */
+        .saathi-grid-responsive{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+        @media(max-width:1024px){.saathi-grid-responsive{grid-template-columns:repeat(3,1fr)}}
+        @media(max-width:640px){.saathi-grid-responsive{grid-template-columns:repeat(2,1fr)}}
         .comparison-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:24px;overflow:hidden;background:rgba(255,255,255,0.05)}
         .comparison-col{padding:48px 40px}
         .comparison-col.them{background:rgba(15,15,15,0.9)}
@@ -174,40 +172,16 @@ export default async function RootPage() {
       {/* ── Saathis grid ───────────────────────────────────────────────── */}
       <section id="saathis" className="land-section">
         <div className="saathis-header">
-          <div><div className="section-eyebrow">The Saathis</div><h2 className="section-title">Every subject.<br /><em>One soul.</em></h2></div>
-          <p className="section-subtitle" style={{ maxWidth: '340px' }}>20 companions. Each one a specialist. Each one personal to you.</p>
+          <div>
+            <div className="section-eyebrow">The Saathis</div>
+            <h2 className="section-title">Every subject.<br /><em>One soul.</em></h2>
+          </div>
+          <p className="section-subtitle" style={{ maxWidth: '360px' }}>
+            24 companions. Each one a specialist. Hover any Saathi to meet them.
+          </p>
         </div>
-        <div className="saathis-grid">
-          {[
-            { emoji:'⚖️', name:'KanoonSaathi', tag:'Where law meets intelligence', live:true },
-            { emoji:'📐', name:'MaathSaathi', tag:'Numbers made neighbourly' },
-            { emoji:'🧪', name:'ChemSaathi', tag:'Reactions decoded, concepts unlocked' },
-            { emoji:'🧬', name:'BioSaathi', tag:'Life explained, cell by cell' },
-            { emoji:'💊', name:'PharmaSaathi', tag:'Every molecule has a story' },
-            { emoji:'🏥', name:'MedicoSaathi', tag:'Healing starts with understanding' },
-            { emoji:'🩺', name:'NursingSaathi', tag:'Care grounded in knowledge' },
-            { emoji:'🧠', name:'PsychSaathi', tag:'Understanding minds, building empathy' },
-            { emoji:'⚙️', name:'MechSaathi', tag:'Engineering minds, precision built' },
-            { emoji:'🏗️', name:'CivilSaathi', tag:'Structures that stand the test of time' },
-            { emoji:'⚡', name:'ElecSaathi', tag:'Current knowledge, grounded thinking' },
-            { emoji:'💻', name:'CompSaathi', tag:'Code, conquer, create' },
-            { emoji:'🌍', name:'EnviroSaathi', tag:'Engineering a sustainable tomorrow' },
-            { emoji:'📈', name:'BizSaathi', tag:'Business thinking, sharpened daily' },
-            { emoji:'💰', name:'FinSaathi', tag:'Money matters, demystified' },
-            { emoji:'📣', name:'MktSaathi', tag:'From insight to influence' },
-            { emoji:'🤝', name:'HRSaathi', tag:'People first, always' },
-            { emoji:'🏛️', name:'ArchSaathi', tag:'Design thinking, built different' },
-            { emoji:'🏺', name:'HistorySaathi', tag:'Every era has a lesson' },
-            { emoji:'📊', name:'EconSaathi', tag:'Markets explained, policies demystified' },
-          ].map((s, i) => (
-            <Link key={i} href="/login" className="saathi-card">
-              {s.live && <span className="saathi-live-badge">LIVE</span>}
-              <span className="saathi-emoji">{s.emoji}</span>
-              <div className="saathi-name">{s.name}</div>
-              <div className="saathi-tagline">{s.tag}</div>
-            </Link>
-          ))}
-        </div>
+        {/* Interactive grid — client component with Framer Motion */}
+        <SaathiGrid />
       </section>
 
       {/* ── ChatGPT comparison ─────────────────────────────────────────── */}

@@ -63,6 +63,32 @@ function CallbackInner() {
         // Single-device enforcement — fire-and-forget, must not block redirect
         void callSessionRegister(resolvedSession.access_token);
 
+        // ── Saathi instant bonding ────────────────────────────────────────────
+        // If student clicked "Can I be your Saathi?" from the hero grid,
+        // the saathi slug is passed as ?saathi= through the login URL.
+        // We pre-set primary_saathi_id before they hit onboarding.
+        const saathiSlug = searchParams.get('saathi');
+        if (saathiSlug) {
+          try {
+            // Look up the vertical by slug in Supabase
+            const { data: vertical } = await supabase
+              .from('verticals')
+              .select('id')
+              .eq('slug', saathiSlug)
+              .single();
+
+            if (vertical?.id) {
+              await supabase
+                .from('profiles')
+                .update({ primary_saathi_id: vertical.id })
+                .eq('id', resolvedSession.user.id);
+            }
+          } catch {
+            // Non-critical — onboarding will let user pick anyway
+          }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         // Check profile completion — use is_active as the canonical onboard signal
         const { data: profile } = await supabase
           .from('profiles')
@@ -71,7 +97,8 @@ function CallbackInner() {
           .single();
 
         if (!profile || !profile.is_active) {
-          router.push('/onboard');
+          // If saathi was pre-set, skip directly to profile step
+          router.push(saathiSlug ? '/onboard?step=profile' : '/onboard');
         } else {
           router.push('/chat');
         }
