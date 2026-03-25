@@ -1,12 +1,10 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import Link from 'next/link';
 
 /**
- * Root page — redirects:
- *   authenticated → /chat
- *   guest         → /login
- *
- * The static landing page lives at edusaathiai.in (separate Vercel project).
+ * Root page — authenticated users go to /chat.
+ * Unauthenticated users see the hero landing page.
  */
 export default async function RootPage() {
   const supabase = await createClient();
@@ -14,7 +12,251 @@ export default async function RootPage() {
 
   if (user) {
     redirect('/chat');
-  } else {
-    redirect('/login');
   }
+
+  return (
+    <>
+      {/* Global styles inlined so this page works standalone */}
+      <style>{`
+        :root{--navy:#0B1F3A;--navy-deep:#060F1D;--gold:#C9993A;--gold-light:#E5B86A;--cream:#FAF7F2;--white:#FFFFFF;--gray:rgba(255,255,255,0.5);--gray-dim:rgba(255,255,255,0.25)}
+        html,body{margin:0;padding:0;box-sizing:border-box;background:var(--navy-deep);color:var(--white);font-family:'DM Sans',sans-serif;overflow-x:hidden;scroll-behavior:smooth}
+        *{box-sizing:border-box}
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+        .land-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 48px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(6,15,29,0.95),transparent);backdrop-filter:blur(12px)}
+        .land-logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;letter-spacing:-0.5px;color:#fff;text-decoration:none}
+        .land-logo span{color:var(--gold)}
+        .land-nav-links{display:flex;align-items:center;gap:32px;list-style:none;margin:0;padding:0}
+        .land-nav-links a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:14px;font-weight:400;transition:color 0.2s}
+        .land-nav-links a:hover{color:#fff}
+        .land-nav-cta{background:var(--gold);color:var(--navy-deep)!important;font-weight:600!important;padding:10px 24px;border-radius:8px;transition:background 0.2s,transform 0.2s!important}
+        .land-nav-cta:hover{background:var(--gold-light)!important;transform:translateY(-1px)}
+        .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;overflow:hidden}
+        .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(201,153,58,0.12) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 20% 80%,rgba(11,31,58,0.8) 0%,transparent 60%),linear-gradient(180deg,#060F1D 0%,#0B1F3A 40%,#060F1D 100%)}
+        .orb{position:absolute;border-radius:50%;filter:blur(80px)}
+        .orb-1{width:400px;height:400px;background:rgba(201,153,58,0.08);top:-100px;left:50%;animation:float1 8s ease-in-out infinite}
+        .orb-2{width:300px;height:300px;background:rgba(11,31,58,0.6);bottom:100px;left:-100px;animation:float2 10s ease-in-out infinite}
+        .orb-3{width:250px;height:250px;background:rgba(201,153,58,0.06);bottom:50px;right:-50px;animation:float3 7s ease-in-out infinite}
+        @keyframes float1{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-30px)}}
+        @keyframes float2{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+        @keyframes float3{0%,100%{transform:translateY(0)}50%{transform:translateY(15px)}}
+        .hero-beam{position:absolute;top:45%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,153,58,0.3),transparent);animation:beam 4s ease-in-out infinite}
+        @keyframes beam{0%,100%{opacity:0.3}50%{opacity:0.8}}
+        .hero-content{position:relative;z-index:10;max-width:900px}
+        .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(201,153,58,0.1);border:0.5px solid rgba(201,153,58,0.3);border-radius:100px;padding:6px 16px;font-size:12px;font-weight:500;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:32px;animation:fadeUp 0.8s ease both}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+        .hero-title{font-family:'Playfair Display',serif;font-size:clamp(48px,7vw,96px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:12px;animation:fadeUp 0.8s ease 0.1s both}
+        .hero-title-line2{font-family:'Playfair Display',serif;font-size:clamp(48px,7vw,96px);font-weight:900;font-style:italic;line-height:1.05;letter-spacing:-2px;color:var(--gold);margin-bottom:12px;animation:fadeUp 0.8s ease 0.2s both}
+        .hero-title-line3{font-family:'Playfair Display',serif;font-size:clamp(48px,7vw,96px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:32px;animation:fadeUp 0.8s ease 0.3s both}
+        .hero-subtitle{font-size:clamp(16px,2vw,20px);font-weight:300;color:rgba(255,255,255,0.65);line-height:1.7;max-width:600px;margin:0 auto 48px;animation:fadeUp 0.8s ease 0.4s both}
+        .hero-subtitle strong{color:#fff;font-weight:500}
+        .hero-ctas{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;animation:fadeUp 0.8s ease 0.5s both}
+        .btn-primary{display:inline-flex;align-items:center;gap:10px;background:var(--gold);color:var(--navy-deep);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;padding:16px 36px;border-radius:12px;text-decoration:none;border:none;cursor:pointer;transition:all 0.3s ease}
+        .btn-primary:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 20px 60px rgba(201,153,58,0.4)}
+        .btn-secondary{display:inline-flex;align-items:center;gap:8px;background:transparent;color:rgba(255,255,255,0.7);font-size:15px;font-weight:400;padding:16px 24px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);text-decoration:none;cursor:pointer;transition:all 0.3s ease}
+        .btn-secondary:hover{color:#fff;border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.05)}
+        .hero-stats{display:flex;align-items:center;justify-content:center;gap:48px;margin-top:64px;animation:fadeUp 0.8s ease 0.6s both}
+        .stat{text-align:center}.stat-num{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--gold);line-height:1;margin-bottom:4px}.stat-label{font-size:12px;color:var(--gray);font-weight:400;letter-spacing:0.5px}
+        .stat-divider{width:1px;height:40px;background:rgba(255,255,255,0.1)}
+        .founding-banner{background:linear-gradient(135deg,rgba(201,153,58,0.15),rgba(201,153,58,0.05));border-top:0.5px solid rgba(201,153,58,0.3);border-bottom:0.5px solid rgba(201,153,58,0.3);padding:20px 48px;display:flex;align-items:center;justify-content:center;gap:16px;text-align:center}
+        .founding-badge{background:var(--gold);color:var(--navy-deep);font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;letter-spacing:1px;text-transform:uppercase;flex-shrink:0}
+        .founding-text{font-size:14px;color:rgba(255,255,255,0.8)}.founding-text strong{color:var(--gold);font-weight:600}
+        .founding-cta{color:var(--gold);font-size:13px;font-weight:600;text-decoration:none;border-bottom:0.5px solid rgba(201,153,58,0.5);padding-bottom:1px;flex-shrink:0}
+        .land-section{padding:100px 48px;max-width:1200px;margin:0 auto}
+        .section-eyebrow{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+        .section-eyebrow::before{content:'';display:block;width:24px;height:1px;background:var(--gold)}
+        .section-title{font-family:'Playfair Display',serif;font-size:clamp(36px,4vw,56px);font-weight:700;line-height:1.15;letter-spacing:-1px;margin-bottom:16px}
+        .section-title em{font-style:italic;color:var(--gold)}
+        .section-subtitle{font-size:18px;font-weight:300;color:rgba(255,255,255,0.55);line-height:1.7;max-width:560px}
+        .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(255,255,255,0.05);border-radius:24px;overflow:hidden}
+        .step{background:rgba(11,31,58,0.8);padding:48px 40px;position:relative;overflow:hidden;transition:background 0.3s}
+        .step:hover{background:rgba(11,31,58,1)}
+        .step-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:2px;margin-bottom:24px;opacity:0.7}
+        .step-icon{font-size:40px;margin-bottom:20px;display:block}
+        .step-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:12px;line-height:1.2}
+        .step-body{font-size:15px;font-weight:300;color:rgba(255,255,255,0.55);line-height:1.7}
+        .saathis-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px;flex-wrap:wrap;gap:24px}
+        .saathis-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+        .saathi-card{background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.07);border-radius:16px;padding:24px 20px;cursor:pointer;transition:all 0.3s ease;position:relative;overflow:hidden;text-decoration:none;display:block}
+        .saathi-card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,0.15);box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+        .saathi-emoji{font-size:28px;margin-bottom:12px;display:block}
+        .saathi-name{font-size:14px;font-weight:600;color:#fff;margin-bottom:4px}
+        .saathi-tagline{font-size:11px;color:rgba(255,255,255,0.4);line-height:1.5}
+        .saathi-live-badge{position:absolute;top:12px;right:12px;background:rgba(34,197,94,0.15);border:0.5px solid rgba(34,197,94,0.3);color:#4ADE80;font-size:9px;font-weight:600;padding:2px 7px;border-radius:100px;letter-spacing:0.5px}
+        .comparison-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:24px;overflow:hidden;background:rgba(255,255,255,0.05)}
+        .comparison-col{padding:48px 40px}
+        .comparison-col.them{background:rgba(15,15,15,0.9)}
+        .comparison-col.us{background:rgba(11,31,58,0.95);position:relative}
+        .comparison-col-header{display:flex;align-items:center;gap:12px;margin-bottom:40px;padding-bottom:24px;border-bottom:0.5px solid rgba(255,255,255,0.08)}
+        .comparison-brand{font-family:'Playfair Display',serif;font-size:22px;font-weight:700}
+        .comparison-price{font-family:'DM Mono',monospace;font-size:13px;color:var(--gray);margin-left:auto}
+        .comparison-item{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:0.5px solid rgba(255,255,255,0.05)}
+        .comparison-item:last-child{border-bottom:none}
+        .comparison-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px}
+        .icon-no{background:rgba(239,68,68,0.15);color:#F87171}.icon-yes{background:rgba(201,153,58,0.15);color:var(--gold)}
+        .comparison-text{font-size:14px;color:rgba(255,255,255,0.65);line-height:1.5}.comparison-text strong{color:#fff;font-weight:500}
+        .land-footer{border-top:0.5px solid rgba(255,255,255,0.07);padding:48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;max-width:1200px;margin:0 auto}
+        .footer-logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:700}.footer-logo span{color:var(--gold)}
+        .footer-tagline{font-size:12px;color:var(--gray-dim);margin-top:4px}
+        .footer-links{display:flex;gap:32px;list-style:none;margin:0;padding:0}.footer-links a{color:rgba(255,255,255,0.4);text-decoration:none;font-size:13px;transition:color 0.2s}.footer-links a:hover{color:#fff}
+        .footer-copy{font-size:12px;color:rgba(255,255,255,0.2);width:100%;text-align:center;padding-top:24px;border-top:0.5px solid rgba(255,255,255,0.05);margin-top:8px}
+        @media(max-width:768px){
+          .land-nav{padding:16px 20px}.land-nav-links{display:none}
+          .land-section{padding:64px 20px}
+          .steps-grid{grid-template-columns:1fr}
+          .comparison-grid{grid-template-columns:1fr}
+          .hero-stats{gap:24px}.stat-divider{display:none}
+          .founding-banner{padding:16px 20px;flex-direction:column;gap:8px}
+          .land-footer{padding:32px 20px;flex-direction:column}
+          .saathis-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+        }
+      `}</style>
+
+      {/* ── Navigation ─────────────────────────────────────────────────── */}
+      <nav className="land-nav">
+        <Link href="/" className="land-logo">EdU<span>saathi</span>AI</Link>
+        <ul className="land-nav-links">
+          <li><a href="#saathis">Saathis</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#compare">Why us</a></li>
+          <li><Link href="/login" className="land-nav-cta">Begin Your Journey →</Link></li>
+        </ul>
+      </nav>
+
+      {/* ── Hero ───────────────────────────────────────────────────────── */}
+      <div className="hero">
+        <div className="hero-bg" />
+        <div className="orb orb-1" /><div className="orb orb-2" /><div className="orb orb-3" />
+        <div className="hero-beam" />
+        <div className="hero-content">
+          <div className="hero-eyebrow">Education, You &amp; the Power of Modern AI</div>
+          <h1 className="hero-title">Meet the AI that</h1>
+          <h1 className="hero-title-line2">knows your name.</h1>
+          <h1 className="hero-title-line3">Remembers your dream.</h1>
+          <p className="hero-subtitle">
+            <strong>20 subject companions. Built for India.</strong><br />
+            Your Saathi learns how you think, remembers where you left off, and walks with you — from your first chapter to your final exam.
+          </p>
+          <div className="hero-ctas">
+            <Link href="/login" className="btn-primary">Begin Your Journey →</Link>
+            <a href="#saathis" className="btn-secondary">Meet the Saathis ↓</a>
+          </div>
+          <div className="hero-stats">
+            <div className="stat"><div className="stat-num">20</div><div className="stat-label">Subject Saathis</div></div>
+            <div className="stat-divider" />
+            <div className="stat"><div className="stat-num">₹199</div><div className="stat-label">Per month</div></div>
+            <div className="stat-divider" />
+            <div className="stat"><div className="stat-num">8×</div><div className="stat-label">Cheaper than ChatGPT</div></div>
+            <div className="stat-divider" />
+            <div className="stat"><div className="stat-num">∞</div><div className="stat-label">Soul memory</div></div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Founding Banner ────────────────────────────────────────────── */}
+      <div className="founding-banner">
+        <span className="founding-badge">Founding Student</span>
+        <span className="founding-text">First 500 students get <strong>60 days full access — completely free.</strong> No card. No catch. Just your Saathi.</span>
+        <Link href="/login" className="founding-cta">Claim your spot →</Link>
+      </div>
+
+      {/* ── How it works ───────────────────────────────────────────────── */}
+      <section id="how" className="land-section">
+        <div className="section-eyebrow">How it works</div>
+        <h2 className="section-title">Three steps to your<br /><em>Unified Soul Partnership</em></h2>
+        <p className="section-subtitle">EdUsaathiAI doesn&apos;t just answer questions. It builds a relationship with your learning journey.</p>
+        <div className="steps-grid" style={{ marginTop: '48px' }}>
+          <div className="step"><div className="step-num">01 — CHOOSE</div><span className="step-icon">🎯</span><h3 className="step-title">Pick your Saathi</h3><p className="step-body">Choose from 20 subject companions — Law, Biology, Medicine, CS, UPSC, Finance, and more. Your Saathi knows your subject inside out and meets you where you are.</p></div>
+          <div className="step"><div className="step-num">02 — CONNECT</div><span className="step-icon">🧠</span><h3 className="step-title">Your soul is matched</h3><p className="step-body">Tell your Saathi your name, your exam target, your research dream. Every conversation is personal. Your Saathi remembers what you struggled with and bridges it to today.</p></div>
+          <div className="step"><div className="step-num">03 — GROW</div><span className="step-icon">🚀</span><h3 className="step-title">Learn. Check in. Rise.</h3><p className="step-body">Study with your bot. Take Saathi Check-ins to see how far you&apos;ve come. Read today&apos;s research headlines in your field. Your Saathi grows smarter about you with every session.</p></div>
+        </div>
+      </section>
+
+      {/* ── Saathis grid ───────────────────────────────────────────────── */}
+      <section id="saathis" className="land-section">
+        <div className="saathis-header">
+          <div><div className="section-eyebrow">The Saathis</div><h2 className="section-title">Every subject.<br /><em>One soul.</em></h2></div>
+          <p className="section-subtitle" style={{ maxWidth: '340px' }}>20 companions. Each one a specialist. Each one personal to you.</p>
+        </div>
+        <div className="saathis-grid">
+          {[
+            { emoji:'⚖️', name:'KanoonSaathi', tag:'Where law meets intelligence', live:true },
+            { emoji:'📐', name:'MaathSaathi', tag:'Numbers made neighbourly' },
+            { emoji:'🧪', name:'ChemSaathi', tag:'Reactions decoded, concepts unlocked' },
+            { emoji:'🧬', name:'BioSaathi', tag:'Life explained, cell by cell' },
+            { emoji:'💊', name:'PharmaSaathi', tag:'Every molecule has a story' },
+            { emoji:'🏥', name:'MedicoSaathi', tag:'Healing starts with understanding' },
+            { emoji:'🩺', name:'NursingSaathi', tag:'Care grounded in knowledge' },
+            { emoji:'🧠', name:'PsychSaathi', tag:'Understanding minds, building empathy' },
+            { emoji:'⚙️', name:'MechSaathi', tag:'Engineering minds, precision built' },
+            { emoji:'🏗️', name:'CivilSaathi', tag:'Structures that stand the test of time' },
+            { emoji:'⚡', name:'ElecSaathi', tag:'Current knowledge, grounded thinking' },
+            { emoji:'💻', name:'CompSaathi', tag:'Code, conquer, create' },
+            { emoji:'🌍', name:'EnviroSaathi', tag:'Engineering a sustainable tomorrow' },
+            { emoji:'📈', name:'BizSaathi', tag:'Business thinking, sharpened daily' },
+            { emoji:'💰', name:'FinSaathi', tag:'Money matters, demystified' },
+            { emoji:'📣', name:'MktSaathi', tag:'From insight to influence' },
+            { emoji:'🤝', name:'HRSaathi', tag:'People first, always' },
+            { emoji:'🏛️', name:'ArchSaathi', tag:'Design thinking, built different' },
+            { emoji:'🏺', name:'HistorySaathi', tag:'Every era has a lesson' },
+            { emoji:'📊', name:'EconSaathi', tag:'Markets explained, policies demystified' },
+          ].map((s, i) => (
+            <Link key={i} href="/login" className="saathi-card">
+              {s.live && <span className="saathi-live-badge">LIVE</span>}
+              <span className="saathi-emoji">{s.emoji}</span>
+              <div className="saathi-name">{s.name}</div>
+              <div className="saathi-tagline">{s.tag}</div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ── ChatGPT comparison ─────────────────────────────────────────── */}
+      <section id="compare" className="land-section">
+        <div style={{ textAlign:'center', marginBottom:'64px' }}>
+          <div className="section-eyebrow" style={{ justifyContent:'center' }}><span style={{ display:'block',width:'24px',height:'1px',background:'var(--gold)' }} />Why not ChatGPT?</div>
+          <h2 className="section-title">General intelligence<br />vs <em>your intelligence.</em></h2>
+          <p className="section-subtitle" style={{ margin:'0 auto' }}>ChatGPT is built for everyone. EdUsaathiAI is built for you.</p>
+        </div>
+        <div className="comparison-grid">
+          <div className="comparison-col them">
+            <div className="comparison-col-header"><div className="comparison-brand" style={{ color:'rgba(255,255,255,0.5)' }}>ChatGPT Plus</div><div className="comparison-price">₹1,650/month</div></div>
+            {["Doesn't know your name or remember you between sessions","No subject specialisation — same bot for cooking and chemistry","No awareness of Indian exams — UPSC, NEET, CLAT, GATE","No soul matching — treats every user identically","No community board, no peer learning, no faculty verification","No daily research headlines filtered to your subject","₹1,650/month. 8× more expensive."].map((t,i)=>(
+              <div key={i} className="comparison-item"><div className="comparison-icon icon-no">✗</div><div className="comparison-text">{t}</div></div>
+            ))}
+          </div>
+          <div className="comparison-col us">
+            <div className="comparison-col-header"><div className="comparison-brand" style={{ color:'var(--gold)' }}>EdUsaathiAI Plus</div><div className="comparison-price" style={{ color:'var(--gold)' }}>₹199/month</div></div>
+            {["Knows your name. Remembers your last session, research dream, and struggle topics","20 specialist Saathis — each an expert with subject-specific guardrails","India-first. UPSC current affairs, NEET Biology, CLAT prep, GATE — all built in","Soul matching. Mirrors your tone, adapts to your ambition, bridges to your goals","Community Board with faculty-verified answers and AI auto-responses","Daily headlines from Nature, Cell, Bar & Bench, PRS India — filtered to your Saathi","₹199/month. Less than your weekly pizza. More than a semester of guidance."].map((t,i)=>(
+              <div key={i} className="comparison-item"><div className="comparison-icon icon-yes">✓</div><div className="comparison-text">{t}</div></div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Bottom CTA ─────────────────────────────────────────────────── */}
+      <section style={{ textAlign:'center', padding:'80px 48px 100px' }}>
+        <div className="section-eyebrow" style={{ justifyContent:'center' }}><span style={{ display:'block',width:'24px',height:'1px',background:'var(--gold)' }} />Your journey starts here</div>
+        <h2 className="section-title" style={{ marginBottom:'16px' }}>You are not just a student.<br /><em>You are shaping a future.</em></h2>
+        <p style={{ fontSize:'18px', color:'rgba(255,255,255,0.5)', marginBottom:'48px', fontWeight:300 }}>Your Saathi is waiting. First 500 students get 60 days free.</p>
+        <Link href="/login" className="btn-primary" style={{ fontSize:'18px', padding:'20px 48px' }}>Begin Your Journey →</Link>
+        <p style={{ marginTop:'20px', fontSize:'13px', color:'rgba(255,255,255,0.25)' }}>No credit card. No commitment. Just your Saathi.</p>
+      </section>
+
+      {/* ── Footer ─────────────────────────────────────────────────────── */}
+      <footer className="land-footer">
+        <div>
+          <div className="footer-logo">EdU<span>saathi</span>AI</div>
+          <div className="footer-tagline">Unified Soul Partnership · Built under IAES, Ahmedabad</div>
+        </div>
+        <ul className="footer-links">
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Use</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">For Institutions</a></li>
+          <li><a href="https://x.com/EdUsaathiAI" target="_blank" rel="noopener noreferrer">@EdUsaathiAI</a></li>
+        </ul>
+        <div className="footer-copy">© 2026 Indo American Education Society. All rights reserved. · edusaathiai.in</div>
+      </footer>
+    </>
+  );
 }
