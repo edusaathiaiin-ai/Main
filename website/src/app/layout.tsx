@@ -23,11 +23,16 @@ export const metadata: Metadata = {
     template: '%s · EdUsaathiAI',
   },
   description:
-    '20 AI subject companions. Built for India. ₹199/month. Your Saathi knows your name, remembers your journey.',
+    '24 AI subject companions. Built for India. ₹199/month. Your Saathi knows your name, remembers your journey.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://edusaathiai.in'),
   openGraph: {
     siteName: 'EdUsaathiAI',
     type: 'website',
+  },
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+    shortcut: '/icon.png',
   },
 };
 
