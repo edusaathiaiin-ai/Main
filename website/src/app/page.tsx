@@ -194,6 +194,10 @@ export default async function RootPage() {
             </a>
           </div>
           <a href="#saathis" className="btn-secondary">Meet the 24 Saathis ↓</a>
+          <p style={{textAlign:'center',marginTop:'16px',fontSize:'13px',color:'rgba(255,255,255,0.35)'}}>
+            Already have an account?{' '}
+            <Link href="/login" style={{color:'rgba(255,255,255,0.6)',textDecoration:'underline',textUnderlineOffset:'3px'}}>Sign in here →</Link>
+          </p>
           <div className="hero-stats">
             <div className="stat"><div className="stat-num">24</div><div className="stat-label">Subject Saathis</div></div>
             <div className="stat-divider" />
@@ -211,6 +215,7 @@ export default async function RootPage() {
         <span className="founding-badge">Founding Student</span>
         <span className="founding-text">First 500 students get <strong>60 days full access — completely free.</strong> No card. No catch. Just your Saathi.</span>
         <Link href="/login?role=student" className="founding-cta">Claim your spot →</Link>
+        <Link href="/login" style={{fontSize:'13px',color:'rgba(255,255,255,0.4)',marginLeft:'8px'}}>Already a Founding Student? <span style={{color:'#C9993A'}}>Sign in →</span></Link>
       </div>
 
       {/* ── How it works ───────────────────────────────────────────────── */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -749,8 +749,14 @@ function OnboardInner() {
   const [totalYears, setTotalYears] = useState<number | null>(null);
   const [examTargetFromLevel, setExamTargetFromLevel] = useState<string | null>(null);
 
-  // ── Mount ──────────────────────────────────────────────────────────────────
+  // ── Mount — runs ONCE only ────────────────────────────────────────────────
+  const initRef = useRef(false);
   useEffect(() => {
+    // Strict-mode / double-mount guard — ensures loadProfile runs exactly once
+    if (initRef.current) return;
+    initRef.current = true;
+
+    // Read searchParams synchronously before async work (avoids stale closure)
     const roleParam = searchParams.get('role') as DbUserRole | null;
     if (roleParam) setUrlRole(roleParam);
 
@@ -818,7 +824,7 @@ function OnboardInner() {
     });
 
     return () => { cancelled = true; };
-  }, [router, searchParams]);
+  }, []); // ← EMPTY — runs exactly once on mount only
 
   // ── Step 0: Academic level ─────────────────────────────────────────────────
   async function handleAcademicLevel(

@@ -238,8 +238,16 @@ function LoginForm() {
         </AnimatePresence>
       </div>
 
+      {/* New user link */}
+      <p style={{fontSize:'13px', color:'rgba(255,255,255,0.35)', textAlign:'center', marginTop:'16px'}}>
+        New to EdUsaathiAI?{' '}
+        <a href="/" style={{color:'rgba(255,255,255,0.6)', textDecoration:'underline', textUnderlineOffset:'3px'}}>
+          Explore the platform →
+        </a>
+      </p>
+
       {/* Footer */}
-      <p style={{fontSize:'11px', color:'rgba(255,255,255,0.35)', textAlign:'center', marginTop:'16px'}}>
+      <p style={{fontSize:'11px', color:'rgba(255,255,255,0.35)', textAlign:'center', marginTop:'12px'}}>
         By signing in you agree to our{' '}
         <a href="/terms" style={{color:'rgba(255,255,255,0.5)'}} className="hover:text-white transition-colors">
           Terms of Service
