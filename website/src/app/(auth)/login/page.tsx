@@ -43,11 +43,16 @@ function LoginForm() {
   async function handleGoogle() {
     setGoogleLoading(true);
     setError('');
+    
+    // Forward all searchParams
+    const redirectUrl = new URL(`${window.location.origin}/auth/callback`);
+    searchParams.forEach((val, key) => redirectUrl.searchParams.set(key, val));
+
     const supabase = createClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: redirectUrl.toString(),
       },
     });
     if (oauthError) {
@@ -62,11 +67,16 @@ function LoginForm() {
     if (!email.trim()) return;
     setMagicLoading(true);
     setError('');
+    
+    // Forward all searchParams
+    const redirectUrl = new URL(`${window.location.origin}/auth/callback`);
+    searchParams.forEach((val, key) => redirectUrl.searchParams.set(key, val));
+
     const supabase = createClient();
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: redirectUrl.toString(),
         shouldCreateUser: true,
       },
     });
