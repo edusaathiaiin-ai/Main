@@ -80,6 +80,8 @@ export default async function RootPage() {
         .saathi-grid-responsive{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
         @media(max-width:1024px){.saathi-grid-responsive{grid-template-columns:repeat(3,1fr)}}
         @media(max-width:640px){.saathi-grid-responsive{grid-template-columns:repeat(2,1fr)}}
+        /* Breathing green dot for all live Saathis */
+        @keyframes saathi-pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,0.6)}50%{box-shadow:0 0 0 6px rgba(74,222,128,0)}}
         .comparison-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:24px;overflow:hidden;background:rgba(255,255,255,0.05)}
         .comparison-col{padding:48px 40px}
         .comparison-col.them{background:rgba(15,15,15,0.9)}

@@ -54,7 +54,8 @@ const PREP_DURATIONS = [
   'Just started', '3–6 months', '6–12 months', '1–2 years', '2+ years',
 ];
 
-const LIVE_SAATHIS = new Set(['kanoonsaathi']);
+// All 24 Saathis are now live
+const LIVE_SAATHIS = { has: (_id: string) => true };
 
 // ── Animation presets ─────────────────────────────────────────────────────────
 

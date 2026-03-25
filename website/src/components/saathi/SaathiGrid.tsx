@@ -47,16 +47,15 @@ function SaathiCard({
         display: 'block',
       }}
     >
-      {/* Live badge for KanoonSaathi */}
-      {saathi.id === 'kanoonsaathi' && (
+      {/* Breathing green dot — shown on all live Saathis (all 24) */}
+      {saathi.isLive && (
         <span style={{
           position: 'absolute', top: '12px', right: '12px',
-          background: 'rgba(34,197,94,0.15)', border: '0.5px solid rgba(34,197,94,0.3)',
-          color: '#4ADE80', fontSize: '9px', fontWeight: 700,
-          padding: '2px 7px', borderRadius: '100px', letterSpacing: '0.5px',
-        }}>
-          LIVE
-        </span>
+          width: '8px', height: '8px', borderRadius: '50%',
+          background: '#4ADE80',
+          boxShadow: '0 0 0 0 rgba(74,222,128,0.6)',
+          animation: 'saathi-pulse 2s ease-in-out infinite',
+        }} />
       )}
 
       {/* Emoji */}

@@ -1,6 +1,6 @@
 import type { Saathi } from '@/types';
 
-export type SaathiWithDescription = Saathi & { description: string };
+export type SaathiWithDescription = Saathi & { description: string; isLive: boolean };
 
 export const SAATHIS: SaathiWithDescription[] = [
   {
@@ -9,6 +9,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '⚖️',
     tagline: 'Where law meets intelligence',
     primary: '#1E3A5F', accent: '#3B82F6', bg: '#E8F0FE',
+    isLive: true,
     description: `I know the Indian legal system inside out — from constitutional law to criminal procedure, from CLAT preparation to LLM research. I speak the language of Indian courts, connect today's judgements to your syllabus, and never give legal advice — only legal education.`,
   },
   {
@@ -17,6 +18,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '📐',
     tagline: 'Numbers made neighbourly',
     primary: '#0F4C2A', accent: '#22C55E', bg: '#EAF3DE',
+    isLive: true,
     description: `Numbers are my language and yours too — you just haven't found the right dialect yet. Whether you're wrestling with calculus, preparing for GATE, or chasing a research problem, I meet you where the confusion lives and walk you through to clarity.`,
   },
   {
@@ -25,6 +27,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '🧪',
     tagline: 'Reactions decoded, concepts unlocked',
     primary: '#5C1A6B', accent: '#A855F7', bg: '#F5E8FE',
+    isLive: true,
     description: `Pure chemistry — from organic reactions to quantum models of bonding. I'm for B.Sc and M.Sc Chemistry students, CSIR-NET aspirants, and anyone who wants to understand why molecules behave the way they do. Not the engineering side — the science.`,
   },
   {
@@ -33,6 +36,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '🧬',
     tagline: 'Life explained, cell by cell',
     primary: '#1A5C2E', accent: '#10B981', bg: '#E6F7EC',
+    isLive: true,
     description: `Life is my subject — at every scale. From cell biology to evolutionary genetics, from NEET preparation to PhD-level research, I connect the mechanisms of living systems to your specific questions, your exams, and your research dreams.`,
   },
   {
@@ -41,6 +45,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '💊',
     tagline: 'Every molecule has a story',
     primary: '#7A1C1C', accent: '#EF4444', bg: '#FDEAEA',
+    isLive: true,
     description: `Every drug has a story — from molecule to mechanism to patient outcome. I guide B.Pharm and M.Pharm students through pharmacology, pharmaceutics, and drug design, with awareness of Indian pharmacy regulations and the GTU/Mumbai University syllabus.`,
   },
   {
@@ -49,6 +54,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '🏥',
     tagline: 'Healing starts with understanding',
     primary: '#1A4A5C', accent: '#0EA5E9', bg: '#E4F0F5',
+    isLive: true,
     description: `Medicine is both art and science — I help with the science so you can focus on the art. From Anatomy in 1st MBBS to clinical reasoning in final year, I know the Indian medical curriculum, the NEXT exam pattern, and where students most often struggle.`,
   },
   {
@@ -57,6 +63,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '🩺',
     tagline: 'Care grounded in knowledge',
     primary: '#5C001A', accent: '#F43F5E', bg: '#FCEAF0',
+    isLive: true,
     description: `Care begins with knowledge, and knowledge begins with understanding why — not just what. I support B.Sc Nursing, GNM, and ANM students through pharmacology, clinical procedures, and the practical reasoning that makes the difference at the bedside.`,
   },
   {
@@ -65,6 +72,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '🧠',
     tagline: 'Understanding minds, building empathy',
     primary: '#3A1C5C', accent: '#8B5CF6', bg: '#F0E8FC',
+    isLive: true,
     description: `The mind is the most complex system ever studied — and the most misunderstood. I explore psychology with you: theories, research methods, abnormal psychology, counselling approaches. I am a learning companion, never a therapist or diagnostician.`,
   },
   {
@@ -73,6 +81,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '⚙️',
     tagline: 'Engineering minds, precision built',
     primary: '#1A3A5C', accent: '#0EA5E9', bg: '#E6EEF8',
+    isLive: true,
     description: `Mechanical engineering is how the physical world is shaped — and I know every corner of it. Thermodynamics, fluid mechanics, machine design, manufacturing — I connect your GTU or VTU syllabus to real engineering problems and your career ahead.`,
   },
   {
@@ -81,6 +90,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '🏗️',
     tagline: 'Structures that stand the test of time',
     primary: '#3A2800', accent: '#F59E0B', bg: '#FFF3E0',
+    isLive: true,
     description: `Buildings, bridges, and the infrastructure that holds civilisation together — this is my domain. Structural analysis, soil mechanics, construction management, and GATE Civil prep. I understand the Indian construction context and the regulatory environment you'll work in.`,
   },
   {
@@ -89,6 +99,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '⚡',
     tagline: 'Current knowledge, grounded thinking',
     primary: '#003A5C', accent: '#06B6D4', bg: '#E0F0FA',
+    isLive: true,
     description: `Electrical power — generation, transmission, machines, and control systems. Not to be confused with electronics. I'm for Electrical Engineering students at IITs, NITs, and state universities, connecting power systems theory to the Indian energy sector you'll enter.`,
   },
   {
@@ -97,6 +108,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '💻',
     tagline: 'Code, conquer, create',
     primary: '#1C1C5C', accent: '#6366F1', bg: '#EEEEF8',
+    isLive: true,
     description: `Code is a tool — thinking is the skill. I help Computer Science students master algorithms, data structures, operating systems, and AI fundamentals, while connecting your learning to industry reality, research opportunities, and the career you're building.`,
   },
   {
@@ -105,6 +117,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '🌍',
     tagline: 'Engineering a sustainable tomorrow',
     primary: '#0F3A1A', accent: '#84CC16', bg: '#E4F5E8',
+    isLive: true,
     description: `The planet's most urgent problems are engineering problems — and you're training to solve them. Environmental science, sustainability engineering, climate systems, and environmental law: I connect your curriculum to India's environmental challenges.`,
   },
   {
@@ -113,6 +126,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '📈',
     tagline: 'Business thinking, sharpened daily',
     primary: '#1A3A00', accent: '#65A30D', bg: '#EEF8E4',
+    isLive: true,
     description: `Business is about decisions under uncertainty — and I help you build the frameworks to decide well. Management theory, strategy, operations, entrepreneurship. Whether you're in BBA, MBA, or preparing for CAT, I think like a business educator who's also read the case studies.`,
   },
   {
@@ -121,6 +135,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '💰',
     tagline: 'Money matters, demystified',
     primary: '#1A3A2A', accent: '#059669', bg: '#E4F5EE',
+    isLive: true,
     description: `Money moves through systems — and understanding those systems changes how you see the world. From B.Com fundamentals to CA Foundation, from corporate finance to RBI policy: I explain finance the way it actually works, not just the way textbooks present it.`,
   },
   {
@@ -129,6 +144,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '📣',
     tagline: 'From insight to influence',
     primary: '#5C1A00', accent: '#F97316', bg: '#FFF0E8',
+    isLive: true,
     description: `Marketing is how value finds the people who need it. Consumer behaviour, brand strategy, digital marketing, and market research — I connect MBA marketing theory to Indian consumer reality and the campaigns you'll actually run in your career.`,
   },
   {
@@ -137,6 +153,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '🤝',
     tagline: 'People first, always',
     primary: '#3A003A', accent: '#EC4899', bg: '#F8E8F8',
+    isLive: true,
     description: `Organisations are people — and people are complex. I cover HR management, organisational behaviour, labour law, and talent strategy with an eye on the Indian workplace context, the factories and offices where HR actually happens, not just the textbook version.`,
   },
   {
@@ -145,6 +162,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '🏛️',
     tagline: 'Design thinking, built different',
     primary: '#6B4A00', accent: '#D97706', bg: '#FFF4D6',
+    isLive: true,
     description: `Architecture is frozen music — and I help you hear the notes. Design theory, building technology, urban planning, and the history of spaces that shaped civilisations. I support B.Arch students through studio thinking and technical knowledge equally.`,
   },
   {
@@ -153,6 +171,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '🏺',
     tagline: 'Every era has a lesson',
     primary: '#5C3A00', accent: '#B45309', bg: '#FFF0E0',
+    isLive: true,
     description: `History is not the past — it's the key to understanding the present. From ancient civilisations to modern India, from UPSC History optional to academic research, I connect what happened to why it matters for the world you're living in right now.`,
   },
   {
@@ -161,6 +180,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '📊',
     tagline: 'Markets explained, policies demystified',
     primary: '#2C4A00', accent: '#4D7C0F', bg: '#EEF6E0',
+    isLive: true,
     description: `Economics explains almost everything — if you know how to read it. Micro and macro theory, Indian economic policy, RBI decisions, trade, development economics, and UPSC Economics optional: I make the abstract tangible and the tangible meaningful.`,
   },
   {
@@ -169,6 +189,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '⚗️',
     tagline: 'Where chemistry meets industry',
     primary: '#7C2D12', accent: '#EA580C', bg: '#FFF1E6',
+    isLive: true,
     description: `Chemical engineering turns chemistry into industry — and industry into civilisation. Fluid mechanics, heat transfer, reaction engineering, process design: I know the difference between a chemist and a chemical engineer, and I teach to that difference. GTU, VTU, and NIT syllabi are home to me.`,
   },
   {
@@ -177,6 +198,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '🦠',
     tagline: 'Engineering life, one cell at a time',
     primary: '#064E3B', accent: '#10B981', bg: '#ECFDF5',
+    isLive: true,
     description: `Biotechnology is where biology becomes engineering — and the possibilities are limitless. Genetic engineering, fermentation, bioprocess design, bioinformatics: I guide B.Tech Biotechnology students through the science and toward the careers and research opportunities emerging in India's biotech sector.`,
   },
   {
@@ -185,6 +207,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '✈️',
     tagline: 'From ground to orbit, engineered',
     primary: '#1E3A5F', accent: '#3B82F6', bg: '#EFF6FF',
+    isLive: true,
     description: `From Bernoulli to orbital mechanics — aerospace engineering is humanity's most ambitious discipline. Aerodynamics, propulsion, structures, avionics, and space technology: I support students at IITs, IIST, and private universities, with awareness of ISRO, DRDO, and the growing Indian aerospace industry.`,
   },
   {
@@ -193,6 +216,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '📡',
     tagline: 'Signals, systems, and beyond',
     primary: '#312E81', accent: '#6366F1', bg: '#EEF2FF',
+    isLive: true,
     description: `Signals, circuits, and systems — the invisible infrastructure of modern life. Analog circuits, digital systems, VLSI, communication systems, embedded electronics: I cover Electronics Engineering for students who want depth in circuits and signals, not software development.`,
   },
 ];
