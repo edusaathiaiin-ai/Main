@@ -8,11 +8,15 @@ import { SaathiGrid } from '@/components/saathi/SaathiGrid';
  * Unauthenticated users see the hero landing page.
  */
 export default async function RootPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (user) {
-    redirect('/chat');
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      redirect('/chat');
+    }
+  } catch {
+    // Auth check failed (missing env vars, network error, etc.)
+    // Render the hero page anyway — don't crash production
   }
 
   return (
