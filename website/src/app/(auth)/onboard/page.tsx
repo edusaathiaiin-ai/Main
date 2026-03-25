@@ -436,6 +436,11 @@ function ProfileStep({
     prepDuration: '',
     currentYear: null,
     totalYears: null,
+    facultySubject: '',
+    facultyYears: '',
+    orgName: '',
+    orgType: '',
+    orgContactEmail: '',
   });
 
   const set = (key: keyof ProfileForm) => (val: string | number | null) =>
