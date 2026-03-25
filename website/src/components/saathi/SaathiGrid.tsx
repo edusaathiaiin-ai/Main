@@ -127,7 +127,7 @@ function SaathiCard({
               transition={{ delay: 0.2, duration: 0.2 }}
             >
               <Link
-                href={`/login?saathi=${encodeURIComponent(saathi.id)}`}
+                href={`/login?role=student&saathi=${encodeURIComponent(saathi.id)}`}
                 onClick={(e) => e.stopPropagation()}
                 style={{
                   display: 'inline-flex',

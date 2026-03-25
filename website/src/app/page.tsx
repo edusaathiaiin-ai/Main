@@ -117,8 +117,9 @@ export default async function RootPage() {
         <ul className="land-nav-links">
           <li><a href="#saathis">Saathis</a></li>
           <li><a href="#how">How it works</a></li>
-          <li><a href="#compare">Why us</a></li>
-          <li><Link href="/login" className="land-nav-cta">Begin Your Journey →</Link></li>
+          <li><Link href="/login?role=public">For Public</Link></li>
+          <li><Link href="/login?role=institution">For Institutions</Link></li>
+          <li><Link href="/login?role=student" className="land-nav-cta">Student Registration →</Link></li>
         </ul>
       </nav>
 
@@ -137,7 +138,7 @@ export default async function RootPage() {
             Your Saathi learns how you think, remembers where you left off, and walks with you — from your first chapter to your final exam.
           </p>
           <div className="hero-ctas">
-            <Link href="/login" className="btn-primary">Begin Your Journey →</Link>
+            <Link href="/login?role=student" className="btn-primary">Student Registration →</Link>
             <a href="#saathis" className="btn-secondary">Meet the Saathis ↓</a>
           </div>
           <div className="hero-stats">
@@ -156,7 +157,7 @@ export default async function RootPage() {
       <div className="founding-banner">
         <span className="founding-badge">Founding Student</span>
         <span className="founding-text">First 500 students get <strong>60 days full access — completely free.</strong> No card. No catch. Just your Saathi.</span>
-        <Link href="/login" className="founding-cta">Claim your spot →</Link>
+        <Link href="/login?role=student" className="founding-cta">Claim your spot →</Link>
       </div>
 
       {/* ── How it works ───────────────────────────────────────────────── */}
@@ -214,7 +215,7 @@ export default async function RootPage() {
         <div className="section-eyebrow" style={{ justifyContent:'center' }}><span style={{ display:'block',width:'24px',height:'1px',background:'var(--gold)' }} />Your journey starts here</div>
         <h2 className="section-title" style={{ marginBottom:'16px' }}>You are not just a student.<br /><em>You are shaping a future.</em></h2>
         <p style={{ fontSize:'18px', color:'rgba(255,255,255,0.5)', marginBottom:'48px', fontWeight:300 }}>Your Saathi is waiting. First 500 students get 60 days free.</p>
-        <Link href="/login" className="btn-primary" style={{ fontSize:'18px', padding:'20px 48px' }}>Begin Your Journey →</Link>
+        <Link href="/login?role=student" className="btn-primary" style={{ fontSize:'18px', padding:'20px 48px' }}>Student Registration →</Link>
         <p style={{ marginTop:'20px', fontSize:'13px', color:'rgba(255,255,255,0.25)' }}>No credit card. No commitment. Just your Saathi.</p>
       </section>
 
@@ -228,7 +229,8 @@ export default async function RootPage() {
           <li><Link href="/privacy">Privacy Policy</Link></li>
           <li><Link href="/terms">Terms of Use</Link></li>
           <li><a href="#">Contact</a></li>
-          <li><a href="#">For Institutions</a></li>
+          <li><Link href="/login?role=institution">For Institutions</Link></li>
+          <li><a href={process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.edusaathiai.in'} target="_blank" rel="noopener noreferrer">Admin Access</a></li>
           <li><a href="https://x.com/EdUsaathiAI" target="_blank" rel="noopener noreferrer">@EdUsaathiAI</a></li>
         </ul>
         <div className="footer-copy">© 2026 Indo American Education Society. All rights reserved. · edusaathiai.in</div>
