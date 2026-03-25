@@ -765,11 +765,18 @@ function OnboardInner() {
     async function loadProfile() {
       const supabase = createClient();
 
-      // ── Auth check ──────────────────────────────────────────────────────────
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { router.replace('/login'); return; }
+      // ── Auth check — use getUser() for server-verified identity after OAuth ──
+      // getSession() can return stale/null immediately after Google redirect;
+      // getUser() re-validates the JWT with Supabase server.
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) { router.replace('/login'); return; }
 
-      // ── Fetch profile with max 3 retries (3 s gap) — never infinite ─────────
+      // ── Small initial delay — lets the session cookie propagate to the client
+      // before the first profile fetch, especially after Google OAuth redirects.
+      await new Promise((r) => setTimeout(r, 1000));
+      if (cancelled) return;
+
+      // ── Fetch profile with max 4 retries (2 s gap) — never infinite ─────────
       let data: {
         id: string;
         role: DbUserRole | null;
@@ -778,19 +785,20 @@ function OnboardInner() {
         academic_level: string | null;
       } | null = null;
 
-      for (let attempt = 0; attempt < 3; attempt++) {
+      for (let attempt = 0; attempt < 4; attempt++) {
         if (cancelled) return;
+        // maybeSingle() returns null (not error) when row is missing
         const { data: row, error } = await supabase
           .from('profiles')
           .select('id, role, primary_saathi_id, full_name, academic_level')
-          .eq('id', session.user.id)
-          .single();
+          .eq('id', user.id)
+          .maybeSingle();
 
         if (!error && row) { data = row as unknown as MinProfile; break; }
 
-        if (attempt < 2) {
-          // Wait 3 s before next attempt
-          await new Promise((r) => setTimeout(r, 3000));
+        if (attempt < 3) {
+          // Wait 2 s before next attempt
+          await new Promise((r) => setTimeout(r, 2000));
         }
       }
 
