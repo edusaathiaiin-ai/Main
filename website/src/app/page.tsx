@@ -8,11 +8,15 @@ import { SaathiGrid } from '@/components/saathi/SaathiGrid';
  * Unauthenticated users see the hero landing page.
  */
 export default async function RootPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (user) {
-    redirect('/chat');
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      redirect('/chat');
+    }
+  } catch {
+    // Auth check failed (missing env vars, network error, etc.)
+    // Render the hero page anyway — don't crash production
   }
 
   return (
@@ -55,6 +59,30 @@ export default async function RootPage() {
         .btn-primary:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 20px 60px rgba(201,153,58,0.4)}
         .btn-secondary{display:inline-flex;align-items:center;gap:8px;background:transparent;color:rgba(255,255,255,0.7);font-size:15px;font-weight:400;padding:16px 24px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);text-decoration:none;cursor:pointer;transition:all 0.3s ease}
         .btn-secondary:hover{color:#fff;border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.05)}
+        /* Role cards */
+        .role-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:900px;margin:0 auto 48px;animation:fadeUp 0.8s ease 0.5s both}
+        .role-card{border-radius:16px;padding:24px 20px;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:10px;transition:transform 0.25s ease,box-shadow 0.25s ease,border-color 0.25s ease;cursor:pointer}
+        .role-card:hover{transform:translateY(-4px)}
+        .role-card-student{background:rgba(201,153,58,0.12);border:0.5px solid rgba(201,153,58,0.4)}
+        .role-card-student:hover{border-color:rgba(201,153,58,0.8);box-shadow:0 16px 48px rgba(201,153,58,0.2)}
+        .role-card-faculty{background:rgba(22,163,74,0.08);border:0.5px solid rgba(22,163,74,0.3)}
+        .role-card-faculty:hover{border-color:rgba(22,163,74,0.7);box-shadow:0 16px 48px rgba(22,163,74,0.15)}
+        .role-card-public{background:rgba(234,88,12,0.08);border:0.5px solid rgba(234,88,12,0.3)}
+        .role-card-public:hover{border-color:rgba(234,88,12,0.7);box-shadow:0 16px 48px rgba(234,88,12,0.15)}
+        .role-card-institution{background:rgba(124,58,237,0.08);border:0.5px solid rgba(124,58,237,0.3)}
+        .role-card-institution:hover{border-color:rgba(124,58,237,0.7);box-shadow:0 16px 48px rgba(124,58,237,0.15)}
+        /* For-everyone tabs */
+        .role-tabs{display:flex;gap:4px;background:rgba(255,255,255,0.04);border-radius:14px;padding:4px;width:fit-content;margin:0 auto 48px}
+        .role-tab{padding:10px 24px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,0.45);transition:all 0.2s}
+        .role-tab.active{background:rgba(255,255,255,0.08);color:#fff}
+        .role-tab-content{display:none}.role-tab-content.active{display:block}
+        .role-feature-list{list-style:none;padding:0;margin:24px 0 32px;display:flex;flex-direction:column;gap:12px}
+        .role-feature-list li{display:flex;align-items:flex-start;gap:12px;font-size:15px;color:rgba(255,255,255,0.7);line-height:1.6}
+        .role-feature-list li::before{content:'✓';color:var(--gold);font-weight:700;flex-shrink:0;margin-top:1px}
+        @media(max-width:768px){
+          .role-cards{grid-template-columns:repeat(2,1fr)}
+          .role-tabs{flex-wrap:wrap;justify-content:center}
+        }
         .hero-stats{display:flex;align-items:center;justify-content:center;gap:48px;margin-top:64px;animation:fadeUp 0.8s ease 0.6s both}
         .stat{text-align:center}.stat-num{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--gold);line-height:1;margin-bottom:4px}.stat-label{font-size:12px;color:var(--gray);font-weight:400;letter-spacing:0.5px}
         .stat-divider{width:1px;height:40px;background:rgba(255,255,255,0.1)}
@@ -117,8 +145,8 @@ export default async function RootPage() {
         <ul className="land-nav-links">
           <li><a href="#saathis">Saathis</a></li>
           <li><a href="#how">How it works</a></li>
-          <li><a href="#compare">Why us</a></li>
-          <li><Link href="/login" className="land-nav-cta">Begin Your Journey →</Link></li>
+          <li><a href="#for-everyone">For everyone</a></li>
+          <li><Link href="/login?role=student" className="land-nav-cta">Register →</Link></li>
         </ul>
       </nav>
 
@@ -133,15 +161,45 @@ export default async function RootPage() {
           <h1 className="hero-title-line2">knows your name.</h1>
           <h1 className="hero-title-line3">Remembers your dream.</h1>
           <p className="hero-subtitle">
-            <strong>20 subject companions. Built for India.</strong><br />
-            Your Saathi learns how you think, remembers where you left off, and walks with you — from your first chapter to your final exam.
+            <strong>24 subject companions. Built for India.</strong><br />
+            For students who want to go deeper.<br />
+            For faculty who want to reach further.<br />
+            For institutions that want to matter more.
           </p>
-          <div className="hero-ctas">
-            <Link href="/login" className="btn-primary">Begin Your Journey →</Link>
-            <a href="#saathis" className="btn-secondary">Meet the Saathis ↓</a>
+          {/* ── 4 Role Cards ── */}
+          <div className="role-cards">
+            <a href="/login?role=student" className="role-card role-card-student">
+              <span style={{fontSize:'32px'}}>🎓</span>
+              <span style={{fontFamily:'Playfair Display',fontSize:'16px',fontWeight:'700',color:'#C9993A'}}>I am a Student</span>
+              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',textAlign:'center',lineHeight:'1.5'}}>Learn with a Saathi who knows your name, your semester, your dream</span>
+              <span style={{fontSize:'12px',color:'#C9993A',fontWeight:'600',marginTop:'4px'}}>Begin for free →</span>
+            </a>
+            <a href="/login?role=faculty" className="role-card role-card-faculty">
+              <span style={{fontSize:'32px'}}>👨‍🏫</span>
+              <span style={{fontFamily:'Playfair Display',fontSize:'16px',fontWeight:'700',color:'#4ADE80'}}>I am Faculty</span>
+              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',textAlign:'center',lineHeight:'1.5'}}>Verify student answers, earn your faculty badge, reach learners</span>
+              <span style={{fontSize:'12px',color:'#4ADE80',fontWeight:'600',marginTop:'4px'}}>Join as Faculty →</span>
+            </a>
+            <a href="/login?role=public" className="role-card role-card-public">
+              <span style={{fontSize:'32px'}}>🌐</span>
+              <span style={{fontFamily:'Playfair Display',fontSize:'16px',fontWeight:'700',color:'#FB923C'}}>I am Curious</span>
+              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',textAlign:'center',lineHeight:'1.5'}}>Explore any subject, read today&apos;s research, ask freely</span>
+              <span style={{fontSize:'12px',color:'#FB923C',fontWeight:'600',marginTop:'4px'}}>Explore free →</span>
+            </a>
+            <a href="/login?role=institution" className="role-card role-card-institution">
+              <span style={{fontSize:'32px'}}>🏢</span>
+              <span style={{fontFamily:'Playfair Display',fontSize:'16px',fontWeight:'700',color:'#A78BFA'}}>We are an Institution</span>
+              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',textAlign:'center',lineHeight:'1.5'}}>Post internships, find talent, partner with EdUsaathiAI</span>
+              <span style={{fontSize:'12px',color:'#A78BFA',fontWeight:'600',marginTop:'4px'}}>Partner with us →</span>
+            </a>
           </div>
+          <a href="#saathis" className="btn-secondary">Meet the 24 Saathis ↓</a>
+          <p style={{textAlign:'center',marginTop:'16px',fontSize:'13px',color:'rgba(255,255,255,0.35)'}}>
+            Already have an account?{' '}
+            <Link href="/login" style={{color:'rgba(255,255,255,0.6)',textDecoration:'underline',textUnderlineOffset:'3px'}}>Sign in here →</Link>
+          </p>
           <div className="hero-stats">
-            <div className="stat"><div className="stat-num">20</div><div className="stat-label">Subject Saathis</div></div>
+            <div className="stat"><div className="stat-num">24</div><div className="stat-label">Subject Saathis</div></div>
             <div className="stat-divider" />
             <div className="stat"><div className="stat-num">₹199</div><div className="stat-label">Per month</div></div>
             <div className="stat-divider" />
@@ -156,7 +214,8 @@ export default async function RootPage() {
       <div className="founding-banner">
         <span className="founding-badge">Founding Student</span>
         <span className="founding-text">First 500 students get <strong>60 days full access — completely free.</strong> No card. No catch. Just your Saathi.</span>
-        <Link href="/login" className="founding-cta">Claim your spot →</Link>
+        <Link href="/login?role=student" className="founding-cta">Claim your spot →</Link>
+        <Link href="/login" style={{fontSize:'13px',color:'rgba(255,255,255,0.4)',marginLeft:'8px'}}>Already a Founding Student? <span style={{color:'#C9993A'}}>Sign in →</span></Link>
       </div>
 
       {/* ── How it works ───────────────────────────────────────────────── */}
@@ -165,9 +224,74 @@ export default async function RootPage() {
         <h2 className="section-title">Three steps to your<br /><em>Unified Soul Partnership</em></h2>
         <p className="section-subtitle">EdUsaathiAI doesn&apos;t just answer questions. It builds a relationship with your learning journey.</p>
         <div className="steps-grid" style={{ marginTop: '48px' }}>
-          <div className="step"><div className="step-num">01 — CHOOSE</div><span className="step-icon">🎯</span><h3 className="step-title">Pick your Saathi</h3><p className="step-body">Choose from 20 subject companions — Law, Biology, Medicine, CS, UPSC, Finance, and more. Your Saathi knows your subject inside out and meets you where you are.</p></div>
+          <div className="step"><div className="step-num">01 — CHOOSE</div><span className="step-icon">🎯</span><h3 className="step-title">Pick your Saathi</h3><p className="step-body">Choose from 24 subject companions — Law, Biology, Medicine, CS, UPSC, Finance, and more. Your Saathi knows your subject inside out and meets you where you are.</p></div>
           <div className="step"><div className="step-num">02 — CONNECT</div><span className="step-icon">🧠</span><h3 className="step-title">Your soul is matched</h3><p className="step-body">Tell your Saathi your name, your exam target, your research dream. Every conversation is personal. Your Saathi remembers what you struggled with and bridges it to today.</p></div>
           <div className="step"><div className="step-num">03 — GROW</div><span className="step-icon">🚀</span><h3 className="step-title">Learn. Check in. Rise.</h3><p className="step-body">Study with your bot. Take Saathi Check-ins to see how far you&apos;ve come. Read today&apos;s research headlines in your field. Your Saathi grows smarter about you with every session.</p></div>
+        </div>
+      </section>
+
+      {/* ── For Everyone — Role Tabs ────────────────────────────────────── */}
+      <section id="for-everyone" className="land-section">
+        <div style={{textAlign:'center',marginBottom:'48px'}}>
+          <div className="section-eyebrow" style={{justifyContent:'center'}}><span style={{display:'block',width:'24px',height:'1px',background:'var(--gold)'}} />Built for every kind of learner</div>
+          <h2 className="section-title">One platform.<br /><em>Four journeys.</em></h2>
+        </div>
+        {/* Static tab UI — uses CSS :target or simple anchors for SSR compatibility */}
+        <div className="role-tabs" role="tablist">
+          <a href="#tab-students" className="role-tab active" id="tab-btn-students">🎓 Students</a>
+          <a href="#tab-faculty" className="role-tab" id="tab-btn-faculty">👨‍🏫 Faculty</a>
+          <a href="#tab-public" className="role-tab" id="tab-btn-public">🌐 General Public</a>
+          <a href="#tab-institution" className="role-tab" id="tab-btn-institution">🏢 Institutions</a>
+        </div>
+        {/* ── Students ── */}
+        <div id="tab-students" className="role-tab-content active" style={{maxWidth:'680px',margin:'0 auto'}}>
+          <h3 className="section-title" style={{fontSize:'32px'}}>Your Saathi. Your subjects. Your soul.</h3>
+          <p style={{color:'rgba(255,255,255,0.55)',lineHeight:'1.8',marginBottom:'24px'}}>EdUsaathiAI is the only AI tutor that remembers who you are — not just what you asked. Every session builds on the last.</p>
+          <ul className="role-feature-list">
+            <li>24 specialist Saathis — Law, NEET, UPSC, CS, Finance, and more</li>
+            <li>Soul memory across every session — no more re-explaining yourself</li>
+            <li>Exam preparation + career discovery in the same platform</li>
+          </ul>
+          <a href="/login?role=student" className="btn-primary">Begin for free →</a>
+        </div>
+        {/* ── Faculty ── */}
+        <div id="tab-faculty" className="role-tab-content" style={{maxWidth:'680px',margin:'0 auto'}}>
+          <h3 className="section-title" style={{fontSize:'32px'}}>Your knowledge. <em>Amplified.</em></h3>
+          <p style={{color:'rgba(255,255,255,0.55)',lineHeight:'1.8',marginBottom:'24px'}}>EdUsaathiAI gives faculty a verified platform to reach students beyond the classroom. As a verified faculty member you get:</p>
+          <ul className="role-feature-list">
+            <li>Faculty Verified badge on all your Community Board answers</li>
+            <li>Your explanations reach students across India — not just your college</li>
+            <li>AI assists your answers — you focus on insight, AI handles detail</li>
+            <li>Track which topics students ask most in your subject</li>
+            <li>Free access to EdUsaathiAI Plus while the faculty programme is in beta</li>
+          </ul>
+          <a href="/login?role=faculty" style={{display:'inline-flex',alignItems:'center',gap:'10px',background:'rgba(22,163,74,0.15)',border:'0.5px solid rgba(22,163,74,0.5)',color:'#4ADE80',fontWeight:600,padding:'14px 32px',borderRadius:'12px',textDecoration:'none',transition:'all 0.3s'}}>Apply for Faculty Access →</a>
+        </div>
+        {/* ── General Public ── */}
+        <div id="tab-public" className="role-tab-content" style={{maxWidth:'680px',margin:'0 auto'}}>
+          <h3 className="section-title" style={{fontSize:'32px'}}>Curious minds <em>welcome.</em></h3>
+          <p style={{color:'rgba(255,255,255,0.55)',lineHeight:'1.8',marginBottom:'24px'}}>You don&apos;t need to be enrolled anywhere to learn something profound today. With free access you get:</p>
+          <ul className="role-feature-list">
+            <li>Study Notes bot in any Saathi</li>
+            <li>Current Affairs bot in any Saathi</li>
+            <li>Community Board — read and learn from verified faculty</li>
+            <li>Daily research news in your area of interest</li>
+            <li>No exam pressure. No syllabus. Just curiosity.</li>
+          </ul>
+          <a href="/login?role=public" style={{display:'inline-flex',alignItems:'center',gap:'10px',background:'rgba(234,88,12,0.12)',border:'0.5px solid rgba(234,88,12,0.4)',color:'#FB923C',fontWeight:600,padding:'14px 32px',borderRadius:'12px',textDecoration:'none',transition:'all 0.3s'}}>Start exploring →</a>
+        </div>
+        {/* ── Institutions ── */}
+        <div id="tab-institution" className="role-tab-content" style={{maxWidth:'680px',margin:'0 auto'}}>
+          <h3 className="section-title" style={{fontSize:'32px'}}>Find the talent before <em>everyone else does.</em></h3>
+          <p style={{color:'rgba(255,255,255,0.55)',lineHeight:'1.8',marginBottom:'24px'}}>EdUsaathiAI gives institutions direct access to motivated, self-driven students — filtered by subject, ambition level, and academic stage.</p>
+          <ul className="role-feature-list">
+            <li>Post internships directly to relevant Saathi communities</li>
+            <li>Students apply from within the app</li>
+            <li>See student soul profiles (with their consent)</li>
+            <li>Host virtual sessions with students in your domain</li>
+            <li>No agent fees. Direct connection.</li>
+          </ul>
+          <a href="/login?role=institution" style={{display:'inline-flex',alignItems:'center',gap:'10px',background:'rgba(124,58,237,0.12)',border:'0.5px solid rgba(124,58,237,0.4)',color:'#A78BFA',fontWeight:600,padding:'14px 32px',borderRadius:'12px',textDecoration:'none',transition:'all 0.3s'}}>Register your institution →</a>
         </div>
       </section>
 
@@ -202,7 +326,7 @@ export default async function RootPage() {
           </div>
           <div className="comparison-col us">
             <div className="comparison-col-header"><div className="comparison-brand" style={{ color:'var(--gold)' }}>EdUsaathiAI Plus</div><div className="comparison-price" style={{ color:'var(--gold)' }}>₹199/month</div></div>
-            {["Knows your name. Remembers your last session, research dream, and struggle topics","20 specialist Saathis — each an expert with subject-specific guardrails","India-first. UPSC current affairs, NEET Biology, CLAT prep, GATE — all built in","Soul matching. Mirrors your tone, adapts to your ambition, bridges to your goals","Community Board with faculty-verified answers and AI auto-responses","Daily headlines from Nature, Cell, Bar & Bench, PRS India — filtered to your Saathi","₹199/month. Less than your weekly pizza. More than a semester of guidance."].map((t,i)=>(
+            {["Knows your name. Remembers your last session, research dream, and struggle topics","24 specialist Saathis — each an expert with subject-specific guardrails","India-first. UPSC current affairs, NEET Biology, CLAT prep, GATE — all built in","Soul matching. Mirrors your tone, adapts to your ambition, bridges to your goals","Community Board with faculty-verified answers and AI auto-responses","Daily headlines from Nature, Cell, Bar & Bench, PRS India — filtered to your Saathi","₹199/month. Less than your weekly pizza. More than a semester of guidance."].map((t,i)=>(
               <div key={i} className="comparison-item"><div className="comparison-icon icon-yes">✓</div><div className="comparison-text">{t}</div></div>
             ))}
           </div>
@@ -214,7 +338,7 @@ export default async function RootPage() {
         <div className="section-eyebrow" style={{ justifyContent:'center' }}><span style={{ display:'block',width:'24px',height:'1px',background:'var(--gold)' }} />Your journey starts here</div>
         <h2 className="section-title" style={{ marginBottom:'16px' }}>You are not just a student.<br /><em>You are shaping a future.</em></h2>
         <p style={{ fontSize:'18px', color:'rgba(255,255,255,0.5)', marginBottom:'48px', fontWeight:300 }}>Your Saathi is waiting. First 500 students get 60 days free.</p>
-        <Link href="/login" className="btn-primary" style={{ fontSize:'18px', padding:'20px 48px' }}>Begin Your Journey →</Link>
+        <Link href="/login?role=student" className="btn-primary" style={{ fontSize:'18px', padding:'20px 48px' }}>Student Registration →</Link>
         <p style={{ marginTop:'20px', fontSize:'13px', color:'rgba(255,255,255,0.25)' }}>No credit card. No commitment. Just your Saathi.</p>
       </section>
 
@@ -222,16 +346,19 @@ export default async function RootPage() {
       <footer className="land-footer">
         <div>
           <div className="footer-logo">EdU<span>saathi</span>AI</div>
-          <div className="footer-tagline">Unified Soul Partnership · Built under IAES, Ahmedabad</div>
+          <div className="footer-tagline">Unified Soul Partnership · Ahmedabad, India</div>
         </div>
         <ul className="footer-links">
-          <li><a href="#">Privacy Policy</a></li>
-          <li><a href="#">Terms of Use</a></li>
-          <li><a href="#">Contact</a></li>
-          <li><a href="#">For Institutions</a></li>
+          <li><Link href="/login?role=student">For Students</Link></li>
+          <li><Link href="/login?role=faculty">For Faculty</Link></li>
+          <li><Link href="/login?role=institution">For Institutions</Link></li>
+          <li><Link href="/privacy">Privacy Policy</Link></li>
+          <li><Link href="/terms">Terms of Use</Link></li>
+          <li><a href="mailto:support@edusaathiai.in">Contact</a></li>
+          <li><a href={process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.edusaathiai.in'} target="_blank" rel="noopener noreferrer">Admin Access</a></li>
           <li><a href="https://x.com/EdUsaathiAI" target="_blank" rel="noopener noreferrer">@EdUsaathiAI</a></li>
         </ul>
-        <div className="footer-copy">© 2026 Indo American Education Society. All rights reserved. · edusaathiai.in</div>
+        <div className="footer-copy">© 2026 EdUsaathiAI, Ahmedabad. All rights reserved.</div>
       </footer>
     </>
   );

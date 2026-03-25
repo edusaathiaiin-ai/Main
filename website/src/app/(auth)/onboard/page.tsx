@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { SAATHIS } from '@/constants/saathis';
@@ -17,7 +18,7 @@ import type { Saathi, Profile } from '@/types';
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type DbUserRole = 'student' | 'faculty' | 'public' | 'institution';
-type OnboardStep = 'loading' | 'academic' | 'saathi' | 'profile';
+type OnboardStep = 'loading' | 'role_extra' | 'academic' | 'saathi' | 'profile';
 
 type MinProfile = {
   id: string;
@@ -39,6 +40,13 @@ type ProfileForm = {
   prepDuration: string;
   currentYear: number | null;
   totalYears: number | null;
+  // Faculty-specific
+  facultySubject: string;
+  facultyYears: string;
+  // Institution-specific
+  orgName: string;
+  orgType: string;
+  orgContactEmail: string;
 };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -428,6 +436,11 @@ function ProfileStep({
     prepDuration: '',
     currentYear: null,
     totalYears: null,
+    facultySubject: '',
+    facultyYears: '',
+    orgName: '',
+    orgType: '',
+    orgContactEmail: '',
   });
 
   const set = (key: keyof ProfileForm) => (val: string | number | null) =>
@@ -711,39 +724,107 @@ function ProfileStep({
 // ── Main Onboard Page ─────────────────────────────────────────────────────────
 
 export default function OnboardPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center" style={{ background: '#060F1D' }}>
+        <div className="w-10 h-10 rounded-full border-2 border-white/10 animate-spin" style={{ borderTopColor: '#C9993A' }} />
+      </main>
+    }>
+      <OnboardInner />
+    </Suspense>
+  );
+}
+
+function OnboardInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setProfile } = useAuthStore();
   const [step, setStep] = useState<OnboardStep>('loading');
   const [profile, setLocalProfile] = useState<MinProfile | null>(null);
   const [saving, setSaving] = useState(false);
+  const [urlRole, setUrlRole] = useState<DbUserRole | null>(null);
   // Academic level state (carried through all steps)
   const [academicLevel, setAcademicLevel] = useState<AcademicLevel>('bachelor');
   const [currentYear, setCurrentYear] = useState<number | null>(null);
   const [totalYears, setTotalYears] = useState<number | null>(null);
   const [examTargetFromLevel, setExamTargetFromLevel] = useState<string | null>(null);
 
-  // ── Mount ──────────────────────────────────────────────────────────────────
+  // ── Mount — runs ONCE only ────────────────────────────────────────────────
+  const initRef = useRef(false);
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) { router.push('/login'); return; }
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, role, primary_saathi_id, full_name, academic_level')
-        .eq('id', session.user.id)
-        .single();
+    // Strict-mode / double-mount guard — ensures loadProfile runs exactly once
+    if (initRef.current) return;
+    initRef.current = true;
 
-      if (!data) { router.push('/login'); return; }
+    // Read searchParams synchronously before async work (avoids stale closure)
+    const roleParam = searchParams.get('role') as DbUserRole | null;
+    if (roleParam) setUrlRole(roleParam);
+
+    let cancelled = false;
+
+    async function loadProfile() {
+      const supabase = createClient();
+
+      // ── Auth check ──────────────────────────────────────────────────────────
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { router.replace('/login'); return; }
+
+      // ── Fetch profile with max 3 retries (3 s gap) — never infinite ─────────
+      let data: {
+        id: string;
+        role: DbUserRole | null;
+        primary_saathi_id: string | null;
+        full_name: string | null;
+        academic_level: string | null;
+      } | null = null;
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (cancelled) return;
+        const { data: row, error } = await supabase
+          .from('profiles')
+          .select('id, role, primary_saathi_id, full_name, academic_level')
+          .eq('id', session.user.id)
+          .single();
+
+        if (!error && row) { data = row as unknown as MinProfile; break; }
+
+        if (attempt < 2) {
+          // Wait 3 s before next attempt
+          await new Promise((r) => setTimeout(r, 3000));
+        }
+      }
+
+      if (cancelled) return;
+
+      if (!data) {
+        // Profile still missing after 3 attempts — session is broken, back to login
+        router.replace('/login?error=profile_missing');
+        return;
+      }
+
       const p = data as MinProfile;
       setLocalProfile(p);
 
+      // Faculty and institution skip the academic level step
+      const effectiveRole = roleParam ?? p.role;
+      const skipAcademic = effectiveRole === 'faculty' || effectiveRole === 'institution';
+
       // Resume at the right step
-      if (!p.academic_level) setStep('academic');
-      else if (!p.primary_saathi_id) setStep('saathi');
-      else if (!p.full_name) setStep('profile');
-      else router.push('/chat');
+      if (!p.primary_saathi_id) {
+        setStep(skipAcademic ? 'saathi' : (p.academic_level ? 'saathi' : 'academic'));
+      } else if (!p.full_name) {
+        setStep('profile');
+      } else {
+        router.replace('/chat');
+      }
+    }
+
+    loadProfile().catch(() => {
+      if (!cancelled) router.replace('/login?error=profile_missing');
     });
-  }, [router]);
+
+    return () => { cancelled = true; };
+  }, []); // ← EMPTY — runs exactly once on mount only
 
   // ── Step 0: Academic level ─────────────────────────────────────────────────
   async function handleAcademicLevel(
@@ -764,8 +845,8 @@ export default function OnboardPage() {
       ? card.yearOptions.length
       : null;
 
-    // Map level → role
-    const role: DbUserRole = card.mapToRole === 'public' ? 'public' : 'student';
+    // Map level → role (respect URL role override)
+    const role: DbUserRole = urlRole ?? (card.mapToRole === 'public' ? 'public' : 'student');
 
     // Save academic_level + role to profiles
     await supabase.from('profiles').update({
@@ -817,6 +898,9 @@ export default function OnboardPage() {
       exam_target: form.examTarget || null,
       previous_degree: form.previousDegree.trim() || null,
       thesis_area: form.thesisArea.trim() || null,
+      // Faculty / Institution extra fields (stored in metadata columns if they exist, no-op otherwise)
+      ...(urlRole === 'faculty' ? { role: 'faculty' } : {}),
+      ...(urlRole === 'institution' ? { role: 'institution' } : {}),
       is_active: true,
     }).eq('id', userId);
 
@@ -861,8 +945,10 @@ export default function OnboardPage() {
   }
 
   function goBack() {
-    if (step === 'saathi') setStep('academic');
-    else if (step === 'profile') setStep('saathi');
+    if (step === 'saathi') {
+      const skipAcademic = urlRole === 'faculty' || urlRole === 'institution';
+      setStep(skipAcademic ? 'saathi' : 'academic');
+    } else if (step === 'profile') setStep('saathi');
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -921,6 +1007,36 @@ export default function OnboardPage() {
                 onBack={goBack}
                 saving={saving}
               />
+              {/* Faculty extra fields */}
+              {urlRole === 'faculty' && (
+                <div className="max-w-xl mx-auto px-4 pb-8">
+                  <div className="rounded-2xl p-5 mt-4" style={{background:'rgba(22,163,74,0.08)',border:'0.5px solid rgba(22,163,74,0.25)'}}>
+                    <p className="text-sm font-semibold mb-4" style={{color:'#4ADE80'}}>👨‍🏫 Faculty verification info</p>
+                    <div className="space-y-3">
+                      <input placeholder="Your institution and subject area (e.g. IIT Bombay · Physics)" className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none" style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)'}} />
+                      <input placeholder="Years of teaching experience" type="number" min="0" className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none" style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)'}} />
+                    </div>
+                    <p className="text-xs mt-3" style={{color:'rgba(255,255,255,0.3)'}}>Submitted for admin review. You&apos;ll receive a Faculty Verified badge within 48 hours.</p>
+                  </div>
+                </div>
+              )}
+              {/* Institution extra fields */}
+              {urlRole === 'institution' && (
+                <div className="max-w-xl mx-auto px-4 pb-8">
+                  <div className="rounded-2xl p-5 mt-4" style={{background:'rgba(124,58,237,0.08)',border:'0.5px solid rgba(124,58,237,0.25)'}}>
+                    <p className="text-sm font-semibold mb-4" style={{color:'#A78BFA'}}>🏢 Institution registration</p>
+                    <div className="space-y-3">
+                      <input placeholder="Organisation name" className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none" style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)'}} />
+                      <select className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none" style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.7)'}}>
+                        <option value="" style={{background:'#0B1F3A'}}>Type: University / Company / NGO / Other</option>
+                        {['University','Company','NGO','Government','Other'].map(t => <option key={t} value={t} style={{background:'#0B1F3A'}}>{t}</option>)}
+                      </select>
+                      <input placeholder="Primary contact email" type="email" className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none" style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)'}} />
+                    </div>
+                    <p className="text-xs mt-3" style={{color:'rgba(255,255,255,0.3)'}}>Flagged for admin verification. Our team will reach out within 24 hours.</p>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

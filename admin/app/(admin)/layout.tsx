@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/auth';
+import { LogoutButton } from '@/components/LogoutButton';
 
 const NAV = [
   { href: '/users', label: 'Users' },
@@ -30,7 +31,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           ))}
         </nav>
         <div className="px-5 py-4 border-t border-slate-800">
-          <div className="text-xs text-slate-600">admin.edusaathiai.in</div>
+          <div className="text-xs text-slate-600 mb-2 px-1">admin.edusaathiai.in</div>
+          <LogoutButton />
         </div>
       </aside>
 

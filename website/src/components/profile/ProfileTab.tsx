@@ -351,14 +351,29 @@ export default function ProfileTab({ profile, soul, onSaved }: ProfileTabProps) 
         </div>
       </div>
 
-      {/* Save button */}
-      <button
-        onClick={handleSave} disabled={saving}
-        className="w-full rounded-xl py-4 text-sm font-bold transition-all disabled:opacity-60 hover:brightness-110"
-        style={{ background: '#C9993A', color: '#060F1D' }}
-      >
-        {saving ? 'Saving...' : 'Save changes'}
-      </button>
+      {/* Actions */}
+      <div className="flex flex-col gap-3 pb-6">
+        <button
+          onClick={handleSave} disabled={saving}
+          className="w-full rounded-xl py-4 text-sm font-bold transition-all disabled:opacity-60 hover:brightness-110"
+          style={{ background: '#C9993A', color: '#060F1D' }}
+        >
+          {saving ? 'Saving...' : 'Save changes'}
+        </button>
+
+        <button
+          onClick={async () => {
+            const supabase = createClient();
+            await supabase.auth.signOut();
+            window.location.href = '/login';
+          }}
+          type="button"
+          className="w-full rounded-xl py-4 text-sm font-bold transition-all hover:bg-rose-500/10 active:bg-rose-500/20"
+          style={{ color: '#F43F5E', border: '1px solid rgba(244,63,94,0.2)' }}
+        >
+          Sign Out
+        </button>
+      </div>
     </div>
   );
 }

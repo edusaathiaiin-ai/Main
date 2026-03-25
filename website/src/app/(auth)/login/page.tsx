@@ -43,6 +43,14 @@ function LoginForm() {
   async function handleGoogle() {
     setGoogleLoading(true);
     setError('');
+
+    // Store role/saathi in sessionStorage — query params on redirectTo
+    // cause Google OAuth 400 (redirect_uri mismatch). Callback reads these.
+    const role = searchParams.get('role');
+    const saathi = searchParams.get('saathi');
+    if (role) sessionStorage.setItem('pending_role', role);
+    if (saathi) sessionStorage.setItem('pending_saathi', saathi);
+
     const supabase = createClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -62,6 +70,13 @@ function LoginForm() {
     if (!email.trim()) return;
     setMagicLoading(true);
     setError('');
+
+    // Store role/saathi in sessionStorage (same reason as Google OAuth above)
+    const role = searchParams.get('role');
+    const saathi = searchParams.get('saathi');
+    if (role) sessionStorage.setItem('pending_role', role);
+    if (saathi) sessionStorage.setItem('pending_saathi', saathi);
+
     const supabase = createClient();
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
@@ -223,14 +238,22 @@ function LoginForm() {
         </AnimatePresence>
       </div>
 
+      {/* New user link */}
+      <p style={{fontSize:'13px', color:'rgba(255,255,255,0.35)', textAlign:'center', marginTop:'16px'}}>
+        New to EdUsaathiAI?{' '}
+        <a href="/" style={{color:'rgba(255,255,255,0.6)', textDecoration:'underline', textUnderlineOffset:'3px'}}>
+          Explore the platform →
+        </a>
+      </p>
+
       {/* Footer */}
-      <p className="text-center text-xs mt-6" style={{ color: 'rgba(255,255,255,0.2)' }}>
-        By continuing, you agree to our{' '}
-        <a href="/terms" className="underline underline-offset-2 hover:text-white/40 transition-colors">
-          Terms
-        </a>{' '}
-        and{' '}
-        <a href="/privacy" className="underline underline-offset-2 hover:text-white/40 transition-colors">
+      <p style={{fontSize:'11px', color:'rgba(255,255,255,0.35)', textAlign:'center', marginTop:'12px'}}>
+        By signing in you agree to our{' '}
+        <a href="/terms" style={{color:'rgba(255,255,255,0.5)'}} className="hover:text-white transition-colors">
+          Terms of Service
+        </a>
+        {' '}and{' '}
+        <a href="/privacy" style={{color:'rgba(255,255,255,0.5)'}} className="hover:text-white transition-colors">
           Privacy Policy
         </a>
       </p>

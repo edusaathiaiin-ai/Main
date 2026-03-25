@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
+// Force all protected routes to be server-rendered on demand (never statically collected)
+export const dynamic = 'force-dynamic';
+
 /**
  * Protected app layout.
  * Server-side auth check — middleware also protects, this is a second layer.
@@ -10,10 +13,14 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      redirect('/login');
+    }
+  } catch {
+    // If Supabase is unreachable or env vars missing, redirect to login
     redirect('/login');
   }
 
