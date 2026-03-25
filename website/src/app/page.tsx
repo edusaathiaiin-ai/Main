@@ -134,7 +134,7 @@ export default async function RootPage() {
           <h1 className="hero-title-line2">knows your name.</h1>
           <h1 className="hero-title-line3">Remembers your dream.</h1>
           <p className="hero-subtitle">
-            <strong>20 subject companions. Built for India.</strong><br />
+            <strong>24 subject companions. Built for India.</strong><br />
             Your Saathi learns how you think, remembers where you left off, and walks with you — from your first chapter to your final exam.
           </p>
           <div className="hero-ctas">
@@ -142,7 +142,7 @@ export default async function RootPage() {
             <a href="#saathis" className="btn-secondary">Meet the Saathis ↓</a>
           </div>
           <div className="hero-stats">
-            <div className="stat"><div className="stat-num">20</div><div className="stat-label">Subject Saathis</div></div>
+            <div className="stat"><div className="stat-num">24</div><div className="stat-label">Subject Saathis</div></div>
             <div className="stat-divider" />
             <div className="stat"><div className="stat-num">₹199</div><div className="stat-label">Per month</div></div>
             <div className="stat-divider" />
@@ -166,7 +166,7 @@ export default async function RootPage() {
         <h2 className="section-title">Three steps to your<br /><em>Unified Soul Partnership</em></h2>
         <p className="section-subtitle">EdUsaathiAI doesn&apos;t just answer questions. It builds a relationship with your learning journey.</p>
         <div className="steps-grid" style={{ marginTop: '48px' }}>
-          <div className="step"><div className="step-num">01 — CHOOSE</div><span className="step-icon">🎯</span><h3 className="step-title">Pick your Saathi</h3><p className="step-body">Choose from 20 subject companions — Law, Biology, Medicine, CS, UPSC, Finance, and more. Your Saathi knows your subject inside out and meets you where you are.</p></div>
+          <div className="step"><div className="step-num">01 — CHOOSE</div><span className="step-icon">🎯</span><h3 className="step-title">Pick your Saathi</h3><p className="step-body">Choose from 24 subject companions — Law, Biology, Medicine, CS, UPSC, Finance, and more. Your Saathi knows your subject inside out and meets you where you are.</p></div>
           <div className="step"><div className="step-num">02 — CONNECT</div><span className="step-icon">🧠</span><h3 className="step-title">Your soul is matched</h3><p className="step-body">Tell your Saathi your name, your exam target, your research dream. Every conversation is personal. Your Saathi remembers what you struggled with and bridges it to today.</p></div>
           <div className="step"><div className="step-num">03 — GROW</div><span className="step-icon">🚀</span><h3 className="step-title">Learn. Check in. Rise.</h3><p className="step-body">Study with your bot. Take Saathi Check-ins to see how far you&apos;ve come. Read today&apos;s research headlines in your field. Your Saathi grows smarter about you with every session.</p></div>
         </div>
@@ -203,7 +203,7 @@ export default async function RootPage() {
           </div>
           <div className="comparison-col us">
             <div className="comparison-col-header"><div className="comparison-brand" style={{ color:'var(--gold)' }}>EdUsaathiAI Plus</div><div className="comparison-price" style={{ color:'var(--gold)' }}>₹199/month</div></div>
-            {["Knows your name. Remembers your last session, research dream, and struggle topics","20 specialist Saathis — each an expert with subject-specific guardrails","India-first. UPSC current affairs, NEET Biology, CLAT prep, GATE — all built in","Soul matching. Mirrors your tone, adapts to your ambition, bridges to your goals","Community Board with faculty-verified answers and AI auto-responses","Daily headlines from Nature, Cell, Bar & Bench, PRS India — filtered to your Saathi","₹199/month. Less than your weekly pizza. More than a semester of guidance."].map((t,i)=>(
+            {["Knows your name. Remembers your last session, research dream, and struggle topics","24 specialist Saathis — each an expert with subject-specific guardrails","India-first. UPSC current affairs, NEET Biology, CLAT prep, GATE — all built in","Soul matching. Mirrors your tone, adapts to your ambition, bridges to your goals","Community Board with faculty-verified answers and AI auto-responses","Daily headlines from Nature, Cell, Bar & Bench, PRS India — filtered to your Saathi","₹199/month. Less than your weekly pizza. More than a semester of guidance."].map((t,i)=>(
               <div key={i} className="comparison-item"><div className="comparison-icon icon-yes">✓</div><div className="comparison-text">{t}</div></div>
             ))}
           </div>
@@ -223,17 +223,17 @@ export default async function RootPage() {
       <footer className="land-footer">
         <div>
           <div className="footer-logo">EdU<span>saathi</span>AI</div>
-          <div className="footer-tagline">Unified Soul Partnership · Built under IAES, Ahmedabad</div>
+          <div className="footer-tagline">Unified Soul Partnership · Ahmedabad, India</div>
         </div>
         <ul className="footer-links">
           <li><Link href="/privacy">Privacy Policy</Link></li>
           <li><Link href="/terms">Terms of Use</Link></li>
-          <li><a href="#">Contact</a></li>
+          <li><a href="mailto:support@edusaathiai.in">Contact</a></li>
           <li><Link href="/login?role=institution">For Institutions</Link></li>
           <li><a href={process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.edusaathiai.in'} target="_blank" rel="noopener noreferrer">Admin Access</a></li>
           <li><a href="https://x.com/EdUsaathiAI" target="_blank" rel="noopener noreferrer">@EdUsaathiAI</a></li>
         </ul>
-        <div className="footer-copy">© 2026 Indo American Education Society. All rights reserved. · edusaathiai.in</div>
+        <div className="footer-copy">© 2026 EdUsaathiAI, Ahmedabad. All rights reserved.</div>
       </footer>
     </>
   );
