@@ -8,7 +8,6 @@ type Props = {
   quota: QuotaState;
   isStreaming: boolean;
   primaryColor: string;
-  apiProvider: 'Claude' | 'Groq';
   onSend: (text: string) => Promise<void>;
   inputValue: string;
   setInputValue: (val: string) => void;
@@ -21,7 +20,6 @@ export function InputArea({
   quota,
   isStreaming,
   primaryColor,
-  apiProvider,
   onSend,
   inputValue,
   setInputValue,
@@ -120,7 +118,7 @@ export function InputArea({
       {/* Status row */}
       <div className="flex items-center justify-between px-5 pb-3 gap-4">
         <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
-          Powered by {apiProvider} · ⌘↵ to send
+          ⌘↵ to send
         </p>
         <div className="flex items-center gap-3">
           {inputValue.length > SHOW_COUNT_THRESHOLD && (

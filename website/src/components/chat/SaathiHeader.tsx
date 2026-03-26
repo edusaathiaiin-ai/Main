@@ -5,18 +5,12 @@ import type { Saathi } from '@/types';
 type Props = {
   saathi: Saathi;
   botName: string;
-  apiProvider: 'Claude' | 'Groq';
   sessionCount: number;
   onCheckin?: () => void;
 };
 
-const PROVIDER_STYLE = {
-  Claude: { bg: 'rgba(139,92,246,0.15)', border: 'rgba(139,92,246,0.4)', text: '#A78BFA' },
-  Groq: { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.35)', text: '#4ADE80' },
-};
 
-export function SaathiHeader({ saathi, botName, apiProvider, sessionCount, onCheckin }: Props) {
-  const provider = PROVIDER_STYLE[apiProvider];
+export function SaathiHeader({ saathi, botName, sessionCount, onCheckin }: Props) {
 
   return (
     <div
@@ -41,13 +35,6 @@ export function SaathiHeader({ saathi, botName, apiProvider, sessionCount, onChe
 
       {/* Right: check-in + provider badge */}
       <div className="flex items-center gap-2">
-        {/* API provider badge */}
-        <span
-          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-          style={{ background: provider.bg, border: `0.5px solid ${provider.border}`, color: provider.text }}
-        >
-          {apiProvider}
-        </span>
 
         {/* Check-in button (after 5 sessions) */}
         {sessionCount >= 5 && onCheckin && (

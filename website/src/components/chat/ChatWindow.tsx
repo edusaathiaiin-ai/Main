@@ -325,7 +325,6 @@ export function ChatWindow() {
         <SaathiHeader
           saathi={activeSaathi}
           botName={activeBot.name}
-          apiProvider={activeBot.apiProvider}
           sessionCount={0}
         />
 
@@ -432,7 +431,6 @@ export function ChatWindow() {
             quota={quota}
             isStreaming={isStreaming}
             primaryColor={activeSaathi.primary}
-            apiProvider={activeBot.apiProvider}
             onSend={handleSend}
             inputValue={inputValue}
             setInputValue={setInputValue}

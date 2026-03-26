@@ -89,7 +89,6 @@ export type BotSlot = {
   slot: 1 | 2 | 3 | 4 | 5;
   id: string;
   name: string;
-  api: 'Claude' | 'Groq';
   availableTo: string;
   purpose: string;
 };

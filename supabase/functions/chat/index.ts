@@ -38,8 +38,16 @@ const CHAT_RATE_MAX_REQUESTS = 20;
 const GEO_LIMITED_CHAT_RATE_MAX_REQUESTS = 8;
 const GEO_LIMITED_INSTITUTION_RATE_MAX_REQUESTS = 4;
 const GEO_LIMITED_ALLOWED_SLOTS = new Set([1, 5]);
-// Slots 1, 2, 5 use Groq; Slots 3, 4 use Claude
-const GROQ_SLOTS = new Set([1, 2, 5]);
+
+// STEM saathis use Claude → Gemini → Grok(xAI) as primary chain.
+// Groq is silent emergency-only fallback for STEM.
+// Non-STEM saathis use Groq → Gemini → Grok(xAI) chain.
+const STEM_SAATHIS = new Set([
+  'maathsaathi', 'chemsaathi', 'biosaathi', 'physisaathi',
+  'compsaathi', 'mechsaathi', 'civilsaathi', 'elecsaathi',
+  'chemenggsaathi', 'biotechsaathi', 'envirosaathi',
+  'aerosaathi', 'aerospacesaathi',
+]);
 
 // ── Plan-specific quota config (mirrors constants/plans.ts) ──────────────────
 // Inlined here because Deno cannot import from the React Native app layer.
@@ -848,11 +856,45 @@ async function streamGemini(
 }
 
 // ---------------------------------------------------------------------------
-// Groq → Gemini → xAI Grok fallback wrapper
-// Tries Groq first (low latency, LPU cloud).
-// On Groq failure: tries Gemini Flash.
-// On Gemini failure: tries xAI Grok.
-// If all fail, throws the last error.
+// STEM: Claude → Gemini → Grok(xAI) → Groq (emergency-only silent fallback)
+// ---------------------------------------------------------------------------
+
+async function streamClaudeWithStemFallback(
+  systemPrompt: string,
+  messages: MessageParam[],
+  controller: ReadableStreamDefaultController<Uint8Array>
+): Promise<string> {
+  // 1. Try Claude first (primary for STEM)
+  try {
+    return await streamClaude(systemPrompt, messages, controller);
+  } catch (claudeErr) {
+    console.warn(`[chat] Claude failed. Trying Gemini Flash…`);
+  }
+
+  // 2. Try Gemini Flash
+  if (GEMINI_API_KEY) {
+    try {
+      return await streamGemini(systemPrompt, messages, controller);
+    } catch {
+      console.warn(`[chat] Gemini failed. Trying xAI Grok…`);
+    }
+  }
+
+  // 3. Try xAI Grok
+  if (GROK_API_KEY) {
+    try {
+      return await streamXaiGrok(systemPrompt, messages, controller);
+    } catch {
+      console.warn(`[chat] xAI Grok failed. Emergency fallback to Groq…`);
+    }
+  }
+
+  // 4. Emergency silent fallback: Groq (student never sees this happen)
+  return await streamGroq(systemPrompt, messages, controller);
+}
+
+// ---------------------------------------------------------------------------
+// Non-STEM: Groq → Gemini → xAI Grok fallback wrapper
 // ---------------------------------------------------------------------------
 
 async function streamGroqWithFallback(
@@ -863,15 +905,13 @@ async function streamGroqWithFallback(
   try {
     return await streamGroq(systemPrompt, messages, controller);
   } catch (groqErr) {
-    const groqMsg = groqErr instanceof Error ? groqErr.message : String(groqErr);
-    console.warn(`[chat] Groq failed (${groqMsg}). Trying Gemini Flash…`);
+    console.warn(`[chat] Groq failed. Trying Gemini Flash…`);
 
     if (GEMINI_API_KEY) {
       try {
         return await streamGemini(systemPrompt, messages, controller);
-      } catch (geminiErr) {
-        const geminiMsg = geminiErr instanceof Error ? geminiErr.message : String(geminiErr);
-        console.warn(`[chat] Gemini failed (${geminiMsg}). Trying xAI Grok…`);
+      } catch {
+        console.warn(`[chat] Gemini failed. Trying xAI Grok…`);
       }
     }
 
@@ -1171,14 +1211,14 @@ Deno.serve(async (req: Request) => {
       { role: 'user', content: sanitized },
     ];
 
-    const useGroq = GROQ_SLOTS.has(botSlot);
+    const isStem = STEM_SAATHIS.has(saathiId.toLowerCase());
     const encoder = new TextEncoder();
     let assistantText = '';
 
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         try {
-          const streamFn = useGroq ? streamGroqWithFallback : streamClaude;
+          const streamFn = isStem ? streamClaudeWithStemFallback : streamGroqWithFallback;
 
           // Wrap streaming to capture TTFB on first token
           let firstToken = true;
