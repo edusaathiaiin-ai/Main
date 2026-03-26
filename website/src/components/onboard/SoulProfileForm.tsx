@@ -1,0 +1,872 @@
+'use client';
+
+import { useState, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { createClient } from '@/lib/supabase/client';
+import { SAATHIS } from '@/constants/saathis';
+import { getSubjectChips, getInterestChips } from '@/constants/subjectChips';
+import {
+  computeProfileCompleteness,
+  getMilestoneLabel,
+  getSubmitButtonLabel,
+} from '@/lib/profileCompleteness';
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+export type ParsedEducation = {
+  year: number | null;
+  degree: string | null;
+  institution: string | null;
+  collegeName: string | null;       // matched from colleges table
+  university: string | null;        // affiliation
+  city: string | null;
+  confidence: number;
+};
+
+export type SoulProfileData = {
+  fullName: string;
+  city: string;
+  educationRaw: string;
+  educationParsed: ParsedEducation | null;
+  currentSubjects: string[];
+  interestAreas: string[];
+  examTarget: string;
+  learningStyle: string;
+  dream: string;
+  nudgePreference: boolean;
+};
+
+type Props = {
+  saathiId: string | null;
+  academicLevel: string;
+  examTargetFromLevel: string | null;
+  onContinue: (data: SoulProfileData) => Promise<void>;
+  onSkip: () => void;
+  onBack: () => void;
+  saving: boolean;
+};
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const CITIES = [
+  'Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad',
+  'Ahmedabad', 'Pune', 'Kolkata', 'Jaipur', 'Surat',
+  'Vadodara', 'Rajkot', 'Nagpur', 'Lucknow', 'Bhopal',
+  'Indore', 'Patna', 'Chandigarh', 'Kochi', 'Coimbatore', 'Other',
+];
+
+const EXAM_TARGETS = ['UPSC', 'GATE', 'NEET', 'CA', 'CLAT', 'NET', 'GRE', 'None'];
+
+const LEARNING_STYLES = [
+  { id: 'reading', emoji: '📖', title: 'Reading & Notes', desc: 'I like detailed written explanations and structured summaries' },
+  { id: 'practice', emoji: '🎯', title: 'Practice First', desc: 'Show me a problem. I\'ll figure out the theory from there.' },
+  { id: 'conversation', emoji: '💬', title: 'Talk it Through', desc: 'Explain it conversationally — like you\'re talking to a friend' },
+  { id: 'examples', emoji: '🗺️', title: 'Show Me Examples', desc: 'Give me analogies and real-world examples. Abstract confuses me.' },
+];
+
+const spring = { type: 'spring', stiffness: 400, damping: 32 } as const;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function getOrdinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function buildSummaryText(p: ParsedEducation): string {
+  const parts: string[] = [];
+  if (p.year) parts.push(`${getOrdinal(p.year)} Year`);
+  if (p.degree) parts.push(p.degree);
+  const inst = p.collegeName ?? p.institution;
+  if (inst) parts.push(`at ${inst}`);
+  if (p.university) parts.push(`(${p.university} affiliated)`);
+  return parts.join(', ');
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function SoulCard({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 30 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ ...spring, delay }}
+      style={{
+        padding: '10px 14px',
+        background: 'rgba(201,153,58,0.08)',
+        border: '0.5px solid rgba(201,153,58,0.22)',
+        borderRadius: '10px',
+        fontSize: '12px',
+        color: 'rgba(255,255,255,0.8)',
+        lineHeight: 1.5,
+        marginBottom: '8px',
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function ProgressBar({ pct }: { pct: number }) {
+  return (
+    <div style={{
+      width: '100%', height: '4px',
+      background: 'rgba(255,255,255,0.07)',
+      borderRadius: '100px', overflow: 'hidden', marginBottom: '6px',
+    }}>
+      <motion.div
+        animate={{ width: `${pct}%` }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        style={{
+          height: '100%',
+          background: pct >= 100
+            ? 'linear-gradient(90deg, #C9993A, #E5B86A)'
+            : 'linear-gradient(90deg, rgba(201,153,58,0.6), #C9993A)',
+          borderRadius: '100px',
+        }}
+      />
+    </div>
+  );
+}
+
+function ChipSelector({
+  label, helper, options, maxSelect, selected, onChange, primaryColor,
+  allowCustom,
+}: {
+  label: string; helper?: string; options: string[];
+  maxSelect: number; selected: string[];
+  onChange: (val: string[]) => void;
+  primaryColor: string;
+  allowCustom?: boolean;
+}) {
+  const [customInput, setCustomInput] = useState('');
+  const [showCustom, setShowCustom] = useState(false);
+
+  function toggle(chip: string) {
+    if (selected.includes(chip)) {
+      onChange(selected.filter((s) => s !== chip));
+    } else if (selected.length < maxSelect) {
+      onChange([...selected, chip]);
+    }
+  }
+
+  function addCustom() {
+    const trimmed = customInput.trim();
+    if (!trimmed || selected.includes(trimmed) || selected.length >= maxSelect) return;
+    onChange([...selected, trimmed]);
+    setCustomInput('');
+    setShowCustom(false);
+  }
+
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.85)', marginBottom: '4px' }}>
+        {label}
+      </label>
+      {helper && (
+        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '12px' }}>{helper}</p>
+      )}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+        {options.map((chip) => {
+          const active = selected.includes(chip);
+          return (
+            <motion.button
+              key={chip}
+              type="button"
+              whileTap={{ scale: 0.95 }}
+              onClick={() => toggle(chip)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '100px',
+                fontSize: '12px',
+                fontWeight: active ? 600 : 400,
+                background: active ? primaryColor : 'rgba(255,255,255,0.05)',
+                color: active ? '#060F1D' : 'rgba(255,255,255,0.65)',
+                border: active ? 'none' : '0.5px solid rgba(255,255,255,0.12)',
+                cursor: selected.length >= maxSelect && !active ? 'default' : 'pointer',
+                opacity: selected.length >= maxSelect && !active ? 0.4 : 1,
+                transition: 'all 0.15s',
+              }}
+            >
+              {chip}
+            </motion.button>
+          );
+        })}
+        {allowCustom && (
+          showCustom ? (
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <input
+                autoFocus
+                value={customInput}
+                onChange={(e) => setCustomInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') addCustom(); if (e.key === 'Escape') setShowCustom(false); }}
+                placeholder="Type your subject..."
+                style={{
+                  padding: '6px 12px', borderRadius: '100px',
+                  fontSize: '12px', background: 'rgba(255,255,255,0.08)',
+                  border: '0.5px solid rgba(201,153,58,0.5)', color: '#fff', outline: 'none',
+                  width: '160px',
+                }}
+              />
+              <button type="button" onClick={addCustom} style={{ fontSize: '12px', color: '#C9993A', background: 'none', border: 'none', cursor: 'pointer' }}>Add</button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowCustom(true)}
+              disabled={selected.length >= maxSelect}
+              style={{
+                padding: '6px 12px', borderRadius: '100px', fontSize: '12px',
+                background: 'transparent', border: '0.5px dashed rgba(255,255,255,0.2)',
+                color: 'rgba(255,255,255,0.4)', cursor: 'pointer',
+              }}
+            >
+              + Add your own
+            </button>
+          )
+        )}
+      </div>
+      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+        {selected.length} of {maxSelect} selected
+      </p>
+    </div>
+  );
+}
+
+// ── Soul Preview Panel (right side) ──────────────────────────────────────────
+
+function SoulPreviewPanel({
+  data, saathiId, pct,
+}: {
+  data: SoulProfileData;
+  saathiId: string | null;
+  pct: number;
+}) {
+  const saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
+  const milestone = getMilestoneLabel(pct);
+
+  return (
+    <div style={{
+      position: 'sticky', top: '24px',
+      background: 'rgba(255,255,255,0.02)',
+      border: '0.5px solid rgba(255,255,255,0.08)',
+      borderRadius: '20px', padding: '24px',
+    }}>
+      {/* Saathi emoji */}
+      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <motion.span
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+          style={{ fontSize: '40px', display: 'block', lineHeight: 1 }}
+        >
+          {saathi.emoji}
+        </motion.span>
+        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '8px', fontStyle: 'italic' }}>
+          Your {saathi.name} is learning about you
+        </p>
+      </div>
+
+      {/* Progress bar */}
+      <ProgressBar pct={pct} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+        <span style={{ fontSize: '11px', fontWeight: 600, color: pct >= 100 ? '#C9993A' : 'rgba(255,255,255,0.5)' }}>
+          {pct}%
+        </span>
+        <span style={{ fontSize: '11px', color: pct >= 60 ? '#C9993A' : 'rgba(255,255,255,0.4)' }}>
+          {milestone}
+        </span>
+      </div>
+
+      {/* Soul cards — appear as fields filled */}
+      <div>
+        <AnimatePresence>
+          {data.fullName.trim().length > 0 && (
+            <SoulCard key="name">
+              👤 You are <strong style={{ color: '#fff' }}>{data.fullName.trim()}</strong>
+            </SoulCard>
+          )}
+          {data.city.trim().length > 0 && (
+            <SoulCard key="city" delay={0.05}>
+              📍 Learning from <strong style={{ color: '#fff' }}>{data.city}</strong>
+            </SoulCard>
+          )}
+          {data.educationParsed && (
+            <SoulCard key="education" delay={0.08}>
+              🎓 {buildSummaryText(data.educationParsed)}
+            </SoulCard>
+          )}
+          {data.currentSubjects.length > 0 && (
+            <SoulCard key="subjects" delay={0.1}>
+              📚 Studying: {data.currentSubjects.slice(0, 3).join(', ')}
+              {data.currentSubjects.length > 3 && ` +${data.currentSubjects.length - 3} more`}
+            </SoulCard>
+          )}
+          {data.learningStyle.length > 0 && (
+            <SoulCard key="style" delay={0.12}>
+              🧠 Learns best through <strong style={{ color: '#fff' }}>
+                {LEARNING_STYLES.find((l) => l.id === data.learningStyle)?.title ?? data.learningStyle}
+              </strong>
+            </SoulCard>
+          )}
+          {data.dream.trim().length > 5 && (
+            <motion.div
+              key="dream"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ ...spring, delay: 0.15 }}
+              style={{
+                padding: '10px 14px',
+                background: 'rgba(201,153,58,0.12)',
+                border: '0.5px solid rgba(201,153,58,0.35)',
+                borderRadius: '10px',
+                fontSize: '12px',
+                color: '#E5B86A',
+                marginBottom: '8px',
+              }}
+            >
+              ✨ Dream: {data.dream.trim().split(' ').slice(0, 8).join(' ')}
+              {data.dream.trim().split(' ').length > 8 ? '...' : ''}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Locked incentive at 60% */}
+      {pct < 100 && (
+        <div style={{
+          marginTop: '16px',
+          padding: '12px',
+          background: 'rgba(255,255,255,0.02)',
+          border: '0.5px dashed rgba(255,255,255,0.1)',
+          borderRadius: '10px',
+        }}>
+          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginBottom: '6px' }}>
+            🔒 Unlock at 60%
+          </p>
+          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)' }}>
+            Intern marketplace access
+          </p>
+          <div style={{ marginTop: '8px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', height: '3px', overflow: 'hidden' }}>
+            <div style={{ width: `${Math.min(pct / 60 * 100, 100)}%`, height: '100%', background: '#C9993A', borderRadius: '4px', transition: 'width 0.5s ease' }} />
+          </div>
+          <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>
+            {Math.max(0, 60 - pct)}% more to unlock
+          </p>
+        </div>
+      )}
+
+      <p style={{
+        fontSize: '11px', color: 'rgba(255,255,255,0.25)',
+        textAlign: 'center', marginTop: '20px', lineHeight: 1.6, fontStyle: 'italic',
+      }}>
+        &ldquo;The more you share, the more personal every single answer becomes.&rdquo;
+      </p>
+    </div>
+  );
+}
+
+// ── Main Form ─────────────────────────────────────────────────────────────────
+
+export function SoulProfileForm({
+  saathiId,
+  academicLevel: _academicLevel,
+  examTargetFromLevel,
+  onContinue,
+  onSkip,
+  onBack,
+  saving,
+}: Props) {
+  // Core state
+  const [fullName, setFullName] = useState('');
+  const [city, setCity] = useState('');
+  const [educationRaw, setEducationRaw] = useState('');
+  const [educationParsed, setEducationParsed] = useState<ParsedEducation | null>(null);
+  const [parseLoading, setParseLoading] = useState(false);
+  const [parseError, setParseError] = useState('');
+  const [parseConfirmed, setParseConfirmed] = useState<boolean | null>(null); // null=not asked, true=yes, false=rejected
+  const [currentSubjects, setCurrentSubjects] = useState<string[]>([]);
+  const [interestAreas, setInterestAreas] = useState<string[]>([]);
+  const [examTarget, setExamTarget] = useState(examTargetFromLevel ?? '');
+  const [learningStyle, setLearningStyle] = useState('');
+  const [dream, setDream] = useState('');
+  const [nudgePreference, setNudgePreference] = useState(true);
+
+  const saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
+  const primaryColor = saathi.primary;
+
+  const subjectOptions = saathiId ? getSubjectChips(saathiId) : getSubjectChips('compsaathi');
+  const interestOptions = saathiId ? getInterestChips(saathiId) : getInterestChips('default');
+
+  // Completeness
+  const pct = useMemo(() => computeProfileCompleteness({
+    name: fullName,
+    city,
+    educationParsed: educationParsed !== null && parseConfirmed !== false,
+    subjects: currentSubjects,
+    learningStyle,
+    dream,
+    examTarget,
+    interests: interestAreas,
+  }), [fullName, city, educationParsed, parseConfirmed, currentSubjects, learningStyle, dream, examTarget, interestAreas]);
+
+  const formData: SoulProfileData = {
+    fullName, city, educationRaw, educationParsed,
+    currentSubjects, interestAreas, examTarget,
+    learningStyle, dream, nudgePreference,
+  };
+
+  // ── Parse education on blur ─────────────────────────────────────────────────
+  const parseEducation = useCallback(async () => {
+    if (educationRaw.trim().length < 5 || parseConfirmed === true) return;
+    setParseLoading(true);
+    setParseError('');
+    setEducationParsed(null);
+    setParseConfirmed(null);
+
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/parse-education`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token ?? ''}`,
+            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+          },
+          body: JSON.stringify({ rawInput: educationRaw }),
+        }
+      );
+
+      if (!res.ok) throw new Error('Parser unavailable');
+
+      const json = await res.json() as {
+        parsed: { year: number | null; degree: string | null; institution: string | null; city: string | null };
+        college: { name: string; university: string | null } | null;
+        confidence: number;
+      };
+
+      setEducationParsed({
+        year: json.parsed.year,
+        degree: json.parsed.degree,
+        institution: json.parsed.institution,
+        collegeName: json.college?.name ?? null,
+        university: json.college?.university ?? null,
+        city: json.parsed.city,
+        confidence: json.confidence,
+      });
+    } catch {
+      setParseError('Could not parse — please fill in your details manually below');
+    } finally {
+      setParseLoading(false);
+    }
+  }, [educationRaw, parseConfirmed]);
+
+  // ── Submit ────────────────────────────────────────────────────────────────
+  async function handleSubmit() {
+    await onContinue(formData);
+  }
+
+  const canSubmit = fullName.trim().length > 0 && city.length > 0;
+  const submitLabel = getSubmitButtonLabel(pct);
+
+  // ── Shared input style ────────────────────────────────────────────────────
+  const inputCls: React.CSSProperties = {
+    width: '100%',
+    background: 'rgba(255,255,255,0.05)',
+    border: '0.5px solid rgba(255,255,255,0.12)',
+    borderRadius: '12px',
+    padding: '12px 16px',
+    fontSize: '14px',
+    color: '#fff',
+    outline: 'none',
+    fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
+  };
+
+  return (
+    <div style={{ padding: '32px 24px 80px', maxWidth: '1100px', margin: '0 auto' }}>
+      {/* Step header */}
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{ marginBottom: '40px' }}
+      >
+        <span style={{
+          fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px',
+          textTransform: 'uppercase', color: '#C9993A',
+          background: 'rgba(201,153,58,0.1)', border: '0.5px solid rgba(201,153,58,0.3)',
+          borderRadius: '100px', padding: '4px 14px', display: 'inline-block', marginBottom: '16px',
+        }}>
+          Step 3 · Soul Partnership Begins
+        </span>
+        <h1 style={{
+          fontFamily: 'var(--font-playfair, "Playfair Display", serif)',
+          fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 900,
+          color: '#fff', lineHeight: 1.15, margin: '0 0 10px',
+        }}>
+          Let your Saathi know you.
+        </h1>
+        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', fontWeight: 300 }}>
+          Answer a few questions. Your Saathi calibrates instantly to who you are.
+        </p>
+      </motion.div>
+
+      {/* Two-column grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 60%) minmax(0, 40%)',
+        gap: '40px',
+        alignItems: 'start',
+      }}
+        className="soul-form-grid"
+      >
+        {/* ──── LEFT: Form ──────────────────────────────────────────────── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+
+          {/* Field 1: Name */}
+          <div>
+            <label style={{ display: 'block', fontSize: '16px', fontWeight: 600, color: '#fff', marginBottom: '4px', fontFamily: 'var(--font-playfair, serif)' }}>
+              What should I call you?
+            </label>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginBottom: '12px' }}>
+              Your Saathi will use this in every conversation
+            </p>
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Your name — exactly as you'd like your Saathi to address you"
+              style={inputCls}
+            />
+          </div>
+
+          {/* Field 2: City */}
+          <div>
+            <label style={{ display: 'block', fontSize: '16px', fontWeight: 600, color: '#fff', marginBottom: '4px', fontFamily: 'var(--font-playfair, serif)' }}>
+              Where are you learning from?
+            </label>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginBottom: '12px' }}>
+              Helps your Saathi connect learning to your local context
+            </p>
+            <select
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              style={{ ...inputCls, appearance: 'none', cursor: 'pointer' }}
+            >
+              <option value="" style={{ background: '#0B1F3A' }}>Choose your city</option>
+              {CITIES.map((c) => (
+                <option key={c} value={c} style={{ background: '#0B1F3A' }}>{c}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Field 3: Education (smart parser) */}
+          <div>
+            <label style={{ display: 'block', fontSize: '16px', fontWeight: 600, color: '#fff', marginBottom: '4px', fontFamily: 'var(--font-playfair, serif)' }}>
+              Tell me about your education
+            </label>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginBottom: '12px' }}>
+              Just type naturally — your Saathi will figure out the rest ✓
+            </p>
+            <input
+              type="text"
+              value={educationRaw}
+              onChange={(e) => { setEducationRaw(e.target.value); setEducationParsed(null); setParseConfirmed(null); }}
+              onBlur={parseEducation}
+              placeholder="e.g. 4th sem Mech Engg from DDU Nadiad  ·  Final year MBBS AIIMS Delhi  ·  MBA 1st sem Symbiosis Pune"
+              style={inputCls}
+            />
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '6px' }}>
+              Just type naturally. We handle the rest.
+            </p>
+
+            {/* Parse states */}
+            {parseLoading && (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}
+              >
+                <span className="w-3 h-3 rounded-full border border-white/30 border-t-white animate-spin" style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.2)', borderTop: '1.5px solid #C9993A', animation: 'spin 1s linear infinite' }} />
+                Checking your college database…
+              </motion.div>
+            )}
+
+            {parseError && (
+              <p style={{ fontSize: '12px', color: 'rgba(239,68,68,0.8)', marginTop: '8px' }}>{parseError}</p>
+            )}
+
+            {educationParsed && parseConfirmed === null && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                  marginTop: '12px', padding: '14px 16px',
+                  background: 'rgba(74,222,128,0.06)', border: '0.5px solid rgba(74,222,128,0.25)',
+                  borderRadius: '12px',
+                }}
+              >
+                <p style={{ fontSize: '12px', color: '#4ADE80', fontWeight: 600, marginBottom: '4px' }}>✓ Got it —</p>
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '12px' }}>
+                  {buildSummaryText(educationParsed)}
+                  {educationParsed.confidence < 70 && (
+                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', marginLeft: '6px' }}>
+                      ({educationParsed.confidence}% confident)
+                    </span>
+                  )}
+                </p>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Is this right?</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setParseConfirmed(true)}
+                    style={{
+                      padding: '6px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
+                      background: '#4ADE80', color: '#060F1D', border: 'none', cursor: 'pointer',
+                    }}
+                  >
+                    Yes ✓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setParseConfirmed(false); setEducationParsed(null); }}
+                    style={{
+                      padding: '6px 16px', borderRadius: '8px', fontSize: '12px',
+                      background: 'transparent', border: '0.5px solid rgba(255,255,255,0.2)',
+                      color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
+                    }}
+                  >
+                    Let me correct
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {parseConfirmed === true && educationParsed && (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                style={{ marginTop: '8px', fontSize: '12px', color: '#4ADE80' }}
+              >
+                ✓ {buildSummaryText(educationParsed)}
+              </motion.div>
+            )}
+          </div>
+
+          {/* Field 4: Current subjects */}
+          <ChipSelector
+            label="What subjects are you studying this semester?"
+            helper="Select up to 5 — your Saathi will teach exactly these"
+            options={subjectOptions}
+            maxSelect={5}
+            selected={currentSubjects}
+            onChange={setCurrentSubjects}
+            primaryColor={primaryColor}
+            allowCustom
+          />
+
+          {/* Field 5: Interest areas */}
+          <ChipSelector
+            label="What excites you beyond your curriculum?"
+            helper="Areas you'd explore even without exams"
+            options={interestOptions}
+            maxSelect={5}
+            selected={interestAreas}
+            onChange={setInterestAreas}
+            primaryColor={primaryColor}
+            allowCustom
+          />
+
+          {/* Field 6: Exam target */}
+          <div>
+            <label style={{ display: 'block', fontSize: '16px', fontWeight: 600, color: '#fff', marginBottom: '4px', fontFamily: 'var(--font-playfair, serif)' }}>
+              Are you preparing for any exam?
+            </label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
+              {EXAM_TARGETS.map((exam) => {
+                const active = examTarget === exam;
+                return (
+                  <motion.button
+                    key={exam}
+                    type="button"
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setExamTarget(active ? '' : exam)}
+                    style={{
+                      padding: '8px 18px', borderRadius: '100px', fontSize: '13px', fontWeight: active ? 600 : 400,
+                      background: active ? primaryColor : 'rgba(255,255,255,0.05)',
+                      color: active ? '#060F1D' : 'rgba(255,255,255,0.7)',
+                      border: active ? 'none' : '0.5px solid rgba(255,255,255,0.12)',
+                      cursor: 'pointer', transition: 'all 0.15s',
+                    }}
+                  >
+                    {exam}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Field 7: Learning style */}
+          <div>
+            <label style={{ display: 'block', fontSize: '16px', fontWeight: 600, color: '#fff', marginBottom: '4px', fontFamily: 'var(--font-playfair, serif)' }}>
+              How does your mind work best?
+            </label>
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr',
+              gap: '12px', marginTop: '12px',
+            }}>
+              {LEARNING_STYLES.map((style) => {
+                const active = learningStyle === style.id;
+                return (
+                  <motion.button
+                    key={style.id}
+                    type="button"
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setLearningStyle(style.id)}
+                    style={{
+                      padding: '16px',
+                      borderRadius: '14px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      background: active ? `${primaryColor}18` : 'rgba(255,255,255,0.03)',
+                      border: active ? `1.5px solid ${primaryColor}` : '0.5px solid rgba(255,255,255,0.08)',
+                      boxShadow: active ? `0 0 20px ${primaryColor}22` : 'none',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <span style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}>{style.emoji}</span>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#fff', margin: '0 0 4px' }}>{style.title}</p>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5, margin: 0 }}>{style.desc}</p>
+                    {active && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        style={{
+                          position: 'absolute', top: '10px', right: '10px',
+                          width: '18px', height: '18px', borderRadius: '50%',
+                          background: primaryColor, color: '#060F1D',
+                          fontSize: '10px', fontWeight: 700,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        ✓
+                      </motion.div>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Field 8: Dream */}
+          <div>
+            <label style={{ display: 'block', fontSize: '16px', fontWeight: 600, color: '#fff', marginBottom: '4px', fontFamily: 'var(--font-playfair, serif)' }}>
+              What&apos;s your biggest dream — even if it feels far away?
+            </label>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginBottom: '12px' }}>
+              Your Saathi will remember this always. Every session connects to this.
+            </p>
+            <textarea
+              value={dream}
+              onChange={(e) => setDream(e.target.value)}
+              placeholder={"Research in fluid mechanics...\nBecoming a Supreme Court lawyer...\nBuilding India's first quantum computer...\nIt doesn't have to be certain."}
+              rows={3}
+              style={{ ...inputCls, resize: 'none' }}
+            />
+          </div>
+
+          {/* Field 9: Nudge preference */}
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: '12px',
+            padding: '16px', background: 'rgba(255,255,255,0.02)',
+            border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '12px',
+          }}>
+            <button
+              type="button"
+              onClick={() => setNudgePreference(!nudgePreference)}
+              style={{
+                width: '20px', height: '20px', borderRadius: '4px', flexShrink: 0,
+                background: nudgePreference ? '#C9993A' : 'rgba(255,255,255,0.08)',
+                border: nudgePreference ? 'none' : '0.5px solid rgba(255,255,255,0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', marginTop: '2px', color: '#060F1D', fontSize: '12px', fontWeight: 700,
+              }}
+            >
+              {nudgePreference ? '✓' : ''}
+            </button>
+            <div>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', margin: '0 0 3px' }}>
+                Let my Saathi remind me to update my profile each semester
+              </p>
+              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+                Keeps your Saathi calibrated as you progress. Turn off anytime.
+              </p>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <div>
+            <motion.button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!canSubmit || saving}
+              whileHover={canSubmit && !saving ? { y: -2, boxShadow: '0 20px 40px rgba(201,153,58,0.3)' } : {}}
+              whileTap={canSubmit && !saving ? { scale: 0.98 } : {}}
+              style={{
+                width: '100%', padding: '16px',
+                borderRadius: '14px', fontSize: '16px', fontWeight: 700,
+                background: canSubmit ? '#C9993A' : 'rgba(255,255,255,0.06)',
+                color: canSubmit ? '#060F1D' : 'rgba(255,255,255,0.3)',
+                border: 'none', cursor: canSubmit && !saving ? 'pointer' : 'default',
+                transition: 'all 0.2s',
+              }}
+            >
+              {saving ? (
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <span style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(6,15,29,0.3)', borderTopColor: '#060F1D', animation: 'spin 1s linear infinite', display: 'inline-block' }} />
+                  Setting up your Saathi…
+                </span>
+              ) : submitLabel}
+            </motion.button>
+            <p style={{ textAlign: 'center', fontSize: '12px', color: 'rgba(255,255,255,0.25)', marginTop: '12px' }}>
+              You can always add more later. Your Saathi gets smarter with every session.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px' }}>
+              <button
+                type="button"
+                onClick={onBack}
+                style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                ← Back
+              </button>
+              <button
+                type="button"
+                onClick={onSkip}
+                style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Skip for now — I&apos;ll complete later
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ──── RIGHT: Soul preview ──────────────────────────────────────── */}
+        <div>
+          <SoulPreviewPanel data={formData} saathiId={saathiId} pct={pct} />
+        </div>
+      </div>
+
+      {/* Mobile: responsive CSS */}
+      <style>{`
+        @media (max-width: 768px) {
+          .soul-form-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
+}

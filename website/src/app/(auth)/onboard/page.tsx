@@ -13,6 +13,8 @@ import {
   type AcademicLevel,
   type AcademicLevelCard,
 } from '@/lib/instantSoulCalibration';
+import { SoulProfileForm, type SoulProfileData } from '@/components/onboard/SoulProfileForm';
+import { computeProfileCompleteness } from '@/lib/profileCompleteness';
 import type { Saathi, Profile } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -882,43 +884,61 @@ function OnboardInner() {
     setStep('profile');
   }
 
-  // ── Step 2: Profile form ───────────────────────────────────────────────────
-  async function handleProfile(form: ProfileForm) {
+  // ── Step 2: Soul profile form ─────────────────────────────────────────────
+  async function handleProfile(data: SoulProfileData) {
     setSaving(true);
     const supabase = createClient();
     const userId = profile!.id;
 
-    // Run calibration
+    // Run instant soul calibration
     const calibration = instantCalibrate({
       academicLevel,
       currentYear,
       totalYears,
-      examTarget: form.examTarget || examTargetFromLevel || null,
-      previousDegree: form.previousDegree.trim() || null,
+      examTarget: data.examTarget || examTargetFromLevel || null,
+      previousDegree: null,
     });
 
-    // Update profiles
+    // Compute completeness
+    const pct = computeProfileCompleteness({
+      name: data.fullName,
+      city: data.city,
+      educationParsed: data.educationParsed !== null,
+      subjects: data.currentSubjects,
+      learningStyle: data.learningStyle,
+      dream: data.dream,
+      examTarget: data.examTarget,
+      interests: data.interestAreas,
+    });
+
+    // Update profiles table with all soul fields
     await supabase.from('profiles').update({
-      full_name: form.fullName.trim(),
-      city: form.city,
-      institution_name: form.institution.trim() || null,
+      full_name: data.fullName.trim(),
+      city: data.city,
+      institution_name: data.educationParsed?.collegeName ?? data.educationParsed?.institution ?? null,
+      degree_programme: data.educationParsed?.degree ?? null,
+      university_affiliation: data.educationParsed?.university ?? null,
+      current_semester: data.educationParsed?.year ?? null,
       academic_level: academicLevel,
-      exam_target: form.examTarget || null,
-      previous_degree: form.previousDegree.trim() || null,
-      thesis_area: form.thesisArea.trim() || null,
-      // Faculty / Institution extra fields (stored in metadata columns if they exist, no-op otherwise)
+      exam_target: data.examTarget || null,
+      current_subjects: data.currentSubjects,
+      interest_areas: data.interestAreas,
+      learning_style: data.learningStyle || null,
+      nudge_preference: data.nudgePreference,
+      profile_completeness_pct: pct,
+      last_profile_updated_at: new Date().toISOString(),
       ...(urlRole === 'faculty' ? { role: 'faculty' } : {}),
       ...(urlRole === 'institution' ? { role: 'institution' } : {}),
       is_active: true,
     }).eq('id', userId);
 
-    // Upsert student_soul with calibrated values
+    // Upsert student_soul with all calibrated values
     if (profile?.primary_saathi_id) {
       await supabase.from('student_soul').upsert(
         {
           user_id: userId,
           vertical_id: profile.primary_saathi_id,
-          display_name: form.fullName.trim(),
+          display_name: data.fullName.trim(),
           academic_level: academicLevel,
           depth_calibration: calibration.depth_calibration,
           peer_mode: calibration.peer_mode,
@@ -927,10 +947,10 @@ function OnboardInner() {
           flame_stage: calibration.flame_stage,
           career_discovery_stage: calibration.career_discovery_stage,
           prior_knowledge_base: calibration.prior_knowledge_base,
-          future_research_area: form.thesisArea.trim() || form.futureResearch.trim() || null,
+          future_research_area: data.dream.trim() || null,
           preferred_tone: 'neutral',
-          enrolled_subjects: [],
-          future_subjects: [],
+          enrolled_subjects: data.currentSubjects,
+          future_subjects: data.interestAreas,
           top_topics: [],
           struggle_topics: [],
           session_count: 0,
@@ -942,9 +962,9 @@ function OnboardInner() {
     setProfile({
       ...profile,
       id: userId,
-      full_name: form.fullName.trim(),
-      city: form.city,
-      institution_name: form.institution.trim() || null,
+      full_name: data.fullName.trim(),
+      city: data.city,
+      institution_name: data.educationParsed?.collegeName ?? data.educationParsed?.institution ?? null,
       is_active: true,
     } as unknown as Profile);
 
@@ -1007,7 +1027,8 @@ function OnboardInner() {
           )}
           {step === 'profile' && (
             <motion.div key="profile" variants={stepVariants} initial="enter" animate="center" exit="exit">
-              <ProfileStep
+              <SoulProfileForm
+                saathiId={profile?.primary_saathi_id ?? null}
                 academicLevel={academicLevel}
                 examTargetFromLevel={examTargetFromLevel}
                 onContinue={handleProfile}
