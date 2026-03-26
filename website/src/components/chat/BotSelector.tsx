@@ -13,15 +13,9 @@ type Props = {
   onLockedTap: (botName: string) => void;
 };
 
-const PROVIDER_COLORS = {
-  Claude: { bg: 'rgba(139,92,246,0.15)', border: 'rgba(139,92,246,0.4)', text: '#A78BFA' },
-  Groq: { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.35)', text: '#4ADE80' },
-};
-
 function isUnlocked(slot: number, planId: string, role: UserRole | null): boolean {
   if (slot === 1 || slot === 5) return true; // always free
   if (planId === 'free') return false;
-  // Non-student roles: only slots 1 and 5
   if (role && role !== 'student' && slot !== 1 && slot !== 5) return false;
   return true;
 }
@@ -35,7 +29,6 @@ export function BotSelector({ activeSlot, userRole, planId, primaryColor, onSele
       {BOTS.map((bot) => {
         const active = activeSlot === bot.slot;
         const unlocked = isUnlocked(bot.slot, planId, userRole);
-        const providerStyle = PROVIDER_COLORS[bot.apiProvider];
 
         return (
           <motion.button
@@ -65,16 +58,6 @@ export function BotSelector({ activeSlot, userRole, planId, primaryColor, onSele
                 {bot.name}
               </p>
             </div>
-            <span
-              className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
-              style={{
-                background: providerStyle.bg,
-                border: `0.5px solid ${providerStyle.border}`,
-                color: providerStyle.text,
-              }}
-            >
-              {bot.apiProvider}
-            </span>
           </motion.button>
         );
       })}
