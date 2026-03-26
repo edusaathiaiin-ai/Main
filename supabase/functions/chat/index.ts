@@ -242,7 +242,7 @@ type RawSoul = {
   struggle_topics: unknown;
   last_session_summary: unknown;
   session_count: unknown;
-  // Calibration fields (added via migration 045)
+  // Calibration fields
   academic_level: unknown;
   depth_calibration: unknown;
   peer_mode: unknown;
@@ -250,7 +250,24 @@ type RawSoul = {
   flame_stage: unknown;
   career_discovery_stage: unknown;
   prior_knowledge_base: unknown;
+  // Soul integrity fields
+  learning_style: unknown;
+  passion_intensity: unknown;
+  shell_broken: unknown;
+  shell_broken_at: unknown;
+  predicted_trajectory: unknown;
+  career_interest: unknown;
 };
+
+type RawProfile = {
+  institution_name: unknown;
+  degree_programme: unknown;
+  current_semester: unknown;
+  graduation_year: unknown;
+  current_subjects: unknown;
+  interest_areas: unknown;
+};
+
 type RawNews = { source: unknown; title: unknown };
 
 async function buildSystemPrompt(
@@ -259,7 +276,7 @@ async function buildSystemPrompt(
   saathiId: string,
   botSlot: number
 ): Promise<string> {
-  const [personaRes, soulRes, newsRes] = await Promise.all([
+  const [personaRes, soulRes, newsRes, profileRes] = await Promise.all([
     admin
       .from('bot_personas')
       .select('name, role, tone, specialities, never_do')
@@ -270,7 +287,7 @@ async function buildSystemPrompt(
     admin
       .from('student_soul')
       .select(
-        'display_name, ambition_level, preferred_tone, enrolled_subjects, future_subjects, future_research_area, top_topics, struggle_topics, last_session_summary, session_count, academic_level, depth_calibration, peer_mode, exam_mode, flame_stage, career_discovery_stage, prior_knowledge_base'
+        'display_name, ambition_level, preferred_tone, enrolled_subjects, future_subjects, future_research_area, top_topics, struggle_topics, last_session_summary, session_count, academic_level, depth_calibration, peer_mode, exam_mode, flame_stage, career_discovery_stage, prior_knowledge_base, learning_style, passion_intensity, shell_broken, shell_broken_at, predicted_trajectory, career_interest'
       )
       .eq('user_id', userId)
       .eq('vertical_id', saathiId)
@@ -282,11 +299,17 @@ async function buildSystemPrompt(
       .eq('is_active', true)
       .order('fetched_at', { ascending: false })
       .limit(3),
+    admin
+      .from('profiles')
+      .select('institution_name, degree_programme, current_semester, graduation_year, current_subjects, interest_areas')
+      .eq('id', userId)
+      .maybeSingle(),
   ]);
 
   const p = personaRes.data as RawPersona | null;
   const s = soulRes.data as RawSoul | null;
   const news = ((newsRes.data ?? []) as RawNews[]);
+  const prof = profileRes.data as RawProfile | null;
 
   const personaName = typeof p?.name === 'string' ? p.name : saathiId;
   const personaRole = typeof p?.role === 'string' ? p.role : 'learning companion';
@@ -313,10 +336,26 @@ async function buildSystemPrompt(
   const peerMode            = s?.peer_mode === true;
   const examMode            = s?.exam_mode === true;
   const flameStage          = typeof s?.flame_stage === 'string' ? s.flame_stage : 'cold';
+  const careerDiscovery     = typeof s?.career_discovery_stage === 'string' ? s.career_discovery_stage : 'unaware';
   const priorKnowledge      = Array.isArray(s?.prior_knowledge_base)
     ? (s.prior_knowledge_base as string[]).join(', ')
     : '';
   const isFirstSession      = sessionCount === 0;
+
+  // ── Soul integrity fields ──────────────────────────────────────────────────
+  const learningStyle       = typeof s?.learning_style === 'string' ? s.learning_style : '';
+  const passionIntensity    = typeof s?.passion_intensity === 'number' ? (s.passion_intensity as number) : null;
+  const shellBroken         = s?.shell_broken === true;
+  const shellBrokenAt       = typeof s?.shell_broken_at === 'string' ? s.shell_broken_at : null;
+  const predictedTrajectory = typeof s?.predicted_trajectory === 'string' ? s.predicted_trajectory : '';
+  const careerInterest      = typeof s?.career_interest === 'string' ? s.career_interest : '';
+
+  // ── Profile fields ──────────────────────────────────────────────────────
+  const profileSubjects     = Array.isArray(prof?.current_subjects) ? (prof.current_subjects as string[]) : [];
+  const profileInterests    = Array.isArray(prof?.interest_areas) ? (prof.interest_areas as string[]) : [];
+  const graduationYear      = typeof prof?.graduation_year === 'number' ? (prof.graduation_year as number) : null;
+  const degreeProgramme     = typeof prof?.degree_programme === 'string' ? prof.degree_programme : '';
+  const currentSemester     = typeof prof?.current_semester === 'number' ? (prof.current_semester as number) : null;
 
   // First-session greeting instruction by academic level
   function buildFirstSessionGreeting(): string {
@@ -414,6 +453,56 @@ ${newsContext}
 - At least once per session, bridge the current topic to their research dream: "${research}".
 - Calibrate depth to ${depthCalibration}/100: PhD/UPSC students get deeper treatment; struggling students get gentler, step-by-step guidance.
 - Never treat two students the same. Every response must feel personal to ${displayName}.
+${learningStyle ? `
+# HOW THIS STUDENT LEARNS
+Learning style: ${learningStyle}
+${learningStyle === 'reading' ? 'INSTRUCTION: Use headers and bullet points. Provide thorough written explanations. Give structured summaries.' :
+  learningStyle === 'practice' ? 'INSTRUCTION: Lead with practice problems. Keep theory brief. Prompt: "Try this first, then I\'ll explain." Test understanding with quick questions.' :
+  learningStyle === 'conversation' ? 'INSTRUCTION: Use Socratic dialogue — ask questions back. Make it feel like talking to a friend. Never lecture — always engage.' :
+  learningStyle === 'examples' ? 'INSTRUCTION: Use analogies and real-world examples. Paint mental pictures. Connect abstract to concrete always. Avoid dry theory without examples.' :
+  'Adapt your explanation style to what this student responds to best.'}
+` : ''}${passionIntensity !== null ? `
+# PASSION STATUS
+Passion intensity: ${passionIntensity}/100 | Flame stage: ${flameStage}
+${passionIntensity < 20 ? 'Flame very low. Be warm and patient. Plant seeds of curiosity. Never push — just open doors.' :
+  passionIntensity < 40 ? 'Flame flickering. Feed it with interesting connections. Notice what they respond to.' :
+  passionIntensity < 60 ? 'Flame growing. Connect topics to emerging interests. Show the landscape of possibilities.' :
+  passionIntensity < 80 ? 'Flame strong. Help them see their path clearly. Introduce opportunities, papers, mentors.' :
+  'Student is ON FIRE. Challenge them. Push further. Connect every session to their dream.'}
+` : ''}${shellBroken ? `
+# SHELL BROKEN — CRITICAL CONTEXT
+This student has declared their direction. Date: ${shellBrokenAt ?? 'recently'}
+Declared path: ${careerInterest || research}
+INSTRUCTION: Honor this brave declaration ALWAYS. Every session — connect what you teach to their declared direction. Bridge every answer to their stated goal. If this is their first session since declaring, open with: "I remember what you shared with me. ${careerInterest || research} — I haven't forgotten. Every answer I give you from now carries that direction in mind."
+` : `
+# CAREER DISCOVERY STATUS
+Stage: ${careerDiscovery} | Shell broken: No
+${careerDiscovery === 'unaware' ? 'Observe quietly. After 3+ sessions on same topic, gently surface: "I notice you keep returning to [topic]..." Never push.' :
+  careerDiscovery === 'exploring' ? 'Student beginning to explore. Feed curiosity. Show career paths naturally in conversation.' :
+  careerDiscovery === 'interested' ? 'Clear interest shown. Start connecting every relevant topic to their direction.' :
+  'Student committed. Be their strategic partner.'}
+`}${predictedTrajectory && predictedTrajectory !== 'undecided' ? `
+# PREDICTED TRAJECTORY: ${predictedTrajectory.toUpperCase()}
+${predictedTrajectory === 'research' ? 'Introduce research methodology naturally. Reference papers when relevant. Mention fellowships. Help them think like a researcher.' :
+  predictedTrajectory === 'upsc' ? 'Connect every topic to governance and policy. UPSC needs depth + answer writing skills. Current affairs integration is essential.' :
+  predictedTrajectory === 'industry' ? 'Connect theory to practical applications. Industry certifications matter. Show what employers want. Real-world examples over textbook theory.' :
+  predictedTrajectory === 'entrepreneurship' ? 'Connect learning to problem-solving. Show how knowledge creates opportunity. Innovation mindset. "How could this be applied to build something?"' :
+  predictedTrajectory === 'academia' ? 'Deep theoretical understanding is the goal. Research skills and academic writing matter. Think like a future professor.' : ''}
+` : ''}${profileSubjects.length > 0 ? `
+# CURRENT SEMESTER SUBJECTS
+Actively studying: ${profileSubjects.join(', ')}
+INSTRUCTION: Connect answers to these subjects. Acknowledge: "This connects directly to your ${profileSubjects[0]} course." Prioritise depth in these over breadth.
+` : ''}${profileInterests.length > 0 ? `
+# INTEREST AREAS (beyond curriculum)
+Voluntarily interested in: ${profileInterests.join(', ')}
+Connect relevant topics to these when natural opportunities arise.
+` : ''}${graduationYear ? `
+# TIMELINE
+Expected graduation: ${graduationYear} (~${Math.max(0, graduationYear - new Date().getFullYear())} year(s) remaining). Final year: exam/placement focus. Early year: foundation building.
+` : ''}${degreeProgramme ? `
+# DEGREE
+Degree programme: ${degreeProgramme}${currentSemester ? ` | Semester ${currentSemester}` : ''}
+` : ''}
 ${firstSessionBlock ? `
 # FIRST SESSION INSTRUCTION
 ${firstSessionBlock}
