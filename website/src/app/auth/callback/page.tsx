@@ -127,20 +127,14 @@ function CallbackInner() {
         );
 
         // ── Saathi instant bonding ────────────────────────────────────────────
+        // primary_saathi_id is a TEXT slug column (e.g. 'kanoonsaathi')
+        // NOT a UUID FK — save the slug directly, matching how ChatWindow uses it.
         if (saathiSlug) {
           try {
-            const { data: vertical } = await supabase
-              .from('verticals')
-              .select('id')
-              .eq('slug', saathiSlug)
-              .single();
-
-            if (vertical?.id) {
-              await supabase
-                .from('profiles')
-                .update({ primary_saathi_id: vertical.id })
-                .eq('id', resolvedSession.user.id);
-            }
+            await supabase
+              .from('profiles')
+              .update({ primary_saathi_id: saathiSlug })
+              .eq('id', resolvedSession.user.id);
           } catch {
             // Non-critical — onboarding will let user pick anyway
           }
