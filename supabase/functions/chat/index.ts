@@ -417,7 +417,58 @@ ${newsContext}
 ${firstSessionBlock ? `
 # FIRST SESSION INSTRUCTION
 ${firstSessionBlock}
-` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}
+` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}${(() => {
+  // ── Rich rendering instructions ──────────────────────────────────────────────
+  const MATH_SAATHIS = new Set([
+    'maathsaathi', 'chemsaathi', 'biosaathi', 'physisaathi',
+    'aerosaathi', 'aerospacesaathi', 'compsaathi', 'mechsaathi',
+    'electronicssaathi', 'biotechsaathi', 'envirosaathi',
+    'civilsaathi', 'elecsaathi', 'chemenggsaathi',
+  ]);
+  const DIAGRAM_SAATHIS = new Set([
+    'archsaathi', 'civilsaathi', 'compsaathi', 'biosaathi',
+    'econsaathi', 'kanoonsaathi', 'mechsaathi', 'chemenggsaathi',
+    'biotechsaathi', 'aerosaathi', 'aerospacesaathi',
+  ]);
+  const MOLECULE_SAATHIS = new Set([
+    'chemsaathi', 'pharmasaathi', 'biosaathi', 'medicosaathi',
+    'chemenggsaathi', 'biotechsaathi',
+  ]);
+  const slug = saathiId.toLowerCase().replace(/\s+/g, '');
+  const parts: string[] = [];
+  if (MATH_SAATHIS.has(slug)) {
+    parts.push(`
+# MATH RENDERING
+When writing equations or formulas, always use LaTeX notation:
+- Block equations: wrap in $$...$$ (on its own line)
+- Inline math: wrap in $...$
+- Example: The quadratic formula is $$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$
+- Always prefer LaTeX for ANY mathematical expression, no matter how simple.`);
+  }
+  if (DIAGRAM_SAATHIS.has(slug)) {
+    parts.push(`
+# DIAGRAM RENDERING
+When explaining processes, flows, systems, or architectures:
+- Use mermaid code blocks for diagrams
+- Example:
+\`\`\`mermaid
+flowchart TD
+    A[Start] --> B[Process]
+    B --> C[End]
+\`\`\`
+- Use for: flowcharts, sequence diagrams, system architecture, organism cycles`);
+  }
+  if (MOLECULE_SAATHIS.has(slug)) {
+    parts.push(`
+# MOLECULE RENDERING
+When discussing any chemical compound, drug, or biochemical:
+- Output [MOLECULE: compound-name] immediately after first mention
+- Example: Aspirin [MOLECULE: aspirin] is a common analgesic.
+- Use standard IUPAC names or common names (e.g., glucose, caffeine, benzene)
+- This renders an interactive 2D structure from PubChem for the student`);
+  }
+  return parts.join('\n');
+})()}
 # ${UNIVERSAL_GUARDRAILS}
 
 # FINAL RULE — never changes

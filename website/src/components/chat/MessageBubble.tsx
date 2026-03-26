@@ -2,7 +2,204 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import 'katex/dist/katex.min.css';
+import { InlineMath, BlockMath } from 'react-katex';
 import type { ChatMessage } from '@/types';
+import { MermaidBlock } from './MermaidBlock';
+import { MoleculeViewer } from './MoleculeViewer';
+
+// ─── Segment types ────────────────────────────────────────────────────────────
+
+type Segment =
+  | { type: 'text'; content: string }
+  | { type: 'block-math'; content: string }
+  | { type: 'inline-math'; content: string }
+  | { type: 'mermaid'; content: string }
+  | { type: 'molecule'; name: string }
+  | { type: 'code'; language: string; content: string };
+
+// ─── Sequential segment parser ────────────────────────────────────────────────
+
+type MatchCandidate = {
+  index: number;
+  length: number;
+  segment: Segment;
+};
+
+function parseMessageContent(text: string): Segment[] {
+  const result: Segment[] = [];
+  let remaining = text;
+
+  while (remaining.length > 0) {
+    let earliest: MatchCandidate | null = null;
+    const currentIndex = (): number => earliest?.index ?? Infinity;
+
+    // 1. Block math $$...$$
+    const blockMath = /\$\$([\s\S]+?)\$\$/.exec(remaining);
+    if (blockMath && blockMath.index < currentIndex()) {
+      earliest = {
+        index: blockMath.index,
+        length: blockMath[0].length,
+        segment: { type: 'block-math', content: blockMath[1].trim() },
+      };
+    }
+
+    // 2. Mermaid ```mermaid ... ```
+    const mermaid = /```mermaid\n([\s\S]+?)```/.exec(remaining);
+    if (mermaid && mermaid.index < currentIndex()) {
+      earliest = {
+        index: mermaid.index,
+        length: mermaid[0].length,
+        segment: { type: 'mermaid', content: mermaid[1].trim() },
+      };
+    }
+
+    // 3. Generic code block ```lang ... ```
+    const codeBlock = /```(\w+)?\n([\s\S]+?)```/.exec(remaining);
+    if (codeBlock && codeBlock.index < currentIndex()) {
+      earliest = {
+        index: codeBlock.index,
+        length: codeBlock[0].length,
+        segment: {
+          type: 'code',
+          language: codeBlock[1] ?? 'text',
+          content: codeBlock[2],
+        },
+      };
+    }
+
+    // 4. Molecule tag [MOLECULE: name]
+    const molecule = /\[MOLECULE:\s*([^\]]+)\]/.exec(remaining);
+    if (molecule && molecule.index < currentIndex()) {
+      earliest = {
+        index: molecule.index,
+        length: molecule[0].length,
+        segment: { type: 'molecule', name: molecule[1].trim() },
+      };
+    }
+
+    // 5. Inline math $...$ (guard against $$)
+    const inlineMath = /(?<!\$)\$([^$\n]+?)\$(?!\$)/.exec(remaining);
+    if (inlineMath && inlineMath.index < currentIndex()) {
+      earliest = {
+        index: inlineMath.index,
+        length: inlineMath[0].length,
+        segment: { type: 'inline-math', content: inlineMath[1] },
+      };
+    }
+
+    if (!earliest) {
+      // No more patterns — rest is plain text
+      if (remaining.length > 0) {
+        result.push({ type: 'text', content: remaining });
+      }
+      break;
+    }
+
+    // Plain text before this match
+    if (earliest.index > 0) {
+      result.push({ type: 'text', content: remaining.slice(0, earliest.index) });
+    }
+
+    result.push(earliest.segment);
+    remaining = remaining.slice(earliest.index + earliest.length);
+  }
+
+  return result;
+}
+
+// ─── Segment renderer ─────────────────────────────────────────────────────────
+
+function RenderSegments({ segments }: { segments: Segment[] }) {
+  return (
+    <>
+      {segments.map((seg, i) => {
+        switch (seg.type) {
+          case 'text':
+            return (
+              <span
+                key={i}
+                style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}
+              >
+                {seg.content}
+              </span>
+            );
+
+          case 'block-math':
+            return (
+              <div
+                key={i}
+                style={{
+                  margin: '12px 0',
+                  padding: '12px 16px',
+                  background: 'rgba(255,255,255,0.05)',
+                  borderRadius: '8px',
+                  overflowX: 'auto',
+                }}
+              >
+                <BlockMath math={seg.content} />
+              </div>
+            );
+
+          case 'inline-math':
+            return <InlineMath key={i} math={seg.content} />;
+
+          case 'code':
+            return (
+              <div
+                key={i}
+                style={{
+                  margin: '12px 0',
+                  borderRadius: '10px',
+                  overflow: 'hidden',
+                  border: '0.5px solid rgba(255,255,255,0.1)',
+                }}
+              >
+                {seg.language && seg.language !== 'text' && (
+                  <div
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      padding: '4px 12px',
+                      fontSize: '11px',
+                      color: 'rgba(255,255,255,0.4)',
+                      borderBottom: '0.5px solid rgba(255,255,255,0.1)',
+                      fontFamily: 'monospace',
+                    }}
+                  >
+                    {seg.language}
+                  </div>
+                )}
+                <pre
+                  style={{
+                    margin: 0,
+                    padding: '12px 16px',
+                    background: 'rgba(0,0,0,0.3)',
+                    color: '#E5E7EB',
+                    fontSize: '13px',
+                    overflowX: 'auto',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  <code>{seg.content}</code>
+                </pre>
+              </div>
+            );
+
+          case 'mermaid':
+            return <MermaidBlock key={i} chart={seg.content} />;
+
+          case 'molecule':
+            return <MoleculeViewer key={i} name={seg.name} />;
+
+          default:
+            return null;
+        }
+      })}
+    </>
+  );
+}
+
+// ─── MessageBubble component ──────────────────────────────────────────────────
 
 type Props = {
   message: ChatMessage;
@@ -61,13 +258,17 @@ export function MessageBubble({
   const [hovered, setHovered] = useState(false);
   const isUser = message.role === 'user';
 
-  // Displayed text — use streamingText for the active assistant message
   const displayText = isStreaming && !isUser ? (streamingText ?? '') : message.content;
   const isEmpty = !displayText && isStreaming;
 
+  // Parse rich segments only for non-streaming assistant messages
+  const segments = (!isStreaming && !isUser)
+    ? parseMessageContent(message.content)
+    : null;
+
   return (
     <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} gap-1 mb-3`}>
-      {/* Bot label (first in sequence) */}
+      {/* Bot label */}
       {!isUser && showBotLabel && botName && (
         <span className="text-[11px] font-medium ml-1 mb-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
           {botName}
@@ -83,7 +284,7 @@ export function MessageBubble({
           initial={{ opacity: 0, y: 6, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.2 }}
-          className="px-4 py-3 text-[15px] leading-relaxed max-w-[70%] break-words"
+          className="px-4 py-3 text-[15px] leading-relaxed break-words"
           style={
             isUser
               ? {
@@ -92,6 +293,7 @@ export function MessageBubble({
                   borderRadius: '18px 18px 4px 18px',
                   fontFamily: 'var(--font-dm-sans)',
                   fontWeight: 500,
+                  maxWidth: '70%',
                 }
               : {
                   background: '#0F2847',
@@ -105,7 +307,11 @@ export function MessageBubble({
         >
           {isEmpty ? (
             <ThreeDots />
+          ) : segments ? (
+            // Rich rendering for completed assistant messages
+            <RenderSegments segments={segments} />
           ) : (
+            // Streaming or user messages — plain text
             <>
               <span className="whitespace-pre-wrap">{displayText}</span>
               {isStreaming && !isUser && <TypingCursor />}
@@ -113,7 +319,7 @@ export function MessageBubble({
           )}
         </motion.div>
 
-        {/* Flag button (assistant only, on hover) */}
+        {/* Flag button */}
         {!isUser && !isStreaming && onFlag && hovered && (
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
