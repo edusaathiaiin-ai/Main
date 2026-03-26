@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { SaathiGrid } from '@/components/saathi/SaathiGrid';
 import { RichFeaturesSection } from '@/components/chat/RichFeaturesSection';
+import { FourJourneysSection } from '@/components/landing/FourJourneysSection';
 
 /**
  * Root page — authenticated users go to /chat.
@@ -234,70 +235,8 @@ export default async function RootPage() {
       {/* ── Rich features preview ──────────────────────────────────────── */}
       <RichFeaturesSection />
 
-      {/* ── For Everyone — Role Tabs ────────────────────────────────────── */}
-      <section id="for-everyone" className="land-section">
-        <div style={{textAlign:'center',marginBottom:'48px'}}>
-          <div className="section-eyebrow" style={{justifyContent:'center'}}><span style={{display:'block',width:'24px',height:'1px',background:'var(--gold)'}} />Built for every kind of learner</div>
-          <h2 className="section-title">One platform.<br /><em>Four journeys.</em></h2>
-        </div>
-        {/* Static tab UI — uses CSS :target or simple anchors for SSR compatibility */}
-        <div className="role-tabs" role="tablist">
-          <a href="#tab-students" className="role-tab active" id="tab-btn-students">🎓 Students</a>
-          <a href="#tab-faculty" className="role-tab" id="tab-btn-faculty">👨‍🏫 Faculty</a>
-          <a href="#tab-public" className="role-tab" id="tab-btn-public">🌐 General Public</a>
-          <a href="#tab-institution" className="role-tab" id="tab-btn-institution">🏢 Institutions</a>
-        </div>
-        {/* ── Students ── */}
-        <div id="tab-students" className="role-tab-content active" style={{maxWidth:'680px',margin:'0 auto'}}>
-          <h3 className="section-title" style={{fontSize:'32px'}}>Your Saathi. Your subjects. Your soul.</h3>
-          <p style={{color:'rgba(255,255,255,0.55)',lineHeight:'1.8',marginBottom:'24px'}}>EdUsaathiAI is the only AI tutor that remembers who you are — not just what you asked. Every session builds on the last.</p>
-          <ul className="role-feature-list">
-            <li>24 specialist Saathis — Law, NEET, UPSC, CS, Finance, and more</li>
-            <li>Soul memory across every session — no more re-explaining yourself</li>
-            <li>Exam preparation + career discovery in the same platform</li>
-          </ul>
-          <a href="/login?role=student" className="btn-primary">Begin for free →</a>
-        </div>
-        {/* ── Faculty ── */}
-        <div id="tab-faculty" className="role-tab-content" style={{maxWidth:'680px',margin:'0 auto'}}>
-          <h3 className="section-title" style={{fontSize:'32px'}}>Your knowledge. <em>Amplified.</em></h3>
-          <p style={{color:'rgba(255,255,255,0.55)',lineHeight:'1.8',marginBottom:'24px'}}>EdUsaathiAI gives faculty a verified platform to reach students beyond the classroom. As a verified faculty member you get:</p>
-          <ul className="role-feature-list">
-            <li>Faculty Verified badge on all your Community Board answers</li>
-            <li>Your explanations reach students across India — not just your college</li>
-            <li>AI assists your answers — you focus on insight, AI handles detail</li>
-            <li>Track which topics students ask most in your subject</li>
-            <li>Free access to EdUsaathiAI Plus while the faculty programme is in beta</li>
-          </ul>
-          <a href="/login?role=faculty" style={{display:'inline-flex',alignItems:'center',gap:'10px',background:'rgba(22,163,74,0.15)',border:'0.5px solid rgba(22,163,74,0.5)',color:'#4ADE80',fontWeight:600,padding:'14px 32px',borderRadius:'12px',textDecoration:'none',transition:'all 0.3s'}}>Apply for Faculty Access →</a>
-        </div>
-        {/* ── General Public ── */}
-        <div id="tab-public" className="role-tab-content" style={{maxWidth:'680px',margin:'0 auto'}}>
-          <h3 className="section-title" style={{fontSize:'32px'}}>Curious minds <em>welcome.</em></h3>
-          <p style={{color:'rgba(255,255,255,0.55)',lineHeight:'1.8',marginBottom:'24px'}}>You don&apos;t need to be enrolled anywhere to learn something profound today. With free access you get:</p>
-          <ul className="role-feature-list">
-            <li>Study Notes bot in any Saathi</li>
-            <li>Current Affairs bot in any Saathi</li>
-            <li>Community Board — read and learn from verified faculty</li>
-            <li>Daily research news in your area of interest</li>
-            <li>No exam pressure. No syllabus. Just curiosity.</li>
-          </ul>
-          <a href="/login?role=public" style={{display:'inline-flex',alignItems:'center',gap:'10px',background:'rgba(234,88,12,0.12)',border:'0.5px solid rgba(234,88,12,0.4)',color:'#FB923C',fontWeight:600,padding:'14px 32px',borderRadius:'12px',textDecoration:'none',transition:'all 0.3s'}}>Start exploring →</a>
-        </div>
-        {/* ── Institutions ── */}
-        <div id="tab-institution" className="role-tab-content" style={{maxWidth:'680px',margin:'0 auto'}}>
-          <h3 className="section-title" style={{fontSize:'32px'}}>Find the talent before <em>everyone else does.</em></h3>
-          <p style={{color:'rgba(255,255,255,0.55)',lineHeight:'1.8',marginBottom:'24px'}}>EdUsaathiAI gives institutions direct access to motivated, self-driven students — filtered by subject, ambition level, and academic stage.</p>
-          <ul className="role-feature-list">
-            <li>Post internships directly to relevant Saathi communities</li>
-            <li>Students apply from within the app</li>
-            <li>See student soul profiles (with their consent)</li>
-            <li>Host virtual sessions with students in your domain</li>
-            <li>No agent fees. Direct connection.</li>
-          </ul>
-          <a href="/login?role=institution" style={{display:'inline-flex',alignItems:'center',gap:'10px',background:'rgba(124,58,237,0.12)',border:'0.5px solid rgba(124,58,237,0.4)',color:'#A78BFA',fontWeight:600,padding:'14px 32px',borderRadius:'12px',textDecoration:'none',transition:'all 0.3s'}}>Register your institution →</a>
-        </div>
-      </section>
+      {/* ── For Everyone — Four Journeys (interactive client component) ── */}
+      <FourJourneysSection />
 
       {/* ── Saathis grid ───────────────────────────────────────────────── */}
       <section id="saathis" className="land-section">
