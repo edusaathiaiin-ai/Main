@@ -22,7 +22,9 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';           // gsk_… (Groq LPU cloud)
-const GROK_API_KEY = Deno.env.get('GROK_API_KEY') ?? '';           // xai-… (xAI Grok — fallback)
+const GROK_API_KEY = Deno.env.get('GROK_API_KEY') ?? '';           // xai-… (xAI Grok — fallback 2)
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';       // AIza… (Gemini Flash — fallback 1)
+const GEMINI_MODEL   = 'gemini-2.0-flash';
 const UPSTASH_REDIS_REST_URL = Deno.env.get('UPSTASH_REDIS_REST_URL') ?? '';
 const UPSTASH_REDIS_REST_TOKEN = Deno.env.get('UPSTASH_REDIS_REST_TOKEN') ?? '';
 
@@ -785,10 +787,72 @@ async function streamXaiGrok(
 }
 
 // ---------------------------------------------------------------------------
-// Groq → xAI Grok fallback wrapper
+// Gemini Flash streaming (fallback 1 after Groq fails)
+// ---------------------------------------------------------------------------
+
+async function streamGemini(
+  systemPrompt: string,
+  messages: MessageParam[],
+  controller: ReadableStreamDefaultController<Uint8Array>
+): Promise<string> {
+  const encoder = new TextEncoder();
+  let fullText = '';
+
+  const geminiMessages = messages.map((m) => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }));
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: geminiMessages,
+        generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
+      }),
+    }
+  );
+
+  if (!res.ok) throw new Error(`Gemini ${res.status}: ${await res.text()}`);
+
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error('No response body from Gemini');
+
+  const decoder = new TextDecoder();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    for (const line of chunk.split('\n')) {
+      if (!line.startsWith('data: ')) continue;
+      const data = line.slice(6).trim();
+      if (!data || data === '[DONE]') continue;
+      try {
+        const parsed = JSON.parse(data) as {
+          candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+        };
+        const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (delta) {
+          fullText += delta;
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));
+        }
+      } catch {
+        // skip malformed chunks
+      }
+    }
+  }
+  return fullText;
+}
+
+// ---------------------------------------------------------------------------
+// Groq → Gemini → xAI Grok fallback wrapper
 // Tries Groq first (low latency, LPU cloud).
-// On ANY Groq failure, retries transparently with xAI Grok.
-// If both fail, throws the xAI error so the outer catch can handle it.
+// On Groq failure: tries Gemini Flash.
+// On Gemini failure: tries xAI Grok.
+// If all fail, throws the last error.
 // ---------------------------------------------------------------------------
 
 async function streamGroqWithFallback(
@@ -800,12 +864,18 @@ async function streamGroqWithFallback(
     return await streamGroq(systemPrompt, messages, controller);
   } catch (groqErr) {
     const groqMsg = groqErr instanceof Error ? groqErr.message : String(groqErr);
-    console.warn(`[chat] Groq failed (${groqMsg}). Falling back to xAI Grok…`);
+    console.warn(`[chat] Groq failed (${groqMsg}). Trying Gemini Flash…`);
 
-    if (!GROK_API_KEY) {
-      // No fallback configured — re-throw original Groq error
-      throw groqErr;
+    if (GEMINI_API_KEY) {
+      try {
+        return await streamGemini(systemPrompt, messages, controller);
+      } catch (geminiErr) {
+        const geminiMsg = geminiErr instanceof Error ? geminiErr.message : String(geminiErr);
+        console.warn(`[chat] Gemini failed (${geminiMsg}). Trying xAI Grok…`);
+      }
     }
+
+    if (!GROK_API_KEY) throw groqErr;
     return await streamXaiGrok(systemPrompt, messages, controller);
   }
 }
