@@ -288,20 +288,21 @@ export function MessageBubble({
           style={
             isUser
               ? {
-                  background: primaryColor,
-                  color: '#060F1D',
+                  background: 'var(--user-bubble-bg, var(--accent, #C9993A))',
+                  color: 'var(--user-bubble-text, #060F1D)',
                   borderRadius: '18px 18px 4px 18px',
                   fontFamily: 'var(--font-dm-sans)',
                   fontWeight: 500,
                   maxWidth: '70%',
                 }
               : {
-                  background: '#0F2847',
-                  color: '#fff',
+                  background: 'var(--bg-message, #0F2847)',
+                  color: 'var(--text-primary, #fff)',
                   borderRadius: '4px 18px 18px 18px',
                   fontFamily: 'var(--font-dm-sans)',
                   maxWidth: '75%',
-                  border: '0.5px solid rgba(255,255,255,0.07)',
+                  border: '0.5px solid var(--border, rgba(255,255,255,0.07))',
+                  transition: 'background 0.4s ease, border-color 0.3s ease',
                 }
           }
         >
@@ -336,7 +337,7 @@ export function MessageBubble({
 
       {/* Timestamp */}
       {!isStreaming && (
-        <span className="text-[10px] mx-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+        <span className="text-[10px] mx-1" style={{ color: 'var(--text-muted, rgba(255,255,255,0.2))' }}>
           {formatTime(message.createdAt)}
         </span>
       )}

@@ -1,6 +1,7 @@
 'use client';
 
 import type { Saathi } from '@/types';
+import { useThemeStore } from '@/stores/themeStore';
 
 type Props = {
   saathi: Saathi;
@@ -9,8 +10,8 @@ type Props = {
   onCheckin?: () => void;
 };
 
-
 export function SaathiHeader({ saathi, botName, sessionCount, onCheckin }: Props) {
+  const { mode, toggleMode } = useThemeStore();
 
   return (
     <div
@@ -18,6 +19,7 @@ export function SaathiHeader({ saathi, botName, sessionCount, onCheckin }: Props
       style={{
         background: `${saathi.bg ?? saathi.primary}26`,
         borderBottom: `0.5px solid ${saathi.primary}33`,
+        transition: 'background 0.4s ease, border-color 0.4s ease',
       }}
     >
       {/* Left: emoji + name + tagline */}
@@ -33,8 +35,25 @@ export function SaathiHeader({ saathi, botName, sessionCount, onCheckin }: Props
         </div>
       </div>
 
-      {/* Right: check-in + provider badge */}
+      {/* Right: theme toggle + check-in */}
       <div className="flex items-center gap-2">
+
+        {/* Day / Night toggle */}
+        <button
+          onClick={toggleMode}
+          title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-200"
+          style={{
+            background: 'rgba(255,255,255,0.07)',
+            border: '0.5px solid rgba(255,255,255,0.15)',
+            color: 'rgba(255,255,255,0.55)',
+            cursor: 'pointer',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
+        >
+          {mode === 'dark' ? '☀️ Day' : '🌙 Night'}
+        </button>
 
         {/* Check-in button (after 5 sessions) */}
         {sessionCount >= 5 && onCheckin && (

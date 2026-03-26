@@ -9,6 +9,9 @@ import { useChatStore } from '@/stores/chatStore';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
 import { BOTS } from '@/constants/bots';
+import { getSaathiTheme } from '@/lib/saathiThemes';
+import { useThemeStore } from '@/stores/themeStore';
+import { ChatWatermark } from './ChatWatermark';
 import { SaathiHeader } from './SaathiHeader';
 import { MessageBubble } from './MessageBubble';
 import { InputArea } from './InputArea';
@@ -120,6 +123,8 @@ export function ChatWindow() {
     clearMessages,
   } = useChatStore();
 
+  const { mode } = useThemeStore();
+
   const [quota, setQuota] = useState<QuotaState>(DEFAULT_QUOTA);
   const [inputValue, setInputValue] = useState('');
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
@@ -137,6 +142,7 @@ export function ChatWindow() {
   const saathiId = activeSaathiId ?? profile?.primary_saathi_id ?? SAATHIS[0].id;
   const activeSaathi: Saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
   const activeBot = BOTS.find((b) => b.slot === activeBotSlot) ?? BOTS[0];
+  const theme = getSaathiTheme(saathiId, mode);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -307,7 +313,15 @@ export function ChatWindow() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden w-full" style={{ background: '#060F1D' }}>
+    <div
+      className="flex h-screen overflow-hidden w-full"
+      style={{
+        ...theme,
+        background: 'var(--bg-primary)',
+        color: 'var(--text-primary)',
+        transition: 'background 0.4s ease, color 0.3s ease',
+      }}
+    >
       {/* Sidebar (desktop) */}
       <Sidebar
         profile={profile}
@@ -376,46 +390,49 @@ export function ChatWindow() {
         </AnimatePresence>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 md:px-6">
-          {messages.length === 0 && !isStreaming ? (
-            <EmptyState
-              saathiId={saathiId}
-              saathiEmoji={activeSaathi.emoji}
-              botName={activeBot.name}
-              onStarterClick={handleStarterClick}
-            />
-          ) : (
-            <div>
-              {messages.map((msg, i) => {
-                const prevMsg = messages[i - 1];
-                const showBotLabel = msg.role === 'assistant' && prevMsg?.role !== 'assistant';
-                return (
+        <div className="flex-1 overflow-y-auto px-4 py-4 md:px-6" style={{ position: 'relative' }}>
+          <ChatWatermark saathiSlug={saathiId} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            {messages.length === 0 && !isStreaming ? (
+              <EmptyState
+                saathiId={saathiId}
+                saathiEmoji={activeSaathi.emoji}
+                botName={activeBot.name}
+                onStarterClick={handleStarterClick}
+              />
+            ) : (
+              <div>
+                {messages.map((msg, i) => {
+                  const prevMsg = messages[i - 1];
+                  const showBotLabel = msg.role === 'assistant' && prevMsg?.role !== 'assistant';
+                  return (
+                    <MessageBubble
+                      key={msg.id}
+                      message={msg}
+                      showBotLabel={showBotLabel}
+                      botName={activeBot.name}
+                      onFlag={handleFlag}
+                      primaryColor={activeSaathi.primary}
+                    />
+                  );
+                })}
+
+                {/* Streaming bubble */}
+                {isStreaming && (
                   <MessageBubble
-                    key={msg.id}
-                    message={msg}
-                    showBotLabel={showBotLabel}
+                    key="streaming"
+                    message={{ id: 'streaming', role: 'assistant', content: '', createdAt: new Date().toISOString() }}
+                    isStreaming={true}
+                    streamingText={streamingText}
+                    showBotLabel={messages[messages.length - 1]?.role !== 'assistant'}
                     botName={activeBot.name}
-                    onFlag={handleFlag}
                     primaryColor={activeSaathi.primary}
                   />
-                );
-              })}
-
-              {/* Streaming bubble */}
-              {isStreaming && (
-                <MessageBubble
-                  key="streaming"
-                  message={{ id: 'streaming', role: 'assistant', content: '', createdAt: new Date().toISOString() }}
-                  isStreaming={true}
-                  streamingText={streamingText}
-                  showBotLabel={messages[messages.length - 1]?.role !== 'assistant'}
-                  botName={activeBot.name}
-                  primaryColor={activeSaathi.primary}
-                />
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Rich feature discovery banner — shown once on first session */}
