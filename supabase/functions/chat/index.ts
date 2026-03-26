@@ -144,7 +144,7 @@ async function getOrCreateQuotaRow(
     .eq('user_id', userId)
     .eq('vertical_id', saathiId)
     .eq('bot_slot', botSlot)
-    .eq('date_ist', dateIst)
+    .eq('quota_date_ist', dateIst)
     .maybeSingle();
 
   if (error) throw new Error(`quota read: ${error.message}`);
@@ -154,7 +154,7 @@ async function getOrCreateQuotaRow(
     user_id: userId,
     vertical_id: saathiId,
     bot_slot: botSlot,
-    date_ist: dateIst,
+    quota_date_ist: dateIst,
     message_count: 0,
     cooling_until: null,
   });
@@ -190,7 +190,7 @@ async function incrementQuota(
     .eq('user_id', userId)
     .eq('vertical_id', saathiId)
     .eq('bot_slot', botSlot)
-    .eq('date_ist', dateIst);
+    .eq('quota_date_ist', dateIst);
 
   if (error) throw new Error(`quota update: ${error.message}`);
 }
@@ -1138,7 +1138,7 @@ Deno.serve(async (req: Request) => {
         .eq('user_id', userId)
         .eq('vertical_id', saathiId)
         .eq('bot_slot', botSlot)
-        .eq('date_ist', dateIst);
+        .eq('quota_date_ist', dateIst);
       quotaRow.message_count = 0;
     }
 

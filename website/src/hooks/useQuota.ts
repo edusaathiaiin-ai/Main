@@ -21,7 +21,7 @@ export function useQuota(saathiId: string, botSlot: number) {
         .eq('user_id', profile!.id)
         .eq('vertical_id', saathiId)
         .eq('bot_slot', botSlot)
-        .eq('date_ist', todayIST())
+        .eq('quota_date_ist', todayIST())
         .maybeSingle();
 
       return buildQuotaState(
