@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { SaathiGrid } from '@/components/saathi/SaathiGrid';
+import { RichFeaturesSection } from '@/components/chat/RichFeaturesSection';
 
 /**
  * Root page — authenticated users go to /chat.
@@ -229,6 +230,9 @@ export default async function RootPage() {
           <div className="step"><div className="step-num">03 — GROW</div><span className="step-icon">🚀</span><h3 className="step-title">Learn. Check in. Rise.</h3><p className="step-body">Study with your bot. Take Saathi Check-ins to see how far you&apos;ve come. Read today&apos;s research headlines in your field. Your Saathi grows smarter about you with every session.</p></div>
         </div>
       </section>
+
+      {/* ── Rich features preview ──────────────────────────────────────── */}
+      <RichFeaturesSection />
 
       {/* ── For Everyone — Role Tabs ────────────────────────────────────── */}
       <section id="for-everyone" className="land-section">

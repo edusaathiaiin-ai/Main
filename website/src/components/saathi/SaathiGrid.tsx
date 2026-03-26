@@ -8,6 +8,14 @@ import type { SaathiWithDescription } from '@/constants/saathis';
 
 const SPRING = { type: 'spring', stiffness: 300, damping: 25 } as const;
 
+const RICH_SAATHIS = new Set([
+  'maathsaathi', 'chemsaathi', 'pharmasaathi', 'biosaathi',
+  'archsaathi', 'compsaathi', 'kanoonsaathi', 'mechsaathi',
+  'civilsaathi', 'physisaathi', 'biotechsaathi', 'aerosaathi',
+  'aerospacesaathi', 'econsaathi', 'elecsaathi', 'envirosaathi',
+  'chemenggsaathi', 'electronicssaathi',
+]);
+
 function SaathiCard({
   saathi,
   isActive,
@@ -89,6 +97,23 @@ function SaathiCard({
             style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, overflow: 'hidden' }}
           >
             {saathi.tagline}
+            {RICH_SAATHIS.has(saathi.id) && (
+              <span style={{
+                display: 'inline-block',
+                marginTop: '5px',
+                fontSize: '9px',
+                fontWeight: 600,
+                padding: '2px 7px',
+                borderRadius: '20px',
+                background: 'rgba(201,153,58,0.12)',
+                border: '0.5px solid rgba(201,153,58,0.28)',
+                color: '#C9993A',
+                verticalAlign: 'middle',
+                marginLeft: '4px',
+              }}>
+                ✦ Rich
+              </span>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

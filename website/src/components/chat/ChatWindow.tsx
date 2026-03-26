@@ -33,6 +33,75 @@ type SoulBanner = {
   summary: string;
 };
 
+// ─── Rich Feature Banner ──────────────────────────────────────────────────────
+
+const RICH_FEATURE_SAATHIS: Record<string, { features: string[]; example: string }> = {
+  maathsaathi:        { features: ['📐 Equations render as beautiful math'], example: 'Try: "What is the quadratic formula?"' },
+  chemsaathi:         { features: ['🧪 Molecular structures appear inline', '📐 Chemical equations render beautifully'], example: 'Try: "Show me the structure of glucose"' },
+  pharmasaathi:       { features: ['🧪 Drug molecular structures appear inline'], example: 'Try: "What does paracetamol look like?"' },
+  biosaathi:          { features: ['🧬 Molecular structures appear inline', '📊 Biological processes become diagrams'], example: 'Try: "Show me the structure of DNA bases"' },
+  archsaathi:         { features: ['📊 Design processes become visual flowcharts'], example: 'Try: "Show me a basic design process"' },
+  compsaathi:         { features: ['💻 Code renders with syntax highlighting', '📊 System architecture becomes diagrams'], example: 'Try: "Show me a binary search algorithm"' },
+  kanoonsaathi:       { features: ['📊 Legal processes become visual flows'], example: 'Try: "How does a case reach the Supreme Court?"' },
+  mechsaathi:         { features: ['📐 Engineering equations render beautifully', '📊 Mechanisms become diagrams'], example: 'Try: "Show stress-strain relationship"' },
+  civilsaathi:        { features: ['📊 Structural processes become diagrams', '📐 Engineering equations render beautifully'], example: 'Try: "Explain load distribution in a beam"' },
+  physisaathi:        { features: ['📐 Physics equations render beautifully'], example: 'Try: "Show Maxwell\'s equations"' },
+  biotechsaathi:      { features: ['🧬 Molecular structures appear inline', '📐 Biochemical equations render beautifully'], example: 'Try: "Show me ATP synthesis"' },
+  aerosaathi:         { features: ['📐 Equations render beautifully', '📊 Flight processes become diagrams'], example: 'Try: "Show Bernoulli\'s equation"' },
+  aerospacesaathi:    { features: ['📐 Equations render beautifully', '📊 Processes become diagrams'], example: 'Try: "Show orbital mechanics equations"' },
+  elecsaathi:         { features: ['📐 Circuit equations render beautifully', '📊 Circuit flows become diagrams'], example: 'Try: "Show Kirchhoff\'s laws"' },
+  envirosaathi:       { features: ['📐 Environmental equations render beautifully', '📊 Processes become diagrams'], example: 'Try: "Show the carbon cycle"' },
+  econsaathi:         { features: ['📊 Economic processes become diagrams'], example: 'Try: "Show supply and demand flow"' },
+};
+
+function RichFeatureBanner({ saathiSlug }: { saathiSlug: string }) {
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('feature_banner_dismissed') === 'true';
+  });
+
+  const features = RICH_FEATURE_SAATHIS[saathiSlug];
+  if (!features || dismissed) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      style={{
+        margin: '0 16px 12px',
+        padding: '12px 16px',
+        borderRadius: '12px',
+        background: 'rgba(201,153,58,0.08)',
+        border: '0.5px solid rgba(201,153,58,0.25)',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '12px',
+      }}
+    >
+      <span style={{ fontSize: '18px', flexShrink: 0 }}>✦</span>
+      <div style={{ flex: 1 }}>
+        <p style={{ fontSize: '12px', fontWeight: 600, color: '#C9993A', margin: '0 0 4px', fontFamily: 'var(--font-dm-sans)' }}>
+          This Saathi has rich features
+        </p>
+        {features.features.map((f, i) => (
+          <p key={i} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', margin: '2px 0', fontFamily: 'var(--font-dm-sans)' }}>{f}</p>
+        ))}
+        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '6px 0 0', fontStyle: 'italic', fontFamily: 'var(--font-dm-sans)' }}>
+          {features.example}
+        </p>
+      </div>
+      <button
+        onClick={() => { localStorage.setItem('feature_banner_dismissed', 'true'); setDismissed(true); }}
+        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', fontSize: '16px', padding: 0, flexShrink: 0 }}
+        aria-label="Dismiss"
+      >
+        ✕
+      </button>
+    </motion.div>
+  );
+}
+
 export function ChatWindow() {
   const router = useRouter();
   const { profile } = useAuthStore();
@@ -349,6 +418,11 @@ export function ChatWindow() {
             </div>
           )}
         </div>
+
+        {/* Rich feature discovery banner — shown once on first session */}
+        <AnimatePresence>
+          <RichFeatureBanner saathiSlug={saathiId} />
+        </AnimatePresence>
 
         {/* Cooling banner or input */}
         {quota.isCooling ? (
