@@ -34,22 +34,22 @@ async function ensureProfile(
   userId: string,
   email: string,
   roleParam: DbUserRole | null,
-): Promise<{ isActive: boolean }> {
+): Promise<{ isActive: boolean; role: DbUserRole }> {
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, is_active')
+    .select('id, is_active, role')
     .eq('id', userId)
     .single();
 
   if (error || !profile) {
-    // Profile row missing — create it now so onboard never hits a 500
+    const resolvedRole = roleParam ?? 'student';
     const { error: insertError } = await supabase
       .from('profiles')
       .insert({
         id: userId,
         email,
-        full_name: null,         // onboard will fill this in
-        role: roleParam ?? 'student',
+        full_name: null,
+        role: resolvedRole,
         is_active: false,
         plan_id: 'free',
         created_at: new Date().toISOString(),
@@ -57,15 +57,23 @@ async function ensureProfile(
       });
 
     if (insertError) {
-      // Row may already exist (race condition) — ignore duplicate key errors
       if (!insertError.code?.startsWith('23')) {
         throw new Error(`Profile creation failed: ${insertError.message}`);
       }
     }
-    return { isActive: false };
+    return { isActive: false, role: resolvedRole };
   }
 
-  return { isActive: profile.is_active ?? false };
+  return {
+    isActive: profile.is_active ?? false,
+    role: (profile.role as DbUserRole) ?? 'student',
+  };
+}
+
+function roleDefaultRoute(role: DbUserRole): string {
+  if (role === 'faculty') return '/faculty';
+  if (role === 'institution') return '/institution';
+  return '/chat';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -119,7 +127,7 @@ function CallbackInner() {
         sessionStorage.removeItem('pending_saathi');
 
         // ── Ensure profile row exists before any further DB calls ─────────────
-        const { isActive } = await ensureProfile(
+        const { isActive, role } = await ensureProfile(
           supabase,
           resolvedSession.user.id,
           resolvedSession.user.email ?? '',
@@ -148,7 +156,7 @@ function CallbackInner() {
           if (saathiSlug) onboardUrl.searchParams.set('saathi', saathiSlug);
           router.replace(onboardUrl.pathname + onboardUrl.search);
         } else {
-          router.replace('/chat');
+          router.replace(roleDefaultRoute(roleParam ?? role));
         }
       } catch (err) {
         setStatus('error');

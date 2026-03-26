@@ -751,6 +751,21 @@ function OnboardInner() {
   const [totalYears, setTotalYears] = useState<number | null>(null);
   const [examTargetFromLevel, setExamTargetFromLevel] = useState<string | null>(null);
 
+  // Faculty-specific state
+  const [facultyDesignation, setFacultyDesignation] = useState('');
+  const [facultyDepartment, setFacultyDepartment] = useState('');
+  const [facultyInstitution, setFacultyInstitution] = useState('');
+  const [facultyYrsExp, setFacultyYrsExp] = useState('');
+
+  // Institution-specific state
+  const [orgName, setOrgName] = useState('');
+  const [orgType, setOrgType] = useState('');
+  const [orgWebsite, setOrgWebsite] = useState('');
+  const [orgContactPerson, setOrgContactPerson] = useState('');
+  const [orgContactEmail, setOrgContactEmail] = useState('');
+  const [orgCity, setOrgCity] = useState('');
+  const [orgDescription, setOrgDescription] = useState('');
+
   // ── Mount — runs ONCE only ────────────────────────────────────────────────
   const initRef = useRef(false);
   useEffect(() => {
@@ -958,6 +973,37 @@ function OnboardInner() {
         { onConflict: 'user_id,vertical_id' }
       );
     }
+    // Upsert faculty profile
+    if (urlRole === 'faculty') {
+      await supabase.from('faculty_profiles').upsert({
+        user_id: userId,
+        institution_name: facultyInstitution.trim() || data.fullName.trim(),
+        department: facultyDepartment.trim() || 'General',
+        designation: facultyDesignation.trim() || null,
+        subject_expertise: facultyDepartment.trim() ? [facultyDepartment.trim()] : [],
+        years_experience: parseInt(facultyYrsExp) || 0,
+        verification_status: 'pending',
+      }, { onConflict: 'user_id' });
+    }
+
+    // Upsert institution profile
+    if (urlRole === 'institution') {
+      const validOrgType = (['university','company','ngo','government','other'] as const)
+        .includes(orgType.toLowerCase() as 'university')
+        ? orgType.toLowerCase() as 'university' | 'company' | 'ngo' | 'government' | 'other'
+        : 'other';
+      await supabase.from('institution_profiles').upsert({
+        user_id: userId,
+        org_name: orgName.trim() || data.fullName.trim(),
+        org_type: validOrgType,
+        website: orgWebsite.trim() || null,
+        contact_person: orgContactPerson.trim() || null,
+        contact_email: orgContactEmail.trim() || '',
+        city: orgCity.trim() || data.city || null,
+        description: orgDescription.trim() || null,
+        verification_status: 'pending',
+      }, { onConflict: 'user_id' });
+    }
 
     setProfile({
       ...profile,
@@ -968,8 +1014,14 @@ function OnboardInner() {
       is_active: true,
     } as unknown as Profile);
 
+
     setSaving(false);
-    router.push('/chat');
+    // Route to role-specific dashboard
+    router.push(
+      urlRole === 'faculty' ? '/faculty' :
+      urlRole === 'institution' ? '/institution' :
+      '/chat'
+    );
   }
 
   function goBack() {
@@ -1032,37 +1084,122 @@ function OnboardInner() {
                 academicLevel={academicLevel}
                 examTargetFromLevel={examTargetFromLevel}
                 onContinue={handleProfile}
-                onSkip={() => router.push('/chat')}
+                onSkip={() => router.push(
+                  urlRole === 'faculty' ? '/faculty' :
+                  urlRole === 'institution' ? '/institution' :
+                  '/chat'
+                )}
                 onBack={goBack}
                 saving={saving}
               />
-              {/* Faculty extra fields */}
+              {/* Faculty extra fields — fully controlled */}
               {urlRole === 'faculty' && (
                 <div className="max-w-xl mx-auto px-4 pb-8">
-                  <div className="rounded-2xl p-5 mt-4" style={{background:'rgba(22,163,74,0.08)',border:'0.5px solid rgba(22,163,74,0.25)'}}>
-                    <p className="text-sm font-semibold mb-4" style={{color:'#4ADE80'}}>👨‍🏫 Faculty verification info</p>
+                  <div className="rounded-2xl p-5 mt-4" style={{ background: 'rgba(22,163,74,0.08)', border: '0.5px solid rgba(22,163,74,0.25)' }}>
+                    <p className="text-sm font-semibold mb-4" style={{ color: '#4ADE80' }}>👨‍🏫 Faculty verification info</p>
                     <div className="space-y-3">
-                      <input placeholder="Your institution and subject area (e.g. IIT Bombay · Physics)" className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none" style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)'}} />
-                      <input placeholder="Years of teaching experience" type="number" min="0" className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none" style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)'}} />
+                      <select
+                        value={facultyDesignation}
+                        onChange={(e) => setFacultyDesignation(e.target.value)}
+                        className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: facultyDesignation ? '#fff' : 'rgba(255,255,255,0.35)' }}
+                      >
+                        <option value="" style={{ background: '#0B1F3A' }}>Designation (e.g. Professor)</option>
+                        {['Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer', 'Visiting Faculty', 'Other'].map((d) => (
+                          <option key={d} value={d} style={{ background: '#0B1F3A', color: '#fff' }}>{d}</option>
+                        ))}
+                      </select>
+                      <input
+                        value={facultyDepartment}
+                        onChange={(e) => setFacultyDepartment(e.target.value)}
+                        placeholder="Department / Subject area (e.g. Physics, Law)"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                      />
+                      <input
+                        value={facultyInstitution}
+                        onChange={(e) => setFacultyInstitution(e.target.value)}
+                        placeholder="Institution name (e.g. IIT Bombay, NLU Ahmedabad)"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                      />
+                      <input
+                        value={facultyYrsExp}
+                        onChange={(e) => setFacultyYrsExp(e.target.value)}
+                        placeholder="Years of teaching experience"
+                        type="number" min="0" max="50"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                      />
                     </div>
-                    <p className="text-xs mt-3" style={{color:'rgba(255,255,255,0.3)'}}>Submitted for admin review. You&apos;ll receive a Faculty Verified badge within 48 hours.</p>
+                    <p className="text-xs mt-3" style={{ color: 'rgba(255,255,255,0.3)' }}>Submitted for admin review. Faculty Verified badge within 48 hours.</p>
                   </div>
                 </div>
               )}
-              {/* Institution extra fields */}
+              {/* Institution extra fields — fully controlled */}
               {urlRole === 'institution' && (
                 <div className="max-w-xl mx-auto px-4 pb-8">
-                  <div className="rounded-2xl p-5 mt-4" style={{background:'rgba(124,58,237,0.08)',border:'0.5px solid rgba(124,58,237,0.25)'}}>
-                    <p className="text-sm font-semibold mb-4" style={{color:'#A78BFA'}}>🏢 Institution registration</p>
+                  <div className="rounded-2xl p-5 mt-4" style={{ background: 'rgba(124,58,237,0.08)', border: '0.5px solid rgba(124,58,237,0.25)' }}>
+                    <p className="text-sm font-semibold mb-4" style={{ color: '#A78BFA' }}>🏢 Institution registration</p>
                     <div className="space-y-3">
-                      <input placeholder="Organisation name" className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none" style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)'}} />
-                      <select className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none" style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.7)'}}>
-                        <option value="" style={{background:'#0B1F3A'}}>Type: University / Company / NGO / Other</option>
-                        {['University','Company','NGO','Government','Other'].map(t => <option key={t} value={t} style={{background:'#0B1F3A'}}>{t}</option>)}
+                      <input
+                        value={orgName}
+                        onChange={(e) => setOrgName(e.target.value)}
+                        placeholder="Organisation name *"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                      />
+                      <select
+                        value={orgType}
+                        onChange={(e) => setOrgType(e.target.value)}
+                        className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: orgType ? '#fff' : 'rgba(255,255,255,0.35)' }}
+                      >
+                        <option value="" style={{ background: '#0B1F3A' }}>Organisation type *</option>
+                        {[['University','university'],['Company','company'],['NGO','ngo'],['Government','government'],['Other','other']].map(([label, val]) => (
+                          <option key={val} value={val} style={{ background: '#0B1F3A', color: '#fff' }}>{label}</option>
+                        ))}
                       </select>
-                      <input placeholder="Primary contact email" type="email" className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none" style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)'}} />
+                      <input
+                        value={orgWebsite}
+                        onChange={(e) => setOrgWebsite(e.target.value)}
+                        placeholder="Website (optional)"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                      />
+                      <input
+                        value={orgContactPerson}
+                        onChange={(e) => setOrgContactPerson(e.target.value)}
+                        placeholder="Contact person name"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                      />
+                      <input
+                        value={orgContactEmail}
+                        onChange={(e) => setOrgContactEmail(e.target.value)}
+                        placeholder="Primary contact email *"
+                        type="email"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                      />
+                      <input
+                        value={orgCity}
+                        onChange={(e) => setOrgCity(e.target.value)}
+                        placeholder="City"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                      />
+                      <textarea
+                        value={orgDescription}
+                        onChange={(e) => setOrgDescription(e.target.value)}
+                        placeholder="Brief description (max 200 chars)"
+                        maxLength={200}
+                        rows={3}
+                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none resize-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                      />
                     </div>
-                    <p className="text-xs mt-3" style={{color:'rgba(255,255,255,0.3)'}}>Flagged for admin verification. Our team will reach out within 24 hours.</p>
+                    <p className="text-xs mt-3" style={{ color: 'rgba(255,255,255,0.3)' }}>Flagged for admin verification. Our team will reach out within 24 hours.</p>
                   </div>
                 </div>
               )}

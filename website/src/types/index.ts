@@ -33,6 +33,18 @@ export type Profile = {
   pause_until: string | null;
   pause_count_this_year: number;
   cancellation_reason: string | null;
+  // Soul profile columns (migration 054)
+  academic_level: string | null;
+  degree_programme: string | null;
+  university_affiliation: string | null;
+  current_semester: string | null;
+  current_subjects: string[] | null;
+  interest_areas: string[] | null;
+  learning_style: string | null;
+  nudge_preference: string | null;
+  profile_completeness_pct: number;
+  previous_degree: string | null;
+  last_profile_updated_at: string | null;
 };
 
 // ─── Soul / AI context ────────────────────────────────────────────────────────
