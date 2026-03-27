@@ -210,7 +210,8 @@ export default function TermsPage() {
           <Heading id="contact">14. Contact</Heading>
           <div className="p-6 rounded-xl mt-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
             <p className="mb-2">For questions about these Terms:</p>
-            <p className="mb-1"><strong>Email:</strong> legal@edusaathiai.in</p>
+            <p className="mb-1"><strong>Legal:</strong> <a href="mailto:legal@edusaathiai.in" style={{ color: '#C9993A' }}>legal@edusaathiai.in</a></p>
+            <p className="mb-1"><strong>Support:</strong> <a href="mailto:support@edusaathiai.in" style={{ color: '#C9993A' }}>support@edusaathiai.in</a></p>
             <p><strong>Address:</strong> EdUsaathiAI, Ahmedabad, Gujarat, India</p>
           </div>
         </div>

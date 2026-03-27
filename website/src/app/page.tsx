@@ -285,7 +285,18 @@ export default async function RootPage() {
         <p style={{ marginTop:'20px', fontSize:'13px', color:'rgba(255,255,255,0.25)' }}>No credit card. No commitment. Just your Saathi.</p>
       </section>
 
-      {/* ── Footer ─────────────────────────────────────────────────────── */}
+      {/* ── Contact strip ───────────────────────────────────────────── */}
+      <div style={{ textAlign: 'center', padding: '40px 48px', borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
+        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginBottom: '8px' }}>Questions? We&apos;re real people.</p>
+        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+          <a href="mailto:support@edusaathiai.in" style={{ color: '#C9993A', textDecoration: 'none' }}>support@edusaathiai.in</a>
+          <span style={{ margin: '0 16px', opacity: 0.3 }}>·</span>
+          <a href="mailto:info@edusaathiai.in" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>info@edusaathiai.in</a>
+          <span style={{ marginLeft: '8px', fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>(partnerships)</span>
+        </p>
+      </div>
+
+      {/* ── Footer ─────────────────────────────────────────────────────────── */}
       <footer className="land-footer">
         <div>
           <div className="footer-logo">EdU<span>saathi</span>AI</div>

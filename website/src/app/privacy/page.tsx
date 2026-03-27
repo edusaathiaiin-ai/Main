@@ -76,7 +76,7 @@ export default function PrivacyPage() {
           <ul className="list-disc pl-5 mt-4 space-y-2">
             <li><strong>Data Fiduciary:</strong> EdUsaathiAI, Ahmedabad</li>
             <li><strong>Grievance Officer:</strong> Jaydeep Buch</li>
-            <li><strong>Email:</strong> privacy@edusaathiai.in</li>
+            <li><strong>Email:</strong> <a href="mailto:privacy@edusaathiai.in" style={{ color: '#C9993A' }}>privacy@edusaathiai.in</a></li>
             <li><strong>Response Time:</strong> Within 30 days</li>
           </ul>
 
@@ -176,7 +176,7 @@ export default function PrivacyPage() {
           <p>You can withdraw consent for data processing. This will result in account deactivation. <br/>Go to: Profile &rarr; My Data &rarr; Manage Consent</p>
 
           <SubHeading>Right to Grievance Redressal (Section 13)</SubHeading>
-          <p>If you believe your rights have been violated: <br/>Email: privacy@edusaathiai.in <br/>We will respond within 30 days.</p>
+          <p>If you believe your rights have been violated: <br/>Email: <a href="mailto:privacy@edusaathiai.in" style={{ color: '#C9993A' }}>privacy@edusaathiai.in</a> <br/>We will respond within 30 days.</p>
 
           <SubHeading>Right to Data Portability</SubHeading>
           <p>You can download all your data as a JSON file. <br/>Go to: Profile &rarr; My Data &rarr; Download My Data</p>
@@ -192,16 +192,7 @@ export default function PrivacyPage() {
           </ul>
 
           <Heading id="ai-disclosure">7. AI Processing Disclosure</Heading>
-          <p>Your messages are processed by:</p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li><strong>Anthropic Claude API</strong> (Bot 3, Bot 4)</li>
-            <li><strong>Groq API with Llama</strong> (Bot 1, Bot 2, Bot 5)</li>
-          </ul>
-          <p>
-            Your messages are sent to these services to generate responses. We do not use your 
-            conversations to train AI models. System prompts containing your soul profile 
-            are never sent to the client device.
-          </p>
+          <p>Your messages are processed by AI models to generate educational responses. We use a chain of providers including Claude (Anthropic), Gemini (Google), Grok (xAI), and Groq, selected automatically based on availability. We do not use your conversations to train AI models. System prompts containing your soul profile are never sent to the client device.</p>
 
           <Heading id="children">8. Children's Privacy</Heading>
           <p>
@@ -261,12 +252,13 @@ export default function PrivacyPage() {
           <div className="p-6 rounded-xl mt-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
             <ul className="space-y-2 mb-4">
               <li><strong>Grievance Officer:</strong> Jaydeep Buch</li>
-              <li><strong>Email:</strong> privacy@edusaathiai.in</li>
+              <li><strong>Email:</strong> <a href="mailto:privacy@edusaathiai.in" style={{ color: '#C9993A' }}>privacy@edusaathiai.in</a></li>
               <li><strong>Platform:</strong> EdUsaathiAI, Ahmedabad, Gujarat, India</li>
               <li><strong>Response time:</strong> Within 30 days of receipt</li>
             </ul>
             <p>To exercise any of your rights, visit: <code>Profile &rarr; My Data</code></p>
-            <p>Or email us at privacy@edusaathiai.in</p>
+            <p>Or email us at <a href="mailto:privacy@edusaathiai.in" style={{ color: '#C9993A' }}>privacy@edusaathiai.in</a></p>
+            <p>General support: <a href="mailto:support@edusaathiai.in" style={{ color: '#C9993A' }}>support@edusaathiai.in</a></p>
           </div>
 
         </div>
