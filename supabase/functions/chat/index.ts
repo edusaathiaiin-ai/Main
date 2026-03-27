@@ -290,7 +290,8 @@ async function buildSystemPrompt(
   admin: SupabaseClientType,
   userId: string,
   saathiId: string,
-  botSlot: number
+  botSlot: number,
+  saathiSlug: string
 ): Promise<string> {
   const [personaRes, soulRes, newsRes, profileRes] = await Promise.all([
     admin
@@ -431,7 +432,7 @@ async function buildSystemPrompt(
           .join('\n')
       : 'No news items available today.';
 
-  const saathiGuardrail = SAATHI_GUARDRAILS[saathiId] ?? '';
+  const saathiGuardrail = SAATHI_GUARDRAILS[saathiSlug] ?? '';
 
   return `# ═════════════════════════════════════
 # IDENTITY AND BOUNDARIES — READ FIRST
@@ -1155,11 +1156,16 @@ Deno.serve(async (req: Request) => {
     }
     // ─────────────────────────────────────────────────────────────────────────
 
-    // Resolve saathi slug → vertical UUID for all DB calls
+    // Resolve saathi identifier → vertical UUID for all DB calls.
+    // The client may send either a slug ('kanoonsaathi') or a UUID (from
+    // profile.primary_saathi_id). Handle both.
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const isUUID = UUID_RE.test(saathiId);
+
     const { data: verticalRow, error: verticalError } = await admin
       .from('verticals')
-      .select('id')
-      .eq('slug', saathiId)
+      .select('id, slug')
+      .eq(isUUID ? 'id' : 'slug', saathiId)
       .single();
 
     if (verticalError || !verticalRow) {
@@ -1168,7 +1174,8 @@ Deno.serve(async (req: Request) => {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
-    const verticalId = (verticalRow as { id: string }).id;
+    const verticalId   = (verticalRow as { id: string; slug: string }).id;
+    const verticalSlug = (verticalRow as { id: string; slug: string }).slug;
 
     // Quota enforcement
     const dateIst = todayIST();
@@ -1205,7 +1212,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Build personalised system prompt (server-side only)
-    const systemPrompt = await buildSystemPrompt(admin, userId, verticalId, botSlot);
+    const systemPrompt = await buildSystemPrompt(admin, userId, verticalId, botSlot, verticalSlug);
 
     // Persist user message
     await admin.from('chat_messages').insert({
