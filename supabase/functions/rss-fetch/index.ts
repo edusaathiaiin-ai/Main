@@ -671,6 +671,15 @@ Deno.serve(async (req: Request) => {
           continue;
         }
 
+        // ── 24-hour rule: skip articles older than 24 hours ──────────────────
+        if (item.publishedAt) {
+          const age = Date.now() - new Date(item.publishedAt).getTime();
+          if (age > 24 * 60 * 60 * 1000) {
+            results[verticalId].skipped++;
+            continue;
+          }
+        }
+
         // ── Domain verification — hard-coded authenticity guardrail ───────────
         const trusted = isDomainTrusted(item.url, verticalId);
         if (!trusted) {
