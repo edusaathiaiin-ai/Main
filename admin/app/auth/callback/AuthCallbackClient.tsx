@@ -17,46 +17,41 @@ function CallbackHandler() {
   const [pwDone, setPwDone] = useState(false);
 
   useEffect(() => {
-    const handleCallback = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
-      const type = params.get('type');
-
-      if (code) {
-        const { error } = await supabaseBrowser.auth.exchangeCodeForSession(code);
-        if (error) {
-          router.push('/login?error=exchange_failed');
+    // With flowType: 'implicit' + detectSessionInUrl: true, Supabase automatically
+    // processes the URL hash and fires auth state events. No manual code exchange needed.
+    const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          // Recovery link clicked — show set-new-password form
+          setIsRecovery(true);
+          subscription.unsubscribe();
           return;
         }
-      } else {
-        const { data: { session } } = await supabaseBrowser.auth.getSession();
-        if (!session) {
-          router.push('/login?error=no_session');
+
+        if (event === 'SIGNED_IN' && session) {
+          const email = session.user.email?.toLowerCase() ?? '';
+          if (!ADMIN_EMAILS.includes(email)) {
+            await supabaseBrowser.auth.signOut();
+            router.push('/login?error=unauthorized');
+          } else {
+            router.push('/users');
+          }
+          subscription.unsubscribe();
           return;
         }
       }
+    );
 
-      const { data: { user } } = await supabaseBrowser.auth.getUser();
-      if (!user) { router.push('/login?error=no_user'); return; }
+    // Fallback: if no auth event fires in 6s, redirect to login
+    const timeout = setTimeout(() => {
+      subscription.unsubscribe();
+      router.push('/login?error=no_session');
+    }, 6000);
 
-      // Check against email allowlist (same as login/page.tsx)
-      if (!ADMIN_EMAILS.includes(user.email?.toLowerCase() ?? '')) {
-        await supabaseBrowser.auth.signOut();
-        router.push('/login?error=unauthorized');
-        return;
-      }
-
-      // Password recovery flow — show set-new-password form
-      if (type === 'recovery') {
-        setIsRecovery(true);
-        return;
-      }
-
-      setStatus('Access granted! Redirecting…');
-      router.push('/users');
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
     };
-
-    handleCallback();
   }, [router]);
 
   async function handleSetPassword() {
