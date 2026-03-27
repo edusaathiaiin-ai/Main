@@ -76,8 +76,18 @@ Deno.serve(async (req: Request) => {
 
     // Get current session from JWT
     const { data: { session } } = await userClient.auth.getSession();
-    const currentSessionId = session?.access_token?.slice(-20) ?? 
-      crypto.randomUUID();
+    // Use the JWT's stable session_id claim instead of access token suffix.
+    // The access token changes on every refresh; session_id stays constant
+    // for the entire login session across all token refreshes.
+    let currentSessionId: string = crypto.randomUUID();
+    if (session?.access_token) {
+      try {
+        const b64 = session.access_token.split('.')[1] ?? '';
+        const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
+        const payload = JSON.parse(atob(padded.replace(/-/g, '+').replace(/_/g, '/')));
+        currentSessionId = (payload.session_id as string) ?? currentSessionId;
+      } catch { /* use random UUID fallback */ }
+    }
 
     // Get profile
     const { data: profile } = await admin
