@@ -39,15 +39,25 @@ const GEO_LIMITED_CHAT_RATE_MAX_REQUESTS = 8;
 const GEO_LIMITED_INSTITUTION_RATE_MAX_REQUESTS = 4;
 const GEO_LIMITED_ALLOWED_SLOTS = new Set([1, 5]);
 
-// STEM saathis use Claude → Gemini → Grok(xAI) as primary chain.
-// Groq is silent emergency-only fallback for STEM.
-// Non-STEM saathis use Groq → Gemini → Grok(xAI) chain.
-const STEM_SAATHIS = new Set([
+// ── AI routing strategy (evidence-based, not marketing) ─────────────────────
+//
+// SPEED slots (1 Study Notes, 2 Exam Prep, 5 Citizen Guide):
+//   Groq → Gemini → xAI Grok   (latency matters more than depth)
+//
+// STEM Saathis (Maths, Science, Engineering):
+//   Gemini → Claude → xAI Grok → Groq  (Gemini strongest on quantitative)
+//
+// HUMANITIES Saathis (Law, Medicine, Business, CS, UPSC, Psychology…):
+//   Claude → Gemini → xAI Grok → Groq  (Claude strongest on reasoning/writing)
+
+const SPEED_SLOTS = new Set([1, 2, 5]);
+
+const GEMINI_SAATHIS = new Set([
   'maathsaathi', 'chemsaathi', 'biosaathi', 'physisaathi',
-  'compsaathi', 'mechsaathi', 'civilsaathi', 'elecsaathi',
-  'chemenggsaathi', 'biotechsaathi', 'envirosaathi',
-  'aerosaathi', 'aerospacesaathi',
+  'mechsaathi', 'civilsaathi', 'elecsaathi', 'envirosaathi',
+  'biotechsaathi', 'aerosaathi', 'aerospacesaathi', 'chemenggsaathi',
 ]);
+// CompSaathi intentionally excluded → Claude (best for code quality & architecture)
 
 // ── Plan-specific quota config (mirrors constants/plans.ts) ──────────────────
 // Inlined here because Deno cannot import from the React Native app layer.
@@ -922,6 +932,44 @@ async function streamGroqWithFallback(
 }
 
 // ---------------------------------------------------------------------------
+// STEM: Gemini → Claude → xAI Grok → Groq fallback wrapper
+// ---------------------------------------------------------------------------
+
+async function streamGeminiWithFallback(
+  systemPrompt: string,
+  messages: MessageParam[],
+  controller: ReadableStreamDefaultController<Uint8Array>
+): Promise<string> {
+  // 1. Gemini primary
+  if (GEMINI_API_KEY) {
+    try {
+      return await streamGemini(systemPrompt, messages, controller);
+    } catch {
+      console.warn('[chat] Gemini failed. Trying Claude…');
+    }
+  }
+
+  // 2. Claude fallback
+  try {
+    return await streamClaude(systemPrompt, messages, controller);
+  } catch {
+    console.warn('[chat] Claude failed. Trying xAI Grok…');
+  }
+
+  // 3. xAI Grok
+  if (GROK_API_KEY) {
+    try {
+      return await streamXaiGrok(systemPrompt, messages, controller);
+    } catch {
+      console.warn('[chat] xAI Grok failed. Emergency fallback to Groq…');
+    }
+  }
+
+  // 4. Emergency: Groq
+  return await streamGroq(systemPrompt, messages, controller);
+}
+
+// ---------------------------------------------------------------------------
 // Main handler
 // ---------------------------------------------------------------------------
 
@@ -1233,14 +1281,22 @@ Deno.serve(async (req: Request) => {
       { role: 'user', content: sanitized },
     ];
 
-    const isStem = STEM_SAATHIS.has(verticalSlug.toLowerCase());
+    const slug = verticalSlug.toLowerCase();
+    const isSpeedSlot  = SPEED_SLOTS.has(botSlot);
+    const isGeminiFirst = !isSpeedSlot && GEMINI_SAATHIS.has(slug);
+    const isClaudeFirst = !isSpeedSlot && !isGeminiFirst;
+
     const encoder = new TextEncoder();
     let assistantText = '';
 
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         try {
-          const streamFn = isStem ? streamClaudeWithStemFallback : streamGroqWithFallback;
+          const streamFn = isSpeedSlot
+            ? streamGroqWithFallback
+            : isGeminiFirst
+              ? streamGeminiWithFallback
+              : streamClaudeWithStemFallback;
 
           // Wrap streaming to capture TTFB on first token
           let firstToken = true;
@@ -1284,7 +1340,7 @@ Deno.serve(async (req: Request) => {
             completed_at:      new Date().toISOString(),
             duration_ms:       Date.now() - t0,
             ttfb_ms:           ttfbMs,
-            ai_provider:       isStem ? 'claude' : 'groq',
+            ai_provider:       isSpeedSlot ? 'groq' : isGeminiFirst ? 'gemini' : 'claude',
             outcome:           assistantText ? 'success' : (lastError ? 'error' : 'empty'),
             error_code:        lastError?.code ?? null,
             error_message:     lastError?.message ?? null,
