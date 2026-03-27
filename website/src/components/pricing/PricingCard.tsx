@@ -63,7 +63,7 @@ const PLAN_DEFS = {
     features: [
       { text: 'All 5 bots', included: true },
       { text: '20 chats per day per bot', included: true },
-      { text: 'All 20 Saathis', included: true },
+      { text: 'All 24 Saathis', included: true },
       { text: 'Unlimited Check-ins', included: true },
       { text: 'Notes export', included: true },
       { text: 'Pause anytime', included: true },

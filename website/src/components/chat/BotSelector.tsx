@@ -45,6 +45,10 @@ export function BotSelector({ activeSlot, userRole, planId, primaryColor, onSele
             style={{
               background: active ? `${primaryColor}22` : 'transparent',
               border: `0.5px solid ${active ? primaryColor : 'transparent'}`,
+              cursor: 'pointer',
+              pointerEvents: 'auto',
+              position: 'relative',
+              zIndex: 10,
             }}
           >
             <span className="text-base w-4 text-center">

@@ -164,6 +164,10 @@ export function Sidebar({
               style={{
                 background: active ? `${activeSaathi.primary}18` : 'transparent',
                 color: active ? '#fff' : 'rgba(255,255,255,0.45)',
+                pointerEvents: 'auto',
+                position: 'relative',
+                zIndex: 10,
+                cursor: 'pointer',
               }}
             >
               <span className="text-base w-5 text-center">{link.icon}</span>

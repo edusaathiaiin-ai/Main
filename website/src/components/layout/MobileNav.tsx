@@ -30,7 +30,13 @@ export function MobileNav() {
             key={item.href}
             href={item.href}
             className="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all duration-150"
-            style={{ color: active ? '#C9993A' : 'rgba(255,255,255,0.35)' }}
+            style={{
+              color: active ? '#C9993A' : 'rgba(255,255,255,0.35)',
+              pointerEvents: 'auto',
+              position: 'relative',
+              zIndex: 10,
+              cursor: 'pointer',
+            }}
           >
             <span className="text-xl leading-none">{item.icon}</span>
             <span className="text-[9px] font-medium">{item.label}</span>
