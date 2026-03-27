@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { BotSelector } from '@/components/chat/BotSelector';
 import type { Saathi, Profile, QuotaState } from '@/types';
 
+
 type Props = {
   profile: Profile;
   activeSaathi: Saathi;
@@ -174,6 +175,7 @@ export function Sidebar({
 
       {/* Upgrade pill — free plan only */}
       {profile.plan_id === 'free' && <UpgradePill sessionCount={sessionCount} />}
+
 
       {/* User footer */}
       <div className="px-4 py-4" style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>

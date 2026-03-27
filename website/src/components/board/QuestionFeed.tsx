@@ -63,6 +63,9 @@ export function QuestionFeed() {
   const [filter, setFilter] = useState<Filter>('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [newBanner, setNewBanner] = useState<string | null>(null);
+  const [boardNudgeDismissed, setBoardNudgeDismissed] = useState(() =>
+    typeof window !== 'undefined' && !!sessionStorage.getItem('board_nudge_dismissed')
+  );
   const newQuestionRef = useRef<HTMLDivElement>(null);
 
   const canPost = !profile?.is_geo_limited;
@@ -279,7 +282,7 @@ export function QuestionFeed() {
                       primaryColor={activeSaathi.primary}
                     />
                     {/* Upgrade nudge after 3rd question — free plan only */}
-                    {idx === 2 && profile?.plan_id === 'free' && (
+                    {idx === 2 && profile?.plan_id === 'free' && !boardNudgeDismissed && (
                       <div
                         style={{
                           margin: '16px 0',
@@ -301,24 +304,30 @@ export function QuestionFeed() {
                             Plus members post unlimited questions. Faculty answers yours first.
                           </p>
                         </div>
-                        <Link
-                          href="/pricing?trigger=board"
-                          onClick={() => sessionStorage.setItem('upgrade_return_url', '/board')}
-                          style={{
-                            padding: '8px 16px',
-                            borderRadius: '8px',
-                            background: 'rgba(201,153,58,0.2)',
-                            border: '0.5px solid rgba(201,153,58,0.4)',
-                            color: '#C9993A',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            textDecoration: 'none',
-                            flexShrink: 0,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          Join Plus →
-                        </Link>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                          <Link
+                            href="/pricing?trigger=board"
+                            onClick={() => sessionStorage.setItem('upgrade_return_url', '/board')}
+                            style={{
+                              padding: '8px 16px',
+                              borderRadius: '8px',
+                              background: 'rgba(201,153,58,0.2)',
+                              border: '0.5px solid rgba(201,153,58,0.4)',
+                              color: '#C9993A',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              textDecoration: 'none',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            Join Plus →
+                          </Link>
+                          <button
+                            onClick={() => { sessionStorage.setItem('board_nudge_dismissed', '1'); setBoardNudgeDismissed(true); }}
+                            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', fontSize: '18px', padding: 0, lineHeight: 1 }}
+                            aria-label="Dismiss nudge"
+                          >×</button>
+                        </div>
                       </div>
                     )}
                   </div>
