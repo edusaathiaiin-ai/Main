@@ -28,6 +28,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const CRON_SECRET = Deno.env.get('CRON_SECRET') ?? '';
+const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';
+
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const PROFESSOR_NOTES_PER_SAATHI = 3; // Max Groq calls per Saathi per run
 
 // Startup env check
 console.log('[rss-fetch] ENV check:', {
@@ -378,11 +382,14 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
   biotechsaathi: [
     { url: 'https://www.nature.com/nbt.rss', source: 'Nature Biotechnology', category: 'Biotechnology' },
     { url: 'https://rss.sciencedaily.com/releases/biology/biotechnology.xml', source: 'Science Daily Biotech', category: 'Biotechnology' },
-    { url: 'https://www.fiercebiotech.com/rss/xml', source: 'Fierce Biotech', category: 'Biotech Industry' },
+    { url: 'https://www.genengnews.com/feed/', source: 'GEN News', category: 'Biotech Industry' },
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=biotechnology&format=rss', source: 'PubMed Biotech', category: 'Biotech Research' },
   ],
 
   aerospacesaathi: [
-    { url: 'https://www.aiaa.org/rss/news', source: 'AIAA', category: 'Aerospace' },
+    { url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss', source: 'NASA Breaking News', category: 'Space Science' },
+    { url: 'https://www.esa.int/rssfeed/Our_Activities/Space_News', source: 'ESA Top News', category: 'Space Exploration' },
+    { url: 'https://aerospaceamerica.aiaa.org/feed/', source: 'AIAA Aerospace America', category: 'Aerospace' },
     { url: 'https://rss.sciencedaily.com/releases/matter_energy/aerospace.xml', source: 'Science Daily Aerospace', category: 'Aerospace' },
     { url: 'https://www.isro.gov.in/rss', source: 'ISRO', category: 'Space Technology' },
   ],
@@ -401,6 +408,113 @@ const UPSC_FEEDS: FeedDef[] = [
   { url: 'https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3', source: 'PIB India', category: 'UPSC' },
   { url: 'https://prsindia.org/rss.xml', source: 'PRS India', category: 'UPSC' },
 ];
+
+// ---------------------------------------------------------------------------
+// Trusted source domains — hard-coded authenticity guardrail per Saathi.
+// Articles whose URLs don't match any domain in this list are rejected.
+// An empty array = no domain restriction (fail open for that Saathi).
+// ---------------------------------------------------------------------------
+
+const TRUSTED_DOMAINS: Record<string, string[]> = {
+  kanoonsaathi:    ['barandbench.com', 'livelaw.in', 'thehindu.com', 'lawmin.gov.in', 'sci.gov.in', 'prsindia.org', 'indiacode.nic.in'],
+  medicosaathi:    ['nejm.org', 'thelancet.com', 'jamanetwork.com', 'bmj.com', 'nature.com', 'cochranelibrary.com', 'pubmed.ncbi.nlm.nih.gov', 'who.int', 'sciencedaily.com'],
+  pharmasaathi:    ['nature.com', 'cell.com', 'sciencedirect.com', 'springer.com', 'acs.org', 'wiley.com', 'pubmed.ncbi.nlm.nih.gov', 'sciencedaily.com'],
+  nursingsaathi:   ['sciencedirect.com', 'wiley.com', 'springer.com', 'pubmed.ncbi.nlm.nih.gov', 'who.int', 'sciencedaily.com'],
+  psychsaathi:     ['apa.org', 'sagepub.com', 'nature.com', 'cambridge.org', 'pubmed.ncbi.nlm.nih.gov', 'sciencedaily.com'],
+  maathsaathi:     ['sciencedaily.com', 'arxiv.org', 'ams.org', 'springer.com', 'projecteuclid.org', 'mathunion.org'],
+  chemsaathi:      ['rsc.org', 'sciencedaily.com', 'acs.org', 'nature.com'],
+  biosaathi:       ['cell.com', 'nature.com', 'science.org', 'pnas.org', 'elifesciences.org', 'plos.org', 'oup.com', 'annualreviews.org', 'pubmed.ncbi.nlm.nih.gov', 'arxiv.org', 'sciencedaily.com'],
+  mechsaathi:      ['sciencedirect.com', 'wiley.com', 'asmedigitalcollection.asme.org', 'annualreviews.org', 'nature.com', 'arxiv.org', 'sciencedaily.com'],
+  civilsaathi:     ['sciencedirect.com', 'wiley.com', 'ascelibrary.org', 'nature.com', 'arxiv.org', 'pubmed.ncbi.nlm.nih.gov', 'sciencedaily.com'],
+  elecsaathi:      ['spectrum.ieee.org', 'nature.com', 'ieeexplore.ieee.org', 'wiley.com', 'sciencedaily.com'],
+  compsaathi:      ['dl.acm.org', 'ieeexplore.ieee.org', 'jmlr.org', 'nature.com', 'sciencedirect.com', 'springer.com', 'arxiv.org', 'sciencedaily.com'],
+  envirosaathi:    ['sciencedaily.com', 'arxiv.org', 'nature.com'],
+  bizsaathi:       ['economictimes.indiatimes.com', 'livemint.com'],
+  finsaathi:       ['rbi.org.in', 'economictimes.indiatimes.com'],
+  mktsaathi:       ['economictimes.indiatimes.com', 'livemint.com'],
+  hrsaathi:        ['economictimes.indiatimes.com'],
+  archsaathi:      ['archdaily.com', 'dezeen.com', 'architecturalrecord.com', 'architectural-review.com', 'domusweb.it', 'tandfonline.com', 'sciencedirect.com'],
+  historysaathi:   ['historytoday.com', 'sciencedaily.com'],
+  econsaathi:      ['oup.com', 'aeaweb.org', 'wiley.com', 'uchicago.edu', 'nber.org', 'rbi.org.in', 'economictimes.indiatimes.com'],
+  biotechsaathi:   ['nature.com', 'sciencedaily.com', 'genengnews.com', 'pubmed.ncbi.nlm.nih.gov'],
+  aerospacesaathi: ['nasa.gov', 'esa.int', 'aiaa.org', 'isro.gov.in', 'sciencedaily.com'],
+  electronicssaathi: ['spectrum.ieee.org', 'sciencedaily.com', 'electronicsforu.com'],
+};
+
+function isDomainTrusted(url: string, saathiKey: string): boolean {
+  const trusted = TRUSTED_DOMAINS[saathiKey];
+  // If no list defined for this Saathi, fail open (allow all)
+  if (!trusted || trusted.length === 0) return true;
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return trusted.some((d) => hostname === d || hostname.endsWith('.' + d));
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Professor note generation via Groq
+// ---------------------------------------------------------------------------
+
+const SAATHI_SUBJECTS: Record<string, string> = {
+  kanoonsaathi:    'Law and Legal Studies',
+  medicosaathi:    'Medicine and Clinical Sciences',
+  pharmasaathi:    'Pharmaceutical Sciences and Drug Discovery',
+  nursingsaathi:   'Nursing and Healthcare',
+  psychsaathi:     'Psychology and Behavioural Sciences',
+  maathsaathi:     'Mathematics',
+  chemsaathi:      'Chemistry',
+  biosaathi:       'Biology and Life Sciences',
+  mechsaathi:      'Mechanical Engineering',
+  civilsaathi:     'Civil and Structural Engineering',
+  elecsaathi:      'Electrical and Electronics Engineering',
+  compsaathi:      'Computer Science and Artificial Intelligence',
+  envirosaathi:    'Environmental Engineering',
+  bizsaathi:       'Business and Management',
+  finsaathi:       'Finance and Economics',
+  mktsaathi:       'Marketing and Brand Strategy',
+  hrsaathi:        'Human Resources and Organisational Behaviour',
+  archsaathi:      'Architecture and Design',
+  historysaathi:   'History and Social Sciences',
+  econsaathi:      'Economics',
+  biotechsaathi:   'Biotechnology and Bioengineering',
+  aerospacesaathi: 'Aerospace and Space Engineering',
+  electronicssaathi: 'Electronics Engineering',
+};
+
+async function generateProfessorNote(title: string, source: string, saathiKey: string): Promise<string | null> {
+  if (!GROQ_API_KEY) return null;
+  const subject = SAATHI_SUBJECTS[saathiKey] ?? 'this field';
+
+  const prompt = `Acting as a Lead Professor in ${subject}, explain this news to a student in exactly 2 sentences:
+Sentence 1: What happened? (state the development clearly)
+Sentence 2: Why it matters for their future career in ${subject}. (be specific, not generic)
+
+News headline: "${title}"
+Source: ${source}
+
+Rules: No bullet points. No labels like "Sentence 1". Just 2 clean sentences. Be direct and inspiring.`;
+
+  try {
+    type GroqResp = { choices: Array<{ message: { content: string } }> };
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        max_tokens: 120,
+        temperature: 0.6,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as GroqResp;
+    return data.choices[0]?.message?.content?.trim() ?? null;
+  } catch {
+    return null;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // RSS parsing — pure text parsing, no external parser library needed
@@ -528,11 +642,12 @@ Deno.serve(async (req: Request) => {
   console.log('[rss-fetch] Vertical UUID map:', JSON.stringify(verticalUUIDs));
 
   const failedFeeds: { vertical: string; url: string; source: string; reason: string }[] = [];
-  const results: Record<string, { inserted: number; skipped: number; errors: string[] }> = {};
+  const results: Record<string, { inserted: number; skipped: number; rejected: number; errors: string[] }> = {};
   let totalInserted = 0;
 
   for (const [verticalId, feeds] of Object.entries(RSS_FEEDS)) {
-    results[verticalId] = { inserted: 0, skipped: 0, errors: [] };
+    results[verticalId] = { inserted: 0, skipped: 0, rejected: 0, errors: [] };
+    let professorNotesGenerated = 0;
 
     // Each vertical gets its own feeds + shared UPSC feeds
     const allFeeds = [...feeds, ...UPSC_FEEDS];
@@ -543,7 +658,6 @@ Deno.serve(async (req: Request) => {
         const reason = `Failed to fetch: ${feed.url}`;
         results[verticalId].errors.push(reason);
         failedFeeds.push({ vertical: verticalId, url: feed.url, source: feed.source, reason });
-        // 200ms delay even on failure to avoid hammering on retries
         await new Promise(r => setTimeout(r, 200));
         continue;
       }
@@ -557,6 +671,21 @@ Deno.serve(async (req: Request) => {
           continue;
         }
 
+        // ── Domain verification — hard-coded authenticity guardrail ───────────
+        const trusted = isDomainTrusted(item.url, verticalId);
+        if (!trusted) {
+          console.warn(`[rss-fetch] REJECTED (untrusted domain): ${item.url.slice(0, 80)}`);
+          results[verticalId].rejected++;
+          continue;
+        }
+
+        // ── Professor note — top 3 new articles per Saathi get an explanation ─
+        let professorNote: string | null = null;
+        if (professorNotesGenerated < PROFESSOR_NOTES_PER_SAATHI) {
+          professorNote = await generateProfessorNote(item.title, feed.source, verticalId);
+          if (professorNote) professorNotesGenerated++;
+        }
+
         const { error: upsertError } = await admin.from('news_items').upsert(
           {
             vertical_id: verticalUUID,
@@ -567,18 +696,13 @@ Deno.serve(async (req: Request) => {
             published_at: item.publishedAt,
             fetched_at: new Date().toISOString(),
             is_active: true,
+            domain_verified: true,
+            ...(professorNote ? { professor_note: professorNote } : {}),
           },
           { onConflict: 'url', ignoreDuplicates: false }
         );
 
         if (upsertError) {
-          console.error('UPSERT ERROR:', JSON.stringify({
-            vertical: verticalId,
-            source: feed.source,
-            url: item.url.slice(0, 80),
-            error: upsertError,
-          }));
-          // Duplicate URL = expected — silently skip
           if (!upsertError.message.includes('duplicate') && !upsertError.message.includes('unique')) {
             results[verticalId].errors.push(`DB error for ${item.url}: ${upsertError.message}`);
             results[verticalId].skipped++;
@@ -591,7 +715,6 @@ Deno.serve(async (req: Request) => {
           totalInserted++;
         }
       }
-
 
       // 200ms between fetches to avoid rate limiting from RSS providers
       await new Promise(r => setTimeout(r, 200));
