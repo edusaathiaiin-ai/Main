@@ -109,40 +109,7 @@ Deno.serve(async (req: Request) => {
         ? (profile?.session_count_today ?? 0) + 1
         : 1;
 
-    // Detect forced logout needed
-    const existingSession = profile?.active_session_id;
-    const isNewDevice = existingSession && 
-      existingSession !== currentSessionId;
-    
-    let forcedLogoutCount = profile?.forced_logout_count ?? 0;
-
-    if (isNewDevice && maxSessions === 1) {
-      // Revoke all other sessions
-      await admin.auth.admin.signOut(user.id, 'others' as never);
-      forcedLogoutCount += 1;
-    }
-
-    // Abuse detection — flag if too many forced logouts
-    if (forcedLogoutCount > 5) {
-      await admin.from('moderation_flags').insert({
-        reporter_user_id: user.id,
-        target_type: 'account_sharing',
-        target_id: user.id,
-        reason: 'multiple_device_forced_logout',
-        status: 'pending',
-      });
-    }
-
-    // Abuse detection — too many logins today
-    if (sessionCountToday > 10) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'too_many_sessions',
-          message: 'Too many login attempts today. Try again tomorrow.'
-        }),
-        { status: 429, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
-      );
-    }
+    const forcedLogoutCount = profile?.forced_logout_count ?? 0;
 
     // Update profile
     await admin.from('profiles').update({
