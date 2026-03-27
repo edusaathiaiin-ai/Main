@@ -1233,7 +1233,7 @@ Deno.serve(async (req: Request) => {
       { role: 'user', content: sanitized },
     ];
 
-    const isStem = STEM_SAATHIS.has(saathiId.toLowerCase());
+    const isStem = STEM_SAATHIS.has(verticalSlug.toLowerCase());
     const encoder = new TextEncoder();
     let assistantText = '';
 
