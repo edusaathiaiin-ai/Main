@@ -17,17 +17,21 @@ function CallbackHandler() {
   const [pwDone, setPwDone] = useState(false);
 
   useEffect(() => {
-    // With flowType: 'implicit' + detectSessionInUrl: true, Supabase automatically
-    // processes the URL hash and fires auth state events. No manual code exchange needed.
+    // Check URL hash FIRST — Supabase doesn't reliably fire PASSWORD_RECOVERY
+    // in all versions; reading the hash directly is the only guaranteed way.
+    const hash = new URLSearchParams(window.location.hash.replace('#', ''));
+    const isRecoveryLink = hash.get('type') === 'recovery';
+
+    if (isRecoveryLink) {
+      // detectSessionInUrl sets the session from the hash automatically.
+      // Just show the form — session will be ready by the time user submits.
+      setIsRecovery(true);
+      return;
+    }
+
+    // Regular login / magic-link flow
     const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          // Recovery link clicked — show set-new-password form
-          setIsRecovery(true);
-          subscription.unsubscribe();
-          return;
-        }
-
         if (event === 'SIGNED_IN' && session) {
           const email = session.user.email?.toLowerCase() ?? '';
           if (!ADMIN_EMAILS.includes(email)) {
@@ -37,12 +41,10 @@ function CallbackHandler() {
             router.push('/users');
           }
           subscription.unsubscribe();
-          return;
         }
       }
     );
 
-    // Fallback: if no auth event fires in 6s, redirect to login
     const timeout = setTimeout(() => {
       subscription.unsubscribe();
       router.push('/login?error=no_session');
