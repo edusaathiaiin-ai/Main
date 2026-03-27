@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
@@ -270,13 +271,57 @@ export function QuestionFeed() {
               </div>
             ) : (
               <div ref={newQuestionRef}>
-                {questions.map((q) => (
-                  <QuestionCard
-                    key={q.id}
-                    question={q}
-                    currentUserId={profile?.id}
-                    primaryColor={activeSaathi.primary}
-                  />
+                {questions.map((q, idx) => (
+                  <div key={q.id}>
+                    <QuestionCard
+                      question={q}
+                      currentUserId={profile?.id}
+                      primaryColor={activeSaathi.primary}
+                    />
+                    {/* Upgrade nudge after 3rd question — free plan only */}
+                    {idx === 2 && profile?.plan_id === 'free' && (
+                      <div
+                        style={{
+                          margin: '16px 0',
+                          padding: '16px 20px',
+                          borderRadius: '14px',
+                          background: 'rgba(201,153,58,0.06)',
+                          border: '0.5px solid rgba(201,153,58,0.2)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '16px',
+                        }}
+                      >
+                        <div>
+                          <p style={{ fontSize: '13px', fontWeight: '600', color: '#fff', margin: '0 0 3px' }}>
+                            Want to ask your own question?
+                          </p>
+                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+                            Plus members post unlimited questions. Faculty answers yours first.
+                          </p>
+                        </div>
+                        <Link
+                          href="/pricing?trigger=board"
+                          onClick={() => sessionStorage.setItem('upgrade_return_url', '/board')}
+                          style={{
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            background: 'rgba(201,153,58,0.2)',
+                            border: '0.5px solid rgba(201,153,58,0.4)',
+                            color: '#C9993A',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            textDecoration: 'none',
+                            flexShrink: 0,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Join Plus →
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 ))}
 
                 {/* Pagination */}

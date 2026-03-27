@@ -1155,9 +1155,24 @@ Deno.serve(async (req: Request) => {
     }
     // ─────────────────────────────────────────────────────────────────────────
 
+    // Resolve saathi slug → vertical UUID for all DB calls
+    const { data: verticalRow, error: verticalError } = await admin
+      .from('verticals')
+      .select('id')
+      .eq('slug', saathiId)
+      .single();
+
+    if (verticalError || !verticalRow) {
+      return new Response(JSON.stringify({ error: 'Invalid saathi' }), {
+        status: 400,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+    const verticalId = (verticalRow as { id: string }).id;
+
     // Quota enforcement
     const dateIst = todayIST();
-    const quotaRow = await getOrCreateQuotaRow(admin, userId, saathiId, botSlot, dateIst);
+    const quotaRow = await getOrCreateQuotaRow(admin, userId, verticalId, botSlot, dateIst);
 
     // Check cooling period
     if (quotaRow.cooling_until) {
@@ -1176,7 +1191,7 @@ Deno.serve(async (req: Request) => {
         .from('chat_sessions')
         .update({ message_count: 0, cooling_until: null })
         .eq('user_id', userId)
-        .eq('vertical_id', saathiId)
+        .eq('vertical_id', verticalId)
         .eq('bot_slot', botSlot)
         .eq('quota_date_ist', dateIst);
       quotaRow.message_count = 0;
@@ -1190,12 +1205,12 @@ Deno.serve(async (req: Request) => {
     }
 
     // Build personalised system prompt (server-side only)
-    const systemPrompt = await buildSystemPrompt(admin, userId, saathiId, botSlot);
+    const systemPrompt = await buildSystemPrompt(admin, userId, verticalId, botSlot);
 
     // Persist user message
     await admin.from('chat_messages').insert({
       user_id: userId,
-      vertical_id: saathiId,
+      vertical_id: verticalId,
       bot_slot: botSlot,
       role: 'user',
       content: sanitized,
@@ -1243,12 +1258,12 @@ Deno.serve(async (req: Request) => {
             // AI responded with content — save message and charge quota
             await admin.from('chat_messages').insert({
               user_id: userId,
-              vertical_id: saathiId,
+              vertical_id: verticalId,
               bot_slot: botSlot,
               role: 'assistant',
               content: assistantText,
             });
-            await incrementQuota(admin, userId, saathiId, botSlot, dateIst, quotaRow.message_count, dailyQuota, effectiveCoolingHours);
+            await incrementQuota(admin, userId, verticalId, botSlot, dateIst, quotaRow.message_count, dailyQuota, effectiveCoolingHours);
           }
 
           // ── Write observability trace (fire-and-forget) ─────────────────

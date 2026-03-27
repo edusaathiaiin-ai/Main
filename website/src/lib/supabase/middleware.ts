@@ -37,10 +37,10 @@ export async function updateSession(request: NextRequest) {
   // /privacy, /terms, /pricing — public marketing pages
   if (
     url.pathname.startsWith('/auth') ||
-    url.pathname === '/login'     ||
-    url.pathname === '/'          ||
-    url.pathname === '/privacy'   ||
-    url.pathname === '/terms'     ||
+    url.pathname === '/login' ||
+    url.pathname === '/' ||
+    url.pathname === '/privacy' ||
+    url.pathname === '/terms' ||
     url.pathname === '/pricing'
   ) {
     return supabaseResponse;

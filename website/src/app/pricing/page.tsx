@@ -36,8 +36,15 @@ const EDUSAATHI_PROS = [
   'Built exclusively for Indian students by IAES Ahmedabad',
 ];
 
-// ── Coming Soon Modal ─────────────────────────────────────────────────────────
-function ComingSoonModal({ onClose }: { onClose: () => void }) {
+// ── Founding Access Modal (shown when PAYMENTS_ACTIVE=false) ─────────────────
+function FoundingModal({ onClose, returnUrl, userEmail }: { onClose: () => void; returnUrl: string; userEmail: string }) {
+  const router = useRouter();
+
+  function handleBack() {
+    onClose();
+    router.push(returnUrl);
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -48,7 +55,7 @@ function ComingSoonModal({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.9, opacity: 0. }}
+        initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
@@ -56,18 +63,23 @@ function ComingSoonModal({ onClose }: { onClose: () => void }) {
         style={{ background: '#0B1F3A', border: '1.5px solid rgba(201,153,58,0.4)' }}
       >
         <div className="text-4xl mb-4">✦</div>
-        <h3 className="font-playfair text-2xl font-bold text-white mb-3">Payment coming soon!</h3>
-        <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.55)' }}>
-          You have <strong style={{ color: '#C9993A' }}>Founding Student Access</strong> — full Plus features{' '}
-          <strong className="text-white">free for 60 days</strong>. No card required.{' '}
-          We&apos;re activating payments soon — you&apos;ll be notified first.
+        <h3 className="font-playfair text-2xl font-bold text-white mb-3">
+          You&apos;re early — that&apos;s a good thing ✦
+        </h3>
+        <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
+          Payments are opening very soon. As a Founding Student, you already have{' '}
+          <strong className="text-white">full Plus access for 60 days — completely free.</strong>
+          <br /><br />
+          We&apos;ll notify you at{' '}
+          <strong style={{ color: '#C9993A' }}>{userEmail || 'your email'}</strong>{' '}
+          the moment paid plans go live. You&apos;ll get a special Founding Member rate.
         </p>
         <button
-          onClick={onClose}
+          onClick={handleBack}
           className="w-full rounded-xl py-3 text-sm font-bold transition-all hover:brightness-110"
           style={{ background: '#C9993A', color: '#060F1D' }}
         >
-          Got it — enjoy my free access →
+          Got it — back to learning →
         </button>
       </motion.div>
     </motion.div>
@@ -79,35 +91,38 @@ export default function PricingPage() {
   const router = useRouter();
   const [billing, setBilling] = useState<BillingCycle>('monthly');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [showFoundingModal, setShowFoundingModal] = useState(false);
+  const [foundingReturnUrl, setFoundingReturnUrl] = useState('/chat');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
-    // getSession() is fine here — only used for UI state (show login button)
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsLoggedIn(!!session);
+      setUserEmail(session?.user?.email ?? '');
     });
   }, []);
 
   async function handleUpgrade(planId: string) {
+    const returnUrl = sessionStorage.getItem('upgrade_return_url') ?? '/chat';
+
     if (!isLoggedIn) {
-      router.push(`/login?redirect=/pricing`);
+      sessionStorage.setItem('upgrade_return_url', returnUrl);
+      router.push('/login?redirect=/pricing');
       return;
     }
     if (!PAYMENTS_ACTIVE) {
-      setShowModal(true);
+      setFoundingReturnUrl(returnUrl);
+      setShowFoundingModal(true);
       return;
     }
 
-    // Payment path: use getUser() for cryptographically verified identity
     setIsLoading(true);
     try {
       const supabase = createClient();
-      // getUser() verifies JWT signature with Supabase Auth servers
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push('/login?redirect=/pricing'); return; }
-      // Get the current session to extract the access_token for Bearer header
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { router.push('/login?redirect=/pricing'); return; }
 
@@ -123,7 +138,6 @@ export default function PricingPage() {
       const order = await res.json() as { id: string; amount: number; currency: string };
       if (!order.id) throw new Error('Order creation failed');
 
-      // Open Razorpay checkout
       const rzp = new (window as unknown as { Razorpay: new (opts: Record<string, unknown>) => { open: () => void } }).Razorpay({
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
@@ -133,14 +147,15 @@ export default function PricingPage() {
         description: `Saathi ${planId.charAt(0).toUpperCase() + planId.slice(1)} Plan`,
         theme: { color: '#C9993A' },
         handler: () => {
-          // Payment success — refresh page
-          window.location.href = '/pricing?success=1';
+          sessionStorage.removeItem('upgrade_return_url');
+          sessionStorage.removeItem('upgrade_trigger');
+          window.location.href = `${returnUrl}?upgraded=true`;
         },
+        modal: { ondismiss: () => setIsLoading(false) },
       });
       rzp.open();
     } catch (err) {
       console.error('Payment error:', err);
-    } finally {
       setIsLoading(false);
     }
   }
@@ -368,9 +383,15 @@ export default function PricingPage() {
 
         </div>
 
-        {/* ── Payment coming soon modal ────────────────────────────── */}
+        {/* ── Founding access modal ────────────────────────────────── */}
         <AnimatePresence>
-          {showModal && <ComingSoonModal onClose={() => setShowModal(false)} />}
+          {showFoundingModal && (
+            <FoundingModal
+              onClose={() => setShowFoundingModal(false)}
+              returnUrl={foundingReturnUrl}
+              userEmail={userEmail}
+            />
+          )}
         </AnimatePresence>
       </main>
     </>

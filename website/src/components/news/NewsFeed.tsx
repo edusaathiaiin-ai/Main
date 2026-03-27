@@ -77,7 +77,7 @@ export function NewsFeed() {
         .from('chat_sessions')
         .select('message_count, cooling_until')
         .eq('user_id', profile.id)
-        .eq('session_date', new Date().toISOString().slice(0, 10))
+        .eq('quota_date_ist', new Date().toISOString().slice(0, 10))
         .single();
       if (data) {
         const planLimits: Record<string, number> = { free: 5, plus: 20, pro: 50, unlimited: 9999 };

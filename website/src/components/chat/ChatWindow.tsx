@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { streamChat } from '@/lib/ai';
@@ -21,6 +21,8 @@ import { CoolingBanner } from './CoolingBanner';
 import { ConversionModal } from './ConversionModal';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNav } from '@/components/layout/MobileNav';
+import { UpgradeBanner } from '@/components/ui/UpgradeBanner';
+import type { UpgradeTrigger } from '@/components/ui/UpgradeBanner';
 import type { QuotaState, Saathi } from '@/types';
 
 const DEFAULT_QUOTA: QuotaState = {
@@ -124,6 +126,7 @@ export function ChatWindow() {
   } = useChatStore();
 
   const { mode } = useThemeStore();
+  const searchParams = useSearchParams();
 
   const [quota, setQuota] = useState<QuotaState>(DEFAULT_QUOTA);
   const [inputValue, setInputValue] = useState('');
@@ -134,6 +137,10 @@ export function ChatWindow() {
     open: false,
     trigger: 'quota_hit',
   });
+  const [soulData, setSoulData] = useState<{ sessionCount: number; shellBroken: boolean } | null>(null);
+  const [upgradeTrigger, setUpgradeTrigger] = useState<UpgradeTrigger | null>(null);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const conversionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -149,6 +156,52 @@ export function ChatWindow() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingText]);
 
+  // Post-upgrade celebration
+  useEffect(() => {
+    if (searchParams.get('upgraded') !== 'true') return;
+    setShowCelebration(true);
+    router.replace('/chat', { scroll: false });
+    const t = setTimeout(() => setShowCelebration(false), 2500);
+    return () => clearTimeout(t);
+  }, [searchParams, router]);
+
+  // Upgrade banner trigger logic — free plan only
+  useEffect(() => {
+    if (profile?.plan_id !== 'free') return;
+    if (bannerDismissed || !soulData) return;
+
+    // Cooling — highest priority
+    if (quota.isCooling) {
+      if (!sessionStorage.getItem('banner_dismissed_cooling')) {
+        setUpgradeTrigger('cooling');
+      }
+      return;
+    }
+
+    // Quota low
+    if (quota.remaining <= 3 && quota.remaining > 0) {
+      if (!sessionStorage.getItem('banner_dismissed_quota_low')) {
+        setUpgradeTrigger('quota_low');
+      }
+      return;
+    }
+
+    // Shell broken — passion moment
+    if (soulData.shellBroken && !sessionStorage.getItem('shell_banner_shown')) {
+      sessionStorage.setItem('shell_banner_shown', '1');
+      setUpgradeTrigger('shell_broken');
+      return;
+    }
+
+    // Session milestones
+    if (
+      [3, 5, 10].includes(soulData.sessionCount) &&
+      !sessionStorage.getItem('banner_dismissed_session_milestone')
+    ) {
+      setUpgradeTrigger('session_milestone');
+    }
+  }, [quota, soulData, bannerDismissed, profile?.plan_id]);
+
   // Init: set saathi + fetch quota + soul banner
   useEffect(() => {
     if (!profile) return;
@@ -163,9 +216,9 @@ export function ChatWindow() {
     const supabase = createClient();
     const { data } = await supabase
       .from('chat_sessions')
-      .select('message_count, cooling_until, plan_id')
+      .select('message_count, cooling_until')
       .eq('user_id', userId)
-      .eq('session_date', new Date().toISOString().slice(0, 10))
+      .eq('quota_date_ist', new Date().toISOString().slice(0, 10))
       .single();
 
     if (!data) return;
@@ -191,7 +244,7 @@ export function ChatWindow() {
     const supabase = createClient();
     const { data } = await supabase
       .from('student_soul')
-      .select('display_name, last_session_summary, session_count')
+      .select('display_name, last_session_summary, session_count, shell_broken')
       .eq('user_id', userId)
       .eq('vertical_id', sid)
       .single();
@@ -202,6 +255,10 @@ export function ChatWindow() {
         summary: data.last_session_summary.split('.')[0] ?? data.last_session_summary,
       });
     }
+    setSoulData({
+      sessionCount: (data?.session_count as number) ?? 0,
+      shellBroken: Boolean(data?.shell_broken),
+    });
   }
 
   // Switch saathi
@@ -240,6 +297,10 @@ export function ChatWindow() {
     if (!profile || isStreaming || quota.isCooling || quota.remaining === 0) return;
 
     const supabase = createClient();
+    // getUser() validates the JWT server-side and triggers a refresh if expired,
+    // then getSession() returns the guaranteed-fresh token.
+    const { error: authErr } = await supabase.auth.getUser();
+    if (authErr) { router.push('/login'); return; }
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { router.push('/login'); return; }
 
@@ -331,6 +392,7 @@ export function ChatWindow() {
         onSlotChange={handleSlotChange}
         onLockedTap={handleLockedTap}
         onSignOut={handleSignOut}
+        sessionCount={soulData?.sessionCount ?? 0}
       />
 
       {/* Main chat area */}
@@ -465,6 +527,61 @@ export function ChatWindow() {
         botName={conversionModal.botName}
         onClose={() => setConversionModal((p) => ({ ...p, open: false }))}
       />
+
+      {/* Upgrade banner */}
+      <AnimatePresence>
+        {upgradeTrigger && !bannerDismissed && (
+          <UpgradeBanner
+            trigger={upgradeTrigger}
+            studentName={profile.full_name ?? undefined}
+            onDismiss={() => {
+              sessionStorage.setItem(`banner_dismissed_${upgradeTrigger}`, 'true');
+              setBannerDismissed(true);
+              setUpgradeTrigger(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Post-upgrade celebration overlay */}
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 60,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(6,15,29,0.92)',
+              backdropFilter: 'blur(16px)',
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+              style={{ textAlign: 'center' }}
+            >
+              <div style={{ fontSize: '64px', marginBottom: '24px' }}>✦</div>
+              <h2
+                className="font-playfair"
+                style={{ fontSize: '28px', fontWeight: 700, color: '#C9993A', marginBottom: '12px' }}
+              >
+                Welcome to Plus, {profile.full_name?.split(' ')[0] ?? 'friend'}! 🎉
+              </h2>
+              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', maxWidth: '320px', lineHeight: 1.6 }}>
+                No more limits. Your Saathi is fully yours.
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

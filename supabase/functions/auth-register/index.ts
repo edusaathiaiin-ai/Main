@@ -108,14 +108,14 @@ Deno.serve(async (req: Request) => {
     const action = body.action ?? 'precheck';
     const deviceId = body.deviceId?.trim() ?? '';
 
-    if (deviceId.length > 0 && (await deviceExists(admin, deviceId))) {
-      return new Response(JSON.stringify({ error: 'Account exists on this device' }), {
-        status: 409,
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-      });
-    }
-
     if (action === 'precheck') {
+      // Block device during precheck (new registrations only — user not yet authenticated)
+      if (deviceId.length > 0 && (await deviceExists(admin, deviceId))) {
+        return new Response(JSON.stringify({ error: 'Account exists on this device' }), {
+          status: 409,
+          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
       const email = body.email?.trim().toLowerCase() ?? '';
       if (!email) {
         return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -163,6 +163,22 @@ Deno.serve(async (req: Request) => {
         status: 401,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Block only if device belongs to a DIFFERENT user (returning users on their own device must pass)
+    if (deviceId.length > 0) {
+      const { data: deviceOwner } = await admin
+        .from('profiles')
+        .select('id')
+        .eq('device_id', deviceId)
+        .maybeSingle();
+
+      if (deviceOwner && (deviceOwner as { id: string }).id !== user.id) {
+        return new Response(JSON.stringify({ error: 'Account exists on this device' }), {
+          status: 409,
+          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     const email = user.email?.trim().toLowerCase() ?? '';

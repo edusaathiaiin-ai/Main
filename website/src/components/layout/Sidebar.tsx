@@ -14,7 +14,50 @@ type Props = {
   onSlotChange: (slot: 1 | 2 | 3 | 4 | 5) => void;
   onLockedTap: (botName: string) => void;
   onSignOut: () => void;
+  sessionCount?: number;
 };
+
+const UPGRADE_MESSAGES = [
+  { min: 0,  max: 2,  text: 'Try Saathi Plus →',          sub: '₹199/month' },
+  { min: 3,  max: 5,  text: 'Enjoying this? Go Plus →',   sub: 'Unlimited learning' },
+  { min: 6,  max: 9,  text: 'Your Saathi remembers you ✦', sub: 'Upgrade to protect this' },
+  { min: 10, max: 999, text: '10 sessions together 🎉',    sub: 'Become a Plus member' },
+];
+
+function UpgradePill({ sessionCount }: { sessionCount: number }) {
+  const msg =
+    UPGRADE_MESSAGES.find((m) => sessionCount >= m.min && sessionCount <= m.max) ??
+    UPGRADE_MESSAGES[0];
+
+  function handleClick() {
+    sessionStorage.setItem('upgrade_return_url', window.location.pathname);
+    sessionStorage.setItem('upgrade_trigger', 'sidebar_pill');
+  }
+
+  return (
+    <Link
+      href="/pricing?trigger=sidebar"
+      onClick={handleClick}
+      style={{
+        display: 'block',
+        margin: '8px 12px',
+        padding: '10px 14px',
+        borderRadius: '12px',
+        background: 'linear-gradient(135deg, rgba(201,153,58,0.15), rgba(201,153,58,0.05))',
+        border: '0.5px solid rgba(201,153,58,0.35)',
+        textDecoration: 'none',
+        transition: 'all 0.2s ease',
+      }}
+    >
+      <p style={{ fontSize: '12px', fontWeight: '600', color: '#C9993A', margin: '0 0 2px' }}>
+        {msg.text}
+      </p>
+      <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+        {msg.sub}
+      </p>
+    </Link>
+  );
+}
 
 const NAV_LINKS = [
   { href: '/chat', icon: '💬', label: 'Chat' },
@@ -31,6 +74,7 @@ export function Sidebar({
   onSlotChange,
   onLockedTap,
   onSignOut,
+  sessionCount = 0,
 }: Props) {
   const pathname = usePathname();
 
@@ -127,6 +171,9 @@ export function Sidebar({
           );
         })}
       </nav>
+
+      {/* Upgrade pill — free plan only */}
+      {profile.plan_id === 'free' && <UpgradePill sessionCount={sessionCount} />}
 
       {/* User footer */}
       <div className="px-4 py-4" style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
