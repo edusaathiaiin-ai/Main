@@ -190,6 +190,11 @@ export function Sidebar({
             </p>
             <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.3)' }}>
               {profile.plan_id} plan
+              {sessionCount >= 3 && (
+                <span style={{ marginLeft: '6px' }}>
+                  {sessionCount >= 25 ? '🦋' : sessionCount >= 15 ? '💥' : sessionCount >= 8 ? '🔥' : '✨'}
+                </span>
+              )}
             </p>
           </div>
         </div>

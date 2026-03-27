@@ -46,6 +46,8 @@ type PreferredTone = 'formal' | 'casual' | 'neutral';
 // deno-lint-ignore no-explicit-any
 type SupabaseClientType = ReturnType<typeof createClient<any>>;
 
+type FlameStage = 'cold' | 'spark' | 'flame' | 'fire' | 'wings';
+
 type RawSoulRow = {
   display_name: unknown;
   preferred_tone: unknown;
@@ -53,7 +55,17 @@ type RawSoulRow = {
   struggle_topics: unknown;
   session_count: unknown;
   last_session_summary: unknown;
+  flame_stage: unknown;
 };
+
+// Flame stage advances with session count — passion ignites over time
+function nextFlameStage(sessionCount: number): FlameStage {
+  if (sessionCount >= 25) return 'wings';
+  if (sessionCount >= 15) return 'fire';
+  if (sessionCount >= 8)  return 'flame';
+  if (sessionCount >= 3)  return 'spark';
+  return 'cold';
+}
 
 // ---------------------------------------------------------------------------
 // Tone detection
@@ -260,7 +272,7 @@ Deno.serve(async (req: Request) => {
     // Fetch current soul record
     const { data: soulData } = await admin
       .from('student_soul')
-      .select('display_name, preferred_tone, top_topics, struggle_topics, session_count, last_session_summary')
+      .select('display_name, preferred_tone, top_topics, struggle_topics, session_count, last_session_summary, flame_stage')
       .eq('user_id', user.id)
       .eq('vertical_id', saathiId)
       .maybeSingle();
@@ -274,6 +286,9 @@ Deno.serve(async (req: Request) => {
     const existingTopics: string[] = Array.isArray(row?.top_topics) ? (row.top_topics as string[]) : [];
     const existingStruggles: string[] = Array.isArray(row?.struggle_topics) ? (row.struggle_topics as string[]) : [];
     const sessionCount: number = typeof row?.session_count === 'number' ? row.session_count : 0;
+    const existingFlameStage = typeof row?.flame_stage === 'string' ? (row.flame_stage as FlameStage) : 'cold';
+    const newFlameStage = nextFlameStage(sessionCount + 1);
+    const flameStageChanged = newFlameStage !== existingFlameStage;
 
     // Run analysis
     const newTone = detectPreferredTone(messages, existingTone);
@@ -295,6 +310,7 @@ Deno.serve(async (req: Request) => {
         struggle_topics: mergedStruggles,
         last_session_summary: summary || (typeof row?.last_session_summary === 'string' ? row.last_session_summary : null),
         session_count: sessionCount + 1,
+        flame_stage: newFlameStage,
       },
       { onConflict: 'user_id,vertical_id' }
     );
@@ -311,6 +327,9 @@ Deno.serve(async (req: Request) => {
         topicsAdded: sessionTopics.length,
         strugglesAdded: newStruggles.length,
         summaryGenerated: Boolean(summary),
+        flameStageChanged,
+        newFlameStage,
+        previousFlameStage: existingFlameStage,
       }),
       {
         status: 200,

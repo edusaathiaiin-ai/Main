@@ -141,6 +141,7 @@ export function ChatWindow() {
   const [upgradeTrigger, setUpgradeTrigger] = useState<UpgradeTrigger | null>(null);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [flameTransition, setFlameTransition] = useState<{ stage: string; emoji: string } | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const conversionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -328,6 +329,32 @@ export function ChatWindow() {
 
       // Refresh quota
       await fetchQuota(profile.id);
+
+      // Call soul-update (fire-and-forget — never block the UI)
+      const sessionMsgs = messages
+        .slice(-20)
+        .map((m) => ({ role: m.role, content: m.content }));
+
+      fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/soul-update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ saathiId, sessionMessages: sessionMsgs }),
+      })
+        .then((r) => r.json())
+        .then((result: { flameStageChanged?: boolean; newFlameStage?: string }) => {
+          if (result.flameStageChanged && result.newFlameStage) {
+            const FLAME_EMOJI: Record<string, string> = {
+              spark: '✨', flame: '🔥', fire: '💥', wings: '🦋',
+            };
+            const emoji = FLAME_EMOJI[result.newFlameStage] ?? '🔥';
+            setFlameTransition({ stage: result.newFlameStage, emoji });
+            setTimeout(() => setFlameTransition(null), 3500);
+          }
+        })
+        .catch(() => { /* soul-update failure must never affect chat */ });
 
       // Show conversion modal after quota hit
       const updatedRemaining = quota.remaining - 1;
@@ -540,6 +567,40 @@ export function ChatWindow() {
               setUpgradeTrigger(null);
             }}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Flame stage transition moment */}
+      <AnimatePresence>
+        {flameTransition && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+            style={{
+              position: 'fixed',
+              bottom: '32px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 55,
+              padding: '16px 28px',
+              borderRadius: '20px',
+              background: 'rgba(11,31,58,0.95)',
+              border: '1px solid rgba(201,153,58,0.5)',
+              backdropFilter: 'blur(16px)',
+              textAlign: 'center',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+            }}
+          >
+            <div style={{ fontSize: '36px', marginBottom: '8px' }}>{flameTransition.emoji}</div>
+            <p className="font-playfair" style={{ fontSize: '15px', fontWeight: 700, color: '#C9993A', margin: '0 0 4px' }}>
+              Your passion just levelled up
+            </p>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0, textTransform: 'capitalize' }}>
+              {flameTransition.stage} stage reached
+            </p>
+          </motion.div>
         )}
       </AnimatePresence>
 
