@@ -1284,7 +1284,7 @@ Deno.serve(async (req: Request) => {
             completed_at:      new Date().toISOString(),
             duration_ms:       Date.now() - t0,
             ttfb_ms:           ttfbMs,
-            ai_provider:       useGroq ? 'groq' : 'claude',
+            ai_provider:       isStem ? 'claude' : 'groq',
             outcome:           assistantText ? 'success' : (lastError ? 'error' : 'empty'),
             error_code:        lastError?.code ?? null,
             error_message:     lastError?.message ?? null,
