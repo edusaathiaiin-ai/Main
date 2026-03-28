@@ -4,6 +4,111 @@ import { AutoRefresh } from '@/components/AutoRefresh';
 
 export const dynamic = 'force-dynamic';
 
+// ── API cost config ──────────────────────────────────────────────────────────
+// Input/output rates per 1M tokens (USD). Update when providers change pricing.
+const RATES: Record<string, { input: number; output: number; budget: number; label: string; free_daily: number }> = {
+  groq:   { input: 0.59,  output: 0.79,  budget: 20,  label: 'Groq',          free_daily: 100  },
+  gemini: { input: 0.10,  output: 0.40,  budget: 10,  label: 'Gemini Flash',  free_daily: 1500 },
+  claude: { input: 3.00,  output: 15.00, budget: 60,  label: 'Claude Sonnet', free_daily: 0    },
+  grok:   { input: 5.00,  output: 25.00, budget: 10,  label: 'xAI Grok',      free_daily: 0    },
+};
+const TOTAL_BUDGET = Object.values(RATES).reduce((s, r) => s + r.budget, 0); // $100
+
+function calcCost(provider: string, promptTok: number, outputTok: number): number {
+  const r = RATES[provider];
+  if (!r) return 0;
+  return (promptTok * r.input + outputTok * r.output) / 1_000_000;
+}
+
+type CostRow = { ai_provider: string | null; prompt_tokens: number | null; total_tokens: number | null };
+
+type ProviderStat = {
+  provider: string;
+  label: string;
+  msgs7d: number;
+  msgsToday: number;
+  cost7d: number;
+  costToday: number;
+  budget: number;
+  free_daily: number;
+  dailyBurn: number;       // 7d avg daily cost
+  daysLeft: number | null; // null = infinite (within free tier)
+  status: MetricStatus;
+};
+
+async function fetchCostMetrics(): Promise<{ stats: ProviderStat[]; totalBurn: number; projectedMonthly: number }> {
+  const admin = getAdminClient();
+  const since7d    = new Date(Date.now() - 7 * 86_400_000).toISOString();
+  const sinceToday = new Date(new Date().setUTCHours(0, 0, 0, 0)).toISOString();
+
+  const [{ data: rows7d }, { data: rowsToday }] = await Promise.all([
+    admin.from('traces')
+      .select('ai_provider, prompt_tokens, total_tokens')
+      .gte('created_at', since7d)
+      .eq('action_type', 'chat')
+      .eq('outcome', 'success')
+      .limit(10000),
+    admin.from('traces')
+      .select('ai_provider, prompt_tokens, total_tokens')
+      .gte('created_at', sinceToday)
+      .eq('action_type', 'chat')
+      .eq('outcome', 'success')
+      .limit(2000),
+  ]);
+
+  const aggregate = (rows: CostRow[]) => {
+    const map: Record<string, { msgs: number; cost: number }> = {};
+    for (const row of rows) {
+      const p = row.ai_provider ?? 'groq';
+      const prompt = row.prompt_tokens ?? 1880;
+      const total  = row.total_tokens  ?? 2180;
+      const output = Math.max(0, total - prompt);
+      if (!map[p]) map[p] = { msgs: 0, cost: 0 };
+      map[p].msgs++;
+      map[p].cost += calcCost(p, prompt, output);
+    }
+    return map;
+  };
+
+  const data7d    = aggregate((rows7d    ?? []) as CostRow[]);
+  const dataToday = aggregate((rowsToday ?? []) as CostRow[]);
+
+  const stats: ProviderStat[] = Object.entries(RATES).map(([key, cfg]) => {
+    const d7    = data7d[key]    ?? { msgs: 0, cost: 0 };
+    const dTod  = dataToday[key] ?? { msgs: 0, cost: 0 };
+    const dailyBurn = d7.cost / 7;
+    const freeBuffer = (cfg.free_daily / Math.max(d7.msgs / 7, 1)) * dailyBurn; // cost savings from free tier
+    const netBurn = Math.max(0, dailyBurn - freeBuffer);
+    const daysLeft = cfg.budget <= 0 ? null : netBurn <= 0 ? null : Math.floor(cfg.budget / netBurn);
+
+    let status: MetricStatus = 'good';
+    if (daysLeft !== null) {
+      if (daysLeft <= 3) status = 'bad';
+      else if (daysLeft <= 10) status = 'warn';
+    }
+    if (dTod.cost > cfg.budget * 0.15) status = 'bad'; // single day > 15% of budget
+
+    return {
+      provider: key,
+      label: cfg.label,
+      msgs7d: d7.msgs,
+      msgsToday: dTod.msgs,
+      cost7d: d7.cost,
+      costToday: dTod.cost,
+      budget: cfg.budget,
+      free_daily: cfg.free_daily,
+      dailyBurn,
+      daysLeft,
+      status,
+    };
+  });
+
+  const totalBurn = stats.reduce((s, p) => s + p.dailyBurn, 0);
+  const projectedMonthly = totalBurn * 30;
+
+  return { stats, totalBurn, projectedMonthly };
+}
+
 type MetricStatus = 'good' | 'warn' | 'bad' | 'neutral';
 type MetricCard = {
   label: string;
@@ -128,7 +233,10 @@ async function fetchMetrics(): Promise<MetricCard[]> {
 
 export default async function ObservabilityPage() {
   await requireAdmin();
-  const metrics = await fetchMetrics();
+  const [metrics, { stats, totalBurn, projectedMonthly }] = await Promise.all([
+    fetchMetrics(),
+    fetchCostMetrics(),
+  ]);
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -156,6 +264,102 @@ export default async function ObservabilityPage() {
             <p className="text-slate-600 text-xs mt-1">{metric.sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* ── API Cost Monitor ─────────────────────────────────────── */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-sm font-semibold text-white">API Cost Monitor</h2>
+            <p className="text-slate-500 text-xs mt-0.5">
+              7-day avg burn · ${totalBurn.toFixed(2)}/day · projected ${projectedMonthly.toFixed(0)}/month
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-slate-500">Total budget</p>
+            <p className="text-sm font-mono font-bold text-white">${TOTAL_BUDGET}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {stats.map((s) => {
+            const budgetUsedPct = s.budget > 0 ? Math.min(100, (s.cost7d / s.budget) * 100) : 0;
+            const barColor =
+              s.status === 'bad'  ? 'bg-red-500' :
+              s.status === 'warn' ? 'bg-amber-500' : 'bg-emerald-500';
+            const borderColor =
+              s.status === 'bad'  ? 'border-red-500/30' :
+              s.status === 'warn' ? 'border-amber-500/30' : 'border-slate-700';
+
+            return (
+              <div key={s.provider} className={`rounded-xl border bg-slate-900 p-4 ${borderColor}`}>
+                {/* Header */}
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-slate-300 text-sm font-medium">{s.label}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-mono ${
+                    s.status === 'bad'  ? 'bg-red-500/20 text-red-400' :
+                    s.status === 'warn' ? 'bg-amber-500/20 text-amber-400' :
+                    'bg-emerald-500/20 text-emerald-400'
+                  }`}>
+                    {s.daysLeft === null ? '∞ free' : `${s.daysLeft}d left`}
+                  </span>
+                </div>
+
+                {/* Cost today vs 7d */}
+                <div className="flex items-end justify-between mb-3">
+                  <div>
+                    <p className="text-2xl font-bold text-white font-mono">
+                      ${s.costToday.toFixed(3)}
+                    </p>
+                    <p className="text-xs text-slate-500">today ({s.msgsToday} msgs)</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-mono text-slate-400">${s.cost7d.toFixed(2)}</p>
+                    <p className="text-xs text-slate-600">7d total ({s.msgs7d} msgs)</p>
+                  </div>
+                </div>
+
+                {/* Budget bar */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-slate-600">
+                    <span>${s.cost7d.toFixed(2)} used</span>
+                    <span>budget ${s.budget}</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${barColor}`}
+                      style={{ width: `${Math.max(2, budgetUsedPct)}%` }}
+                    />
+                  </div>
+                  {s.free_daily > 0 && (
+                    <p className="text-xs text-slate-600">{s.free_daily} free req/day</p>
+                  )}
+                </div>
+
+                {/* Daily burn */}
+                <div className="mt-3 pt-3 border-t border-slate-800">
+                  <p className="text-xs text-slate-500">
+                    Avg burn: <span className="text-slate-300 font-mono">${s.dailyBurn.toFixed(3)}/day</span>
+                    {' · '}
+                    <span className="text-slate-300 font-mono">${(s.dailyBurn * 30).toFixed(1)}/mo</span>
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Top-up warning */}
+        {stats.some(s => s.status !== 'good') && (
+          <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+            <p className="text-amber-400 text-xs font-medium">
+              ⚠️ Top-up needed:{' '}
+              {stats.filter(s => s.status !== 'good').map(s =>
+                `${s.label} (${s.daysLeft === null ? 'check balance' : s.daysLeft + 'd left'})`
+              ).join(' · ')}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Cron schedule reference */}

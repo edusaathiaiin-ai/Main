@@ -927,7 +927,13 @@ async function streamGroqWithFallback(
     }
 
     if (!GROK_API_KEY) throw groqErr;
-    return await streamXaiGrok(systemPrompt, messages, controller);
+    try {
+      return await streamXaiGrok(systemPrompt, messages, controller);
+    } catch {
+      // xAI also failed (no credits, rate limit, etc.) — surface original Groq error
+      console.warn('[chat] xAI Grok failed. All fallbacks exhausted for non-STEM slot.');
+      throw groqErr;
+    }
   }
 }
 
@@ -1297,6 +1303,9 @@ Deno.serve(async (req: Request) => {
           }
 
           // ── Write observability trace (fire-and-forget) ─────────────────
+          // Estimate token counts for cost monitoring (input = system+history+msg, output = response)
+          const estPromptTokens  = Math.round((systemPrompt.length + messages.reduce((s, m) => s + m.content.length, 0)) / 4);
+          const estOutputTokens  = Math.round((assistantText ?? '').length / 4);
           admin.from('traces').insert({
             trace_id:          traceId,
             user_id:           userId,
@@ -1308,6 +1317,8 @@ Deno.serve(async (req: Request) => {
             duration_ms:       Date.now() - t0,
             ttfb_ms:           ttfbMs,
             ai_provider:       isSpeedSlot ? 'groq' : isGeminiFirst ? 'gemini' : 'claude',
+            prompt_tokens:     estPromptTokens,
+            total_tokens:      estPromptTokens + estOutputTokens,
             outcome:           assistantText ? 'success' : (lastError ? 'error' : 'empty'),
             error_code:        lastError?.code ?? null,
             error_message:     lastError?.message ?? null,
