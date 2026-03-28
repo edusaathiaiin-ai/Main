@@ -16,6 +16,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { captureError, captureEvent } from '../_shared/sentry.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -278,7 +279,11 @@ Deno.serve(async (req: Request) => {
 
   if (!isValid) {
     console.warn('razorpay-webhook: invalid signature — request rejected');
-    // Return 400 immediately — zero DB writes, zero side-effects
+    captureEvent('Razorpay webhook — invalid signature', {
+      level: 'warning',
+      tags: { function: 'razorpay-webhook', error_type: 'invalid_signature' },
+      fingerprint: ['razorpay-invalid-signature'],
+    });
     return new Response(JSON.stringify({ error: 'Invalid signature' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
@@ -310,6 +315,17 @@ Deno.serve(async (req: Request) => {
       }
       case 'payment.failed': {
         const payment = payload.payload?.payment?.entity ?? {};
+        captureEvent('Payment failed', {
+          level: 'error',
+          tags: { function: 'razorpay-webhook', error_type: 'payment_failed' },
+          extra: {
+            payment_id:     (payment as Record<string, unknown>).id,
+            amount:         (payment as Record<string, unknown>).amount,
+            error_code:     (payment as Record<string, unknown>).error_code,
+            error_desc:     (payment as Record<string, unknown>).error_description,
+          },
+          fingerprint: ['payment-failed'],
+        });
         await handlePaymentFailed(admin, payment, payload);
         break;
       }
@@ -335,7 +351,12 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : 'unknown';
     console.error(`razorpay-webhook: error processing '${event}':`, message);
-    // Return 500 so Razorpay retries — but signature was already verified above
+    captureError(err, {
+      level: 'fatal',
+      tags: { function: 'razorpay-webhook', error_type: 'processing_error', event_type: event },
+      extra: { event, message },
+      fingerprint: ['razorpay-processing-error'],
+    });
     return new Response(JSON.stringify({ error: 'Processing error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

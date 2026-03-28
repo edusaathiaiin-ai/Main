@@ -16,6 +16,7 @@ import {
   detectInjection,
   type ViolationResult,
 } from './guardrails.ts';
+import { captureError, captureEvent } from '../_shared/sentry.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -1018,6 +1019,12 @@ Deno.serve(async (req: Request) => {
 
     if (authError || !user) {
       console.error('getUser failed:', authError?.message ?? 'no user returned');
+      captureEvent('chat 401 — JWT validation failed', {
+        level: 'warning',
+        tags: { function: 'chat', error_type: '401' },
+        extra: { reason: authError?.message ?? 'no user returned' },
+        fingerprint: ['chat-401'],
+      });
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -1288,6 +1295,12 @@ Deno.serve(async (req: Request) => {
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'Stream error';
           lastError = { code: 'STREAM_ERROR', message: msg.slice(0, 500) };
+          captureError(err, {
+            level: 'error',
+            tags: { function: 'chat', error_type: 'stream_failure', ai_provider: isSpeedSlot ? 'groq' : isGeminiFirst ? 'gemini' : 'claude' },
+            extra: { userId, saathiId, botSlot, msg: msg.slice(0, 200) },
+            fingerprint: ['chat-stream-error'],
+          });
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
         } finally {
           if (assistantText && assistantText.length > 0) {
