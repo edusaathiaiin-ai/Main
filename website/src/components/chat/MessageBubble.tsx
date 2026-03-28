@@ -7,6 +7,8 @@ import { InlineMath, BlockMath } from 'react-katex';
 import type { ChatMessage } from '@/types';
 import { MermaidBlock } from './MermaidBlock';
 import { MoleculeViewer } from './MoleculeViewer';
+import { MindMap } from './MindMap';
+import { VoiceOutput } from './VoiceOutput';
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -16,7 +18,8 @@ type Segment =
   | { type: 'inline-math'; content: string }
   | { type: 'mermaid'; content: string }
   | { type: 'molecule'; name: string }
-  | { type: 'code'; language: string; content: string };
+  | { type: 'code'; language: string; content: string }
+  | { type: 'mindmap'; content: string };
 
 // ─── Sequential segment parser ────────────────────────────────────────────────
 
@@ -75,6 +78,16 @@ function parseMessageContent(text: string): Segment[] {
         index: molecule.index,
         length: molecule[0].length,
         segment: { type: 'molecule', name: molecule[1].trim() },
+      };
+    }
+
+    // 4b. Mind map tag [MINDMAP]...[/MINDMAP]
+    const mindmap = /\[MINDMAP\]([\s\S]+?)\[\/MINDMAP\]/.exec(remaining);
+    if (mindmap && mindmap.index < currentIndex()) {
+      earliest = {
+        index: mindmap.index,
+        length: mindmap[0].length,
+        segment: { type: 'mindmap', content: mindmap[1].trim() },
       };
     }
 
@@ -190,6 +203,9 @@ function RenderSegments({ segments }: { segments: Segment[] }) {
 
           case 'molecule':
             return <MoleculeViewer key={i} name={seg.name} />;
+
+          case 'mindmap':
+            return <MindMap key={i} markdown={seg.content} />;
 
           default:
             return null;
@@ -335,11 +351,16 @@ export function MessageBubble({
         )}
       </div>
 
-      {/* Timestamp */}
+      {/* Timestamp + Voice output for assistant messages */}
       {!isStreaming && (
-        <span className="text-[10px] mx-1" style={{ color: 'var(--text-muted, rgba(255,255,255,0.2))' }}>
-          {formatTime(message.createdAt)}
-        </span>
+        <div className="flex items-center gap-2 mx-1">
+          <span className="text-[10px]" style={{ color: 'var(--text-muted, rgba(255,255,255,0.2))' }}>
+            {formatTime(message.createdAt)}
+          </span>
+          {!isUser && message.content && (
+            <VoiceOutput text={message.content} saathiColor={primaryColor} />
+          )}
+        </div>
       )}
     </div>
   );

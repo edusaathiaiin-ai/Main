@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { QuotaState } from '@/types';
+import { VoiceInput } from './VoiceInput';
 
 type Props = {
   quota: QuotaState;
@@ -92,6 +93,13 @@ export function InputArea({
           }}
           onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.5)')}
           onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+        />
+
+        {/* Voice input */}
+        <VoiceInput
+          onTranscript={(text) => setInputValue(inputValue ? `${inputValue} ${text}` : text)}
+          disabled={disabled}
+          saathiColor={primaryColor}
         />
 
         {/* Send button */}
