@@ -299,12 +299,13 @@ export function ChatWindow() {
     if (!profile || isStreaming || quota.isCooling || quota.remaining === 0) return;
 
     const supabase = createClient();
-    // getUser() validates the JWT server-side and triggers a refresh if expired,
-    // then getSession() returns the guaranteed-fresh token.
-    const { error: authErr } = await supabase.auth.getUser();
-    if (authErr) { router.push('/login'); return; }
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { router.push('/login'); return; }
+    // Use refreshSession() to guarantee a fresh, valid access_token.
+    // getSession() can return a session where access_token is undefined/malformed
+    // if the @supabase/ssr cookie chunks are incomplete — this causes the Supabase
+    // gateway to reject the request with 401 "Invalid Token or Protected Header formatting".
+    // refreshSession() always returns a complete, validated session or an error.
+    const { data: { session }, error: refreshErr } = await supabase.auth.refreshSession();
+    if (refreshErr || !session?.access_token) { router.push('/login'); return; }
 
     const userMsgId = `user-${Date.now()}`;
     addMessage({ id: userMsgId, role: 'user', content: text, createdAt: new Date().toISOString() });
