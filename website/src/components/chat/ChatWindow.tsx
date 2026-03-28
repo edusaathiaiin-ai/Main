@@ -219,8 +219,9 @@ export function ChatWindow() {
       .from('chat_sessions')
       .select('message_count, cooling_until')
       .eq('user_id', userId)
+      .eq('bot_slot', activeBotSlot)
       .eq('quota_date_ist', new Date().toISOString().slice(0, 10))
-      .single();
+      .maybeSingle();
 
     if (!data) return;
 
@@ -248,7 +249,7 @@ export function ChatWindow() {
       .select('display_name, last_session_summary, session_count, shell_broken')
       .eq('user_id', userId)
       .eq('vertical_id', sid)
-      .single();
+      .maybeSingle();
 
     if (data?.last_session_summary && data.session_count > 0) {
       setSoulBanner({

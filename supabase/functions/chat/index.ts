@@ -1011,6 +1011,7 @@ Deno.serve(async (req: Request) => {
     } = await userClient.auth.getUser();
 
     if (authError || !user) {
+      console.error('getUser failed:', authError?.message ?? 'no user returned');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },

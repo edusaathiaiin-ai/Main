@@ -88,6 +88,19 @@ export async function sendChatMessage(params: {
   const { saathiId, botSlot, message, history, onChunk, onComplete, onError } = params;
   const cappedHistory = history.slice(-10);
 
+  // Use getUser() to validate the token server-side and trigger a refresh if the
+  // cached access_token in SecureStore is expired. This avoids the race window
+  // where autoRefreshToken hasn't fired yet but the token is already stale.
+  const { error: userError } = await supabase.auth.getUser();
+  if (userError) {
+    // Token is invalid — force a full session refresh before giving up
+    const { error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      onError({ type: 'error', message: 'Session expired. Please sign in again.' });
+      return;
+    }
+  }
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
