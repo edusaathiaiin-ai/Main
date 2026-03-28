@@ -48,7 +48,12 @@ export function InputArea({
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+      return;
+    }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       handleSend();
     }
@@ -68,7 +73,7 @@ export function InputArea({
       className="shrink-0"
       style={{
         borderTop: '0.5px solid rgba(255,255,255,0.07)',
-        background: 'rgba(11,31,58,0.6)',
+        background: 'var(--bg-tertiary, rgba(11,31,58,0.6))',
         backdropFilter: 'blur(12px)',
       }}
     >
@@ -126,7 +131,7 @@ export function InputArea({
       {/* Status row */}
       <div className="flex items-center justify-between px-5 pb-3 gap-4">
         <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
-          ⌘↵ to send
+          Enter to send · Shift+Enter for new line
         </p>
         <div className="flex items-center gap-3">
           {inputValue.length > SHOW_COUNT_THRESHOLD && (

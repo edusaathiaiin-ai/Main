@@ -37,6 +37,15 @@ const EDUSAATHI_PROS = [
 ];
 
 // ── Founding Access Modal (shown when PAYMENTS_ACTIVE=false) ─────────────────
+const FOUNDING_BENEFITS = [
+  'All 5 bot slots across every Saathi — fully unlocked',
+  '20 conversations per day per bot slot',
+  'Soul memory — your Saathi learns and remembers you',
+  'Unlimited Saathi Check-ins to track your growth',
+  'Indian curriculum alignment + exam-mode for UPSC, GATE, NEET',
+  'Special Founding Member rate locked in when payments open',
+];
+
 function FoundingModal({ onClose, returnUrl, userEmail }: { onClose: () => void; returnUrl: string; userEmail: string }) {
   const router = useRouter();
 
@@ -59,27 +68,51 @@ function FoundingModal({ onClose, returnUrl, userEmail }: { onClose: () => void;
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-2xl p-8 text-center"
+        className="w-full max-w-md rounded-2xl p-8"
         style={{ background: '#0B1F3A', border: '1.5px solid rgba(201,153,58,0.4)' }}
       >
-        <div className="text-4xl mb-4">✦</div>
-        <h3 className="font-playfair text-2xl font-bold text-white mb-3">
-          You&apos;re early — that&apos;s a good thing ✦
+        <div className="text-4xl mb-4 text-center">✦</div>
+        <h3 className="font-playfair text-2xl font-bold text-white mb-2 text-center">
+          You&apos;re early — beautifully so
         </h3>
-        <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
+        <p className="text-sm mb-5 text-center" style={{ color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
           Payments are opening very soon. As a Founding Student, you already have{' '}
           <strong className="text-white">full Plus access for 60 days — completely free.</strong>
-          <br /><br />
-          We&apos;ll notify you at{' '}
-          <strong style={{ color: '#C9993A' }}>{userEmail || 'your email'}</strong>{' '}
-          the moment paid plans go live. You&apos;ll get a special Founding Member rate.
         </p>
+
+        {/* 6 benefits with gold checkmarks */}
+        <ul className="space-y-2.5 mb-5">
+          {FOUNDING_BENEFITS.map((benefit, i) => (
+            <li key={i} className="flex items-start gap-2.5 text-sm">
+              <span className="shrink-0 mt-0.5 font-bold" style={{ color: '#C9993A' }}>✓</span>
+              <span style={{ color: 'rgba(255,255,255,0.7)' }}>{benefit}</span>
+            </li>
+          ))}
+        </ul>
+
+        {userEmail && (
+          <p className="text-xs mb-5 text-center" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            We&apos;ll notify{' '}
+            <strong style={{ color: '#C9993A' }}>{userEmail}</strong>{' '}
+            the moment paid plans go live.
+          </p>
+        )}
+
         <button
           onClick={handleBack}
-          className="w-full rounded-xl py-3 text-sm font-bold transition-all hover:brightness-110"
+          className="w-full rounded-xl py-3 text-sm font-bold transition-all hover:brightness-110 mb-2"
           style={{ background: '#C9993A', color: '#060F1D' }}
         >
           Got it — back to learning →
+        </button>
+        <button
+          onClick={onClose}
+          className="w-full rounded-xl py-2.5 text-xs transition-all"
+          style={{ background: 'transparent', color: 'rgba(255,255,255,0.35)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
+        >
+          Stay on pricing page
         </button>
       </motion.div>
     </motion.div>
