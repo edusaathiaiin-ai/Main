@@ -13,6 +13,10 @@ import { Molecule3DViewer } from './Molecule3DViewer';
 import { MechanismViewer, type MechanismType } from './MechanismViewer';
 import { AnatomyViewer, type AnatomyPart } from './AnatomyViewer';
 import { CircuitSimulator, type CircuitType } from './CircuitSimulator';
+import { ArchModel3D } from './ArchModel3D';
+import { ArchTimeline } from './ArchTimeline';
+import { GoldenRatioTool } from './GoldenRatioTool';
+import { FloorPlanViewer, type FloorPlanData } from './FloorPlanViewer';
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -27,7 +31,11 @@ type Segment =
   | { type: 'molecule3d'; name: string }
   | { type: 'mechanism'; name: string }
   | { type: 'anatomy'; name: string }
-  | { type: 'circuit'; name: string };
+  | { type: 'circuit'; name: string }
+  | { type: 'archmodel'; name: string }
+  | { type: 'floorplan'; content: string }
+  | { type: 'arch_timeline' }
+  | { type: 'golden_ratio'; width: number; height: number };
 
 // ─── Sequential segment parser ────────────────────────────────────────────────
 
@@ -136,6 +144,46 @@ function parseMessageContent(text: string): Segment[] {
         index: circuitMatch.index,
         length: circuitMatch[0].length,
         segment: { type: 'circuit' as const, name: circuitMatch[1].trim() },
+      };
+    }
+
+    // 4g. ArchModel tag [ARCHMODEL: name]
+    const archModel = /\[ARCHMODEL:\s*([^\]]+)\]/i.exec(remaining);
+    if (archModel && archModel.index < currentIndex()) {
+      earliest = {
+        index: archModel.index,
+        length: archModel[0].length,
+        segment: { type: 'archmodel' as const, name: archModel[1].trim() },
+      };
+    }
+
+    // 4h. FloorPlan tag [FLOORPLAN]...[/FLOORPLAN]
+    const floorPlan = /\[FLOORPLAN\]([\s\S]+?)\[\/FLOORPLAN\]/i.exec(remaining);
+    if (floorPlan && floorPlan.index < currentIndex()) {
+      earliest = {
+        index: floorPlan.index,
+        length: floorPlan[0].length,
+        segment: { type: 'floorplan' as const, content: floorPlan[1] },
+      };
+    }
+
+    // 4i. Arch Timeline tag [ARCH_TIMELINE]
+    const archTimeline = /\[ARCH_TIMELINE\]/i.exec(remaining);
+    if (archTimeline && archTimeline.index < currentIndex()) {
+      earliest = {
+        index: archTimeline.index,
+        length: archTimeline[0].length,
+        segment: { type: 'arch_timeline' as const },
+      };
+    }
+
+    // 4j. Golden Ratio tag [GOLDEN_RATIO: width=N height=N]
+    const goldenRatio = /\[GOLDEN_RATIO:\s*width=(\d+(?:\.\d+)?)\s+height=(\d+(?:\.\d+)?)\]/i.exec(remaining);
+    if (goldenRatio && goldenRatio.index < currentIndex()) {
+      earliest = {
+        index: goldenRatio.index,
+        length: goldenRatio[0].length,
+        segment: { type: 'golden_ratio' as const, width: parseFloat(goldenRatio[1]), height: parseFloat(goldenRatio[2]) },
       };
     }
 
@@ -266,6 +314,42 @@ function RenderSegments({ segments, primaryColor }: { segments: Segment[]; prima
 
           case 'circuit':
             return <CircuitSimulator key={i} circuit={seg.name as CircuitType} saathiColor={primaryColor} />;
+
+          case 'archmodel':
+            return <ArchModel3D key={i} building={seg.name} saathiColor={primaryColor} />;
+
+          case 'arch_timeline':
+            return <ArchTimeline key={i} saathiColor={primaryColor} />;
+
+          case 'golden_ratio':
+            return <GoldenRatioTool key={i} initialWidth={seg.width} initialHeight={seg.height} saathiColor={primaryColor} />;
+
+          case 'floorplan': {
+            // Parse simple YAML-like room data
+            const rooms: FloorPlanData['rooms'] = [];
+            const roomRegex = /- name:\s*(.+?)\n\s*x:\s*(\d+(?:\.\d+)?),\s*y:\s*(\d+(?:\.\d+)?)\n\s*width:\s*(\d+(?:\.\d+)?),\s*height:\s*(\d+(?:\.\d+)?)(?:\n\s*color:\s*(\w+))?/g;
+            let match: RegExpExecArray | null;
+            while ((match = roomRegex.exec(seg.content)) !== null) {
+              rooms.push({
+                name: match[1].trim(),
+                x: parseFloat(match[2]),
+                y: parseFloat(match[3]),
+                width: parseFloat(match[4]),
+                height: parseFloat(match[5]),
+                color: match[6]?.trim(),
+              });
+            }
+            const scaleMatch = /scale:\s*(\S+)/.exec(seg.content);
+            const titleMatch = /title:\s*(.+)/.exec(seg.content);
+            const fpData: FloorPlanData = {
+              rooms,
+              scale: scaleMatch?.[1],
+              title: titleMatch?.[1]?.trim(),
+            };
+            return rooms.length > 0
+              ? <FloorPlanViewer key={i} data={fpData} saathiColor={primaryColor} />
+              : <div key={i} style={{ margin: '12px 0', padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', overflowX: 'auto' }}><pre><code>{seg.content}</code></pre></div>;
+          }
 
           default:
             return null;

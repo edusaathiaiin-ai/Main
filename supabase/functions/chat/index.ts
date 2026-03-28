@@ -697,6 +697,49 @@ When explaining circuits, output a tag BEFORE your explanation:
 
 Put the tag on its own line BEFORE your written explanation.`);
   }
+  const ARCH_SAATHIS = new Set(['archsaathi']);
+  if (ARCH_SAATHIS.has(slug)) {
+    parts.push(`
+# VISUAL TOOLS FOR ARCHITECTURE — USE THEM GENEROUSLY
+Architecture must be SEEN. Use these tools in every response.
+
+When discussing a specific building:
+[ARCHMODEL: taj-mahal]
+[ARCHMODEL: parthenon]
+[ARCHMODEL: notre-dame]
+[ARCHMODEL: fallingwater]
+[ARCHMODEL: qutub-minar]
+[ARCHMODEL: gateway-india]
+[ARCHMODEL: sanchi-stupa]
+[ARCHMODEL: hawa-mahal]
+[ARCHMODEL: lotus-temple]
+[ARCHMODEL: parliament]
+Use slug format (lowercase, hyphenated). Put tag BEFORE explanation.
+
+When explaining spatial layouts or designing floor plans:
+[FLOORPLAN]
+title: Plan Name
+rooms:
+  - name: Living Room
+    x: 0, y: 0
+    width: 5, height: 4
+    color: warm
+  - name: Bedroom
+    x: 5, y: 0
+    width: 3, height: 4
+    color: cool
+scale: 1:100
+[/FLOORPLAN]
+
+When discussing architectural history or styles:
+[ARCH_TIMELINE]
+
+When discussing proportions or golden ratio:
+[GOLDEN_RATIO: width=8.5 height=5.3]
+
+ARCHITECTURE IS VISUAL FIRST. Words come second.
+Every building → show it. Every style → timeline. Every proportion → tool.`);
+  }
   return parts.join('\n');
 })()}
 # ${UNIVERSAL_GUARDRAILS}
