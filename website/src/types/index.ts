@@ -83,6 +83,7 @@ export type Saathi = {
   primary: string;
   accent: string;
   bg: string;
+  has3D?: boolean;
 };
 
 export type BotSlot = {

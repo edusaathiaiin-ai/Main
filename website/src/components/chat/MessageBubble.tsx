@@ -9,6 +9,10 @@ import { MermaidBlock } from './MermaidBlock';
 import { MoleculeViewer } from './MoleculeViewer';
 import { MindMap } from './MindMap';
 import { VoiceOutput } from './VoiceOutput';
+import { Molecule3DViewer } from './Molecule3DViewer';
+import { MechanismViewer, type MechanismType } from './MechanismViewer';
+import { AnatomyViewer, type AnatomyPart } from './AnatomyViewer';
+import { CircuitSimulator, type CircuitType } from './CircuitSimulator';
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -19,7 +23,11 @@ type Segment =
   | { type: 'mermaid'; content: string }
   | { type: 'molecule'; name: string }
   | { type: 'code'; language: string; content: string }
-  | { type: 'mindmap'; content: string };
+  | { type: 'mindmap'; content: string }
+  | { type: 'molecule3d'; name: string }
+  | { type: 'mechanism'; name: string }
+  | { type: 'anatomy'; name: string }
+  | { type: 'circuit'; name: string };
 
 // ─── Sequential segment parser ────────────────────────────────────────────────
 
@@ -91,6 +99,46 @@ function parseMessageContent(text: string): Segment[] {
       };
     }
 
+    // 4c. Molecule 3D tag [MOLECULE3D: name]
+    const mol3d = /\[MOLECULE3D:\s*([^\]]+)\]/i.exec(remaining);
+    if (mol3d && mol3d.index < currentIndex()) {
+      earliest = {
+        index: mol3d.index,
+        length: mol3d[0].length,
+        segment: { type: 'molecule3d' as const, name: mol3d[1].trim() },
+      };
+    }
+
+    // 4d. Mechanism tag [MECHANISM: name]
+    const mechMatch = /\[MECHANISM:\s*([^\]]+)\]/i.exec(remaining);
+    if (mechMatch && mechMatch.index < currentIndex()) {
+      earliest = {
+        index: mechMatch.index,
+        length: mechMatch[0].length,
+        segment: { type: 'mechanism' as const, name: mechMatch[1].trim() },
+      };
+    }
+
+    // 4e. Anatomy tag [ANATOMY: name]
+    const anatomyMatch = /\[ANATOMY:\s*([^\]]+)\]/i.exec(remaining);
+    if (anatomyMatch && anatomyMatch.index < currentIndex()) {
+      earliest = {
+        index: anatomyMatch.index,
+        length: anatomyMatch[0].length,
+        segment: { type: 'anatomy' as const, name: anatomyMatch[1].trim() },
+      };
+    }
+
+    // 4f. Circuit tag [CIRCUIT: name]
+    const circuitMatch = /\[CIRCUIT:\s*([^\]]+)\]/i.exec(remaining);
+    if (circuitMatch && circuitMatch.index < currentIndex()) {
+      earliest = {
+        index: circuitMatch.index,
+        length: circuitMatch[0].length,
+        segment: { type: 'circuit' as const, name: circuitMatch[1].trim() },
+      };
+    }
+
     // 5. Inline math $...$ (guard against $$)
     const inlineMath = /(?<!\$)\$([^$\n]+?)\$(?!\$)/.exec(remaining);
     if (inlineMath && inlineMath.index < currentIndex()) {
@@ -123,7 +171,7 @@ function parseMessageContent(text: string): Segment[] {
 
 // ─── Segment renderer ─────────────────────────────────────────────────────────
 
-function RenderSegments({ segments }: { segments: Segment[] }) {
+function RenderSegments({ segments, primaryColor }: { segments: Segment[]; primaryColor: string }) {
   return (
     <>
       {segments.map((seg, i) => {
@@ -206,6 +254,18 @@ function RenderSegments({ segments }: { segments: Segment[] }) {
 
           case 'mindmap':
             return <MindMap key={i} markdown={seg.content} />;
+
+          case 'molecule3d':
+            return <Molecule3DViewer key={i} molecule={seg.name} saathiColor={primaryColor} />;
+
+          case 'mechanism':
+            return <MechanismViewer key={i} mechanism={seg.name as MechanismType} saathiColor={primaryColor} />;
+
+          case 'anatomy':
+            return <AnatomyViewer key={i} part={seg.name as AnatomyPart} saathiColor={primaryColor} />;
+
+          case 'circuit':
+            return <CircuitSimulator key={i} circuit={seg.name as CircuitType} saathiColor={primaryColor} />;
 
           default:
             return null;
@@ -326,7 +386,7 @@ export function MessageBubble({
             <ThreeDots />
           ) : segments ? (
             // Rich rendering for completed assistant messages
-            <RenderSegments segments={segments} />
+            <RenderSegments segments={segments} primaryColor={primaryColor} />
           ) : (
             // Streaming or user messages — plain text
             <>

@@ -634,6 +634,69 @@ When discussing any chemical compound, drug, or biochemical:
 - Use standard IUPAC names or common names (e.g., glucose, caffeine, benzene)
 - This renders an interactive 2D structure from PubChem for the student`);
   }
+  const MOLECULE3D_SAATHIS = new Set([
+    'chemsaathi', 'pharmasaathi',
+  ]);
+  if (MOLECULE3D_SAATHIS.has(slug)) {
+    parts.push(`
+# 3D MOLECULAR VIEWER
+When discussing chemical compounds, output a tag BEFORE your explanation:
+[MOLECULE3D: compound-name]
+
+Examples:
+[MOLECULE3D: aspirin]
+[MOLECULE3D: glucose]
+[MOLECULE3D: benzene]
+[MOLECULE3D: caffeine]
+[MOLECULE3D: penicillin]
+[MOLECULE3D: ethanol]
+[MOLECULE3D: dopamine]
+
+Use standard IUPAC or common compound names. PubChem will find the structure.
+Put the tag on its own line BEFORE your written explanation.`);
+  }
+  const MECHANISM_SAATHIS = new Set(['mechsaathi']);
+  if (MECHANISM_SAATHIS.has(slug)) {
+    parts.push(`
+# 3D MECHANISM VISUALISER
+When explaining mechanical mechanisms, output a visual tag BEFORE your explanation:
+[MECHANISM: gear-pair] — for gear trains and gear ratios
+[MECHANISM: piston] — for crank-slider / piston mechanisms
+[MECHANISM: flywheel] — for flywheels and rotational inertia
+[MECHANISM: belt-pulley] — for belt and pulley systems
+[MECHANISM: cam-follower] — for cam-follower systems
+[MECHANISM: rack-pinion] — for rack and pinion mechanisms
+
+Put the tag on its own line BEFORE your written explanation.`);
+  }
+  const ANATOMY_SAATHIS = new Set(['medicosaathi']);
+  if (ANATOMY_SAATHIS.has(slug)) {
+    parts.push(`
+# 3D ANATOMY VIEWER
+When discussing human anatomy, output a tag BEFORE your explanation:
+[ANATOMY: heart] — cardiac anatomy, chambers, valves
+[ANATOMY: brain] — neuroanatomy, lobes, structures
+[ANATOMY: lungs] — respiratory anatomy, bronchi, alveoli
+[ANATOMY: kidney] — renal anatomy, nephron, collecting duct
+[ANATOMY: liver] — hepatic anatomy, lobes, bile ducts
+[ANATOMY: spine] — vertebral column, discs, cord
+[ANATOMY: eye] — visual system, retina, lens, cornea
+[ANATOMY: ear] — auditory system, cochlea, ossicles
+
+Put the tag on its own line BEFORE your written explanation.`);
+  }
+  const CIRCUIT_SAATHIS = new Set(['elecsaathi', 'electronicssaathi']);
+  if (CIRCUIT_SAATHIS.has(slug)) {
+    parts.push(`
+# CIRCUIT SIMULATOR
+When explaining circuits, output a tag BEFORE your explanation:
+[CIRCUIT: rc-circuit] — RC charging/discharging circuits
+[CIRCUIT: rl-circuit] — RL circuits, inductance
+[CIRCUIT: full-wave-rectifier] — rectifier circuits
+[CIRCUIT: transistor-switch] — transistor as a switch
+
+Put the tag on its own line BEFORE your written explanation.`);
+  }
   return parts.join('\n');
 })()}
 # ${UNIVERSAL_GUARDRAILS}

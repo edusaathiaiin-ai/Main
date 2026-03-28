@@ -28,6 +28,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     tagline: 'Reactions decoded, concepts unlocked',
     primary: '#5C1A6B', accent: '#A855F7', bg: '#F5E8FE',
     isLive: true,
+    has3D: true,
     description: `Pure chemistry — from organic reactions to quantum models of bonding. I'm for B.Sc and M.Sc Chemistry students, CSIR-NET aspirants, and anyone who wants to understand why molecules behave the way they do. Not the engineering side — the science.`,
   },
   {
@@ -37,6 +38,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     tagline: 'Life explained, cell by cell',
     primary: '#1A5C2E', accent: '#10B981', bg: '#E6F7EC',
     isLive: true,
+    has3D: true,
     description: `Life is my subject — at every scale. From cell biology to evolutionary genetics, from NEET preparation to PhD-level research, I connect the mechanisms of living systems to your specific questions, your exams, and your research dreams.`,
   },
   {
@@ -46,6 +48,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     tagline: 'Every molecule has a story',
     primary: '#7A1C1C', accent: '#EF4444', bg: '#FDEAEA',
     isLive: true,
+    has3D: true,
     description: `Every drug has a story — from molecule to mechanism to patient outcome. I guide B.Pharm and M.Pharm students through pharmacology, pharmaceutics, and drug design, with awareness of Indian pharmacy regulations and the GTU/Mumbai University syllabus.`,
   },
   {
@@ -55,6 +58,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     tagline: 'Healing starts with understanding',
     primary: '#1A4A5C', accent: '#0EA5E9', bg: '#E4F0F5',
     isLive: true,
+    has3D: true,
     description: `Medicine is both art and science — I help with the science so you can focus on the art. From Anatomy in 1st MBBS to clinical reasoning in final year, I know the Indian medical curriculum, the NEXT exam pattern, and where students most often struggle.`,
   },
   {
@@ -82,6 +86,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     tagline: 'Engineering minds, precision built',
     primary: '#1A3A5C', accent: '#0EA5E9', bg: '#E6EEF8',
     isLive: true,
+    has3D: true,
     description: `Mechanical engineering is how the physical world is shaped — and I know every corner of it. Thermodynamics, fluid mechanics, machine design, manufacturing — I connect your GTU or VTU syllabus to real engineering problems and your career ahead.`,
   },
   {
@@ -91,6 +96,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     tagline: 'Structures that stand the test of time',
     primary: '#3A2800', accent: '#F59E0B', bg: '#FFF3E0',
     isLive: true,
+    has3D: true,
     description: `Buildings, bridges, and the infrastructure that holds civilisation together — this is my domain. Structural analysis, soil mechanics, construction management, and GATE Civil prep. I understand the Indian construction context and the regulatory environment you'll work in.`,
   },
   {
@@ -100,6 +106,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     tagline: 'Current knowledge, grounded thinking',
     primary: '#003A5C', accent: '#06B6D4', bg: '#E0F0FA',
     isLive: true,
+    has3D: true,
     description: `Electrical power — generation, transmission, machines, and control systems. Not to be confused with electronics. I'm for Electrical Engineering students at IITs, NITs, and state universities, connecting power systems theory to the Indian energy sector you'll enter.`,
   },
   {
@@ -208,6 +215,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     tagline: 'From ground to orbit, engineered',
     primary: '#1E3A5F', accent: '#3B82F6', bg: '#EFF6FF',
     isLive: true,
+    has3D: true,
     description: `From Bernoulli to orbital mechanics — aerospace engineering is humanity's most ambitious discipline. Aerodynamics, propulsion, structures, avionics, and space technology: I support students at IITs, IIST, and private universities, with awareness of ISRO, DRDO, and the growing Indian aerospace industry.`,
   },
   {
@@ -217,6 +225,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     tagline: 'Signals, systems, and beyond',
     primary: '#312E81', accent: '#6366F1', bg: '#EEF2FF',
     isLive: true,
+    has3D: true,
     description: `Signals, circuits, and systems — the invisible infrastructure of modern life. Analog circuits, digital systems, VLSI, communication systems, embedded electronics: I cover Electronics Engineering for students who want depth in circuits and signals, not software development.`,
   },
 ];
