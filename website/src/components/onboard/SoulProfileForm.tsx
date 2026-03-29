@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { SAATHIS } from '@/constants/saathis';
@@ -253,6 +253,22 @@ function SoulPreviewPanel({
       border: '0.5px solid rgba(255,255,255,0.08)',
       borderRadius: '20px', padding: '24px',
     }}>
+      {pct >= 100 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          style={{
+            padding: '10px 14px', background: 'rgba(201,153,58,0.1)',
+            border: '0.5px solid rgba(201,153,58,0.4)', borderRadius: '10px',
+            fontSize: '12px', color: '#C9993A', textAlign: 'center',
+            marginBottom: '16px', lineHeight: 1.5,
+          }}
+        >
+          ✦ Your Saathi knows you fully.<br />
+          <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px' }}>This is the beginning of something real.</span>
+        </motion.div>
+      )}
+
       {/* Saathi emoji */}
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <motion.span
@@ -366,6 +382,33 @@ function SoulPreviewPanel({
   );
 }
 
+// ── Education placeholder examples ────────────────────────────────────────────
+
+const EDU_EXAMPLES = [
+  '4th sem Mech Engg from DDU Nadiad',
+  'Final year MBBS at AIIMS Delhi',
+  'LLB 2nd year Mumbai University',
+  'MBA 1st sem Symbiosis Pune',
+  'B.Sc Physics 3rd year Delhi University',
+  'M.Tech CSE 1st sem NIT Surat',
+];
+
+// ── Section Divider ────────────────────────────────────────────────────────────
+
+function SectionDivider({ number, title, subtitle }: { number: string; title: string; subtitle: string }) {
+  return (
+    <div style={{ paddingTop: '8px', paddingBottom: '4px', borderTop: '0.5px solid rgba(255,255,255,0.07)', marginTop: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: '#C9993A', background: 'rgba(201,153,58,0.1)', border: '0.5px solid rgba(201,153,58,0.3)', borderRadius: '100px', padding: '2px 10px' }}>
+          {number}
+        </span>
+        <span style={{ fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>{title}</span>
+      </div>
+      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', margin: 0, paddingLeft: '2px' }}>{subtitle}</p>
+    </div>
+  );
+}
+
 // ── Main Form ─────────────────────────────────────────────────────────────────
 
 export function SoulProfileForm({
@@ -387,10 +430,24 @@ export function SoulProfileForm({
   const [parseConfirmed, setParseConfirmed] = useState<boolean | null>(null); // null=not asked, true=yes, false=rejected
   const [currentSubjects, setCurrentSubjects] = useState<string[]>([]);
   const [interestAreas, setInterestAreas] = useState<string[]>([]);
-  const [examTarget, setExamTarget] = useState(examTargetFromLevel ?? '');
+  const [examTarget, setExamTarget] = useState(examTargetFromLevel ?? 'None');
   const [learningStyle, setLearningStyle] = useState('');
   const [dream, setDream] = useState('');
   const [nudgePreference, setNudgePreference] = useState(true);
+
+  // City search state (FIX 2)
+  const [citySearch, setCitySearch] = useState('');
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const filteredCities = CITIES.filter(c => c.toLowerCase().includes(citySearch.toLowerCase()));
+
+  // Rotating education placeholder (FIX 3)
+  const [exampleIdx, setExampleIdx] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setExampleIdx(i => (i + 1) % EDU_EXAMPLES.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
   const primaryColor = saathi.primary;
@@ -514,6 +571,25 @@ export function SoulProfileForm({
         </p>
       </motion.div>
 
+      {/* Mobile soul strip (FIX 9) */}
+      <div className="mobile-soul-strip" style={{ display: 'none' }}>
+        <div style={{
+          padding: '12px 16px', background: 'rgba(201,153,58,0.06)',
+          border: '0.5px solid rgba(201,153,58,0.2)', borderRadius: '14px',
+          marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px',
+        }}>
+          <span style={{ fontSize: '28px' }}>{saathi.emoji}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>Soul profile</span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#C9993A' }}>{pct}%</span>
+            </div>
+            <ProgressBar pct={pct} />
+            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>{getMilestoneLabel(pct)}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Two-column grid */}
       <div style={{
         display: 'grid',
@@ -525,6 +601,8 @@ export function SoulProfileForm({
       >
         {/* ──── LEFT: Form ──────────────────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+
+          <SectionDivider number="About you" title="Tell me who you are" subtitle="Your name, city, and education" />
 
           {/* Field 1: Name */}
           <div>
@@ -538,6 +616,8 @@ export function SoulProfileForm({
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
               placeholder="Your name — exactly as you'd like your Saathi to address you"
               style={inputCls}
             />
@@ -551,16 +631,65 @@ export function SoulProfileForm({
             <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginBottom: '12px' }}>
               Helps your Saathi connect learning to your local context
             </p>
-            <select
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              style={{ ...inputCls, appearance: 'none', cursor: 'pointer' }}
-            >
-              <option value="" style={{ background: '#0B1F3A' }}>Choose your city</option>
-              {CITIES.map((c) => (
-                <option key={c} value={c} style={{ background: '#0B1F3A' }}>{c}</option>
-              ))}
-            </select>
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                value={city ? city : citySearch}
+                onChange={(e) => {
+                  setCitySearch(e.target.value);
+                  setCity('');
+                  setShowCityDropdown(true);
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)';
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.07)';
+                  setShowCityDropdown(true);
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = city ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.12)';
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                  setTimeout(() => setShowCityDropdown(false), 200);
+                }}
+                placeholder="Search your city..."
+                style={{ ...inputCls, borderColor: city ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.12)' }}
+              />
+              {city && (
+                <span style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#4ADE80' }}>✓</span>
+              )}
+              <AnimatePresence>
+                {showCityDropdown && filteredCities.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    style={{
+                      position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+                      background: '#0B1F3A', border: '0.5px solid rgba(201,153,58,0.3)',
+                      borderRadius: '12px', maxHeight: '200px', overflowY: 'auto',
+                      zIndex: 50, boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                    }}
+                  >
+                    {filteredCities.map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        onMouseDown={() => { setCity(c); setCitySearch(c); setShowCityDropdown(false); }}
+                        style={{
+                          display: 'block', width: '100%', padding: '10px 16px',
+                          textAlign: 'left', background: 'none', border: 'none',
+                          color: 'rgba(255,255,255,0.8)', fontSize: '13px', cursor: 'pointer',
+                          borderBottom: '0.5px solid rgba(255,255,255,0.05)',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,153,58,0.1)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* Field 3: Education (smart parser) */}
@@ -575,8 +704,9 @@ export function SoulProfileForm({
               type="text"
               value={educationRaw}
               onChange={(e) => { setEducationRaw(e.target.value); setEducationParsed(null); setParseConfirmed(null); }}
-              onBlur={parseEducation}
-              placeholder="e.g. 4th sem Mech Engg from DDU Nadiad  ·  Final year MBBS AIIMS Delhi  ·  MBA 1st sem Symbiosis Pune"
+              onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; void parseEducation(); }}
+              placeholder={EDU_EXAMPLES[exampleIdx]}
               style={inputCls}
             />
             <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '6px' }}>
@@ -654,6 +784,8 @@ export function SoulProfileForm({
             )}
           </div>
 
+          <SectionDivider number="Your studies" title="What you're learning" subtitle="Subjects, interests, and exams" />
+
           {/* Field 4: Current subjects */}
           <ChipSelector
             label="What subjects are you studying this semester?"
@@ -691,7 +823,7 @@ export function SoulProfileForm({
                     key={exam}
                     type="button"
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setExamTarget(active ? '' : exam)}
+                    onClick={() => setExamTarget(active ? 'None' : exam)}
                     style={{
                       padding: '8px 18px', borderRadius: '100px', fontSize: '13px', fontWeight: active ? 600 : 400,
                       background: active ? primaryColor : 'rgba(255,255,255,0.05)',
@@ -705,7 +837,12 @@ export function SoulProfileForm({
                 );
               })}
             </div>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>
+              Select if relevant — helps your Saathi prepare you for your specific exam
+            </p>
           </div>
+
+          <SectionDivider number="Your mind" title="How you learn best" subtitle="Style, dream, and preferences" />
 
           {/* Field 7: Learning style */}
           <div>
@@ -730,6 +867,7 @@ export function SoulProfileForm({
                       borderRadius: '14px',
                       textAlign: 'left',
                       cursor: 'pointer',
+                      position: 'relative',
                       background: active ? `${primaryColor}18` : 'rgba(255,255,255,0.03)',
                       border: active ? `1.5px solid ${primaryColor}` : '0.5px solid rgba(255,255,255,0.08)',
                       boxShadow: active ? `0 0 20px ${primaryColor}22` : 'none',
@@ -771,7 +909,9 @@ export function SoulProfileForm({
             <textarea
               value={dream}
               onChange={(e) => setDream(e.target.value)}
-              placeholder={"Research in fluid mechanics...\nBecoming a Supreme Court lawyer...\nBuilding India's first quantum computer...\nIt doesn't have to be certain."}
+              onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+              placeholder="What excites you most — even if it feels impossibly far away?"
               rows={3}
               style={{ ...inputCls, resize: 'none' }}
             />
@@ -808,6 +948,19 @@ export function SoulProfileForm({
 
           {/* Submit */}
           <div>
+            {pct >= 100 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                style={{
+                  padding: '12px 16px', background: 'rgba(201,153,58,0.08)',
+                  border: '0.5px solid rgba(201,153,58,0.3)', borderRadius: '12px',
+                  textAlign: 'center', marginBottom: '12px', fontSize: '12px', color: '#C9993A',
+                }}
+              >
+                ✦ Your Saathi knows you fully. This is the beginning of something real.
+              </motion.div>
+            )}
             <motion.button
               type="button"
               onClick={handleSubmit}
@@ -833,7 +986,7 @@ export function SoulProfileForm({
             <p style={{ textAlign: 'center', fontSize: '12px', color: 'rgba(255,255,255,0.25)', marginTop: '12px' }}>
               You can always add more later. Your Saathi gets smarter with every session.
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginTop: '16px' }}>
               <button
                 type="button"
                 onClick={onBack}
@@ -841,13 +994,19 @@ export function SoulProfileForm({
               >
                 ← Back
               </button>
-              <button
-                type="button"
-                onClick={onSkip}
-                style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-              >
-                Skip for now — I&apos;ll complete later
-              </button>
+              <div style={{ textAlign: 'right' }}>
+                <button
+                  type="button"
+                  onClick={onSkip}
+                  style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                  title="Skipping means your Saathi starts with less context about you."
+                >
+                  Skip for now
+                </button>
+                <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.15)', margin: '3px 0 0' }}>
+                  Your Saathi will have less context. Complete from Profile anytime.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -861,9 +1020,8 @@ export function SoulProfileForm({
       {/* Mobile: responsive CSS */}
       <style>{`
         @media (max-width: 768px) {
-          .soul-form-grid {
-            grid-template-columns: 1fr !important;
-          }
+          .soul-form-grid { grid-template-columns: 1fr !important; }
+          .mobile-soul-strip { display: block !important; }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>

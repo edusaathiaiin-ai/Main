@@ -405,6 +405,18 @@ function SaathiStep({
           ) : selected ? `Begin with ${selected.name} →` : 'Choose a Saathi to continue'}
         </motion.button>
         <BackButton onClick={onBack} />
+        <div style={{ marginTop: '16px', textAlign: 'center' }}>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', margin: 0 }}>
+            Can&apos;t find your subject?{' '}
+            <a
+              href="mailto:support@edusaathiai.in?subject=New Saathi Suggestion"
+              style={{ color: 'rgba(201,153,58,0.7)', textDecoration: 'underline', cursor: 'pointer' }}
+            >
+              Write to us
+            </a>
+            {' '}and we&apos;ll add it and notify you.
+          </p>
+        </div>
       </div>
     </div>
   );
