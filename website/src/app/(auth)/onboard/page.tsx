@@ -847,7 +847,11 @@ function OnboardInner() {
       const skipAcademic = effectiveRole === 'faculty' || effectiveRole === 'institution';
 
       // Resume at the right step
-      if (!p.primary_saathi_id) {
+      // If user already completed onboarding (is_active + full_name), go straight to chat
+      // even if primary_saathi_id is null (they can pick from chat sidebar)
+      if (p.full_name && (data as { is_active?: boolean }).is_active) {
+        router.replace('/chat');
+      } else if (!p.primary_saathi_id) {
         setStep(skipAcademic ? 'saathi' : (p.academic_level ? 'saathi' : 'academic'));
       } else if (!p.full_name) {
         setStep('profile');
