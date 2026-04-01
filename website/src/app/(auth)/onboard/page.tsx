@@ -964,11 +964,21 @@ function OnboardInner() {
     }).eq('id', userId);
 
     // Upsert student_soul with all calibrated values
+    // Resolve slug → UUID: student_soul.vertical_id FK references verticals(id)
+    let verticalUUID: string | null = null;
     if (profile?.primary_saathi_id) {
+      const { data: vRow } = await supabase
+        .from('verticals')
+        .select('id')
+        .eq('slug', profile.primary_saathi_id)
+        .maybeSingle();
+      verticalUUID = vRow?.id ?? null;
+    }
+    if (verticalUUID) {
       await supabase.from('student_soul').upsert(
         {
           user_id: userId,
-          vertical_id: profile.primary_saathi_id,
+          vertical_id: verticalUUID,
           display_name: data.fullName.trim(),
           academic_level: academicLevel,
           depth_calibration: calibration.depth_calibration,
