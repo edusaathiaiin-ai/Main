@@ -129,7 +129,7 @@ export default function PricingPage() {
   const [showFoundingModal, setShowFoundingModal] = useState(false);
   const [foundingReturnUrl, setFoundingReturnUrl] = useState('/chat');
   const [isLoading, setIsLoading] = useState(false);
-  const [razorpayReady, setRazorpayReady] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
 
   useEffect(() => {
     const supabase = createClient();
@@ -139,8 +139,36 @@ export default function PricingPage() {
     });
   }, []);
 
+  function ensureRazorpayLoaded(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (typeof window !== 'undefined' && window.Razorpay) {
+        resolve();
+        return;
+      }
+      const existing = document.querySelector(
+        'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+      );
+      if (existing) {
+        // Script tag exists but not yet executed — wait briefly
+        const poll = setInterval(() => {
+          if (window.Razorpay) { clearInterval(poll); resolve(); }
+        }, 100);
+        setTimeout(() => { clearInterval(poll); reject(new Error('Razorpay load timeout')); }, 10000);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => { resolve(); };
+      script.onerror = () => reject(new Error('Razorpay script failed to load'));
+      document.body.appendChild(script);
+      setTimeout(() => reject(new Error('Razorpay load timeout')), 10000);
+    });
+  }
+
   async function handleUpgrade(planId: string) {
     const returnUrl = sessionStorage.getItem('upgrade_return_url') ?? '/chat';
+    setPaymentError('');
 
     if (!isLoggedIn) {
       sessionStorage.setItem('upgrade_return_url', returnUrl);
@@ -153,13 +181,10 @@ export default function PricingPage() {
       return;
     }
 
-    if (!razorpayReady) {
-      alert('Payment gateway is still loading. Please try again in a moment.');
-      return;
-    }
-
     setIsLoading(true);
     try {
+      await ensureRazorpayLoaded();
+
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push('/login?redirect=/pricing'); return; }
@@ -179,19 +204,17 @@ export default function PricingPage() {
       const order = await res.json() as { orderId?: string; amount?: number; currency?: string; error?: string };
       if (!order.orderId) throw new Error(order.error || `Order creation failed (HTTP ${res.status})`);
 
-      const rzp = new (window as unknown as { Razorpay: new (opts: Record<string, unknown>) => { open: () => void } }).Razorpay({
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
+      const rzp = new window.Razorpay({
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ?? '',
+        amount: order.amount ?? 0,
+        currency: order.currency ?? 'INR',
         order_id: order.orderId,
         name: 'EdUsaathiAI',
         description: `Saathi ${planId.charAt(0).toUpperCase() + planId.slice(1)} Plan`,
         theme: { color: '#C9993A' },
-        handler: (response: Record<string, unknown>) => {
-          console.log('Razorpay payment success:', response);
-          try { sessionStorage.removeItem('upgrade_return_url'); } catch {}
-          try { sessionStorage.removeItem('upgrade_trigger'); } catch {}
-          // Force full navigation to chat with upgrade flag
+        handler: () => {
+          try { sessionStorage.removeItem('upgrade_return_url'); } catch { /* noop */ }
+          try { sessionStorage.removeItem('upgrade_trigger'); } catch { /* noop */ }
           window.location.replace('/chat?upgraded=true');
         },
         modal: { ondismiss: () => setIsLoading(false) },
@@ -199,18 +222,24 @@ export default function PricingPage() {
       rzp.open();
     } catch (err) {
       console.error('Payment error:', err);
-      alert(`Payment error: ${err instanceof Error ? err.message : 'Something went wrong'}`);
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setPaymentError(
+        msg.includes('timeout') || msg.includes('failed to load')
+          ? 'Payment could not load. Please refresh and try again.'
+          : 'Payment failed. Please try again.'
+      );
       setIsLoading(false);
     }
   }
 
   return (
     <>
-      {/* Razorpay script — onLoad fires when window.Razorpay is ready */}
+      {/* Razorpay script — loaded always, onLoad marks it ready */}
       <Script
         src="https://checkout.razorpay.com/v1/checkout.js"
         strategy="afterInteractive"
-        onLoad={() => setRazorpayReady(true)}
+        onLoad={() => { /* script ready */ }}
+        onError={() => setPaymentError('Payment gateway failed to load. Please refresh.')}
       />
 
       <main
@@ -278,16 +307,16 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-20">
             {/* Mobile order: Plus (0), Free (1), Pro (2), Unlimited (3) */}
             <div className="order-2 sm:order-1">
-              <PricingCard id="free" billing={billing} onUpgrade={handleUpgrade} index={0} disabled={false} />
+              <PricingCard id="free" billing={billing} onUpgrade={handleUpgrade} index={0} />
             </div>
             <div className="order-1 sm:order-2">
-              <PricingCard id="plus" billing={billing} onUpgrade={handleUpgrade} index={1} disabled={PAYMENTS_ACTIVE && !razorpayReady} />
+              <PricingCard id="plus" billing={billing} onUpgrade={handleUpgrade} index={1} />
             </div>
             <div className="order-3 sm:order-3">
-              <PricingCard id="pro" billing={billing} onUpgrade={handleUpgrade} index={2} disabled={PAYMENTS_ACTIVE && !razorpayReady} />
+              <PricingCard id="pro" billing={billing} onUpgrade={handleUpgrade} index={2} />
             </div>
             <div className="order-4 sm:order-4">
-              <PricingCard id="unlimited" billing={billing} onUpgrade={handleUpgrade} index={3} disabled={PAYMENTS_ACTIVE && !razorpayReady} />
+              <PricingCard id="unlimited" billing={billing} onUpgrade={handleUpgrade} index={3} />
             </div>
           </div>
 
@@ -424,6 +453,20 @@ export default function PricingPage() {
                 Upgrade to Plus · ₹199/mo
               </button>
             </div>
+            {paymentError && (
+              <motion.p
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xs mt-4 px-4 py-2 rounded-lg mx-auto max-w-sm"
+                style={{
+                  color: '#F87171',
+                  background: 'rgba(239,68,68,0.1)',
+                  border: '0.5px solid rgba(239,68,68,0.3)',
+                }}
+              >
+                {paymentError}
+              </motion.p>
+            )}
           </motion.section>
 
         </div>
