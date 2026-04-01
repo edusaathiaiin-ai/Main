@@ -66,6 +66,16 @@ export function PostQuestionModal({
     setSubmitting(true);
     setError(null);
 
+    // 24-hour new account restriction
+    const registeredAt = new Date(profile.registered_at);
+    const hoursSinceRegistration = (Date.now() - registeredAt.getTime()) / (1000 * 60 * 60);
+    if (hoursSinceRegistration < 24) {
+      const hoursLeft = Math.ceil(24 - hoursSinceRegistration);
+      setError(`Board posting unlocks ${hoursLeft} hour${hoursLeft === 1 ? '' : 's'} after registration. Keep learning in the meantime!`);
+      setSubmitting(false);
+      return;
+    }
+
     const supabase = createClient();
     const { data: session } = await supabase.auth.getSession();
     if (!session.session) { setError('Not logged in'); setSubmitting(false); return; }
