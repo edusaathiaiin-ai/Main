@@ -129,6 +129,7 @@ export default function PricingPage() {
   const [showFoundingModal, setShowFoundingModal] = useState(false);
   const [foundingReturnUrl, setFoundingReturnUrl] = useState('/chat');
   const [isLoading, setIsLoading] = useState(false);
+  const [razorpayReady, setRazorpayReady] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -152,8 +153,8 @@ export default function PricingPage() {
       return;
     }
 
-    if (typeof window !== 'undefined' && !(window as unknown as { Razorpay?: unknown }).Razorpay) {
-      alert('Payment gateway is loading. Please try again in a moment.');
+    if (!razorpayReady) {
+      alert('Payment gateway is still loading. Please try again in a moment.');
       return;
     }
 
@@ -205,8 +206,12 @@ export default function PricingPage() {
 
   return (
     <>
-      {/* Razorpay script — afterInteractive works in client components */}
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
+      {/* Razorpay script — onLoad fires when window.Razorpay is ready */}
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
+        onLoad={() => setRazorpayReady(true)}
+      />
 
       <main
         className="min-h-screen relative"
@@ -273,16 +278,16 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-20">
             {/* Mobile order: Plus (0), Free (1), Pro (2), Unlimited (3) */}
             <div className="order-2 sm:order-1">
-              <PricingCard id="free" billing={billing} onUpgrade={handleUpgrade} index={0} />
+              <PricingCard id="free" billing={billing} onUpgrade={handleUpgrade} index={0} disabled={false} />
             </div>
             <div className="order-1 sm:order-2">
-              <PricingCard id="plus" billing={billing} onUpgrade={handleUpgrade} index={1} />
+              <PricingCard id="plus" billing={billing} onUpgrade={handleUpgrade} index={1} disabled={PAYMENTS_ACTIVE && !razorpayReady} />
             </div>
             <div className="order-3 sm:order-3">
-              <PricingCard id="pro" billing={billing} onUpgrade={handleUpgrade} index={2} />
+              <PricingCard id="pro" billing={billing} onUpgrade={handleUpgrade} index={2} disabled={PAYMENTS_ACTIVE && !razorpayReady} />
             </div>
             <div className="order-4 sm:order-4">
-              <PricingCard id="unlimited" billing={billing} onUpgrade={handleUpgrade} index={3} />
+              <PricingCard id="unlimited" billing={billing} onUpgrade={handleUpgrade} index={3} disabled={PAYMENTS_ACTIVE && !razorpayReady} />
             </div>
           </div>
 

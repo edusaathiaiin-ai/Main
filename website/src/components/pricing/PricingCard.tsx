@@ -10,6 +10,7 @@ export interface PricingCardProps {
   billing: BillingCycle;
   onUpgrade: (planId: string) => void;
   index: number;
+  disabled?: boolean;
 }
 
 // ── Plan definitions (UI layer — prices from spec) ────────────────────────────
@@ -135,7 +136,7 @@ const PLAN_DEFS = {
   },
 } as const;
 
-export default function PricingCard({ id, billing, onUpgrade, index }: PricingCardProps) {
+export default function PricingCard({ id, billing, onUpgrade, index, disabled = false }: PricingCardProps) {
   const plan = PLAN_DEFS[id];
   const router = useRouter();
 
@@ -244,7 +245,8 @@ export default function PricingCard({ id, billing, onUpgrade, index }: PricingCa
       <div className="mt-auto">
         <button
           onClick={handleCTA}
-          className="w-full rounded-xl py-3.5 text-sm font-bold transition-all duration-200 hover:brightness-110 active:scale-95"
+          disabled={disabled}
+          className="w-full rounded-xl py-3.5 text-sm font-bold transition-all duration-200 hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           style={
             plan.ctaStyle === 'outline'
               ? {
