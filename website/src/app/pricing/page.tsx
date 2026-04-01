@@ -152,6 +152,11 @@ export default function PricingPage() {
       return;
     }
 
+    if (typeof window !== 'undefined' && !(window as unknown as { Razorpay?: unknown }).Razorpay) {
+      alert('Payment gateway is loading. Please try again in a moment.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const supabase = createClient();
@@ -200,8 +205,8 @@ export default function PricingPage() {
 
   return (
     <>
-      {/* Razorpay script — always loaded so checkout works for logged-in users */}
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="beforeInteractive" />
+      {/* Razorpay script — afterInteractive works in client components */}
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
 
       <main
         className="min-h-screen relative"
