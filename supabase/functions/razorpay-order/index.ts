@@ -52,9 +52,12 @@ const CORS_HEADERS = {
 
 // Plan definitions (INR, in paise for Razorpay)
 const PLAN_AMOUNTS: Record<string, { amountInr: number; label: string }> = {
-  'plus-monthly': { amountInr: 199, label: 'Saathi Plus (Monthly)' },
-  'plus-annual': { amountInr: 1499, label: 'Saathi Plus (Annual)' },
-  'institution': { amountInr: 4999, label: 'Institution' },
+  'plus-monthly':     { amountInr: 199,  label: 'Saathi Plus (Monthly)' },
+  'plus-annual':      { amountInr: 1499, label: 'Saathi Plus (Annual)' },
+  'pro-monthly':      { amountInr: 499,  label: 'Saathi Pro (Monthly)' },
+  'pro-annual':       { amountInr: 3999, label: 'Saathi Pro (Annual)' },
+  'unlimited-monthly':{ amountInr: 4999, label: 'Saathi Unlimited' },
+  'institution':      { amountInr: 4999, label: 'Institution' },
 };
 
 type RazorpayOrderResponse = {
@@ -137,9 +140,14 @@ Deno.serve(async (req: Request) => {
     }
 
     // Parse request
-    type RequestBody = { planId?: string };
+    type RequestBody = { planId?: string; billing?: string };
     const body = (await req.json()) as RequestBody;
-    const { planId } = body;
+    const { planId: rawPlanId, billing = 'monthly' } = body;
+
+    // Normalise: 'plus' + 'monthly' → 'plus-monthly'
+    const planId = rawPlanId && rawPlanId !== 'institution'
+      ? `${rawPlanId}-${billing}`
+      : rawPlanId;
 
     if (!planId || !PLAN_AMOUNTS[planId]) {
       return new Response(JSON.stringify({ error: 'Invalid planId' }), {

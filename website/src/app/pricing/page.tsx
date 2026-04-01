@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Script from 'next/script';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 
@@ -164,18 +165,19 @@ export default function PricingPage() {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
         },
         body: JSON.stringify({ planId, billing }),
       });
 
-      const order = await res.json() as { id: string; amount: number; currency: string };
-      if (!order.id) throw new Error('Order creation failed');
+      const order = await res.json() as { orderId: string; amount: number; currency: string };
+      if (!order.orderId) throw new Error('Order creation failed');
 
       const rzp = new (window as unknown as { Razorpay: new (opts: Record<string, unknown>) => { open: () => void } }).Razorpay({
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
-        order_id: order.id,
+        order_id: order.orderId,
         name: 'EdUsaathiAI',
         description: `Saathi ${planId.charAt(0).toUpperCase() + planId.slice(1)} Plan`,
         theme: { color: '#C9993A' },
@@ -189,6 +191,7 @@ export default function PricingPage() {
       rzp.open();
     } catch (err) {
       console.error('Payment error:', err);
+      alert(`Payment error: ${err instanceof Error ? err.message : 'Something went wrong'}`);
       setIsLoading(false);
     }
   }
@@ -197,8 +200,7 @@ export default function PricingPage() {
     <>
       {/* Razorpay script (needed for checkout) */}
       {PAYMENTS_ACTIVE && (
-        /* eslint-disable-next-line @next/next/no-sync-scripts */
-        <script src="https://checkout.razorpay.com/v1/checkout.js" />
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="beforeInteractive" />
       )}
 
       <main
