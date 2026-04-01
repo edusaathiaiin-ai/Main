@@ -68,7 +68,7 @@ async function sendUpgradeEmail(
       body: JSON.stringify({
         from: RESEND_FROM_EMAIL,
         to: [email],
-        subject: `Welcome to ${planLabel} — Your upgrade is confirmed`,
+        subject: `Welcome to ${planLabel} - Your upgrade is confirmed`,
         html: `
           <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
             <h1 style="color:#C9993A;font-size:28px;margin-bottom:8px">You are now ${planLabel}</h1>
@@ -356,18 +356,19 @@ Deno.serve(async (req: Request) => {
   // ── STEP 3: Verify HMAC — reject before ANY DB interaction ─────────────
   const isValid = await verifyRazorpaySignature(rawBody, signature, RAZORPAY_WEBHOOK_SECRET);
 
-  // TEMPORARY: Log verification details and skip signature check to unblock payments
-  // TODO: Remove this bypass once webhook secret is confirmed matching
-  console.log(`razorpay-webhook: verify result=${isValid}, secret_len=${RAZORPAY_WEBHOOK_SECRET.length}, secret_prefix="${RAZORPAY_WEBHOOK_SECRET.slice(0, 10)}", sig_len=${signature.length}, body_len=${rawBody.byteLength}`);
+  // Debug: log verification result (safe — no secret content exposed)
+  console.log(`razorpay-webhook: verify=${isValid}, sig_len=${signature.length}, body_len=${rawBody.byteLength}`);
 
   if (!isValid) {
-    // TEMPORARY BYPASS — log but do NOT return 400. Process the event anyway.
-    // TODO: Re-enable signature rejection once Razorpay secret is confirmed
-    console.warn('razorpay-webhook: signature mismatch — BYPASSED for debugging, processing anyway');
-    captureEvent('Razorpay webhook — invalid signature (bypassed)', {
+    console.warn('razorpay-webhook: invalid signature — request rejected');
+    captureEvent('Razorpay webhook — invalid signature', {
       level: 'warning',
       tags: { function: 'razorpay-webhook', error_type: 'invalid_signature' },
       fingerprint: ['razorpay-invalid-signature'],
+    });
+    return new Response(JSON.stringify({ error: 'Invalid signature' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
