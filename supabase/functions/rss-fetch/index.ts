@@ -177,7 +177,10 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
 
   chemsaathi: [
     { url: 'https://feeds.rsc.org/rss/cc', source: 'Royal Society of Chemistry', category: 'Chemistry' },
-    { url: 'https://rss.sciencedaily.com/releases/chemistry.xml', source: 'Science Daily', category: 'Chemistry' },
+    { url: 'https://www.nature.com/nchem.rss', source: 'Nature Chemistry', category: 'Chemistry Research' },
+    { url: 'https://pubs.acs.org/action/showFeed?type=axatoc&feed=rss&jc=jacsat', source: 'JACS (ACS)', category: 'Chemistry Research' },
+    { url: 'https://pubs.acs.org/action/showFeed?type=axatoc&feed=rss&jc=iechad', source: 'Ind. Eng. Chem. Research', category: 'Industrial Chemistry' },
+    { url: 'https://rss.arxiv.org/rss/physics.chem-ph', source: 'arXiv Chemical Physics', category: 'Chemical Physics' },
   ],
   biosaathi: [
     // Flagship multidisciplinary
@@ -201,79 +204,21 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
   ],
 
   mechsaathi: [
-    // ── International Journal of Machine Tools and Manufacture (Elsevier — #1 for manufacturing, IF ~14)
-    { url: 'https://rss.sciencedirect.com/publication/science/08906955', source: 'Int. Journal of Machine Tools and Manufacture', category: 'Manufacturing Engineering' },
-    // ── International Journal of Mechanical Sciences (Elsevier — elite broad mechanics, IF ~7.3)
-    { url: 'https://rss.sciencedirect.com/publication/science/00207403', source: 'Int. Journal of Mechanical Sciences', category: 'Mechanical Sciences' },
-    // ── Applied Thermal Engineering (Elsevier — top for heat transfer applications, IF ~6.4)
-    { url: 'https://rss.sciencedirect.com/publication/science/13594311', source: 'Applied Thermal Engineering', category: 'Thermal Engineering' },
-    // ── Composite Structures (Elsevier — leading for composites/fiber-reinforced, IF ~6.3)
-    { url: 'https://rss.sciencedirect.com/publication/science/02638223', source: 'Composite Structures', category: 'Composite Materials' },
-    // ── Mechanical Systems and Signal Processing (Elsevier — top for dynamics/condition monitoring, IF ~8.4)
-    { url: 'https://rss.sciencedirect.com/publication/science/08883270', source: 'Mechanical Systems and Signal Processing', category: 'Structural Dynamics' },
-    // ── Progress in Energy and Combustion Science (Elsevier — #1 review journal for energy/combustion, IF ~26)
-    { url: 'https://rss.sciencedirect.com/publication/science/03601285', source: 'Progress in Energy and Combustion Science', category: 'Combustion & Energy' },
-    // ── Tribology International (Elsevier — gold standard for friction, wear, lubrication, IF ~6.2)
-    { url: 'https://rss.sciencedirect.com/publication/science/0301679X', source: 'Tribology International', category: 'Tribology' },
-    // ── Journal of Sound and Vibration (Elsevier — definitive for acoustics/vibration, IF ~4.7)
-    { url: 'https://rss.sciencedirect.com/publication/science/0022460X', source: 'Journal of Sound and Vibration', category: 'Vibrations & Acoustics' },
-    // ── ASME Digital Collection — aggregated most-read across all ASME mechanical journals
-    { url: 'https://asmedigitalcollection.asme.org/rss/site_5/5.xml', source: 'ASME Journals', category: 'Mechanical Engineering' },
-    // ── ASME Journal of Mechanical Design (elite for design/optimization/mechanisms)
-    { url: 'https://asmedigitalcollection.asme.org/mechanicaldesign/rss/site_5/38.xml', source: 'ASME Journal of Mechanical Design', category: 'Mechanical Design' },
-    // ── ASME Journal of Heat and Mass Transfer (flagship for thermal/heat transfer)
-    { url: 'https://asmedigitalcollection.asme.org/heattransfer/rss/site_5/11.xml', source: 'ASME Journal of Heat and Mass Transfer', category: 'Heat Transfer' },
-    // ── ASME Journal of Fluids Engineering (top for fluid mechanics in engineering)
-    { url: 'https://asmedigitalcollection.asme.org/fluidsengineering/rss/site_5/10.xml', source: 'ASME Journal of Fluids Engineering', category: 'Fluids Engineering' },
-    // ── Wiley — Computer-Aided Engineering & Fatigue (Int. J. for Numerical Methods in Engineering)
-    { url: 'https://onlinelibrary.wiley.com/feed/10969853/most-recent', source: 'Int. J. for Numerical Methods in Engineering', category: 'Computational Mechanics' },
-    // ── arXiv Fluid Dynamics preprints (global physics-based fluid/thermal research pipeline)
-    { url: 'https://arxiv.org/rss/physics.flu-dyn', source: 'arXiv Fluid Dynamics', category: 'Fluid Mechanics Preprints' },
-    // ── arXiv Condensed Matter — Materials Science (fundamental materials research for mech engineering)
-    { url: 'https://arxiv.org/rss/cond-mat.mtrl-sci', source: 'arXiv Materials Science', category: 'Engineering Materials Preprints' },
-    // ── Annual Review of Fluid Mechanics (review gold standard, IF ~26)
-    { url: 'https://www.annualreviews.org/rss/content/journals/fluid/loi', source: 'Annual Review of Fluid Mechanics', category: 'Fluid Mechanics Reviews' },
-    // ── Nature Materials (Nature portfolio — elite for advanced materials, IF ~41)
+    // Fast, reliable feeds first
+    { url: 'https://www.theengineer.co.uk/feed/', source: 'The Engineer', category: 'Mechanical Engineering' },
     { url: 'https://www.nature.com/nmat.rss', source: 'Nature Materials', category: 'Advanced Materials' },
-    // ── Science Daily mechanical/energy engineering headlines
-    { url: 'https://rss.sciencedaily.com/releases/matter_energy/engineering.xml', source: 'Science Daily Engineering', category: 'Mechanical Engineering News' },
+    { url: 'https://rss.arxiv.org/rss/physics.flu-dyn', source: 'arXiv Fluid Dynamics', category: 'Fluid Mechanics' },
+    { url: 'https://rss.arxiv.org/rss/cond-mat.mtrl-sci', source: 'arXiv Materials Science', category: 'Materials' },
+    { url: 'https://rss.sciencedirect.com/publication/science/08906955', source: 'Int. J. Machine Tools & Manufacture', category: 'Manufacturing' },
+    { url: 'https://rss.sciencedirect.com/publication/science/00207403', source: 'Int. J. Mechanical Sciences', category: 'Mechanical Sciences' },
   ],
   civilsaathi: [
-    // ── #1 — Automation in Construction (Elsevier — top-cited, IF ~9.6; AI/robotics in construction)
-    { url: 'https://rss.sciencedirect.com/publication/science/09265805', source: 'Automation in Construction', category: 'Construction Automation' },
-    // ── Computer-Aided Civil and Infrastructure Engineering (Wiley — premier computational civil journal)
-    { url: 'https://onlinelibrary.wiley.com/feed/14678667/most-recent', source: 'Computer-Aided Civil & Infrastructure Engineering', category: 'Computational Civil Engineering' },
-    // ── Construction and Building Materials (Elsevier — #1 by volume for materials/structures, IF ~7.4)
-    { url: 'https://rss.sciencedirect.com/publication/science/09500618', source: 'Construction and Building Materials', category: 'Building Materials' },
-    // ── Cement and Concrete Research (Elsevier — gold standard for cement science, IF ~11)
-    { url: 'https://rss.sciencedirect.com/publication/science/00088846', source: 'Cement and Concrete Research', category: 'Cement & Concrete' },
-    // ── Cement and Concrete Composites (Elsevier — elite for composite cementitious systems)
-    { url: 'https://rss.sciencedirect.com/publication/science/09589465', source: 'Cement and Concrete Composites', category: 'Concrete Composites' },
-    // ── Sustainable Cities and Society (Elsevier — leading for urban infra & sustainability, IF ~11)
-    { url: 'https://rss.sciencedirect.com/publication/science/22106707', source: 'Sustainable Cities and Society', category: 'Sustainable Infrastructure' },
-    // ── Energy and Buildings (Elsevier — top for building energy systems & efficiency, IF ~6.7)
-    { url: 'https://rss.sciencedirect.com/publication/science/03787788', source: 'Energy and Buildings', category: 'Building Energy' },
-    // ── ASCE Library — most-read articles across 35+ civil engineering journals
-    { url: 'https://ascelibrary.org/rss/mostread', source: 'ASCE Library Most Read', category: 'Civil Engineering' },
-    // ── ASCE Journal of Structural Engineering (flagship for structural analysis & design)
-    { url: 'https://ascelibrary.org/action/showFeed?type=etoc&feed=rss&jc=jbenf2', source: 'ASCE Journal of Bridge Engineering', category: 'Bridge Engineering' },
-    // ── ASCE Journal of Computing in Civil Engineering (BIM, GIS, digital twins)
-    { url: 'https://ascelibrary.org/action/showFeed?type=etoc&feed=rss&jc=jccee5', source: 'ASCE Journal of Computing in Civil Engineering', category: 'Civil Computing' },
-    // ── ASCE Journal of Materials in Civil Engineering
-    { url: 'https://ascelibrary.org/action/showFeed?type=etoc&feed=rss&jc=jmcee7', source: 'ASCE Journal of Materials in Civil Engineering', category: 'Civil Materials' },
-    // ── ASCE Journal of Infrastructure Systems
-    { url: 'https://ascelibrary.org/action/showFeed?type=etoc&feed=rss&jc=jitse4', source: 'ASCE Journal of Infrastructure Systems', category: 'Infrastructure' },
-    // ── arXiv civil & structural engineering preprints (global research pipeline)
-    { url: 'https://arxiv.org/rss/eess.SY', source: 'arXiv Systems & Control', category: 'Structural Control Preprints' },
-    { url: 'https://arxiv.org/rss/physics.geo-ph', source: 'arXiv Geophysics', category: 'Geotechnical Preprints' },
-    // ── Science Daily civil engineering headlines (accessible news layer)
-    { url: 'https://rss.sciencedaily.com/releases/matter_energy/civil_engineering.xml', source: 'Science Daily Civil', category: 'Civil Engineering News' },
-    // ── Nature Sustainability (Nature portfolio — high-impact for sustainable infra & cities)
+    { url: 'https://www.constructiondive.com/feeds/news/', source: 'Construction Dive', category: 'Construction News' },
     { url: 'https://www.nature.com/natsustain.rss', source: 'Nature Sustainability', category: 'Sustainable Engineering' },
-    // ── PubMed civil/structural engineering research (cross-disciplinary & health-infra)
-    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=civil+engineering+infrastructure&format=rss', source: 'PubMed Civil Engineering', category: 'Civil Engineering Research' },
-    // ── Science Daily geoscience for geotechnical sub-discipline
-    { url: 'https://rss.sciencedaily.com/releases/earth_climate/geology.xml', source: 'Science Daily Geoscience', category: 'Geotechnical Engineering' },
+    { url: 'https://rss.arxiv.org/rss/eess.SY', source: 'arXiv Systems & Control', category: 'Structural Control' },
+    { url: 'https://rss.sciencedirect.com/publication/science/09265805', source: 'Automation in Construction', category: 'Construction Automation' },
+    { url: 'https://rss.sciencedirect.com/publication/science/09500618', source: 'Construction and Building Materials', category: 'Building Materials' },
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=civil+engineering+infrastructure&format=rss', source: 'PubMed Civil', category: 'Civil Research' },
   ],
   elecsaathi: [
     { url: 'https://spectrum.ieee.org/feeds/feed.rss', source: 'IEEE Spectrum', category: 'Electronics' },
@@ -374,30 +319,31 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
 
   // ── New Saathis (migration 047) ────────────────────────────────────────────
   'chemengg saathi': [
-    { url: 'https://www.aiche.org/rss/news', source: 'AIChE', category: 'Chemical Engineering' },
-    { url: 'https://rss.sciencedaily.com/releases/matter_energy/chemistry.xml', source: 'Science Daily', category: 'Chemical Engineering' },
     { url: 'https://www.chemengonline.com/feed/', source: 'Chem Eng Online', category: 'Process Engineering' },
+    { url: 'https://www.nature.com/nchem.rss', source: 'Nature Chemistry', category: 'Chemical Sciences' },
+    { url: 'https://rss.arxiv.org/rss/physics.chem-ph', source: 'arXiv Chemical Physics', category: 'Chemical Engineering' },
+    { url: 'https://pubs.acs.org/action/showFeed?type=axatoc&feed=rss&jc=iechad', source: 'Ind. Eng. Chem. Research', category: 'Chemical Engineering' },
   ],
 
   biotechsaathi: [
     { url: 'https://www.nature.com/nbt.rss', source: 'Nature Biotechnology', category: 'Biotechnology' },
-    { url: 'https://rss.sciencedaily.com/releases/biology/biotechnology.xml', source: 'Science Daily Biotech', category: 'Biotechnology' },
     { url: 'https://www.genengnews.com/feed/', source: 'GEN News', category: 'Biotech Industry' },
     { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=biotechnology&format=rss', source: 'PubMed Biotech', category: 'Biotech Research' },
+    { url: 'https://www.biotechniques.com/feed/', source: 'BioTechniques', category: 'Lab Methods' },
   ],
 
   aerospacesaathi: [
-    { url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss', source: 'NASA Breaking News', category: 'Space Science' },
-    { url: 'https://www.esa.int/rssfeed/Our_Activities/Space_News', source: 'ESA Top News', category: 'Space Exploration' },
-    { url: 'https://aerospaceamerica.aiaa.org/feed/', source: 'AIAA Aerospace America', category: 'Aerospace' },
-    { url: 'https://rss.sciencedaily.com/releases/matter_energy/aerospace.xml', source: 'Science Daily Aerospace', category: 'Aerospace' },
-    { url: 'https://www.isro.gov.in/rss', source: 'ISRO', category: 'Space Technology' },
+    { url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss', source: 'NASA', category: 'Space Science' },
+    { url: 'https://www.esa.int/rssfeed/Our_Activities/Space_News', source: 'ESA', category: 'Space Exploration' },
+    { url: 'https://aerospaceamerica.aiaa.org/feed/', source: 'AIAA', category: 'Aerospace' },
+    { url: 'https://www.flightglobal.com/rss', source: 'Flight Global', category: 'Aviation' },
   ],
 
   electronicssaathi: [
     { url: 'https://spectrum.ieee.org/feeds/feed.rss', source: 'IEEE Spectrum', category: 'Electronics' },
-    { url: 'https://rss.sciencedaily.com/releases/computers_math/electronics.xml', source: 'Science Daily Electronics', category: 'Electronics' },
     { url: 'https://www.electronicsforu.com/feed', source: 'Electronics For You', category: 'Electronics India' },
+    { url: 'https://www.electronicsweekly.com/feed/', source: 'Electronics Weekly', category: 'Electronics News' },
+    { url: 'https://eepower.com/feed/', source: 'EE Power', category: 'Power Electronics' },
   ],
 
 };
@@ -630,14 +576,17 @@ Deno.serve(async (req: Request) => {
   console.log('Using service role:', !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
   console.log('SUPABASE_URL set:', !!SUPABASE_URL);
 
-  // Build slug → UUID map: 'KanoonSaathi'.toLowerCase() === 'kanoonsaathi'
-  const { data: verticalRows } = await admin.from('verticals').select('id, name');
+  // Build slug → UUID map using the slug column directly
+  const { data: verticalRows } = await admin.from('verticals').select('id, name, slug');
   const verticalUUIDs: Record<string, string> = {};
   for (const v of (verticalRows ?? [])) {
-    const slug = (v.name as string).toLowerCase().replace(/\s+/g, '');
-    verticalUUIDs[slug] = v.id as string;
+    // Primary: use slug column as-is (matches RSS_FEEDS keys)
+    verticalUUIDs[v.slug as string] = v.id as string;
+    // Secondary: also map lowercased name without spaces (fallback)
+    const nameSlug = (v.name as string).toLowerCase().replace(/\s+/g, '');
+    if (!verticalUUIDs[nameSlug]) verticalUUIDs[nameSlug] = v.id as string;
   }
-  // Handle typo: RSS_FEEDS uses 'envirosaathi', DB has 'EnviroSaathi' → 'envirosathi'
+  // Handle typo: RSS_FEEDS uses 'envirosaathi', DB has 'EnviroSaathi' → slug 'envirosathi'
   if (verticalUUIDs['envirosathi']) verticalUUIDs['envirosaathi'] = verticalUUIDs['envirosathi'];
   console.log('[rss-fetch] Vertical UUID map:', JSON.stringify(verticalUUIDs));
 
