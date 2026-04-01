@@ -31,7 +31,7 @@ const CRON_SECRET = Deno.env.get('CRON_SECRET') ?? '';
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';
 
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
-const PROFESSOR_NOTES_PER_SAATHI = 3; // Max Groq calls per Saathi per run
+const PROFESSOR_NOTES_PER_SAATHI = 1; // Reduced from 3 to fit in 150s Edge Function limit
 
 // Startup env check
 console.log('[rss-fetch] ENV check:', {
