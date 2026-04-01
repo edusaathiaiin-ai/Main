@@ -181,10 +181,12 @@ export default function PricingPage() {
         name: 'EdUsaathiAI',
         description: `Saathi ${planId.charAt(0).toUpperCase() + planId.slice(1)} Plan`,
         theme: { color: '#C9993A' },
-        handler: () => {
-          sessionStorage.removeItem('upgrade_return_url');
-          sessionStorage.removeItem('upgrade_trigger');
-          window.location.href = `${returnUrl}?upgraded=true`;
+        handler: (response: Record<string, unknown>) => {
+          console.log('Razorpay payment success:', response);
+          try { sessionStorage.removeItem('upgrade_return_url'); } catch {}
+          try { sessionStorage.removeItem('upgrade_trigger'); } catch {}
+          // Force full navigation to chat with upgrade flag
+          window.location.replace('/chat?upgraded=true');
         },
         modal: { ondismiss: () => setIsLoading(false) },
       });

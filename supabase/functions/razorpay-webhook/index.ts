@@ -58,7 +58,8 @@ async function sendUpgradeEmail(
   });
 
   try {
-    await fetch('https://api.resend.com/emails', {
+    console.log(`razorpay-webhook: sending upgrade email to ${email}, from=${RESEND_FROM_EMAIL}, key_len=${RESEND_API_KEY.length}`);
+    const emailRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${RESEND_API_KEY}`,
@@ -67,10 +68,10 @@ async function sendUpgradeEmail(
       body: JSON.stringify({
         from: RESEND_FROM_EMAIL,
         to: [email],
-        subject: `✦ Welcome to ${planLabel} — Your upgrade is confirmed`,
+        subject: `Welcome to ${planLabel} — Your upgrade is confirmed`,
         html: `
           <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
-            <h1 style="color:#C9993A;font-size:28px;margin-bottom:8px">✦ You are now ${planLabel}</h1>
+            <h1 style="color:#C9993A;font-size:28px;margin-bottom:8px">You are now ${planLabel}</h1>
             <p style="color:rgba(255,255,255,0.7);line-height:1.7">
               Your upgrade is confirmed. All 5 bot slots are now unlocked.
               Your Saathi remembers you — pick up right where you left off.
@@ -88,6 +89,8 @@ async function sendUpgradeEmail(
         `,
       }),
     });
+    const emailBody = await emailRes.text();
+    console.log(`razorpay-webhook: email response status=${emailRes.status}, body=${emailBody}`);
   } catch (err) {
     // Email failure must never block payment processing
     console.error('razorpay-webhook: email send failed', err instanceof Error ? err.message : err);
@@ -233,7 +236,7 @@ async function handlePaymentCaptured(
     .maybeSingle();
 
   if (userProfile?.email) {
-    void sendUpgradeEmail(userProfile.email as string, sub.plan_id, expiresAt);
+    await sendUpgradeEmail(userProfile.email as string, sub.plan_id, expiresAt);
   }
 }
 
