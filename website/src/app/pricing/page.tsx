@@ -170,8 +170,8 @@ export default function PricingPage() {
         body: JSON.stringify({ planId, billing }),
       });
 
-      const order = await res.json() as { orderId: string; amount: number; currency: string };
-      if (!order.orderId) throw new Error('Order creation failed');
+      const order = await res.json() as { orderId?: string; amount?: number; currency?: string; error?: string };
+      if (!order.orderId) throw new Error(order.error || `Order creation failed (HTTP ${res.status})`);
 
       const rzp = new (window as unknown as { Razorpay: new (opts: Record<string, unknown>) => { open: () => void } }).Razorpay({
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,

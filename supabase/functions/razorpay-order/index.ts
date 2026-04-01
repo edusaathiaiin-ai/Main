@@ -27,12 +27,12 @@ const APP_ENV = Deno.env.get('APP_ENV') ?? 'development';
 const IS_PRODUCTION = APP_ENV === 'production';
 
 const RAZORPAY_KEY_ID = IS_PRODUCTION
-  ? Deno.env.get('RAZORPAY_LIVE_KEY_ID') ?? ''
-  : Deno.env.get('RAZORPAY_TEST_KEY_ID') ?? '';
+  ? (Deno.env.get('RAZORPAY_LIVE_KEY_ID') || Deno.env.get('RAZORPAY_KEY_ID') || '')
+  : (Deno.env.get('RAZORPAY_TEST_KEY_ID') || Deno.env.get('RAZORPAY_KEY_ID') || '');
 
 const RAZORPAY_KEY_SECRET = IS_PRODUCTION
-  ? Deno.env.get('RAZORPAY_LIVE_KEY_SECRET') ?? ''
-  : Deno.env.get('RAZORPAY_TEST_KEY_SECRET') ?? '';
+  ? (Deno.env.get('RAZORPAY_LIVE_KEY_SECRET') || Deno.env.get('RAZORPAY_KEY_SECRET') || '')
+  : (Deno.env.get('RAZORPAY_TEST_KEY_SECRET') || Deno.env.get('RAZORPAY_KEY_SECRET') || '');
 
 // Startup key-type validation
 const KEY_PREFIX_EXPECTED = IS_PRODUCTION ? 'rzp_live_' : 'rzp_test_';
