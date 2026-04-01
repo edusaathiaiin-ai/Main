@@ -85,6 +85,11 @@ async function sendUpgradeEmail(
                style="display:inline-block;background:#C9993A;color:#0B1F3A;padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;margin-top:20px">
               Start learning →
             </a>
+            <p style="font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:24px;line-height:1.6">
+              This email was sent to ${email}<br>
+              because you made a purchase on EdUsaathiAI.<br>
+              <strong style="color:rgba(255,255,255,0.5)">If this is in spam — please mark "Not spam" to receive future emails.</strong>
+            </p>
           </div>
         `,
       }),
