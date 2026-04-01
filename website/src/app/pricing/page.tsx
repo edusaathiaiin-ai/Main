@@ -200,10 +200,8 @@ export default function PricingPage() {
 
   return (
     <>
-      {/* Razorpay script (needed for checkout) */}
-      {PAYMENTS_ACTIVE && (
-        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="beforeInteractive" />
-      )}
+      {/* Razorpay script — always loaded so checkout works for logged-in users */}
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="beforeInteractive" />
 
       <main
         className="min-h-screen relative"
