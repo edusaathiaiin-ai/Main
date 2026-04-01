@@ -157,14 +157,30 @@ export function ChatWindow() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingText]);
 
-  // Post-upgrade celebration
+  // Post-upgrade celebration — refresh profile from DB so new plan takes effect
   useEffect(() => {
     if (searchParams.get('upgraded') !== 'true') return;
+
+    // Refresh profile (webhook may have updated plan_id)
+    const supabase = createClient();
+    if (profile?.id) {
+      supabase
+        .from('profiles')
+        .select('plan_id, subscription_status, subscription_expires_at')
+        .eq('id', profile.id)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            useAuthStore.getState().setProfile({ ...profile, ...data });
+          }
+        });
+    }
+
     setShowCelebration(true);
     router.replace('/chat', { scroll: false });
-    const t = setTimeout(() => setShowCelebration(false), 2500);
+    const t = setTimeout(() => setShowCelebration(false), 3000);
     return () => clearTimeout(t);
-  }, [searchParams, router]);
+  }, [searchParams, router, profile]);
 
   // Upgrade banner trigger logic — free plan only
   useEffect(() => {
@@ -387,11 +403,13 @@ export function ChatWindow() {
     setInputValue(text);
   }
 
-  // Sign out — returns to hero page
+  // Sign out — clear all state and return to login
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push('/');
+    useAuthStore.getState().setProfile(null);
+    sessionStorage.clear();
+    router.push('/login');
   }
 
   if (!profile) {

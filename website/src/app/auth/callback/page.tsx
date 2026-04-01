@@ -101,9 +101,16 @@ function CallbackInner() {
             await supabase.auth.getSession();
 
           if (retryError || !retrySession) {
+            const isExpired = retryError?.message?.toLowerCase().includes('expired') ?? false;
             setStatus('error');
-            setErrorMsg(retryError?.message ?? 'Session not found');
-            setTimeout(() => router.replace('/login?error=unauthorized'), 1500);
+            setErrorMsg(
+              isExpired
+                ? 'This login link has expired. Magic links are valid for 24 hours.'
+                : retryError?.message ?? 'Login failed. Please try again.'
+            );
+            setTimeout(() => router.replace(
+              isExpired ? '/login?error=link_expired' : '/login?error=unauthorized'
+            ), 2000);
             return;
           }
           resolvedSession = retrySession;

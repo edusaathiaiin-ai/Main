@@ -30,7 +30,10 @@ function LoginForm() {
   const isForced = searchParams.get('forced') === '1';
 
   useEffect(() => {
-    if (searchParams.get('error') === 'unauthorized') {
+    const err = searchParams.get('error');
+    if (err === 'link_expired') {
+      setError('Your login link expired. Links are valid for 24 hours. Request a new one below.');
+    } else if (err === 'unauthorized') {
       setError('Authentication failed. Please try again.');
     }
   }, [searchParams]);
@@ -238,8 +241,13 @@ function LoginForm() {
         </AnimatePresence>
       </div>
 
+      {/* Mobile magic link tip */}
+      <p style={{fontSize:'11px', color:'rgba(255,255,255,0.3)', marginTop:'12px', textAlign:'center'}}>
+        On mobile? If the magic link doesn&apos;t work, copy it and open in Chrome or Safari.
+      </p>
+
       {/* New user link */}
-      <p style={{fontSize:'13px', color:'rgba(255,255,255,0.35)', textAlign:'center', marginTop:'16px'}}>
+      <p style={{fontSize:'13px', color:'rgba(255,255,255,0.35)', textAlign:'center', marginTop:'12px'}}>
         New to EdUsaathiAI?{' '}
         <a href="/" style={{color:'rgba(255,255,255,0.6)', textDecoration:'underline', textUnderlineOffset:'3px'}}>
           Explore the platform →

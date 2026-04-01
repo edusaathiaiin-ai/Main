@@ -21,13 +21,78 @@ import { captureError, captureEvent } from '../_shared/sentry.ts';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const RAZORPAY_WEBHOOK_SECRET = Deno.env.get('RAZORPAY_WEBHOOK_SECRET') ?? '';
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
+const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') ?? 'EdUsaathiAI <noreply@edusaathiai.in>';
 
 // Plan expiry durations
 const PLAN_EXPIRY_MS: Record<string, number> = {
-  'plus-monthly': 31 * 24 * 60 * 60 * 1000,
-  'plus-annual': 366 * 24 * 60 * 60 * 1000,
-  'institution': 31 * 24 * 60 * 60 * 1000,
+  'plus-monthly':     31 * 24 * 60 * 60 * 1000,
+  'plus-annual':      366 * 24 * 60 * 60 * 1000,
+  'pro-monthly':      31 * 24 * 60 * 60 * 1000,
+  'pro-annual':       366 * 24 * 60 * 60 * 1000,
+  'unlimited-monthly': 31 * 24 * 60 * 60 * 1000,
+  'institution':      31 * 24 * 60 * 60 * 1000,
 };
+
+// Plan display names
+const PLAN_LABELS: Record<string, string> = {
+  'plus-monthly': 'Saathi Plus (Monthly)',
+  'plus-annual': 'Saathi Plus (Annual)',
+  'pro-monthly': 'Saathi Pro (Monthly)',
+  'pro-annual': 'Saathi Pro (Annual)',
+  'unlimited-monthly': 'Saathi Unlimited',
+  'institution': 'Institution',
+};
+
+// ── Payment confirmation email ─────────────────────────────────────────────
+
+async function sendUpgradeEmail(
+  email: string,
+  planId: string,
+  expiresAt: string,
+): Promise<void> {
+  if (!RESEND_API_KEY || !email) return;
+  const planLabel = PLAN_LABELS[planId] ?? planId;
+  const renewalDate = new Date(expiresAt).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  });
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: RESEND_FROM_EMAIL,
+        to: [email],
+        subject: `✦ Welcome to ${planLabel} — Your upgrade is confirmed`,
+        html: `
+          <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
+            <h1 style="color:#C9993A;font-size:28px;margin-bottom:8px">✦ You are now ${planLabel}</h1>
+            <p style="color:rgba(255,255,255,0.7);line-height:1.7">
+              Your upgrade is confirmed. All 5 bot slots are now unlocked.
+              Your Saathi remembers you — pick up right where you left off.
+            </p>
+            <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:16px">
+              Plan: ${planLabel}<br>
+              Next renewal: ${renewalDate}<br>
+              Questions: support@edusaathiai.in
+            </p>
+            <a href="https://www.edusaathiai.in/chat"
+               style="display:inline-block;background:#C9993A;color:#0B1F3A;padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;margin-top:20px">
+              Start learning →
+            </a>
+          </div>
+        `,
+      }),
+    });
+  } catch (err) {
+    // Email failure must never block payment processing
+    console.error('razorpay-webhook: email send failed', err instanceof Error ? err.message : err);
+  }
+}
 
 // ── Step 2: HMAC-SHA256 signature verification ──────────────────────────────
 
@@ -159,6 +224,17 @@ async function handlePaymentCaptured(
     subscription_status: 'active',
     subscription_expires_at: expiresAt,
   }).eq('id', sub.user_id);
+
+  // Send confirmation email (fire-and-forget)
+  const { data: userProfile } = await admin
+    .from('profiles')
+    .select('email')
+    .eq('id', sub.user_id)
+    .maybeSingle();
+
+  if (userProfile?.email) {
+    void sendUpgradeEmail(userProfile.email as string, sub.plan_id, expiresAt);
+  }
 }
 
 async function handlePaymentFailed(

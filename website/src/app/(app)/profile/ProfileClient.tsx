@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
@@ -41,6 +42,7 @@ interface RawSoul {
 }
 
 export function ProfileClient() {
+  const router = useRouter();
   const { profile } = useAuthStore();
   const { activeSaathiId, activeBotSlot, setActiveBotSlot } = useChatStore();
 
@@ -89,7 +91,13 @@ export function ProfileClient() {
         quota={DEFAULT_QUOTA}
         onSlotChange={(slot) => setActiveBotSlot(slot)}
         onLockedTap={() => {}}
-        onSignOut={async () => { const s = createClient(); await s.auth.signOut(); }}
+        onSignOut={async () => {
+          const s = createClient();
+          await s.auth.signOut();
+          useAuthStore.getState().setProfile(null);
+          sessionStorage.clear();
+          router.push('/login');
+        }}
       />
 
       <main className="flex-1 min-w-0 h-full overflow-y-auto">
