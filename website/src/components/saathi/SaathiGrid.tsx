@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SAATHIS } from '@/constants/saathis';
@@ -27,15 +27,17 @@ function SaathiCard({
   isActive: boolean;
   onEnter: () => void;
   onLeave: () => void;
-  onClick: () => void;
+  onClick: (ref: HTMLDivElement | null) => void;
 }) {
+  const cardRef = useRef<HTMLDivElement>(null);
   const primaryRgb = saathi.primary;
 
   return (
     <motion.div
+      ref={cardRef}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
-      onClick={onClick}
+      onClick={() => onClick(cardRef.current)}
       animate={{
         scale: isActive ? 1.04 : 1,
         backgroundColor: isActive ? `${primaryRgb}26` : 'rgba(255,255,255,0.03)',
@@ -190,8 +192,17 @@ export function SaathiGrid() {
     setActiveId(null);
   }, []);
 
-  const handleClick = useCallback((id: string) => {
-    setActiveId((prev) => (prev === id ? null : id));
+  const handleClick = useCallback((id: string, el: HTMLDivElement | null) => {
+    setActiveId((prev) => {
+      const next = prev === id ? null : id;
+      if (next && el) {
+        // Small delay to let the card expand before scrolling
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 150);
+      }
+      return next;
+    });
   }, []);
 
   return (
@@ -210,7 +221,7 @@ export function SaathiGrid() {
           isActive={activeId === s.id}
           onEnter={() => handleEnter(s.id)}
           onLeave={handleLeave}
-          onClick={() => handleClick(s.id)}
+          onClick={(el) => handleClick(s.id, el)}
         />
       ))}
     </div>
