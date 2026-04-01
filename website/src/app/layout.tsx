@@ -25,6 +25,12 @@ export const metadata: Metadata = {
   description:
     '24 AI subject companions. Built for India. ₹199/month. Your Saathi knows your name, remembers your journey.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://edusaathiai.in'),
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'EdUsaathiAI',
+  },
   openGraph: {
     siteName: 'EdUsaathiAI',
     type: 'website',
@@ -54,6 +60,11 @@ export default function RootLayout({
                 var prev=localStorage.getItem("eusa_build");
                 if(prev&&prev!==v){localStorage.setItem("eusa_build",v);location.reload();}
                 else{localStorage.setItem("eusa_build",v);}
+                if('serviceWorker' in navigator){
+                  window.addEventListener('load', function(){
+                    navigator.serviceWorker.register('/sw.js').catch(function(){});
+                  });
+                }
               })();
             `,
           }}

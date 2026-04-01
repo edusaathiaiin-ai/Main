@@ -1,0 +1,45 @@
+{
+  "name": "EdUsaathiAI — Your Learning Saathi",
+  "short_name": "EdUsaathiAI",
+  "description": "24 AI subject companions. Built for India. Your Saathi knows your name, remembers your journey.",
+  "start_url": "/chat",
+  "display": "standalone",
+  "background_color": "#060F1D",
+  "theme_color": "#0B1F3A",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Chat with Saathi",
+      "url": "/chat",
+      "description": "Jump into your learning session"
+    },
+    {
+      "name": "Community Board",
+      "url": "/board",
+      "description": "Ask and answer questions"
+    },
+    {
+      "name": "Today's News",
+      "url": "/news",
+      "description": "Stay updated in your subject"
+    }
+  ]
+}
