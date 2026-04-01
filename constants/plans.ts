@@ -114,5 +114,18 @@ export function getPlan(planId: string | null | undefined): Plan {
   return PLAN_CONFIG[(planId ?? 'free') as PlanId] ?? PLAN_CONFIG.free;
 }
 
+// ── Free trial config — first 7 days after signup ──────────────────────────
+export const FREE_TRIAL_DAYS = 7;
+export const FREE_TRIAL_DAILY_LIMIT = 10;
+export const FREE_TRIAL_ALLOWED_SLOTS = [1, 2, 3, 4, 5];
+
+/** Returns true if the account is within the 7-day free trial window */
+export function isInFreeTrial(createdAt: string | null | undefined): boolean {
+  if (!createdAt) return false;
+  const created = new Date(createdAt).getTime();
+  const now = Date.now();
+  return now - created < FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+}
+
 /** Razorpay plan IDs accepted by razorpay-order Edge Function */
 export type RazorpayPlanId = 'plus' | 'pro' | 'unlimited';

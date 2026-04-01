@@ -2,25 +2,29 @@
 
 import { motion } from 'framer-motion';
 import { BOTS } from '@/constants/bots';
+import { isInFreeTrial } from '@/constants/plans';
 import type { UserRole } from '@/types';
 
 type Props = {
   activeSlot: 1 | 2 | 3 | 4 | 5;
   userRole: UserRole | null;
   planId: string;
+  createdAt?: string | null;
   primaryColor: string;
   onSelect: (slot: 1 | 2 | 3 | 4 | 5) => void;
   onLockedTap: (botName: string) => void;
 };
 
-function isUnlocked(slot: number, planId: string, role: UserRole | null): boolean {
+function isUnlocked(slot: number, planId: string, role: UserRole | null, createdAt?: string | null): boolean {
   if (slot === 1 || slot === 5) return true; // always free
+  // Free trial: all slots open for first 7 days
+  if (planId === 'free' && isInFreeTrial(createdAt)) return true;
   if (planId === 'free') return false;
   if (role && role !== 'student' && slot !== 1 && slot !== 5) return false;
   return true;
 }
 
-export function BotSelector({ activeSlot, userRole, planId, primaryColor, onSelect, onLockedTap }: Props) {
+export function BotSelector({ activeSlot, userRole, planId, createdAt, primaryColor, onSelect, onLockedTap }: Props) {
   return (
     <div className="flex flex-col gap-1.5 px-3">
       <p className="text-[10px] font-semibold tracking-widest uppercase px-2 mb-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
@@ -28,7 +32,7 @@ export function BotSelector({ activeSlot, userRole, planId, primaryColor, onSele
       </p>
       {BOTS.map((bot) => {
         const active = activeSlot === bot.slot;
-        const unlocked = isUnlocked(bot.slot, planId, userRole);
+        const unlocked = isUnlocked(bot.slot, planId, userRole, createdAt);
 
         return (
           <motion.button

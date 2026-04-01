@@ -27,7 +27,8 @@ export function useQuota(saathiId: string, botSlot: number) {
       return buildQuotaState(
         data?.message_count ?? 0,
         data?.cooling_until ?? null,
-        profile?.plan_id
+        profile?.plan_id,
+        profile?.created_at
       );
     },
   });

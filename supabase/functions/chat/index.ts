@@ -70,8 +70,23 @@ const PLAN_QUOTA: Record<string, PlanQuotaConfig> = {
   unlimited: { dailyChatLimit: 9999, coolingHours: 0  }, // 0 = no cooling
 };
 
-function getPlanQuota(planId: string | null | undefined): PlanQuotaConfig {
-  return PLAN_QUOTA[planId ?? 'free'] ?? PLAN_QUOTA['plus'];
+// Free trial: 10 chats/day, all 5 bot slots, for first 7 days after signup
+const FREE_TRIAL_DAYS = 7;
+const FREE_TRIAL_DAILY_LIMIT = 10;
+
+function isInFreeTrial(createdAt: string | null | undefined): boolean {
+  if (!createdAt) return false;
+  const created = new Date(createdAt).getTime();
+  return Date.now() - created < FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+}
+
+function getPlanQuota(planId: string | null | undefined, createdAt?: string | null): PlanQuotaConfig {
+  const quota = PLAN_QUOTA[planId ?? 'free'] ?? PLAN_QUOTA['plus'];
+  // Free trial override: 10 chats/day for first 7 days
+  if ((planId ?? 'free') === 'free' && isInFreeTrial(createdAt)) {
+    return { dailyChatLimit: FREE_TRIAL_DAILY_LIMIT, coolingHours: quota.coolingHours };
+  }
+  return quota;
 }
 
 /** Milliseconds until midnight IST — for Unlimited plan zero-cooling reset */
@@ -1368,7 +1383,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: profile, error: profileError } = await admin
       .from('profiles')
-      .select('role, is_geo_limited, plan_id, subscription_status')
+      .select('role, is_geo_limited, plan_id, subscription_status, created_at')
       .eq('id', userId)
       .maybeSingle();
 
@@ -1385,7 +1400,8 @@ Deno.serve(async (req: Request) => {
     // Paused users get free-tier limits
     const isPaused = profile?.subscription_status === 'paused';
     const effectivePlanId = isPaused ? 'free' : rawPlanId;
-    const planQuota = getPlanQuota(effectivePlanId);
+    const profileCreatedAt = typeof profile?.created_at === 'string' ? profile.created_at : null;
+    const planQuota = getPlanQuota(effectivePlanId, profileCreatedAt);
 
     // Single-device enforcement removed — quota system handles abuse prevention.
 

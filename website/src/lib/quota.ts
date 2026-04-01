@@ -6,7 +6,7 @@
  * The Edge Function enforces hard limits; this is optimistic client cache.
  */
 
-import { getPlan, type PlanId } from '@/constants/plans';
+import { getPlan, type PlanId, isInFreeTrial, FREE_TRIAL_DAILY_LIMIT } from '@/constants/plans';
 import type { QuotaState } from '@/types';
 
 export type QuotaKeyParams = {
@@ -14,6 +14,7 @@ export type QuotaKeyParams = {
   saathiId: string;
   botSlot: 1 | 2 | 3 | 4 | 5;
   planId?: string | null;
+  createdAt?: string | null;
 };
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
@@ -37,11 +38,18 @@ export function msUntilMidnightIST(): number {
 
 // ── Plan helpers ──────────────────────────────────────────────────────────────
 
-export function getPlanLimits(planId: string | null | undefined): {
+export function getPlanLimits(planId: string | null | undefined, createdAt?: string | null): {
   dailyLimit: number;
   coolingMs: number;
 } {
   const plan = getPlan(planId as PlanId | null);
+  // Free trial: 10 chats/day for the first 7 days
+  if (plan.id === 'free' && isInFreeTrial(createdAt)) {
+    return {
+      dailyLimit: FREE_TRIAL_DAILY_LIMIT,
+      coolingMs: plan.coolingHours > 0 ? plan.coolingHours * 60 * 60 * 1000 : 0,
+    };
+  }
   return {
     dailyLimit: plan.dailyChatLimit,
     coolingMs: plan.coolingHours > 0 ? plan.coolingHours * 60 * 60 * 1000 : 0,
@@ -53,9 +61,10 @@ export function getPlanLimits(planId: string | null | undefined): {
 export function buildQuotaState(
   messageCount: number,
   coolingUntil: string | null,
-  planId: string | null | undefined
+  planId: string | null | undefined,
+  createdAt?: string | null
 ): QuotaState {
-  const { dailyLimit } = getPlanLimits(planId);
+  const { dailyLimit } = getPlanLimits(planId, createdAt);
   const used = Math.min(messageCount, dailyLimit);
   const remaining = Math.max(0, dailyLimit - used);
   const coolingDate = coolingUntil ? new Date(coolingUntil) : null;

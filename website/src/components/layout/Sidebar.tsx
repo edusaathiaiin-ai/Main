@@ -119,6 +119,7 @@ export function Sidebar({
           activeSlot={activeSlot}
           userRole={profile.role}
           planId={profile.plan_id}
+          createdAt={profile.created_at}
           primaryColor={activeSaathi.primary}
           onSelect={onSlotChange}
           onLockedTap={onLockedTap}
