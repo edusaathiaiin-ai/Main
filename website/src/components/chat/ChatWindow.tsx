@@ -158,27 +158,43 @@ export function ChatWindow() {
   }, [messages, streamingText]);
 
   // Post-upgrade celebration — refresh profile from DB so new plan takes effect
+  // Uses a ref to run only once (not on every profile change)
+  const upgradeHandled = useRef(false);
   useEffect(() => {
+    if (upgradeHandled.current) return;
     if (searchParams.get('upgraded') !== 'true') return;
+    if (!profile?.id) return;
+    upgradeHandled.current = true;
 
-    // Refresh profile (webhook may have updated plan_id)
+    // Show celebration immediately
+    setShowCelebration(true);
+    router.replace('/chat', { scroll: false });
+
+    // Poll for webhook to update plan_id (may take 2-5 seconds)
     const supabase = createClient();
-    if (profile?.id) {
-      supabase
+    let attempts = 0;
+    const maxAttempts = 6;
+
+    const pollProfile = async () => {
+      const { data } = await supabase
         .from('profiles')
         .select('plan_id, subscription_status, subscription_expires_at')
         .eq('id', profile.id)
-        .single()
-        .then(({ data }) => {
-          if (data) {
-            useAuthStore.getState().setProfile({ ...profile, ...data });
-          }
-        });
-    }
+        .single();
 
-    setShowCelebration(true);
-    router.replace('/chat', { scroll: false });
-    const t = setTimeout(() => setShowCelebration(false), 3000);
+      if (data && data.plan_id !== 'free') {
+        useAuthStore.getState().setProfile({ ...profile, ...data });
+        return;
+      }
+
+      attempts++;
+      if (attempts < maxAttempts) {
+        setTimeout(pollProfile, 2000); // retry every 2s
+      }
+    };
+    void pollProfile();
+
+    const t = setTimeout(() => setShowCelebration(false), 3500);
     return () => clearTimeout(t);
   }, [searchParams, router, profile]);
 
