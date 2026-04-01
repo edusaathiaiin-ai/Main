@@ -80,10 +80,20 @@ function isInFreeTrial(createdAt: string | null | undefined): boolean {
   return Date.now() - created < FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000;
 }
 
+/** Extract tier from DB plan_id: 'plus-monthly' → 'plus' */
+function getPlanTier(planId: string | null | undefined): string {
+  if (!planId || planId === 'free') return 'free';
+  if (planId.startsWith('plus')) return 'plus';
+  if (planId.startsWith('pro')) return 'pro';
+  if (planId.startsWith('unlimited')) return 'unlimited';
+  return 'free';
+}
+
 function getPlanQuota(planId: string | null | undefined, createdAt?: string | null): PlanQuotaConfig {
-  const quota = PLAN_QUOTA[planId ?? 'free'] ?? PLAN_QUOTA['plus'];
+  const tier = getPlanTier(planId);
+  const quota = PLAN_QUOTA[tier] ?? PLAN_QUOTA['free'];
   // Free trial override: 10 chats/day for first 7 days
-  if ((planId ?? 'free') === 'free' && isInFreeTrial(createdAt)) {
+  if (tier === 'free' && isInFreeTrial(createdAt)) {
     return { dailyChatLimit: FREE_TRIAL_DAILY_LIMIT, coolingHours: quota.coolingHours };
   }
   return quota;

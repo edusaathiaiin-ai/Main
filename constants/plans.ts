@@ -110,8 +110,19 @@ export const PLANS: Plan[] = [
 export const PAID_PLANS: Plan[] = PLANS.filter((p) => p.id !== 'free');
 
 /** Look up plan from a raw plan_id string (falls back to free) */
+/** Extract the tier from a DB plan_id like 'plus-monthly' → 'plus' */
+export function getPlanTier(planId: string | null | undefined): PlanId {
+  if (!planId || planId === 'free') return 'free';
+  if (planId.startsWith('plus')) return 'plus';
+  if (planId.startsWith('pro')) return 'pro';
+  if (planId.startsWith('unlimited')) return 'unlimited';
+  return 'free';
+}
+
 export function getPlan(planId: string | null | undefined): Plan {
-  return PLAN_CONFIG[(planId ?? 'free') as PlanId] ?? PLAN_CONFIG.free;
+  const direct = PLAN_CONFIG[(planId ?? 'free') as PlanId];
+  if (direct) return direct;
+  return PLAN_CONFIG[getPlanTier(planId)] ?? PLAN_CONFIG.free;
 }
 
 // ── Free trial config — first 7 days after signup ──────────────────────────

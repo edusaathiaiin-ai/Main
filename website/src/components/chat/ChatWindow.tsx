@@ -9,6 +9,7 @@ import { useChatStore } from '@/stores/chatStore';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
 import { BOTS } from '@/constants/bots';
+import { getPlanTier } from '@/constants/plans';
 import { getSaathiTheme } from '@/lib/saathiThemes';
 import { useThemeStore } from '@/stores/themeStore';
 import { ChatWatermark } from './ChatWatermark';
@@ -200,7 +201,7 @@ export function ChatWindow() {
 
   // Upgrade banner trigger logic — free plan only
   useEffect(() => {
-    if (profile?.plan_id !== 'free') return;
+    if (getPlanTier(profile?.plan_id) !== 'free') return;
     if (bannerDismissed || !soulData) return;
 
     // Cooling — highest priority

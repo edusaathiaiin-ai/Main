@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { BotSelector } from '@/components/chat/BotSelector';
+import { getPlanTier } from '@/constants/plans';
 import type { Saathi, Profile, QuotaState } from '@/types';
 
 
@@ -180,7 +181,7 @@ export function Sidebar({
       </nav>
 
       {/* Upgrade pill — free plan only */}
-      {profile.plan_id === 'free' && <UpgradePill sessionCount={sessionCount} />}
+      {getPlanTier(profile.plan_id) === 'free' && <UpgradePill sessionCount={sessionCount} />}
 
 
       {/* User footer */}

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { BOTS } from '@/constants/bots';
-import { isInFreeTrial } from '@/constants/plans';
+import { isInFreeTrial, getPlanTier } from '@/constants/plans';
 import type { UserRole } from '@/types';
 
 type Props = {
@@ -18,8 +18,9 @@ type Props = {
 function isUnlocked(slot: number, planId: string, role: UserRole | null, createdAt?: string | null): boolean {
   if (slot === 1 || slot === 5) return true; // always free
   // Free trial: all slots open for first 7 days
-  if (planId === 'free' && isInFreeTrial(createdAt)) return true;
-  if (planId === 'free') return false;
+  const tier = getPlanTier(planId);
+  if (tier === 'free' && isInFreeTrial(createdAt)) return true;
+  if (tier === 'free') return false;
   if (role && role !== 'student' && slot !== 1 && slot !== 5) return false;
   return true;
 }

@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useChatStore } from '@/stores/chatStore';
 import { SAATHIS } from '@/constants/saathis';
+import { getPlanTier } from '@/constants/plans';
 import { QuestionCard } from './QuestionCard';
 import { PostQuestionModal } from './PostQuestionModal';
 import { FilterBar } from './FilterBar';
@@ -282,7 +283,7 @@ export function QuestionFeed() {
                       primaryColor={activeSaathi.primary}
                     />
                     {/* Upgrade nudge after 3rd question — free plan only */}
-                    {idx === 2 && profile?.plan_id === 'free' && !boardNudgeDismissed && (
+                    {idx === 2 && getPlanTier(profile?.plan_id) === 'free' && !boardNudgeDismissed && (
                       <div
                         style={{
                           margin: '16px 0',

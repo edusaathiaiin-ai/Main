@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import type { Profile } from '@/types';
-import { getPlan } from '@/constants/plans';
+import { getPlan, getPlanTier } from '@/constants/plans';
 
 const PLAN_COLORS: Record<string, string> = {
   free: 'rgba(255,255,255,0.3)',
@@ -18,15 +18,16 @@ interface SubscriptionCardProps {
 
 export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
   const router = useRouter();
+  const tier = getPlanTier(profile.plan_id);
   const plan = getPlan(profile.plan_id);
-  const planColor = PLAN_COLORS[profile.plan_id] ?? '#C9993A';
+  const planColor = PLAN_COLORS[tier] ?? '#C9993A';
 
   const isActive = profile.subscription_status === 'active';
   const isPaused = profile.subscription_status === 'paused';
   const expiresAt = profile.subscription_expires_at
     ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
     : null;
-  const isFree = profile.plan_id === 'free';
+  const isFree = tier === 'free';
 
   // Founding access: if active and within 60 day window from created_at
   const createdAt = new Date(profile.created_at);
