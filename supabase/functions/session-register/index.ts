@@ -110,6 +110,7 @@ Deno.serve(async (req: Request) => {
         : 1;
 
     const forcedLogoutCount = profile?.forced_logout_count ?? 0;
+    const isNewDevice = profile?.active_session_id !== currentSessionId;
 
     // Update profile
     await admin.from('profiles').update({
