@@ -1,13 +1,25 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { createClient } from '@/lib/supabase/client';
 
 const TOTAL_SPOTS = 500;
-const SPOTS_REMAINING = 312; // hardcoded — make dynamic later
-const SPOTS_TAKEN = TOTAL_SPOTS - SPOTS_REMAINING;
-const PCT = Math.round((SPOTS_TAKEN / TOTAL_SPOTS) * 100);
 
 export default function FoundingBanner() {
+  const [spotsTaken, setSpotsTaken] = useState(0);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .rpc('get_founding_count')
+      .then(({ data }) => {
+        setSpotsTaken(typeof data === 'number' ? data : 0);
+      });
+  }, []);
+
+  const spotsRemaining = Math.max(0, TOTAL_SPOTS - spotsTaken);
+  const pct = Math.round((spotsTaken / TOTAL_SPOTS) * 100);
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -49,20 +61,20 @@ export default function FoundingBanner() {
             className="px-4 py-1.5 rounded-full text-xs font-bold tracking-wide"
             style={{ background: 'rgba(201,153,58,0.2)', color: '#C9993A', border: '1px solid rgba(201,153,58,0.4)' }}
           >
-            {SPOTS_REMAINING} founding spots remaining
+            {spotsRemaining} founding spots remaining
           </div>
           {/* Progress bar */}
           <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
             <motion.div
               className="h-full rounded-full"
-              style={{ background: 'linear-gradient(90deg, #C9993A, #E5B86A)', width: `${PCT}%` }}
+              style={{ background: 'linear-gradient(90deg, #C9993A, #E5B86A)', width: `${pct}%` }}
               initial={{ width: 0 }}
-              animate={{ width: `${PCT}%` }}
+              animate={{ width: `${pct}%` }}
               transition={{ delay: 0.8, duration: 1, ease: 'easeOut' }}
             />
           </div>
           <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            {SPOTS_TAKEN} of {TOTAL_SPOTS} claimed
+            {spotsTaken} of {TOTAL_SPOTS} claimed
           </p>
         </div>
       </div>
