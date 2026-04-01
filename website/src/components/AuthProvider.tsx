@@ -68,7 +68,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    return () => { subscription.unsubscribe(); };
+    // 3. Re-fetch profile when tab regains focus (catches plan upgrades)
+    function handleFocus() {
+      const current = useAuthStore.getState().profile;
+      if (!current?.id) return;
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', current.id)
+        .single()
+        .then(({ data, error }) => {
+          if (!error && data) setProfile(data as Profile);
+        });
+    }
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Empty array is intentional — must only run once on mount.
   // setProfile/setLoading are Zustand stable refs (never change).
