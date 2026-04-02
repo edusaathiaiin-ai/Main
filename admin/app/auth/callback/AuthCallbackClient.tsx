@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 
 const ADMIN_EMAILS = ['edusaathiai.in@gmail.com'];
@@ -31,7 +32,7 @@ function CallbackHandler() {
 
     // Regular login / magic-link flow
     const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: AuthChangeEvent, session: Session | null) => {
         if (event === 'SIGNED_IN' && session) {
           const email = session.user.email?.toLowerCase() ?? '';
           if (!ADMIN_EMAILS.includes(email)) {
