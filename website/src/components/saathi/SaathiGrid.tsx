@@ -8,12 +8,14 @@ import type { SaathiWithDescription } from '@/constants/saathis';
 
 const SPRING = { type: 'spring', stiffness: 300, damping: 25 } as const;
 
+// All 24 Saathis are rich — full descriptions, daily challenges, Treasure Chest, 3D tools
 const RICH_SAATHIS = new Set([
-  'maathsaathi', 'chemsaathi', 'pharmasaathi', 'biosaathi',
-  'archsaathi', 'compsaathi', 'kanoonsaathi', 'mechsaathi',
-  'civilsaathi', 'physisaathi', 'biotechsaathi', 'aerosaathi',
-  'aerospacesaathi', 'econsaathi', 'elecsaathi', 'envirosaathi',
-  'chemenggsaathi', 'electronicssaathi',
+  'kanoonsaathi',   'maathsaathi',    'chemsaathi',      'biosaathi',
+  'pharmasaathi',   'medicosaathi',   'nursingsaathi',   'psychsaathi',
+  'mechsaathi',     'civilsaathi',    'elecsaathi',      'compsaathi',
+  'envirosathi',    'bizsaathi',      'finsaathi',       'mktsaathi',
+  'hrsaathi',       'archsaathi',     'historysaathi',   'econsaathi',
+  'chemengg saathi','biotechsaathi',  'aerospacesaathi', 'electronicssaathi',
 ]);
 
 function SaathiCard({

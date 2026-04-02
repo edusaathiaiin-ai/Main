@@ -62,12 +62,13 @@ function UpgradePill({ sessionCount }: { sessionCount: number }) {
 }
 
 const NAV_LINKS = [
-  { href: '/chat', icon: '💬', label: 'Chat' },
-  { href: '/board', icon: '🏛️', label: 'Board' },
-  { href: '/news', icon: '📰', label: 'News' },
-  { href: '/progress', icon: '📈', label: 'My Progress' },
-  { href: '/flashcards', icon: '🃏', label: 'Flashcards' },
-  { href: '/profile', icon: '👤', label: 'Profile' },
+  { href: '/chat',      icon: '💬', label: 'Chat' },
+  { href: '/board',     icon: '🏛️', label: 'Board' },
+  { href: '/news',      icon: '📰', label: 'News' },
+  { href: '/progress',  icon: '📈', label: 'My Progress' },
+  { href: '/flashcards',icon: '🃏', label: 'Flashcards' },
+  { href: '/explore',   icon: '🗺️', label: 'Explore Beyond' },
+  { href: '/profile',   icon: '👤', label: 'Profile' },
 ];
 
 export function Sidebar({
@@ -260,6 +261,56 @@ export function Sidebar({
           </p>
         </div>
       </a>
+
+      {/* ── Explore Beyond CTA ─────────────────────────────────────── */}
+      <Link
+        href="/explore"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          margin: '4px 12px 8px',
+          padding: '11px 14px',
+          borderRadius: '12px',
+          background: 'linear-gradient(135deg, rgba(201,153,58,0.12), rgba(201,153,58,0.04))',
+          border: '0.5px solid rgba(201,153,58,0.28)',
+          textDecoration: 'none',
+          position: 'relative',
+          overflow: 'hidden',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background =
+            'linear-gradient(135deg, rgba(201,153,58,0.2), rgba(201,153,58,0.08))';
+          e.currentTarget.style.borderColor = 'rgba(201,153,58,0.5)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background =
+            'linear-gradient(135deg, rgba(201,153,58,0.12), rgba(201,153,58,0.04))';
+          e.currentTarget.style.borderColor = 'rgba(201,153,58,0.28)';
+        }}
+      >
+        {/* Ambient glow */}
+        <div style={{
+          position: 'absolute',
+          right: '-8px', top: '-8px',
+          width: '52px', height: '52px',
+          borderRadius: '50%',
+          background: 'rgba(201,153,58,0.12)',
+          filter: 'blur(14px)',
+          pointerEvents: 'none',
+        }} />
+        <span style={{ fontSize: '18px', flexShrink: 0 }}>🗺️</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: '11px', fontWeight: '700', color: '#C9993A', margin: '0 0 1px' }}>
+            Explore Beyond
+          </p>
+          <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.32)', margin: 0 }}>
+            Books · Journals · Tools · Channels
+          </p>
+        </div>
+        <span style={{ fontSize: '12px', color: 'rgba(201,153,58,0.55)', flexShrink: 0 }}>→</span>
+      </Link>
 
       {/* Upgrade pill — free plan only */}
       {getPlanTier(profile.plan_id) === 'free' && <UpgradePill sessionCount={sessionCount} />}

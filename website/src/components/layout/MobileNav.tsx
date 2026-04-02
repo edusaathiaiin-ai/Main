@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
-  { href: '/chat', icon: '💬', label: 'Chat' },
-  { href: '/board', icon: '🏛️', label: 'Board' },
-  { href: '/news', icon: '📰', label: 'News' },
-  { href: '/flashcards', icon: '🃏', label: 'Cards' },
-  { href: '/profile', icon: '👤', label: 'Profile' },
+  { href: '/chat',      icon: '💬', label: 'Chat' },
+  { href: '/board',     icon: '🏛️', label: 'Board' },
+  { href: '/explore',   icon: '🗺️', label: 'Explore' },
+  { href: '/flashcards',icon: '🃏', label: 'Cards' },
+  { href: '/profile',   icon: '👤', label: 'Profile' },
 ];
 
 export function MobileNav() {

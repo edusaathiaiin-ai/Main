@@ -38,6 +38,18 @@ export const SUBJECT_CHIPS: Record<string, string[]> = {
     'Community Medicine', 'Surgery', 'Medicine',
     'Obstetrics', 'Paediatrics', 'Forensic Medicine',
   ],
+  nursingsaathi: [
+    'Fundamentals of Nursing', 'Medical-Surgical Nursing', 'Paediatric Nursing',
+    'Obstetric Nursing', 'Psychiatric Nursing', 'Community Health Nursing',
+    'Nursing Pharmacology', 'Critical Care Nursing', 'Anatomy & Physiology',
+    'Nutrition & Dietetics', 'Microbiology', 'First Aid & Emergency Care',
+  ],
+  psychsaathi: [
+    'General Psychology', 'Developmental Psychology', 'Abnormal Psychology',
+    'Social Psychology', 'Cognitive Psychology', 'Personality Theories',
+    'Research Methods', 'Psychological Testing', 'Neuropsychology',
+    'Counselling Psychology', 'Health Psychology', 'Positive Psychology',
+  ],
   compsaathi: [
     'Data Structures', 'Algorithms', 'Operating Systems',
     'Database Management', 'Computer Networks', 'Software Engineering',
@@ -116,7 +128,26 @@ export const SUBJECT_CHIPS: Record<string, string[]> = {
     'Financial Modelling', 'Risk Management', 'Accounting',
     'Banking', 'Fintech', 'International Finance',
   ],
-  envirosaathi: [
+  mktsaathi: [
+    'Marketing Management', 'Consumer Behaviour', 'Brand Management',
+    'Digital Marketing', 'Advertising & Promotion', 'Market Research',
+    'Sales Management', 'Product Management', 'Retail Marketing',
+    'International Marketing', 'Services Marketing', 'Marketing Analytics',
+  ],
+  hrsaathi: [
+    'Human Resource Management', 'Organisational Behaviour', 'Labour Law',
+    'Recruitment & Selection', 'Training & Development', 'Performance Management',
+    'Compensation & Benefits', 'Industrial Relations', 'HR Analytics',
+    'Talent Management', 'Change Management', 'Strategic HRM',
+  ],
+  historysaathi: [
+    'Ancient India', 'Medieval India', 'Modern India',
+    'World History', 'Art & Culture', 'Indian Nationalism',
+    'Post-Independence India', 'Economic History', 'Social History',
+    'Historiography', 'Regional History', 'Constitutional History',
+  ],
+  // ID matches saathis.ts: 'envirosathi' (no second 'a')
+  envirosathi: [
     'Environmental Chemistry', 'Ecology', 'Climate Science',
     'Environmental Policy', 'Sustainability', 'Water Resources',
     'Air Quality', 'Solid Waste Management', 'Environmental Impact',
