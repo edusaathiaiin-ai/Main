@@ -53,6 +53,11 @@ export async function* streamChat(
       sessionErr.code = 'FORCED_LOGOUT';
       throw sessionErr;
     }
+    if (res.status === 403 && err.error === 'suspended') {
+      const suspErr = new Error((err as Record<string, string>).message ?? 'Account suspended') as Error & { code: string };
+      suspErr.code = 'SUSPENDED';
+      throw suspErr;
+    }
     throw new Error(err.error ?? err.message ?? `Chat API error ${res.status}`);
   }
   const reader = res.body?.getReader();

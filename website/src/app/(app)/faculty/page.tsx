@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
+import Link from 'next/link';
 import type { Profile } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -98,6 +99,7 @@ export default function FacultyPage() {
   const [loading, setLoading] = useState(true);
   const [answerText, setAnswerText] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
+  const [draftingAi, setDraftingAi] = useState<string | null>(null);
   const [expandedAi, setExpandedAi] = useState<Set<string>>(new Set());
 
   // Load faculty profile
@@ -188,6 +190,33 @@ export default function FacultyPage() {
     setQuestions((prev) => prev.filter((q) => q.id !== questionId));
   }
 
+  async function fetchAiDraft(questionId: string, questionText: string) {
+    setDraftingAi(questionId);
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/board-draft`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+          },
+          body: JSON.stringify({ questionText, saathiSlug: profile?.primary_saathi_id ?? '' }),
+        },
+      );
+      const data = await res.json();
+      if (data.draft) {
+        setAnswerText((prev) => ({ ...prev, [questionId]: data.draft }));
+      }
+    } catch {
+      // silent fail — faculty can still type manually
+    }
+    setDraftingAi(null);
+  }
+
   function toggleAi(id: string) {
     setExpandedAi((prev) => {
       const next = new Set(prev);
@@ -235,6 +264,35 @@ export default function FacultyPage() {
           </button>
         </div>
       </nav>
+
+      {/* Faculty tools nav */}
+      <div className="max-w-4xl mx-auto px-6 pt-4">
+        <div className="flex flex-wrap gap-2">
+          {[
+            { href: '/chat', icon: '\u{1F4AC}', label: 'My Saathi' },
+            { href: '/faculty', icon: '\u{1F4CB}', label: 'Board' },
+            { href: '/faculty/analytics', icon: '\u{1F4CA}', label: 'Analytics' },
+            { href: '/faculty/question-paper', icon: '\u{1F4DD}', label: 'Question Paper' },
+            { href: '/faculty/create-material', icon: '\u{1F4DA}', label: 'Study Material' },
+            { href: '/profile', icon: '\u{1F464}', label: 'Profile' },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '0.5px solid rgba(255,255,255,0.08)',
+                color: 'rgba(255,255,255,0.5)',
+                textDecoration: 'none',
+              }}
+            >
+              <span>{item.icon}</span>
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header card */}
@@ -370,6 +428,24 @@ export default function FacultyPage() {
 
                     {/* Answer input */}
                     <div className="mt-1">
+                      {/* AI draft banner */}
+                      {answerText[q.id] && draftingAi !== q.id && (
+                        <div className="mb-2 px-3 py-2 rounded-lg text-[10px] font-semibold"
+                          style={{ background: 'rgba(201,153,58,0.08)', border: '0.5px solid rgba(201,153,58,0.2)', color: '#E5B86A' }}>
+                          {'\u2726'} AI draft — review and edit before posting
+                        </div>
+                      )}
+                      {/* Get AI Draft button */}
+                      {!answerText[q.id]?.trim() && (
+                        <button
+                          onClick={() => fetchAiDraft(q.id, q.body)}
+                          disabled={draftingAi === q.id}
+                          className="mb-2 text-xs px-3 py-2 rounded-lg font-semibold transition-all disabled:opacity-50"
+                          style={{ background: 'rgba(201,153,58,0.12)', border: '0.5px solid rgba(201,153,58,0.3)', color: '#C9993A' }}
+                        >
+                          {draftingAi === q.id ? 'Preparing AI draft...' : '{\u2726} Get AI Draft'}
+                        </button>
+                      )}
                       <textarea
                         value={answerText[q.id] ?? ''}
                         onChange={(e) => setAnswerText((prev) => ({ ...prev, [q.id]: e.target.value }))}

@@ -26,7 +26,12 @@ export const useChatStore = create<ChatState>((set) => ({
   isStreaming: false,
   streamingText: '',
 
-  setActiveSaathi: (saathiId) => set({ activeSaathiId: saathiId }),
+  // Saathi is locked to primary_saathi_id — only set once during init.
+  // Backend rejects requests for non-primary Saathi (403 saathi_locked).
+  setActiveSaathi: (saathiId) => set((s) => {
+    if (s.activeSaathiId && s.activeSaathiId !== saathiId) return s; // prevent switching
+    return { activeSaathiId: saathiId };
+  }),
   setActiveBotSlot: (slot) => set({ activeBotSlot: slot }),
   addMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
   setMessages: (msgs) => set({ messages: msgs }),

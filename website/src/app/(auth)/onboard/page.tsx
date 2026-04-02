@@ -15,6 +15,7 @@ import {
 } from '@/lib/instantSoulCalibration';
 import { SoulProfileForm, type SoulProfileData } from '@/components/onboard/SoulProfileForm';
 import { computeProfileCompleteness } from '@/lib/profileCompleteness';
+import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete';
 import type { Saathi, Profile } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -331,7 +332,8 @@ function SaathiStep({
     <div className="flex flex-col items-center w-full px-4 py-8">
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-6">
         <h2 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-3">Pick your Saathi</h2>
-        <p className="text-white/50 text-base">Your primary subject companion. <span className="text-white/30">Add more later.</span></p>
+        <p className="text-white/50 text-base">Your subject companion &mdash; this choice is permanent.</p>
+        <p className="text-white/25 text-xs mt-1">One student. One soul. One Saathi. Choose the subject you are studying.</p>
       </motion.div>
 
       <div className="w-full max-w-md mb-6">
@@ -404,6 +406,11 @@ function SaathiStep({
             </span>
           ) : selected ? `Begin with ${selected.name} →` : 'Choose a Saathi to continue'}
         </motion.button>
+        {selected && (
+          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', textAlign: 'center', maxWidth: '320px', lineHeight: '1.5' }}>
+            Your Saathi will be locked to <strong style={{ color: '#C9993A' }}>{selected.name}</strong>. To change later, you&apos;ll need a full profile and soul reset.
+          </p>
+        )}
         <BackButton onClick={onBack} />
         <div style={{ marginTop: '16px', textAlign: 'center' }}>
           <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', margin: 0 }}>
@@ -536,15 +543,12 @@ function ProfileStep({
 
         {/* Institution */}
         <InputField label={isPhD ? 'Institution & Department' : 'Institution / College'}>
-          <input
-            type="text"
+          <CollegeAutocomplete
             value={form.institution}
-            onChange={(e) => set('institution')(e.target.value)}
-            placeholder={isPhD ? 'e.g. IIT Bombay, Dept. of Electrical Engineering' : 'e.g. Mumbai University, NLU, AIIMS'}
+            onChange={set('institution')}
+            placeholder={isPhD ? 'e.g. IIT Bombay, Dept. of Electrical Engineering' : 'Start typing your college name…'}
             className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
-            style={inputStyle}
-            onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')}
-            onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+            inputStyle={inputStyle}
           />
         </InputField>
 
@@ -768,6 +772,16 @@ function OnboardInner() {
   const [facultyDepartment, setFacultyDepartment] = useState('');
   const [facultyInstitution, setFacultyInstitution] = useState('');
   const [facultyYrsExp, setFacultyYrsExp] = useState('');
+  const [facultyQualification, setFacultyQualification] = useState('');
+  const [facultyLinkedin, setFacultyLinkedin] = useState('');
+  const [facultyScholar, setFacultyScholar] = useState('');
+  const [facultyResearch, setFacultyResearch] = useState('');
+  const [facultyThesis, setFacultyThesis] = useState('');
+  const [facultySpecialities, setFacultySpecialities] = useState<string[]>([]);
+  const [facultyEmailError, setFacultyEmailError] = useState('');
+  const [facultyEmployment, setFacultyEmployment] = useState<'active' | 'retired' | 'independent'>('active');
+  const [facultyRetirementYear, setFacultyRetirementYear] = useState('');
+  const [facultyFormerInstitution, setFacultyFormerInstitution] = useState('');
 
   // Institution-specific state
   const [orgName, setOrgName] = useState('');
@@ -999,15 +1013,43 @@ function OnboardInner() {
         { onConflict: 'user_id,vertical_id' }
       );
     }
-    // Upsert faculty profile
+    // Upsert faculty profile (enriched)
     if (urlRole === 'faculty') {
+      // Email domain validation — block generic email providers (skip for retired faculty)
+      if (facultyEmployment !== 'retired') {
+        const BLOCKED_DOMAINS = ['gmail.com', 'yahoo.com', 'yahoo.in', 'hotmail.com', 'outlook.com', 'live.com', 'rediffmail.com', 'protonmail.com', 'aol.com', 'icloud.com', 'mail.com'];
+        const userEmail = (await supabase.auth.getUser()).data?.user?.email ?? '';
+        const emailDomain = userEmail.split('@')[1]?.toLowerCase() ?? '';
+        const isGenericEmail = BLOCKED_DOMAINS.includes(emailDomain);
+
+        if (isGenericEmail) {
+          setFacultyEmailError(`Faculty registration requires an institutional email. "${emailDomain}" is not accepted. Please use your university email (e.g. yourname@iitb.ac.in or yourname@university.edu.in). If your institution doesn't provide email, contact support@edusaathiai.in.`);
+          setSaving(false);
+          return;
+        }
+      }
+
+      const expertiseTags = [
+        ...(facultyDepartment.trim() ? [facultyDepartment.trim()] : []),
+        ...facultySpecialities,
+      ].slice(0, 8);
+
       await supabase.from('faculty_profiles').upsert({
         user_id: userId,
         institution_name: facultyInstitution.trim() || data.fullName.trim(),
         department: facultyDepartment.trim() || 'General',
         designation: facultyDesignation.trim() || null,
-        subject_expertise: facultyDepartment.trim() ? [facultyDepartment.trim()] : [],
+        subject_expertise: expertiseTags,
         years_experience: parseInt(facultyYrsExp) || 0,
+        highest_qualification: facultyQualification || null,
+        linkedin_url: facultyLinkedin.trim() || null,
+        google_scholar_url: facultyScholar.trim() || null,
+        current_research: facultyResearch.trim() || null,
+        thesis_title: facultyThesis.trim() || null,
+        speciality_areas: facultySpecialities,
+        employment_status: facultyEmployment,
+        retirement_year: facultyEmployment === 'retired' && facultyRetirementYear ? parseInt(facultyRetirementYear) : null,
+        former_institution: facultyEmployment === 'retired' ? (facultyFormerInstitution.trim() || null) : null,
         verification_status: 'pending',
       }, { onConflict: 'user_id' });
     }
@@ -1118,47 +1160,221 @@ function OnboardInner() {
                 onBack={goBack}
                 saving={saving}
               />
-              {/* Faculty extra fields — fully controlled */}
+              {/* Faculty extra fields — rich, conversational */}
               {urlRole === 'faculty' && (
                 <div className="max-w-xl mx-auto px-4 pb-8">
-                  <div className="rounded-2xl p-5 mt-4" style={{ background: 'rgba(22,163,74,0.08)', border: '0.5px solid rgba(22,163,74,0.25)' }}>
-                    <p className="text-sm font-semibold mb-4" style={{ color: '#4ADE80' }}>👨‍🏫 Faculty verification info</p>
-                    <div className="space-y-3">
-                      <select
-                        value={facultyDesignation}
-                        onChange={(e) => setFacultyDesignation(e.target.value)}
-                        className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: facultyDesignation ? '#fff' : 'rgba(255,255,255,0.35)' }}
-                      >
-                        <option value="" style={{ background: '#0B1F3A' }}>Designation (e.g. Professor)</option>
-                        {['Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer', 'Visiting Faculty', 'Other'].map((d) => (
-                          <option key={d} value={d} style={{ background: '#0B1F3A', color: '#fff' }}>{d}</option>
-                        ))}
-                      </select>
-                      <input
-                        value={facultyDepartment}
-                        onChange={(e) => setFacultyDepartment(e.target.value)}
-                        placeholder="Department / Subject area (e.g. Physics, Law)"
-                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
-                      />
-                      <input
-                        value={facultyInstitution}
-                        onChange={(e) => setFacultyInstitution(e.target.value)}
-                        placeholder="Institution name (e.g. IIT Bombay, NLU Ahmedabad)"
-                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
-                      />
-                      <input
-                        value={facultyYrsExp}
-                        onChange={(e) => setFacultyYrsExp(e.target.value)}
-                        placeholder="Years of teaching experience"
-                        type="number" min="0" max="50"
-                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
-                      />
+                  <div className="rounded-2xl p-6 mt-4" style={{ background: 'rgba(22,163,74,0.06)', border: '0.5px solid rgba(22,163,74,0.2)' }}>
+                    <div className="flex items-center gap-3 mb-5">
+                      <span className="text-2xl">{'\u{1F468}\u200D\u{1F3EB}'}</span>
+                      <div>
+                        <p className="text-sm font-semibold text-white">Your Faculty Profile</p>
+                        <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Students see this when they find you on Faculty Finder</p>
+                      </div>
                     </div>
-                    <p className="text-xs mt-3" style={{ color: 'rgba(255,255,255,0.3)' }}>Submitted for admin review. Faculty Verified badge within 48 hours.</p>
+
+                    {/* Email domain warning */}
+                    {facultyEmailError && (
+                      <div className="rounded-xl p-3 mb-4" style={{ background: 'rgba(239,68,68,0.08)', border: '0.5px solid rgba(239,68,68,0.25)' }}>
+                        <p className="text-xs" style={{ color: '#F87171' }}>{facultyEmailError}</p>
+                      </div>
+                    )}
+
+                    <div className="space-y-4">
+                      {/* Employment status */}
+                      <div>
+                        <label className="block text-[10px] font-semibold mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>I am currently...</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {([
+                            { id: 'active' as const, label: 'Teaching', emoji: '\u{1F4DA}', desc: 'At an institution' },
+                            { id: 'retired' as const, label: 'Retired', emoji: '\u{2726}', desc: 'Ready to teach again' },
+                            { id: 'independent' as const, label: 'Independent', emoji: '\u{1F310}', desc: 'Freelance / consultant' },
+                          ]).map((opt) => (
+                            <button key={opt.id} onClick={() => setFacultyEmployment(opt.id)}
+                              className="text-left rounded-xl p-3 transition-all"
+                              style={{
+                                background: facultyEmployment === opt.id ? (opt.id === 'retired' ? 'rgba(201,153,58,0.12)' : 'rgba(22,163,74,0.1)') : 'rgba(255,255,255,0.03)',
+                                border: `1px solid ${facultyEmployment === opt.id ? (opt.id === 'retired' ? 'rgba(201,153,58,0.5)' : 'rgba(22,163,74,0.4)') : 'rgba(255,255,255,0.06)'}`,
+                              }}>
+                              <span className="text-lg block mb-0.5">{opt.emoji}</span>
+                              <p className="text-xs font-semibold" style={{ color: facultyEmployment === opt.id ? (opt.id === 'retired' ? '#C9993A' : '#4ADE80') : 'rgba(255,255,255,0.5)' }}>{opt.label}</p>
+                              <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>{opt.desc}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Retired faculty: special fields */}
+                      {facultyEmployment === 'retired' && (
+                        <div className="rounded-xl p-4" style={{ background: 'rgba(201,153,58,0.06)', border: '0.5px solid rgba(201,153,58,0.2)' }}>
+                          <p className="text-xs font-semibold mb-3" style={{ color: '#C9993A' }}>{'\u2726'} Welcome back, Professor.</p>
+                          <p className="text-[10px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                            Your decades of experience are exactly what students need. No institutional email required.
+                          </p>
+                          <div className="space-y-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-[9px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Former institution *</label>
+                                <CollegeAutocomplete
+                                  value={facultyFormerInstitution}
+                                  onChange={setFacultyFormerInstitution}
+                                  placeholder="e.g. Gujarat University"
+                                  className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none"
+                                  inputStyle={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[9px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Retirement year</label>
+                                <input value={facultyRetirementYear} onChange={(e) => setFacultyRetirementYear(e.target.value)}
+                                  placeholder="e.g. 2022" type="number" min="1980" max="2026"
+                                  className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none"
+                                  style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                              </div>
+                            </div>
+                            <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                              Verification: retirement letter, pension slip, or last appointment letter accepted.
+                              Admin verifies within 48 hours.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Row 1: Designation + Qualification */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Designation *</label>
+                          <select value={facultyDesignation} onChange={(e) => setFacultyDesignation(e.target.value)}
+                            className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none"
+                            style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: facultyDesignation ? '#fff' : 'rgba(255,255,255,0.35)' }}>
+                            <option value="" style={{ background: '#0B1F3A' }}>Select designation</option>
+                            {['Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer', 'Senior Lecturer', 'Visiting Faculty', 'Research Fellow', 'Adjunct Faculty'].map((d) => (
+                              <option key={d} value={d} style={{ background: '#0B1F3A', color: '#fff' }}>{d}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Highest qualification</label>
+                          <select value={facultyQualification} onChange={(e) => setFacultyQualification(e.target.value)}
+                            className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none"
+                            style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: facultyQualification ? '#fff' : 'rgba(255,255,255,0.35)' }}>
+                            <option value="" style={{ background: '#0B1F3A' }}>Select qualification</option>
+                            {['PhD', 'M.Phil', 'Masters', 'Professional (MD/LLM/MBA/CA)', 'Post-Doctoral'].map((q) => (
+                              <option key={q} value={q} style={{ background: '#0B1F3A', color: '#fff' }}>{q}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Department */}
+                      <div>
+                        <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Department / Subject area *</label>
+                        <input value={facultyDepartment} onChange={(e) => setFacultyDepartment(e.target.value)}
+                          placeholder="e.g. Physics, Constitutional Law, Pharmacology"
+                          className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                          style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                      </div>
+
+                      {/* Institution — with CollegeAutocomplete */}
+                      <div>
+                        <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Institution *</label>
+                        <CollegeAutocomplete
+                          value={facultyInstitution}
+                          onChange={setFacultyInstitution}
+                          placeholder="Start typing your institution name..."
+                          className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                          inputStyle={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                        />
+                      </div>
+
+                      {/* Row: Years + Publications */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Years teaching</label>
+                          <input value={facultyYrsExp} onChange={(e) => setFacultyYrsExp(e.target.value)}
+                            placeholder="e.g. 12" type="number" min="0" max="50"
+                            className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                            style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Speciality areas</label>
+                          <input
+                            placeholder="e.g. Quantum Optics, Fluid Dynamics"
+                            className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                            style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && e.currentTarget.value.trim() && facultySpecialities.length < 5) {
+                                e.preventDefault();
+                                setFacultySpecialities([...facultySpecialities, e.currentTarget.value.trim()]);
+                                e.currentTarget.value = '';
+                              }
+                            }}
+                          />
+                          {facultySpecialities.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              {facultySpecialities.map((s) => (
+                                <button key={s} onClick={() => setFacultySpecialities(facultySpecialities.filter((x) => x !== s))}
+                                  className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                                  style={{ background: 'rgba(22,163,74,0.15)', border: '0.5px solid rgba(22,163,74,0.3)', color: '#4ADE80' }}>
+                                  {s} {'\u00D7'}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          <p className="text-[9px] mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>Press Enter to add (max 5)</p>
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+
+                      {/* Current research */}
+                      <div>
+                        <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>What are you currently researching?</label>
+                        <textarea value={facultyResearch} onChange={(e) => setFacultyResearch(e.target.value.slice(0, 500))}
+                          placeholder="Your current research focus, ongoing projects, or areas of active investigation..."
+                          rows={2} className="w-full rounded-xl px-4 py-3 text-xs text-white outline-none resize-none"
+                          style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                        <p className="text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>Students looking for research guidance will see this</p>
+                      </div>
+
+                      {/* Thesis */}
+                      <div>
+                        <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>PhD/Masters thesis title (optional)</label>
+                        <input value={facultyThesis} onChange={(e) => setFacultyThesis(e.target.value.slice(0, 300))}
+                          placeholder="e.g. Quantum entanglement in topological materials"
+                          className="w-full rounded-xl px-4 py-3 text-xs text-white outline-none"
+                          style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                      </div>
+
+                      {/* Divider */}
+                      <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+
+                      {/* Academic links */}
+                      <div>
+                        <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Academic links (optional but recommended)</label>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm w-5 text-center opacity-40">in</span>
+                            <input value={facultyLinkedin} onChange={(e) => setFacultyLinkedin(e.target.value)}
+                              placeholder="LinkedIn profile URL"
+                              className="flex-1 rounded-xl px-4 py-2.5 text-xs text-white outline-none"
+                              style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm w-5 text-center opacity-40">{'\u{1F393}'}</span>
+                            <input value={facultyScholar} onChange={(e) => setFacultyScholar(e.target.value)}
+                              placeholder="Google Scholar profile URL"
+                              className="flex-1 rounded-xl px-4 py-2.5 text-xs text-white outline-none"
+                              style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                          </div>
+                        </div>
+                        <p className="text-[9px] mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>Helps students trust your expertise. Verified badge comes faster with these.</p>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] mt-4" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                      {'\u{1F512}'} Submitted for admin review. Faculty Verified badge within 48 hours.
+                      Institutional email speeds up verification.
+                    </p>
                   </div>
                 </div>
               )}

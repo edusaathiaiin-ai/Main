@@ -12,10 +12,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   SUBJECT_GUARDRAILS,
-  detectViolation,
   detectInjection,
-  type ViolationResult,
 } from './guardrails.ts';
+import { detectViolation as detectViolationNew } from '../_shared/violations.ts';
+import { checkSuspension, recordViolationAndCheck } from '../_shared/suspensions.ts';
 import { captureError, captureEvent } from '../_shared/sentry.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -494,6 +494,7 @@ type RawProfile = {
   graduation_year: unknown;
   current_subjects: unknown;
   interest_areas: unknown;
+  role: unknown;
 };
 
 type RawNews = { source: unknown; title: unknown };
@@ -530,7 +531,7 @@ async function buildSystemPrompt(
       .limit(3),
     admin
       .from('profiles')
-      .select('institution_name, degree_programme, current_semester, graduation_year, current_subjects, interest_areas')
+      .select('institution_name, degree_programme, current_semester, graduation_year, current_subjects, interest_areas, role')
       .eq('id', userId)
       .maybeSingle(),
   ]);
@@ -585,6 +586,7 @@ async function buildSystemPrompt(
   const graduationYear      = typeof prof?.graduation_year === 'number' ? (prof.graduation_year as number) : null;
   const degreeProgramme     = typeof prof?.degree_programme === 'string' ? prof.degree_programme : '';
   const currentSemester     = typeof prof?.current_semester === 'number' ? (prof.current_semester as number) : null;
+  const isFaculty           = typeof prof?.role === 'string' && prof.role === 'faculty';
 
   // First-session greeting instruction by academic level
   function buildFirstSessionGreeting(): string {
@@ -727,6 +729,30 @@ CALIBRATE AUTOMATICALLY TO THIS SCORE:
 CRITICAL: The SAME question gets completely different treatment at different levels. Never talk down to a higher-level student. Never overwhelm a lower-level student. Meet them exactly where they are.
 ${peerMode ? 'PEER MODE ACTIVE — treat this student as a fellow researcher, not a learner.' : ''}
 ${examMode ? 'EXAM MODE ACTIVE — prioritise practical test-readiness: structure answers around exam patterns, time management, and high-yield topics.' : ''}
+${isFaculty ? `
+# FACULTY MODE — PEER CONVERSATION
+This user is a faculty member, not a student.
+They are your intellectual peer.
+
+DO NOT explain basics. DO NOT tutor.
+TREAT them as a fellow expert.
+
+You can discuss:
+- Pedagogy and teaching methodologies
+- Curriculum design and syllabus planning
+- Research papers and academic developments
+- Assessment design and question paper strategy
+- Student learning patterns and difficulties
+- Subject-specific advanced concepts
+- Conference papers and publications
+
+When they ask about a concept, give the TEACHING perspective:
+"Here's how to explain this to students..."
+"The common misconception students have is..."
+"The best analogy for this concept is..."
+
+They are using you to TEACH BETTER — not to learn themselves.
+` : ''}
 ${priorKnowledge ? `Prior knowledge base: ${priorKnowledge}` : ''}
 Currently enrolled in: ${enrolled}
 Future interest areas: ${future}
@@ -1393,7 +1419,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: profile, error: profileError } = await admin
       .from('profiles')
-      .select('role, is_geo_limited, plan_id, subscription_status, created_at')
+      .select('role, is_geo_limited, plan_id, subscription_status, created_at, primary_saathi_id')
       .eq('id', userId)
       .maybeSingle();
 
@@ -1458,6 +1484,28 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // ── Suspension check: block suspended/banned users ──────────────────────
+    const suspension = await checkSuspension(admin, userId);
+    if (suspension.isSuspended) {
+      const suspMsg = suspension.isBanned
+        ? 'Your account has been permanently suspended due to serious policy violations. Contact support@edusaathiai.in'
+        : suspension.until
+        ? `Your account is temporarily suspended until ${suspension.until.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST. ${suspension.reason ?? ''}`
+        : 'Your account is suspended. Contact support@edusaathiai.in';
+
+      return new Response(
+        JSON.stringify({
+          error: 'suspended',
+          message: suspMsg,
+          until: suspension.until?.toISOString() ?? null,
+          tier: suspension.tier,
+          reason: suspension.reason,
+          isBanned: suspension.isBanned,
+        }),
+        { status: 403, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+      );
+    }
+
     if (message.length > MAX_MESSAGE_LENGTH) {
       return new Response(
         JSON.stringify({ error: `Message too long. Max ${MAX_MESSAGE_LENGTH} characters.` }),
@@ -1507,35 +1555,44 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const violation: ViolationResult | null = detectViolation(sanitized);
+    // ── Violation detection with suspension system ──────────────────────────
+    const violation = detectViolationNew(sanitized);
     if (violation) {
-      // Log to moderation_flags — fire-and-forget
-      admin.from('moderation_flags').insert({
-        target_type: violation.type,
-        target_id: userId,
-        reporter_user_id: userId,
-        reason: violation.type,
-        details: { message: sanitized.slice(0, 200), saathi: saathiId, type: violation.type },
-        status: 'auto_flagged',
-      }).then(({ error }: { error: { message: string } | null }) => {
-        if (error) console.warn('violation flag insert failed:', error.message);
-      });
+      const { shouldSuspend } = await recordViolationAndCheck(
+        admin, userId, violation.type, violation.severity, sanitized, saathiId, 'web',
+      );
+
+      if (shouldSuspend) {
+        return new Response(
+          JSON.stringify({
+            error: 'suspended',
+            message: 'Your account has been temporarily suspended due to policy violations. Check your email for details.',
+            tier: 2,
+          }),
+          { status: 403, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      // Not suspended yet — just warn via streamed response
       return makeGuardrailStream(violation.response);
     }
 
-    // ── Injection detection: block, log, redirect ─────────────────────────────
+    // ── Legacy injection detection (patterns not in new violations.ts) ───────
     const isInjectionAttempt = detectInjection(sanitized);
     if (isInjectionAttempt) {
-      admin.from('moderation_flags').insert({
-        target_type: 'prompt_injection_attempt',
-        target_id: userId,
-        reporter_user_id: userId,
-        reason: 'prompt_injection_attempt',
-        details: { message: sanitized.slice(0, 200), saathi: saathiId },
-        status: 'auto_flagged',
-      }).then(({ error }: { error: { message: string } | null }) => {
-        if (error) console.warn('injection flag insert failed:', error.message);
-      });
+      const { shouldSuspend } = await recordViolationAndCheck(
+        admin, userId, 'injection', 'high', sanitized, saathiId, 'web',
+      );
+      if (shouldSuspend) {
+        return new Response(
+          JSON.stringify({
+            error: 'suspended',
+            message: 'Your account has been temporarily suspended due to policy violations. Check your email for details.',
+            tier: 2,
+          }),
+          { status: 403, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+        );
+      }
       return makeGuardrailStream(
         `I am ${saathiId} — your learning companion. I am here to help you study and grow. What would you like to learn today?`
       );
@@ -1562,6 +1619,14 @@ Deno.serve(async (req: Request) => {
     }
     const verticalId   = (verticalRow as { id: string; slug: string }).id;
     const verticalSlug = (verticalRow as { id: string; slug: string }).slug;
+
+    // ── Saathi lock: students can only use their registered Saathi ──────────
+    if (profile?.primary_saathi_id && verticalId !== profile.primary_saathi_id) {
+      return new Response(
+        JSON.stringify({ error: 'saathi_locked', message: 'You can only chat with your registered Saathi.' }),
+        { status: 403, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+      );
+    }
 
     // Quota enforcement
     const dateIst = todayIST();

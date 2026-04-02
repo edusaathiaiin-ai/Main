@@ -45,6 +45,18 @@ export type Profile = {
   profile_completeness_pct: number;
   previous_degree: string | null;
   last_profile_updated_at: string | null;
+  // WhatsApp Saathi
+  wa_phone: string | null;
+  wa_saathi_id: string | null;
+  wa_registered_at: string | null;
+  wa_state: string | null;
+  // Suspension
+  suspension_status: string | null;
+  suspension_tier: number | null;
+  suspended_until: string | null;
+  suspension_reason: string | null;
+  suspension_count: number;
+  is_banned: boolean;
 };
 
 // ─── Soul / AI context ────────────────────────────────────────────────────────

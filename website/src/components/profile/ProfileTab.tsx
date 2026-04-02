@@ -1,9 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
-import type { Profile } from '@/types';
+import { SAATHIS } from '@/constants/saathis';
+import { useAuthStore } from '@/stores/authStore';
+import { useChatStore } from '@/stores/chatStore';
+import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete';
+import type { Profile, Saathi } from '@/types';
 
 const EXAM_TARGETS = ['UPSC', 'GATE', 'NEET', 'CA', 'CLAT', 'NET', 'JEE', 'Bar Exam', 'None'];
 const ACADEMIC_LEVELS = [
@@ -32,7 +36,11 @@ interface RawSoul {
   career_interest: string | null;
   enrolled_subjects: string[] | null;
   future_subjects: string[] | null;
+  session_count: number | null;
+  flame_stage: string | null;
 }
+
+const WA_NUMBER = '919XXXXXXXXX'; // Replace with actual WhatsApp Business number
 
 interface ProfileTabProps {
   profile: Profile;
@@ -52,8 +60,96 @@ export default function ProfileTab({ profile, soul, onSaved }: ProfileTabProps) 
   const [enrolledChips, setEnrolledChips] = useState<string[]>(soul?.enrolled_subjects ?? []);
   const [futureChips, setFutureChips] = useState<string[]>(soul?.future_subjects ?? []);
   const [newChip, setNewChip] = useState('');
+  const [waPhone, setWaPhone] = useState(profile.wa_phone ?? '');
+  const [waSaving, setWaSaving] = useState(false);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  // Saathi change flow
+  const currentSaathi: Saathi | null = SAATHIS.find((s) => s.id === profile.primary_saathi_id) ?? null;
+  const [showSaathiChange, setShowSaathiChange] = useState(false);
+  const [newSaathi, setNewSaathi] = useState<Saathi | null>(null);
+  const [confirmText, setConfirmText] = useState('');
+  const [saathiChanging, setSaathiChanging] = useState(false);
+
+  // Gate: Saathi change is a paid-only feature.
+  // Free users cannot change — they must subscribe first or create a new account.
+  // Paid users can change only after their current subscription expires.
+  const isFreeUser = !profile.plan_id || profile.plan_id === 'free';
+  const hasActiveSubscription =
+    !isFreeUser &&
+    profile.subscription_status === 'active' &&
+    profile.subscription_expires_at &&
+    new Date(profile.subscription_expires_at) > new Date();
+  const canChangeSaathi = !isFreeUser && !hasActiveSubscription;
+
+  async function handleSaathiChange() {
+    if (!newSaathi || confirmText !== 'CHANGE' || !profile.id) return;
+    setSaathiChanging(true);
+    const supabase = createClient();
+
+    // 1. Delete old soul data for this user × old Saathi
+    if (profile.primary_saathi_id) {
+      await supabase
+        .from('student_soul')
+        .delete()
+        .eq('user_id', profile.id)
+        .eq('vertical_id', profile.primary_saathi_id);
+
+      // Delete old chat sessions + messages
+      await supabase
+        .from('chat_sessions')
+        .delete()
+        .eq('user_id', profile.id)
+        .eq('vertical_id', profile.primary_saathi_id);
+    }
+
+    // 2. Update profile with new Saathi + reset to free plan
+    await supabase.from('profiles').update({
+      primary_saathi_id: newSaathi.id,
+      wa_saathi_id: newSaathi.id,
+      plan_id: 'free',
+      subscription_status: 'cancelled',
+    }).eq('id', profile.id);
+
+    // 3. Create fresh soul row for new Saathi
+    await supabase.from('student_soul').upsert({
+      user_id: profile.id,
+      vertical_id: newSaathi.id,
+      display_name: profile.full_name ?? 'Student',
+      academic_level: soul?.academic_level ?? 'bachelor',
+      depth_calibration: 38,
+      flame_stage: 'spark',
+      career_discovery_stage: 'exploring',
+      session_count: 0,
+      top_topics: [],
+      struggle_topics: [],
+      preferred_tone: 'neutral',
+      peer_mode: false,
+      exam_mode: false,
+    }, { onConflict: 'user_id,vertical_id' });
+
+    // 4. Refresh app state
+    const { data: updatedProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', profile.id)
+      .single();
+    if (updatedProfile) {
+      useAuthStore.getState().setProfile(updatedProfile as Profile);
+    }
+    // Reset chat store so it picks up new Saathi
+    useChatStore.getState().clearMessages();
+    useChatStore.setState({ activeSaathiId: null });
+
+    setSaathiChanging(false);
+    setShowSaathiChange(false);
+    setNewSaathi(null);
+    setConfirmText('');
+    setToast(`✓ You are now with ${newSaathi.name}. A new journey begins.`);
+    setTimeout(() => setToast(null), 6000);
+    onSaved();
+  }
 
   // Profile completeness meter
   const completeness = useMemo(() => {
@@ -187,15 +283,270 @@ export default function ProfileTab({ profile, soul, onSaved }: ProfileTabProps) 
 
           <div>
             <label className="block text-xs font-semibold mb-1.5" style={labelStyle}>Institution</label>
-            <input
-              value={institution} onChange={(e) => setInstitution(e.target.value)}
-              placeholder="College / University"
+            <CollegeAutocomplete
+              value={institution}
+              onChange={setInstitution}
+              placeholder="Start typing your college name…"
               className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
-              style={inputStyle}
+              inputStyle={inputStyle}
             />
           </div>
         </div>
       </section>
+
+      {/* ── WhatsApp Connect ───────────────────────────────────────── */}
+      <section>
+        <h3 className="font-playfair text-lg font-bold text-white mb-4">WhatsApp Saathi</h3>
+        <div
+          className="rounded-xl p-5"
+          style={{ background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.2)' }}
+        >
+          {profile.wa_phone ? (
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">&#x2705;</span>
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  Connected: {profile.wa_phone}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  Message your Saathi anytime on WhatsApp
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-3 mb-4">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="#25D366">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                <div>
+                  <p className="text-sm font-semibold text-white">Connect WhatsApp</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    Study without opening the app &mdash; just message your Saathi
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={waPhone}
+                  onChange={(e) => setWaPhone(e.target.value.replace(/[^+\d]/g, '').slice(0, 15))}
+                  placeholder="+919825123456"
+                  className="flex-1 rounded-xl px-4 py-3 text-sm outline-none"
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                  }}
+                />
+                <button
+                  disabled={waSaving || !waPhone.match(/^\+\d{10,14}$/)}
+                  onClick={async () => {
+                    setWaSaving(true);
+                    const supabase = createClient();
+                    const { error } = await supabase
+                      .from('profiles')
+                      .update({ wa_phone: waPhone, wa_state: 'active' })
+                      .eq('id', profile.id);
+                    setWaSaving(false);
+                    if (error) {
+                      setToast(error.message.includes('unique') ? '⚠️ This number is already linked to another account.' : '⚠️ Failed to save. Try again.');
+                    } else {
+                      setToast('✓ WhatsApp connected! Send "Hi" to your Saathi to get started.');
+                    }
+                    setTimeout(() => setToast(null), 5000);
+                  }}
+                  className="px-5 py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-40"
+                  style={{ background: '#25D366', color: '#fff' }}
+                >
+                  {waSaving ? '...' : 'Connect'}
+                </button>
+              </div>
+              <p className="text-[10px] mt-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                Or save this number and send &quot;Hi&quot;: <a href={`https://wa.me/${WA_NUMBER}`} target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', textDecoration: 'underline' }}>+{WA_NUMBER}</a>
+              </p>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* ── Your Saathi (locked) ──────────────────────────────────── */}
+      {currentSaathi && (
+        <section>
+          <h3 className="font-playfair text-lg font-bold text-white mb-4">Your Saathi</h3>
+          <div
+            className="rounded-xl p-5"
+            style={{ background: `${currentSaathi.primary}12`, border: `1px solid ${currentSaathi.primary}33` }}
+          >
+            <div className="flex items-center gap-4 mb-3">
+              <span className="text-4xl">{currentSaathi.emoji}</span>
+              <div>
+                <p className="text-base font-bold text-white">{currentSaathi.name}</p>
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{currentSaathi.tagline}</p>
+                <p className="text-[10px] mt-1 font-semibold" style={{ color: currentSaathi.primary }}>
+                  {soul?.session_count ? `${soul.session_count} sessions together` : 'Soul matching in progress'}
+                  {soul?.flame_stage && soul.flame_stage !== 'spark' ? ` \u2022 ${soul.flame_stage}` : ''}
+                </p>
+              </div>
+            </div>
+
+            {!showSaathiChange ? (
+              <button
+                onClick={() => setShowSaathiChange(true)}
+                className="text-xs mt-1 transition-colors"
+                style={{ color: 'rgba(255,255,255,0.2)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(244,63,94,0.6)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.2)')}
+              >
+                Changed your academic journey? Request Saathi change...
+              </button>
+            ) : (
+              <AnimatePresence>
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-4 pt-4"
+                  style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+                >
+                  {/* Gate: free users cannot change */}
+                  {isFreeUser ? (
+                    <div
+                      className="rounded-xl p-4 text-sm"
+                      style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.25)', color: '#A5B4FC' }}
+                    >
+                      <p className="font-semibold mb-1">Saathi change is a paid feature</p>
+                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Free accounts are locked to their chosen Saathi. To change your Saathi, upgrade to a paid plan first.
+                      </p>
+                      <p className="text-xs mt-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                        Alternatively, you can create a new account with a different email and phone number to start fresh with a different Saathi.
+                      </p>
+                      <div className="flex gap-3 mt-3">
+                        <a
+                          href="/pricing?trigger=saathi_change"
+                          className="text-xs font-semibold px-4 py-2 rounded-lg transition-all"
+                          style={{ background: '#C9993A', color: '#060F1D', textDecoration: 'none' }}
+                        >
+                          View plans
+                        </a>
+                        <button
+                          onClick={() => setShowSaathiChange(false)}
+                          className="text-xs underline"
+                          style={{ color: 'rgba(255,255,255,0.3)' }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : hasActiveSubscription ? (
+                    <div
+                      className="rounded-xl p-4 text-sm"
+                      style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', color: '#FBBF24' }}
+                    >
+                      <p className="font-semibold mb-1">Active subscription detected</p>
+                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        You can change your Saathi after your current subscription expires on{' '}
+                        <strong style={{ color: '#FBBF24' }}>
+                          {new Date(profile.subscription_expires_at!).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </strong>.
+                        Your remaining subscription days will not transfer to a new Saathi.
+                      </p>
+                      <button
+                        onClick={() => setShowSaathiChange(false)}
+                        className="mt-3 text-xs underline"
+                        style={{ color: 'rgba(255,255,255,0.3)' }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Warning */}
+                      <div
+                        className="rounded-xl p-4 mb-4"
+                        style={{ background: 'rgba(244,63,94,0.06)', border: '1px solid rgba(244,63,94,0.2)' }}
+                      >
+                        <p className="text-sm font-semibold mb-2" style={{ color: '#F43F5E' }}>
+                          This action is irreversible
+                        </p>
+                        <ul className="text-xs space-y-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          <li>All soul matching data with {currentSaathi.name} will be permanently deleted</li>
+                          <li>All chat history and session memory will be erased</li>
+                          <li>Your struggle topics, depth calibration, and flame progress will reset to zero</li>
+                          <li>Any remaining subscription days will be forfeited</li>
+                        </ul>
+                      </div>
+
+                      {/* New Saathi picker */}
+                      <p className="text-xs font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                        Choose your new Saathi:
+                      </p>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4 max-h-48 overflow-y-auto pr-1">
+                        {SAATHIS.filter((s) => s.id !== currentSaathi.id).map((s) => {
+                          const selected = newSaathi?.id === s.id;
+                          return (
+                            <button
+                              key={s.id}
+                              onClick={() => setNewSaathi(s)}
+                              className="text-left rounded-lg p-2 transition-all"
+                              style={{
+                                background: selected ? `${s.primary}25` : 'rgba(255,255,255,0.03)',
+                                border: `1px solid ${selected ? s.primary : 'rgba(255,255,255,0.06)'}`,
+                              }}
+                            >
+                              <span className="text-lg block">{s.emoji}</span>
+                              <p className="text-[10px] font-bold text-white truncate mt-0.5">{s.name}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Confirmation */}
+                      {newSaathi && (
+                        <div className="space-y-3">
+                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                            Type <strong style={{ color: '#F43F5E' }}>CHANGE</strong> to confirm switching from{' '}
+                            <strong style={{ color: currentSaathi.primary }}>{currentSaathi.name}</strong> to{' '}
+                            <strong style={{ color: newSaathi.primary }}>{newSaathi.name}</strong>:
+                          </p>
+                          <input
+                            value={confirmText}
+                            onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
+                            placeholder="Type CHANGE"
+                            className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                            style={{
+                              background: 'rgba(255,255,255,0.04)',
+                              border: `1px solid ${confirmText === 'CHANGE' ? 'rgba(244,63,94,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                              color: '#fff',
+                            }}
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleSaathiChange}
+                              disabled={confirmText !== 'CHANGE' || saathiChanging}
+                              className="flex-1 rounded-xl py-3 text-sm font-bold transition-all disabled:opacity-30"
+                              style={{ background: '#F43F5E', color: '#fff' }}
+                            >
+                              {saathiChanging ? 'Resetting soul...' : `Switch to ${newSaathi.name}`}
+                            </button>
+                            <button
+                              onClick={() => { setShowSaathiChange(false); setNewSaathi(null); setConfirmText(''); }}
+                              className="px-4 rounded-xl text-sm"
+                              style={{ color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ── Academic Journey ─────────────────────────────────────── */}
       <section>

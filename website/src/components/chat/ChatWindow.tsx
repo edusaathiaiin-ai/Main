@@ -24,6 +24,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { UpgradeBanner } from '@/components/ui/UpgradeBanner';
 import type { UpgradeTrigger } from '@/components/ui/UpgradeBanner';
+import { SuspensionScreen } from './SuspensionScreen';
 import type { QuotaState, Saathi } from '@/types';
 
 const DEFAULT_QUOTA: QuotaState = {
@@ -296,16 +297,8 @@ export function ChatWindow() {
     });
   }
 
-  // Switch saathi
-  function handleSaathiChange(saathi: Saathi) {
-    if (saathi.id === saathiId) return;
-    setActiveSaathi(saathi.id);
-    clearMessages();
-    setSoulBanner(null);
-    if (profile) {
-      fetchSoulBanner(profile.id, saathi.id);
-    }
-  }
+  // Saathi is locked to primary_saathi_id — no switching allowed.
+  // Students must request a full profile reset to change Saathi.
 
   // Switch bot slot
   function handleSlotChange(slot: 1 | 2 | 3 | 4 | 5) {
@@ -411,6 +404,16 @@ export function ChatWindow() {
         router.replace('/login?forced=1');
         return;
       }
+      if (
+        err instanceof Error &&
+        (err as Error & { code?: string }).code === 'SUSPENDED'
+      ) {
+        // Refresh profile to trigger SuspensionScreen render
+        const supabase = createClient();
+        const { data } = await supabase.from('profiles').select('*').eq('id', profile!.id).single();
+        if (data) useAuthStore.getState().setProfile(data);
+        return;
+      }
       setErrorBanner(err instanceof Error ? err.message : 'Something went wrong. Try again.');
     }
   }, [profile, isStreaming, quota, messages, saathiId, activeBotSlot, addMessage, setStreaming, appendStreamChunk, commitStreamedMessage, router]);
@@ -433,6 +436,29 @@ export function ChatWindow() {
     return (
       <div className="flex items-center justify-center h-screen w-full" style={{ background: '#060F1D' }}>
         <div className="w-8 h-8 rounded-full border-2 border-white/10 animate-spin" style={{ borderTopColor: '#C9993A' }} />
+      </div>
+    );
+  }
+
+  // Suspension gate — show suspension screen instead of chat
+  if (profile.suspension_status === 'suspended' || profile.suspension_status === 'banned' || profile.is_banned) {
+    return (
+      <div className="flex h-screen w-full" style={{ background: '#060F1D' }}>
+        <Sidebar
+          profile={profile} activeSaathi={activeSaathi} activeSlot={activeBotSlot}
+          quota={quota} onSlotChange={(slot) => setActiveBotSlot(slot)}
+          onLockedTap={() => {}} onSignOut={async () => {
+            const s = createClient(); await s.auth.signOut();
+            useAuthStore.getState().setProfile(null); sessionStorage.clear(); router.push('/login');
+          }}
+        />
+        <SuspensionScreen
+          tier={profile.suspension_tier ?? 2}
+          until={profile.suspended_until}
+          reason={profile.suspension_reason}
+          isBanned={profile.is_banned}
+        />
+        <MobileNav />
       </div>
     );
   }
