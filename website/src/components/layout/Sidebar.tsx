@@ -66,6 +66,7 @@ const NAV_LINKS = [
   { href: '/board', icon: '🏛️', label: 'Board' },
   { href: '/news', icon: '📰', label: 'News' },
   { href: '/progress', icon: '📈', label: 'My Progress' },
+  { href: '/flashcards', icon: '🃏', label: 'Flashcards' },
   { href: '/profile', icon: '👤', label: 'Profile' },
 ];
 

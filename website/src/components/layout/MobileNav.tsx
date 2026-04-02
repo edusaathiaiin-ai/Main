@@ -7,8 +7,8 @@ const NAV_ITEMS = [
   { href: '/chat', icon: '💬', label: 'Chat' },
   { href: '/board', icon: '🏛️', label: 'Board' },
   { href: '/news', icon: '📰', label: 'News' },
+  { href: '/flashcards', icon: '🃏', label: 'Cards' },
   { href: '/profile', icon: '👤', label: 'Profile' },
-  { href: '/pricing', icon: '✦', label: 'Upgrade' },
 ];
 
 export function MobileNav() {

@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import 'katex/dist/katex.min.css';
+import { createClient } from '@/lib/supabase/client';
+import { useChatStore } from '@/stores/chatStore';
+import { useAuthStore } from '@/stores/authStore';
 import { InlineMath, BlockMath } from 'react-katex';
 import type { ChatMessage } from '@/types';
 import { MermaidBlock } from './MermaidBlock';
@@ -359,6 +362,140 @@ function RenderSegments({ segments, primaryColor }: { segments: Segment[]; prima
   );
 }
 
+// ─── Save Flashcard inline modal ─────────────────────────────────────────────
+
+function SaveFlashcardMini({
+  defaultFront,
+  defaultBack,
+  primaryColor,
+  onClose,
+}: {
+  defaultFront: string;
+  defaultBack: string;
+  primaryColor: string;
+  onClose: () => void;
+}) {
+  const [front, setFront] = useState(defaultFront.slice(0, 200));
+  const [back, setBack] = useState(defaultBack.slice(0, 400));
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const saathiId = useChatStore((s) => s.activeSaathiId) ?? 'kanoonsaathi';
+  const userId = useAuthStore((s) => s.profile?.id);
+
+  const save = useCallback(async () => {
+    if (!front.trim() || !back.trim() || !userId) return;
+    setSaving(true);
+    try {
+      const supabase = createClient();
+      await supabase.from('flashcards').insert({
+        user_id: userId,
+        vertical_id: saathiId,
+        front: front.trim(),
+        back: back.trim(),
+      });
+      setSaved(true);
+      setTimeout(onClose, 1200);
+    } finally {
+      setSaving(false);
+    }
+  }, [front, back, userId, saathiId, onClose]);
+
+  if (saved) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        style={{
+          marginTop: '8px',
+          padding: '10px 14px',
+          borderRadius: '10px',
+          background: 'rgba(34,197,94,0.1)',
+          border: '0.5px solid rgba(34,197,94,0.3)',
+          fontSize: '12px',
+          color: '#4ADE80',
+          fontWeight: 600,
+        }}
+      >
+        🃏 Flashcard saved!
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.2 }}
+      style={{ overflow: 'hidden', marginTop: '8px' }}
+    >
+      <div style={{
+        padding: '12px 14px',
+        borderRadius: '12px',
+        background: 'rgba(0,0,0,0.3)',
+        border: `0.5px solid ${primaryColor}30`,
+      }}>
+        <p style={{ fontSize: '10px', color: primaryColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+          🃏 Save as Flashcard
+        </p>
+        <div style={{ marginBottom: '8px' }}>
+          <label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', display: 'block', marginBottom: '4px' }}>Front (question)</label>
+          <textarea
+            value={front}
+            onChange={(e) => setFront(e.target.value)}
+            rows={2}
+            style={{
+              width: '100%', background: 'rgba(255,255,255,0.05)',
+              border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '8px',
+              padding: '8px 10px', color: '#fff', fontSize: '12px', lineHeight: 1.5,
+              resize: 'none', outline: 'none', boxSizing: 'border-box',
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: '10px' }}>
+          <label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', display: 'block', marginBottom: '4px' }}>Back (answer)</label>
+          <textarea
+            value={back}
+            onChange={(e) => setBack(e.target.value)}
+            rows={3}
+            style={{
+              width: '100%', background: 'rgba(255,255,255,0.05)',
+              border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '8px',
+              padding: '8px 10px', color: '#fff', fontSize: '12px', lineHeight: 1.5,
+              resize: 'none', outline: 'none', boxSizing: 'border-box',
+            }}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => void save()}
+            disabled={saving || !front.trim() || !back.trim()}
+            style={{
+              flex: 1, padding: '8px', borderRadius: '8px',
+              background: primaryColor, border: 'none',
+              color: '#060F1D', fontSize: '12px', fontWeight: 700,
+              cursor: saving ? 'wait' : 'pointer',
+              opacity: saving ? 0.7 : 1,
+            }}
+          >
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '8px 12px', borderRadius: '8px',
+              background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)',
+              color: 'rgba(255,255,255,0.4)', fontSize: '12px', cursor: 'pointer',
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 // ─── MessageBubble component ──────────────────────────────────────────────────
 
 type Props = {
@@ -416,6 +553,7 @@ export function MessageBubble({
   primaryColor = '#C9993A',
 }: Props) {
   const [hovered, setHovered] = useState(false);
+  const [showSave, setShowSave] = useState(false);
   const isUser = message.role === 'user';
 
   const displayText = isStreaming && !isUser ? (streamingText ?? '') : message.content;
@@ -480,18 +618,35 @@ export function MessageBubble({
           )}
         </motion.div>
 
-        {/* Flag button */}
-        {!isUser && !isStreaming && onFlag && hovered && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            onClick={() => onFlag(message.id)}
-            className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs"
-            style={{ background: 'rgba(239,68,68,0.15)', border: '0.5px solid rgba(239,68,68,0.3)' }}
-            title="Flag this message"
-          >
-            🚩
-          </motion.button>
+        {/* Save flashcard + Flag buttons */}
+        {!isUser && !isStreaming && hovered && (
+          <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', display: 'flex', gap: '4px' }}>
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              onClick={() => setShowSave((v) => !v)}
+              className="w-6 h-6 rounded-full flex items-center justify-center text-xs"
+              style={{
+                background: showSave ? `${primaryColor}30` : 'rgba(201,153,58,0.15)',
+                border: `0.5px solid ${primaryColor}50`,
+              }}
+              title="Save as flashcard"
+            >
+              🃏
+            </motion.button>
+            {onFlag && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => onFlag(message.id)}
+                className="w-6 h-6 rounded-full flex items-center justify-center text-xs"
+                style={{ background: 'rgba(239,68,68,0.15)', border: '0.5px solid rgba(239,68,68,0.3)' }}
+                title="Flag this message"
+              >
+                🚩
+              </motion.button>
+            )}
+          </div>
         )}
       </div>
 
@@ -506,6 +661,18 @@ export function MessageBubble({
           )}
         </div>
       )}
+
+      {/* Inline flashcard save panel */}
+      <AnimatePresence>
+        {!isUser && !isStreaming && showSave && (
+          <SaveFlashcardMini
+            defaultFront=""
+            defaultBack={message.content.slice(0, 400)}
+            primaryColor={primaryColor}
+            onClose={() => setShowSave(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

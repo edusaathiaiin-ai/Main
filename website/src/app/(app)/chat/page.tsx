@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { ChatWelcomeGate } from '@/components/chat/WelcomeOverlay';
+import { DailyChallengeWidget } from '@/components/chat/DailyChallengeWidget';
 
 export const metadata = {
   title: 'Chat with your Saathi · EdUsaathiAI',
@@ -38,14 +39,17 @@ export default async function ChatPage() {
     .maybeSingle();
 
   return (
-    <ChatWelcomeGate
-      userId={user.id}
-      profileName={profile.full_name ?? user.email ?? 'Student'}
-      saathiId={profile.primary_saathi_id ?? null}
-      academicLevel={soul?.academic_level ?? 'bachelor'}
-      sessionCount={soul?.session_count ?? 1}
-    >
-      <ChatWindow />
-    </ChatWelcomeGate>
+    <>
+      <ChatWelcomeGate
+        userId={user.id}
+        profileName={profile.full_name ?? user.email ?? 'Student'}
+        saathiId={profile.primary_saathi_id ?? null}
+        academicLevel={soul?.academic_level ?? 'bachelor'}
+        sessionCount={soul?.session_count ?? 1}
+      >
+        <ChatWindow />
+      </ChatWelcomeGate>
+      <DailyChallengeWidget saathiId={profile.primary_saathi_id ?? 'kanoonsaathi'} />
+    </>
   );
 }
