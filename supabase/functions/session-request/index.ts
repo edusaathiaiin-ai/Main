@@ -75,20 +75,16 @@ Deno.serve(async (req) => {
     }
 
     // ── CONFIRM (student confirms session happened) ──────
+    // Moves status → completed, payout_status → pending.
+    // Earnings are NOT updated here — admin does that via releaseToFaculty
+    // (which calculates TDS, creates the payout record, and emails the faculty).
     if (action === 'confirm' && sessionId) {
       await admin.from('faculty_sessions').update({
         student_confirmed_at: new Date().toISOString(),
-        status: 'reviewed',
-        payout_status: 'released',
-        payout_released_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        status:               'completed',
+        payout_status:        'pending',
+        updated_at:           new Date().toISOString(),
       }).eq('id', sessionId).eq('student_id', user.id);
-
-      // Update faculty earnings
-      const { data: session } = await admin.from('faculty_sessions').select('faculty_id, faculty_payout_paise').eq('id', sessionId).single();
-      if (session) {
-        await admin.rpc('increment_faculty_earnings', { fac_id: session.faculty_id, amount: session.faculty_payout_paise });
-      }
 
       return new Response(JSON.stringify({ success: true }), { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
     }
