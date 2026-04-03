@@ -99,11 +99,55 @@ function subjectHint(slug: string): string {
       - NMC guidelines (nmc.org.in)`,
 
     nursingsaathi: `
-      - INC India (indiannursingcouncil.org)
-      - Nursing Times, American Journal of Nursing
-      - Taylor's Clinical Nursing Skills
-      - NCLEX preparation resources
-      - AIIMS Nursing entrance preparation`,
+      INDIAN REGULATORY & EXAMINATION BODIES (highest priority for Indian nursing students):
+      - Indian Nursing Council — INC India (indiannursingcouncil.org): B.Sc/M.Sc/GNM syllabi, notifications, circulars
+      - National Nursing Council (nnc.org.in): exam schedules, registration requirements
+      - Trained Nurses Association of India — TNAI (tnaionline.org): professional standards, CPD
+      - Nursing Officer recruitment: AIIMS NORCET, ESIC, NHM State exams, Indian Railway, DSSSB
+      - State Nursing Council websites — Maharashtra, Karnataka, Tamil Nadu, Gujarat etc.
+      - NCLEX-RN/NCLEX-PN — for students targeting USA/UK/Australia nursing licensure
+
+      TEXTBOOKS & CLINICAL REFERENCES (core curriculum):
+      - Potter & Perry: Fundamentals of Nursing (India edition, Elsevier) — gold standard for B.Sc Nursing
+      - Kozier & Erb's Fundamentals of Nursing (Pearson)
+      - Taylor's Clinical Nursing Skills (Wolters Kluwer)
+      - Lippincott's Manual of Nursing Practice (LWW)
+      - Brunner & Suddarth's Textbook of Medical-Surgical Nursing
+      - Medical-Surgical Nursing by Ignatavicius & Workman
+      - Essentials of Pediatric Nursing by Wong's
+      - Doenges' Nursing Care Plans (NANDA nursing diagnoses)
+
+      OPEN-ACCESS & FREE RESOURCES (India-accessible, no paywall):
+      - PubMed/MEDLINE (pubmed.ncbi.nlm.nih.gov) — comprehensive nursing research index
+      - CINAHL subject heading reference (structure searches via INC/institutional access)
+      - BMC Nursing (bmcnurs.biomedcentral.com) — fully open access
+      - Nursing Open — Wiley open access nursing journal
+      - PLOS Medicine — open access for health and nursing policy
+      - DOAJ (doaj.org) — Directory of Open Access Journals — filter by nursing
+      - WHO Nursing & Midwifery (who.int/teams/nursing-midwifery) — global guidelines, workforce data
+
+      CLINICAL PRACTICE TOOLS:
+      - Nursing Times (nursingtimes.net) — clinical updates, CPD, practice articles
+      - Medscape Nurses (medscape.com/nurses) — drug references, case studies, clinical alerts
+      - NANDA International (nanda.org) — official nursing diagnosis taxonomy
+      - NMC UK (nmc.org.uk) — Code of Conduct, practice standards (referenced globally)
+      - RCN (rcn.org.uk) — Royal College of Nursing clinical guidelines
+      - Cochrane Nursing (nursing.cochrane.org) — systematic reviews for EBP
+
+      SPECIALTY AREAS TO PRIORITISE FOR INDIAN NURSING STUDENTS:
+      - Critical care / ICU nursing (high demand in India — SNCU, MICU, CICU)
+      - Community health nursing & primary healthcare (NHM, ASHA, ANM roles)
+      - Midwifery & obstetric nursing (SNCU, labour room, maternal mortality reduction)
+      - Paediatric & neonatal nursing (NICU, SNCU — major government focus)
+      - Oncology nursing (rapidly expanding in India)
+      - Mental health nursing (DMHP, community psychiatry)
+      - Evidence-based practice frameworks (PARIHS, JBI model)
+
+      EXAM PREPARATION RESOURCES:
+      - AIIMS NORCET previous year papers and mock tests
+      - Arpit Nursing Academy (YouTube — free NORCET/NCLEX content in Hindi/English)
+      - NCLEX preparation: Saunders Comprehensive Review (Elsevier), UWorld Nursing
+      - GNM/B.Sc/M.Sc nursing entrance: state-specific preparation`,
 
     psychsaathi: `
       - American Psychological Association (apa.org)

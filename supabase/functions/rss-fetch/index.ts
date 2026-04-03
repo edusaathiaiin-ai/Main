@@ -131,6 +131,22 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
     { url: 'https://rss.sciencedaily.com/releases/health_medicine.xml', source: 'Science Daily Health', category: 'Nursing News' },
     // ── WHO — global nursing/health policy and evidence
     { url: 'https://www.who.int/rss-feeds/news-english.xml', source: 'WHO', category: 'Global Health & Nursing' },
+    // ── BMC Nursing (BioMed Central — fully open access, India-accessible, high reliability)
+    { url: 'https://bmcnurs.biomedcentral.com/articles/most-recent/rss.xml', source: 'BMC Nursing', category: 'Nursing Research' },
+    // ── Nursing Open (Wiley open access — broad clinical + education scope)
+    { url: 'https://onlinelibrary.wiley.com/feed/20470302/most-recent', source: 'Nursing Open', category: 'Open Access Nursing' },
+    // ── Nursing Times (UK — leading practice-facing nursing news, widely read globally)
+    { url: 'https://www.nursingtimes.net/?feed=rss2', source: 'Nursing Times', category: 'Nursing Practice News' },
+    // ── Medscape Nursing (clinical updates, drug news, case studies for practising nurses)
+    { url: 'https://www.medscape.com/rss/news', source: 'Medscape', category: 'Clinical Nursing Updates' },
+    // ── PubMed — India nursing research (India-specific evidence base)
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=nursing+India+clinical+evidence&format=rss', source: 'PubMed India Nursing', category: 'Indian Nursing Research' },
+    // ── PubMed — community & public health nursing (primary care, rural health, CHO context)
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=community+health+nursing+public+health&format=rss', source: 'PubMed Community Health', category: 'Community Health Nursing' },
+    // ── PubMed — paediatric nursing (SNCU, NICU, child health — high exam + clinical relevance)
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=pediatric+neonatal+nursing+clinical&format=rss', source: 'PubMed Paediatric Nursing', category: 'Paediatric Nursing' },
+    // ── PubMed — oncology nursing (rapidly growing specialty in India)
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=oncology+palliative+nursing+care&format=rss', source: 'PubMed Oncology Nursing', category: 'Oncology Nursing' },
   ],
   psychsaathi: [
     // ── Annual Review of Psychology (IF ~26 — consistently #1 review journal in psychology)
