@@ -81,7 +81,7 @@ export function QuestionFeed() {
       .from('board_questions')
       .select('*', { count: 'exact' })
       .eq('vertical_id', saathiId)
-      .eq('status', 'active')
+      .eq('status', 'open')
       .order('created_at', { ascending: false })
       .range(newPage * PAGE_SIZE, (newPage + 1) * PAGE_SIZE - 1);
 

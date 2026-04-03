@@ -144,7 +144,7 @@ export default function FacultyPage() {
         .from('board_questions')
         .select('*')
         .eq('vertical_id', saathi.id)
-        .eq('status', 'active')
+        .eq('status', 'open')
         .order('created_at', { ascending: false })
         .limit(30);
 

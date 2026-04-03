@@ -89,7 +89,7 @@ export function PostQuestionModal({
         body: '',
         tags: tag ? [tag] : [],
         is_anonymous: isAnonymous,
-        status: 'active',
+        status: 'open',
       })
       .select('id')
       .single();

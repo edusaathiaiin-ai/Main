@@ -84,7 +84,7 @@ export default function FacultyAnalyticsPage() {
         .from('board_questions')
         .select('id, body, created_at')
         .eq('vertical_id', saathiId)
-        .eq('status', 'active')
+        .eq('status', 'open')
         .order('created_at', { ascending: false })
         .limit(10);
       setRecentQuestions((qs ?? []) as QuestionRow[]);
