@@ -53,8 +53,11 @@ export function QuestionFeed() {
   const { profile } = useAuthStore();
   const { activeSaathiId, activeBotSlot, setActiveBotSlot } = useChatStore();
 
-  const saathiId = activeSaathiId ?? profile?.primary_saathi_id ?? SAATHIS[0].id;
-  const activeSaathi: Saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
+  const saathiSlug = activeSaathiId ?? profile?.primary_saathi_id ?? SAATHIS[0].id;
+  const activeSaathi: Saathi = SAATHIS.find((s) => s.id === saathiSlug) ?? SAATHIS[0];
+
+  // Resolved UUID for DB queries — slug → verticals.id
+  const [verticalUuid, setVerticalUuid] = useState<string | null>(null);
 
   const [questions, setQuestions] = useState<QWithMeta[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -71,16 +74,28 @@ export function QuestionFeed() {
 
   const canPost = !profile?.is_geo_limited;
 
+  // Resolve slug → UUID whenever the active Saathi changes
+  useEffect(() => {
+    if (!profile) return;
+    const supabase = createClient();
+    supabase
+      .from('verticals')
+      .select('id')
+      .eq('slug', saathiSlug)
+      .single()
+      .then(({ data }) => setVerticalUuid(data?.id ?? null));
+  }, [saathiSlug, profile]);
+
   // Fetch questions
   async function fetchQuestions(newFilter: Filter, newPage: number, append = false) {
-    if (!profile) return;
+    if (!profile || !verticalUuid) return;
     if (newPage === 0) setLoading(true); else setLoadingMore(true);
 
     const supabase = createClient();
     let query = supabase
       .from('board_questions')
       .select('*', { count: 'exact' })
-      .eq('vertical_id', saathiId)
+      .eq('vertical_id', verticalUuid)
       .eq('status', 'open')
       .order('created_at', { ascending: false })
       .range(newPage * PAGE_SIZE, (newPage + 1) * PAGE_SIZE - 1);
@@ -107,19 +122,19 @@ export function QuestionFeed() {
   }
 
   useEffect(() => {
-    if (profile) { setPage(0); fetchQuestions(filter, 0, false); }
+    if (profile && verticalUuid) { setPage(0); fetchQuestions(filter, 0, false); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, saathiId, filter]);
+  }, [profile, verticalUuid, filter]);
 
   // Realtime subscription
   useEffect(() => {
-    if (!profile) return;
+    if (!profile || !verticalUuid) return;
     const supabase = createClient();
     const channel = supabase
       .channel('board-inserts')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'board_questions', filter: `vertical_id=eq.${saathiId}` },
+        { event: 'INSERT', schema: 'public', table: 'board_questions', filter: `vertical_id=eq.${verticalUuid}` },
         (payload) => {
           const newQ = payload.new as QWithMeta;
           if (newQ.user_id === profile.id) return; // skip own
@@ -129,7 +144,7 @@ export function QuestionFeed() {
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [profile, saathiId]);
+  }, [profile, verticalUuid]);
 
   function handlePosted(newId: string) {
     // Refresh from top
@@ -371,11 +386,12 @@ export function QuestionFeed() {
       <MobileNav />
 
       {/* Post modal */}
-      {profile && (
+      {profile && verticalUuid && (
         <PostQuestionModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
-          saathiId={saathiId}
+          saathiSlug={saathiSlug}
+          verticalUuid={verticalUuid}
           saathiName={activeSaathi.name}
           primaryColor={activeSaathi.primary}
           profile={profile}

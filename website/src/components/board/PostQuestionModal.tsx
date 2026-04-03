@@ -36,7 +36,8 @@ function DialogOverlay({ onClose }: { onClose: () => void }) {
 type Props = {
   open: boolean;
   onClose: () => void;
-  saathiId: string;
+  saathiSlug: string;   // slug — used for tag lookup only
+  verticalUuid: string; // UUID — used for DB insert
   saathiName: string;
   primaryColor: string;
   profile: Profile;
@@ -46,7 +47,8 @@ type Props = {
 export function PostQuestionModal({
   open,
   onClose,
-  saathiId,
+  saathiSlug,
+  verticalUuid,
   saathiName,
   primaryColor,
   profile,
@@ -58,7 +60,7 @@ export function PostQuestionModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const tags = SAATHI_TAGS[saathiId] ?? DEFAULT_TAGS;
+  const tags = SAATHI_TAGS[saathiSlug] ?? DEFAULT_TAGS;
   const MAX_TITLE = 200;
 
   async function handleSubmit() {
@@ -84,7 +86,7 @@ export function PostQuestionModal({
       .from('board_questions')
       .insert({
         user_id: profile.id,
-        vertical_id: saathiId,
+        vertical_id: verticalUuid, // UUID — satisfies FK constraint
         title: title.trim(),
         body: '',
         tags: tag ? [tag] : [],
@@ -109,7 +111,7 @@ export function PostQuestionModal({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.session.access_token}`,
         },
-        body: JSON.stringify({ questionId: q.id, saathiId }),
+        body: JSON.stringify({ questionId: q.id, saathiId: saathiSlug }),
       }
     ).catch(() => {}); // non-blocking
 
