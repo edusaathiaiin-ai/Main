@@ -5,8 +5,10 @@
  * ║                                          ║
  * ║  The verticals table stores Saathis.     ║
  * ║  Every Saathi has:                       ║
- * ║    id   — UUID (primary key)             ║
- * ║    slug — text e.g. "kanoonsaathi"       ║
+ * ║    id   — TEXT slug PK (e.g.            ║
+ * ║           "kanoonsaathi") — NOT a UUID  ║
+ * ║    slug — TEXT (same value as id,        ║
+ * ║           redundant column)             ║
  * ║                                          ║
  * ║  RULE: Any column named vertical_id      ║
  * ║  in ANY table is a FK to verticals(id).  ║
@@ -43,15 +45,15 @@
  * ║  (* = indirect, via session join)        ║
  * ║                                          ║
  * ╠══════════════════════════════════════════╣
- * ║  TABLES THAT STORE SLUG AS TEXT:         ║
- * ║  (these are lookup/config tables only)   ║
+ * ║  COLUMNS THAT STORE SLUG AS TEXT:        ║
+ * ║  (FK to verticals(id) which = slug)      ║
  * ║                                          ║
  * ║    profiles.primary_saathi_id            ║
- * ║      ↑ WRONG — should be UUID           ║
- * ║      fixed in onboarding migration       ║
+ * ║      ↑ CORRECT — stores TEXT slug,      ║
+ * ║        FK → verticals(id)               ║
  * ║                                          ║
  * ║    profiles.wa_saathi_id                 ║
- * ║      ↑ UUID FK — use resolveVerticalId   ║
+ * ║      ↑ TEXT slug FK → verticals(id)     ║
  * ║                                          ║
  * ╠══════════════════════════════════════════╣
  * ║  WHEN TO USE resolveVerticalId():        ║

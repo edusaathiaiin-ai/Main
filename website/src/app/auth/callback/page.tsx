@@ -143,7 +143,7 @@ function CallbackInner() {
 
         // ── Saathi instant bonding ────────────────────────────────────────────
         // primary_saathi_id is a TEXT slug column (e.g. 'kanoonsaathi')
-        // NOT a UUID FK — save the slug directly, matching how ChatWindow uses it.
+        // FK → verticals(id) which is also TEXT slug. Save slug directly.
         if (saathiSlug) {
           try {
             await supabase

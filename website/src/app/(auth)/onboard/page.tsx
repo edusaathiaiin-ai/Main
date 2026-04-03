@@ -999,13 +999,13 @@ function OnboardInner() {
     }).eq('id', userId);
 
     // Upsert student_soul with all calibrated values
-    // Resolve slug → UUID: student_soul.vertical_id FK references verticals(id)
+    // primary_saathi_id IS the verticals.id (TEXT slug FK) — query by id directly
     let verticalUUID: string | null = null;
     if (profile?.primary_saathi_id) {
       const { data: vRow } = await supabase
         .from('verticals')
         .select('id')
-        .eq('slug', profile.primary_saathi_id)
+        .eq('id', profile.primary_saathi_id)
         .maybeSingle();
       verticalUUID = vRow?.id ?? null;
     }
