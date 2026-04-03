@@ -57,7 +57,63 @@ type Applicant = {
   student_completeness?: number;
 };
 
-type DashboardView = 'listings' | 'post' | 'applicants';
+type DashboardView = 'listings' | 'post' | 'applicants' | 'intern_finder' | 'intern_finder_post' | 'intern_finder_apps';
+
+// ── Intern Finder types ───────────────────────────────────────────────────────
+
+type InternPosting = {
+  id: string;
+  title: string;
+  description: string;
+  responsibilities: string | null;
+  requirements: string | null;
+  vertical_id: string | null;
+  min_depth: number;
+  min_academic_level: string;
+  preferred_subjects: string[];
+  duration_months: number | null;
+  stipend_monthly: number | null;
+  is_paid: boolean;
+  offers_coauthorship: boolean;
+  offers_certificate: boolean;
+  location: string | null;
+  is_remote: boolean;
+  work_mode: string;
+  total_seats: number;
+  seats_filled: number;
+  application_deadline: string | null;
+  status: string;
+  company_name: string | null;
+  industry: string | null;
+  listing_plan: string;
+  total_applications: number;
+  created_at: string;
+};
+
+type InternApplicant = {
+  id: string;
+  posting_id: string;
+  student_id: string;
+  cover_note: string | null;
+  research_statement: string | null;
+  match_score: number;
+  status: string;
+  soul_snapshot: Record<string, unknown> | null;
+  created_at: string;
+  student_name?: string;
+  student_city?: string;
+  student_academic_level?: string;
+  soul_depth?: number;
+  soul_topics?: string[];
+  soul_research_area?: string | null;
+};
+
+const WORK_MODES = ['onsite', 'remote', 'hybrid'] as const;
+const LISTING_PLANS = [
+  { id: 'basic', label: 'Basic', price: '₹999', desc: 'Standard listing, manual browsing' },
+  { id: 'featured', label: 'Featured ★', price: '₹2,999', desc: 'Top placement + top-10 matches delivered to your inbox', recommended: true },
+  { id: 'corporate', label: 'Corporate', price: '₹4,999/mo', desc: 'Unlimited postings + priority support' },
+] as const;
 
 const DURATIONS = [1, 2, 3, 6] as const;
 
@@ -122,6 +178,23 @@ export default function InstitutionPage() {
   const [posting, setPosting] = useState(false);
   const [posted, setPosted] = useState(false);
 
+  // ── Intern Finder state ──────────────────────────────────────────────────────
+  const [ifPostings, setIfPostings] = useState<InternPosting[]>([]);
+  const [ifApplicants, setIfApplicants] = useState<InternApplicant[]>([]);
+  const [ifSelectedPosting, setIfSelectedPosting] = useState<InternPosting | null>(null);
+  const [ifLoadingApps, setIfLoadingApps] = useState(false);
+  const [ifPosting, setIfPosting] = useState(false);
+  const [ifPosted, setIfPosted] = useState(false);
+  const [ifForm, setIfForm] = useState({
+    title: '', description: '', responsibilities: '', requirements: '',
+    vertical_id: '', min_depth: 30, min_academic_level: 'any',
+    preferred_subjects_raw: '', duration_months: 3, stipend_monthly: '',
+    is_paid: false, offers_coauthorship: false, offers_certificate: true,
+    location: '', is_remote: false, work_mode: 'onsite' as typeof WORK_MODES[number],
+    total_seats: 1, application_deadline: '', company_name: '', industry: '',
+    listing_plan: 'basic' as 'basic' | 'featured' | 'corporate',
+  });
+
   // Stats derived from listings
   const totalApplicants = listings.reduce((s, l) => s + l.total_applicants, 0);
   const activeListings = listings.filter((l) => l.status === 'active').length;
@@ -143,6 +216,10 @@ export default function InstitutionPage() {
 
     load();
   }, [profile]);
+
+  useEffect(() => {
+    if (view === 'intern_finder' && profile) loadIfPostings();
+  }, [view, profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!selectedListing || view !== 'applicants') return;
@@ -236,6 +313,100 @@ export default function InstitutionPage() {
   const setF = <K extends keyof PostForm>(key: K, val: PostForm[K]) =>
     setForm((prev) => ({ ...prev, [key]: val }));
 
+  // ── Intern Finder helpers ─────────────────────────────────────────────────────
+
+  async function loadIfPostings() {
+    if (!profile) return;
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('internship_postings')
+      .select('*')
+      .eq('posted_by', profile.id)
+      .eq('posting_type', 'institution')
+      .order('created_at', { ascending: false });
+    setIfPostings((data ?? []) as InternPosting[]);
+  }
+
+  async function loadIfApplicants(posting: InternPosting) {
+    setIfSelectedPosting(posting);
+    setView('intern_finder_apps');
+    setIfLoadingApps(true);
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('intern_applications')
+      .select('id, posting_id, student_id, cover_note, research_statement, match_score, status, soul_snapshot, created_at')
+      .eq('posting_id', posting.id)
+      .order('match_score', { ascending: false })
+      .limit(50);
+    if (!data?.length) { setIfApplicants([]); setIfLoadingApps(false); return; }
+    const ids = data.map((a) => a.student_id);
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, city, academic_level')
+      .in('id', ids);
+    const pMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+    const enriched: InternApplicant[] = data.map((a) => {
+      const snap = a.soul_snapshot as Record<string, unknown> | null;
+      return {
+        ...a,
+        student_name: pMap[a.student_id]?.full_name ?? 'Student',
+        student_city: pMap[a.student_id]?.city ?? '',
+        student_academic_level: pMap[a.student_id]?.academic_level ?? '',
+        soul_depth: (snap?.depth as number) ?? 0,
+        soul_topics: (snap?.top_topics as string[]) ?? [],
+        soul_research_area: (snap?.future_research_area as string) ?? null,
+      };
+    });
+    setIfApplicants(enriched);
+    setIfLoadingApps(false);
+  }
+
+  async function updateIfAppStatus(appId: string, status: string) {
+    const supabase = createClient();
+    await supabase.from('intern_applications').update({ status }).eq('id', appId);
+    setIfApplicants((prev) => prev.map((a) => (a.id === appId ? { ...a, status } : a)));
+  }
+
+  async function postIfListing() {
+    if (!profile || !ifForm.title.trim() || !ifForm.description.trim()) return;
+    setIfPosting(true);
+    const supabase = createClient();
+    await supabase.from('internship_postings').insert({
+      posted_by: profile.id,
+      posting_type: 'institution',
+      title: ifForm.title.trim(),
+      description: ifForm.description.trim(),
+      responsibilities: ifForm.responsibilities.trim() || null,
+      requirements: ifForm.requirements.trim() || null,
+      vertical_id: ifForm.vertical_id || null,
+      min_depth: ifForm.min_depth,
+      min_academic_level: ifForm.min_academic_level,
+      preferred_subjects: ifForm.preferred_subjects_raw.split(',').map((s) => s.trim()).filter(Boolean),
+      duration_months: ifForm.duration_months,
+      stipend_monthly: ifForm.is_paid && ifForm.stipend_monthly ? parseInt(ifForm.stipend_monthly, 10) : null,
+      is_paid: ifForm.is_paid,
+      offers_coauthorship: ifForm.offers_coauthorship,
+      offers_certificate: ifForm.offers_certificate,
+      location: ifForm.location.trim() || null,
+      is_remote: ifForm.is_remote,
+      work_mode: ifForm.work_mode,
+      total_seats: ifForm.total_seats,
+      application_deadline: ifForm.application_deadline || null,
+      company_name: ifForm.company_name.trim() || (inst?.org_name ?? null),
+      industry: ifForm.industry.trim() || null,
+      listing_plan: ifForm.listing_plan,
+      status: 'open',
+    });
+    await loadIfPostings();
+    setIfPosting(false);
+    setIfPosted(true);
+    setIfForm({ title: '', description: '', responsibilities: '', requirements: '', vertical_id: '', min_depth: 30, min_academic_level: 'any', preferred_subjects_raw: '', duration_months: 3, stipend_monthly: '', is_paid: false, offers_coauthorship: false, offers_certificate: true, location: '', is_remote: false, work_mode: 'onsite', total_seats: 1, application_deadline: '', company_name: '', industry: '', listing_plan: 'basic' });
+    setTimeout(() => { setIfPosted(false); setView('intern_finder'); }, 2500);
+  }
+
+  const setIfF = <K extends keyof typeof ifForm>(key: K, val: typeof ifForm[K]) =>
+    setIfForm((prev) => ({ ...prev, [key]: val }));
+
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center" style={{ background: '#060F1D' }}>
@@ -279,15 +450,28 @@ export default function InstitutionPage() {
             <StatusBadge status={inst?.verification_status ?? 'pending'} />
           </div>
 
-          <button
-            onClick={() => setView('post')}
-            className="px-5 py-3 rounded-xl text-sm font-bold transition-all"
-            style={{ background: '#C9993A', color: '#060F1D' }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = '#E5B86A')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = '#C9993A')}
-          >
-            + Post Internship
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setView(view === 'intern_finder' || view === 'intern_finder_post' || view === 'intern_finder_apps' ? 'listings' : 'intern_finder')}
+              className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+              style={{
+                background: ['intern_finder', 'intern_finder_post', 'intern_finder_apps'].includes(view) ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.1)',
+                color: '#818CF8',
+                border: '0.5px solid rgba(99,102,241,0.35)',
+              }}
+            >
+              🎯 Intern Finder
+            </button>
+            <button
+              onClick={() => setView('post')}
+              className="px-5 py-3 rounded-xl text-sm font-bold transition-all"
+              style={{ background: '#C9993A', color: '#060F1D' }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#E5B86A')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#C9993A')}
+            >
+              + Post Internship
+            </button>
+          </div>
         </motion.div>
 
         {/* Stats row */}
@@ -632,6 +816,396 @@ export default function InstitutionPage() {
                           </span>
                         ))}
                       </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══ INTERN FINDER — browse new internship_postings system ══════════ */}
+
+        {view === 'intern_finder' && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="font-playfair text-xl text-white">Intern Finder</h2>
+                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Soul-matched postings · students sorted by match score</p>
+              </div>
+              <button
+                onClick={() => setView('intern_finder_post')}
+                className="px-4 py-2.5 rounded-xl text-sm font-bold"
+                style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)', color: '#fff' }}
+              >
+                + New Posting
+              </button>
+            </div>
+
+            {ifPostings.length === 0 ? (
+              <div className="text-center py-20 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.06)' }}>
+                <p className="text-4xl mb-4">🎯</p>
+                <p className="font-playfair text-xl text-white/40 mb-3">No postings yet</p>
+                <p className="text-sm text-white/20 mb-6">Post an internship and students will be soul-matched instantly.</p>
+                <button onClick={() => setView('intern_finder_post')}
+                  className="px-6 py-3 rounded-xl text-sm font-bold"
+                  style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)', color: '#fff' }}>
+                  Post first internship →
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {ifPostings.map((p) => {
+                  const saathi = SAATHIS.find((s) => s.id === p.vertical_id);
+                  return (
+                    <div key={p.id} className="rounded-2xl p-5"
+                      style={{ background: 'rgba(255,255,255,0.03)', border: `0.5px solid ${p.listing_plan === 'featured' ? 'rgba(201,153,58,0.4)' : 'rgba(255,255,255,0.08)'}` }}>
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            {p.listing_plan === 'featured' && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                style={{ background: 'rgba(201,153,58,0.15)', color: '#C9993A' }}>★ Featured</span>
+                            )}
+                            {saathi && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                                style={{ background: `${saathi.primary}20`, color: saathi.accent }}>
+                                {saathi.emoji} {saathi.name}
+                              </span>
+                            )}
+                            <span className="text-[10px] px-2 py-0.5 rounded-full capitalize"
+                              style={{ background: p.status === 'open' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)', color: p.status === 'open' ? '#4ADE80' : 'rgba(255,255,255,0.35)' }}>
+                              {p.status}
+                            </span>
+                          </div>
+                          <h3 className="font-semibold text-white">{p.title}</h3>
+                          <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                            {p.total_applications} applied · {p.total_seats} seat{p.total_seats !== 1 ? 's' : ''}
+                            {p.is_paid && p.stipend_monthly ? ` · ₹${p.stipend_monthly.toLocaleString('en-IN')}/mo` : ' · Unpaid'}
+                            {p.duration_months ? ` · ${p.duration_months}m` : ''}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => loadIfApplicants(p)}
+                          className="text-xs px-3 py-1.5 rounded-xl font-semibold shrink-0"
+                          style={{ background: 'rgba(99,102,241,0.15)', color: '#818CF8', border: '0.5px solid rgba(99,102,241,0.3)' }}>
+                          👥 Applicants →
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══ INTERN FINDER — post form ════════════════════════════════════ */}
+
+        {view === 'intern_finder_post' && (
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <button onClick={() => setView('intern_finder')} className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>← Back</button>
+              <h2 className="font-playfair text-xl text-white">Post New Internship</h2>
+            </div>
+
+            {ifPosted && (
+              <div className="mb-4 p-4 rounded-xl text-sm"
+                style={{ background: 'rgba(34,197,94,0.1)', border: '0.5px solid rgba(34,197,94,0.3)', color: '#4ADE80' }}>
+                ✓ Posted! Soul-matching is running. Top students will be notified.
+              </div>
+            )}
+
+            <div className="space-y-5 max-w-2xl">
+              {/* Company name */}
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Company / Organisation name</label>
+                <input value={ifForm.company_name} onChange={(e) => setIfF('company_name', e.target.value)}
+                  placeholder={inst?.org_name ?? 'Your company name'}
+                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+              </div>
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Position title <span style={{ color: '#C9993A' }}>*</span></label>
+                <input value={ifForm.title} onChange={(e) => setIfF('title', e.target.value)}
+                  placeholder="e.g. Data Science Intern"
+                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+              </div>
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Description <span style={{ color: '#C9993A' }}>*</span> (max 500 chars)</label>
+                <textarea rows={4} value={ifForm.description} onChange={(e) => { if (e.target.value.length <= 500) setIfF('description', e.target.value); }}
+                  placeholder="What is the internship about? What can they expect?"
+                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none resize-none"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                <p className="text-[10px] text-right mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>{ifForm.description.length}/500</p>
+              </div>
+              {/* Responsibilities */}
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Responsibilities (what intern will do)</label>
+                <textarea rows={3} value={ifForm.responsibilities} onChange={(e) => setIfF('responsibilities', e.target.value)}
+                  placeholder="Daily tasks, projects, meetings..."
+                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none resize-none"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+              </div>
+              {/* Requirements */}
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Requirements (what they need)</label>
+                <textarea rows={2} value={ifForm.requirements} onChange={(e) => setIfF('requirements', e.target.value)}
+                  placeholder="Skills, experience, coursework required..."
+                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none resize-none"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+              </div>
+              {/* Subject area */}
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Subject area (Saathi)</label>
+                <select value={ifForm.vertical_id} onChange={(e) => setIfF('vertical_id', e.target.value)}
+                  className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: ifForm.vertical_id ? '#fff' : 'rgba(255,255,255,0.35)' }}>
+                  <option value="">Any subject</option>
+                  {SAATHIS.map((s) => <option key={s.id} value={s.id} style={{ background: '#0B1F3A' }}>{s.emoji} {s.name}</option>)}
+                </select>
+              </div>
+              {/* Min depth */}
+              <div>
+                <label className="block text-xs font-medium mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  Minimum depth calibration: <span style={{ color: '#E5B86A' }}>{ifForm.min_depth}</span>
+                </label>
+                <input type="range" min={0} max={90} step={5} value={ifForm.min_depth}
+                  onChange={(e) => setIfF('min_depth', parseInt(e.target.value))} className="w-full" />
+                <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                  Students below this depth won&apos;t see your posting.
+                </p>
+              </div>
+              {/* Academic level */}
+              <div>
+                <label className="block text-xs font-medium mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>Academic level</label>
+                <div className="flex flex-wrap gap-2">
+                  {['any', 'bachelor', 'masters', 'phd'].map((lvl) => (
+                    <button key={lvl} type="button" onClick={() => setIfF('min_academic_level', lvl)}
+                      className="rounded-full px-4 py-2 text-sm font-medium transition-all"
+                      style={{
+                        background: ifForm.min_academic_level === lvl ? '#C9993A' : 'rgba(255,255,255,0.05)',
+                        color: ifForm.min_academic_level === lvl ? '#060F1D' : 'rgba(255,255,255,0.6)',
+                      }}>
+                      {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Preferred subjects */}
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Preferred subject knowledge (comma-separated)</label>
+                <input value={ifForm.preferred_subjects_raw} onChange={(e) => setIfF('preferred_subjects_raw', e.target.value)}
+                  placeholder="e.g. Python, Machine Learning, Statistics"
+                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+              </div>
+              {/* Logistics row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Duration (months)</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {[1, 2, 3, 6].map((d) => (
+                      <button key={d} type="button" onClick={() => setIfF('duration_months', d)}
+                        className="px-3 py-2 rounded-lg text-sm transition-all"
+                        style={{ background: ifForm.duration_months === d ? 'rgba(201,153,58,0.2)' : 'rgba(255,255,255,0.05)', color: ifForm.duration_months === d ? '#E5B86A' : 'rgba(255,255,255,0.6)' }}>
+                        {d}mo
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Seats available</label>
+                  <input type="number" min={1} value={ifForm.total_seats} onChange={(e) => setIfF('total_seats', parseInt(e.target.value) || 1)}
+                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                </div>
+              </div>
+              {/* Stipend */}
+              <div>
+                <label className="block text-xs font-medium mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>Stipend</label>
+                <div className="flex items-center gap-3 mb-2">
+                  <button onClick={() => setIfF('is_paid', !ifForm.is_paid)}
+                    className="w-10 h-6 rounded-full relative transition-all"
+                    style={{ background: ifForm.is_paid ? '#4ADE80' : 'rgba(255,255,255,0.1)' }}>
+                    <div className="absolute top-1 w-4 h-4 rounded-full bg-white transition-all"
+                      style={{ left: ifForm.is_paid ? '22px' : '2px' }} />
+                  </button>
+                  <span className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Paid internship</span>
+                </div>
+                {ifForm.is_paid && (
+                  <input type="number" min={0} value={ifForm.stipend_monthly} onChange={(e) => setIfF('stipend_monthly', e.target.value)}
+                    placeholder="Monthly stipend in ₹"
+                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                )}
+              </div>
+              {/* Work mode + location */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Work mode</label>
+                  <div className="flex flex-wrap gap-2">
+                    {WORK_MODES.map((mode) => (
+                      <button key={mode} type="button" onClick={() => setIfF('work_mode', mode)}
+                        className="px-3 py-2 rounded-lg text-sm capitalize transition-all"
+                        style={{ background: ifForm.work_mode === mode ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)', color: ifForm.work_mode === mode ? '#818CF8' : 'rgba(255,255,255,0.5)' }}>
+                        {mode}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Location / city</label>
+                  <input value={ifForm.location} onChange={(e) => setIfF('location', e.target.value)}
+                    placeholder={inst?.city ?? 'City or Remote'}
+                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                </div>
+              </div>
+              {/* Deadline */}
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Application deadline</label>
+                <input type="date" value={ifForm.application_deadline} onChange={(e) => setIfF('application_deadline', e.target.value)}
+                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+              </div>
+              {/* Listing plan */}
+              <div>
+                <label className="block text-xs font-medium mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>Listing plan</label>
+                <div className="space-y-2">
+                  {LISTING_PLANS.map((plan) => (
+                    <button key={plan.id} type="button" onClick={() => setIfF('listing_plan', plan.id as 'basic' | 'featured' | 'corporate')}
+                      className="w-full flex items-center justify-between p-4 rounded-xl text-left transition-all"
+                      style={{
+                        background: ifForm.listing_plan === plan.id ? 'rgba(201,153,58,0.1)' : 'rgba(255,255,255,0.03)',
+                        border: `0.5px solid ${ifForm.listing_plan === plan.id ? 'rgba(201,153,58,0.45)' : 'rgba(255,255,255,0.08)'}`,
+                      }}>
+                      <div>
+                        <p className="text-sm font-bold" style={{ color: ifForm.listing_plan === plan.id ? '#E5B86A' : '#fff' }}>
+                          {plan.label}
+                          {'recommended' in plan && plan.recommended && (
+                            <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full"
+                              style={{ background: 'rgba(201,153,58,0.2)', color: '#C9993A' }}>Recommended</span>
+                          )}
+                        </p>
+                        <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{plan.desc}</p>
+                      </div>
+                      <span className="text-sm font-bold shrink-0" style={{ color: '#C9993A' }}>{plan.price}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Submit */}
+              <button onClick={postIfListing} disabled={!ifForm.title.trim() || !ifForm.description.trim() || ifPosting}
+                className="w-full py-4 rounded-xl text-base font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)', color: '#fff' }}>
+                {ifPosting ? 'Publishing…' : 'Publish & Find Students →'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ INTERN FINDER — applicants (soul-ranked) ════════════════════ */}
+
+        {view === 'intern_finder_apps' && ifSelectedPosting && (
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <button onClick={() => { setView('intern_finder'); setIfSelectedPosting(null); }}
+                className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>← Postings</button>
+              <h2 className="font-playfair text-xl text-white">{ifSelectedPosting.title}</h2>
+              <span className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                ({ifApplicants.length} applicant{ifApplicants.length !== 1 ? 's' : ''})
+              </span>
+            </div>
+
+            {ifLoadingApps ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => <div key={i} className="rounded-2xl animate-pulse" style={{ background: 'rgba(255,255,255,0.03)', height: '120px' }} />)}
+              </div>
+            ) : ifApplicants.length === 0 ? (
+              <div className="text-center py-20 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.06)' }}>
+                <p className="font-playfair text-xl text-white/30">No applications yet</p>
+                <p className="text-sm text-white/20 mt-2">Students will appear here sorted by soul match score.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {ifApplicants.map((a) => (
+                  <div key={a.id} className="rounded-2xl p-5"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)' }}>
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex-1">
+                        <p className="font-semibold text-white">{a.student_name}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                          {a.student_academic_level} · {a.student_city}
+                          {' · '}Applied {new Date(a.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        </p>
+                        {a.soul_research_area && (
+                          <p className="text-xs mt-1 italic" style={{ color: '#C084FC' }}>
+                            Research dream: {a.soul_research_area}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-lg font-bold"
+                          style={{ color: a.match_score >= 80 ? '#E5B86A' : a.match_score >= 60 ? '#4ADE80' : '#F87171' }}>
+                          {a.match_score}%
+                        </p>
+                        <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>soul match</p>
+                      </div>
+                    </div>
+                    <MatchBar score={a.match_score} />
+                    {a.soul_topics && a.soul_topics.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2 mb-3">
+                        {a.soul_topics.slice(0, 4).map((t) => (
+                          <span key={t} className="text-[10px] px-2 py-0.5 rounded-full"
+                            style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}>
+                            {t}
+                          </span>
+                        ))}
+                        {a.soul_depth && a.soul_depth > 0 && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full"
+                            style={{ background: 'rgba(201,153,58,0.1)', color: '#E5B86A' }}>
+                            Depth {a.soul_depth}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {a.cover_note && (
+                      <p className="text-xs italic mb-3 px-3 py-2 rounded-xl"
+                        style={{ background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.55)' }}>
+                        &ldquo;{a.cover_note}&rdquo;
+                      </p>
+                    )}
+                    {a.status === 'applied' && (
+                      <div className="flex gap-2">
+                        <button onClick={() => updateIfAppStatus(a.id, 'shortlisted')}
+                          className="flex-1 py-2 rounded-xl text-xs font-bold"
+                          style={{ background: 'rgba(14,165,233,0.15)', color: '#38BDF8', border: '0.5px solid rgba(14,165,233,0.35)' }}>
+                          ⭐ Shortlist
+                        </button>
+                        <button onClick={() => updateIfAppStatus(a.id, 'selected')}
+                          className="flex-1 py-2 rounded-xl text-xs font-bold"
+                          style={{ background: 'rgba(34,197,94,0.12)', color: '#4ADE80', border: '0.5px solid rgba(34,197,94,0.35)' }}>
+                          ✓ Select
+                        </button>
+                        <button onClick={() => updateIfAppStatus(a.id, 'rejected')}
+                          className="flex-1 py-2 rounded-xl text-xs font-bold"
+                          style={{ background: 'rgba(239,68,68,0.1)', color: '#F87171', border: '0.5px solid rgba(239,68,68,0.25)' }}>
+                          ✕ Decline
+                        </button>
+                      </div>
+                    )}
+                    {a.status !== 'applied' && (
+                      <span className="text-xs font-bold px-3 py-1.5 rounded-full capitalize"
+                        style={{
+                          background: a.status === 'selected' ? 'rgba(34,197,94,0.1)' : a.status === 'shortlisted' ? 'rgba(14,165,233,0.1)' : 'rgba(239,68,68,0.08)',
+                          color: a.status === 'selected' ? '#4ADE80' : a.status === 'shortlisted' ? '#38BDF8' : '#F87171',
+                        }}>
+                        {a.status}
+                      </span>
                     )}
                   </div>
                 ))}

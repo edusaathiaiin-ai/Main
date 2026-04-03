@@ -206,6 +206,58 @@ export function Sidebar({
         </Link>
       )}
 
+      {/* Internships & Research CTA — students only */}
+      {profile.role === 'student' && (
+        <Link
+          href="/internships"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            margin: '4px 12px',
+            padding: '10px 14px',
+            borderRadius: '12px',
+            background: 'rgba(99,102,241,0.06)',
+            border: '0.5px solid rgba(99,102,241,0.25)',
+            textDecoration: 'none',
+          }}
+        >
+          <span style={{ fontSize: '18px' }}>🎯</span>
+          <div>
+            <p style={{ fontSize: '12px', fontWeight: '700', color: '#818CF8', margin: '0 0 1px' }}>
+              Internships & Research
+            </p>
+            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+              Soul-matched opportunities
+            </p>
+          </div>
+        </Link>
+      )}
+
+      {/* Research Interns CTA — faculty only */}
+      {profile.role === 'faculty' && (
+        <Link
+          href="/faculty/research"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            margin: '4px 12px', padding: '10px 14px', borderRadius: '12px',
+            background: 'rgba(168,85,247,0.06)',
+            border: '0.5px solid rgba(168,85,247,0.25)',
+            textDecoration: 'none',
+          }}
+        >
+          <span style={{ fontSize: '18px' }}>🔬</span>
+          <div>
+            <p style={{ fontSize: '12px', fontWeight: '700', color: '#C084FC', margin: '0 0 1px' }}>
+              Research Interns
+            </p>
+            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+              Post projects · find co-authors
+            </p>
+          </div>
+        </Link>
+      )}
+
       {/* Faculty Finder CTA */}
       <Link
         href="/faculty-finder"

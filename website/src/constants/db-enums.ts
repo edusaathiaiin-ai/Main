@@ -188,3 +188,24 @@ export const LECTURE_REQUEST_STATUS = {
   DECLINED:     'declined',
 } as const;
 export type LectureRequestStatus = typeof LECTURE_REQUEST_STATUS[keyof typeof LECTURE_REQUEST_STATUS];
+
+// ── research_projects.status ─────────────────────────────────────────────────
+// CHECK (status IN ('open','filled','paused','closed'))  →  072_research_projects.sql
+export const RESEARCH_PROJECT_STATUS = {
+  OPEN:   'open',
+  FILLED: 'filled',
+  PAUSED: 'paused',
+  CLOSED: 'closed',
+} as const;
+export type ResearchProjectStatus = typeof RESEARCH_PROJECT_STATUS[keyof typeof RESEARCH_PROJECT_STATUS];
+
+// ── research_applications.status ─────────────────────────────────────────────
+// CHECK (status IN ('pending','shortlisted','accepted','rejected','withdrawn'))
+export const RESEARCH_APPLICATION_STATUS = {
+  PENDING:     'pending',
+  SHORTLISTED: 'shortlisted',
+  ACCEPTED:    'accepted',
+  REJECTED:    'rejected',
+  WITHDRAWN:   'withdrawn',
+} as const;
+export type ResearchApplicationStatus = typeof RESEARCH_APPLICATION_STATUS[keyof typeof RESEARCH_APPLICATION_STATUS];

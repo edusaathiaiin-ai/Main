@@ -281,6 +281,7 @@ export default function FacultyPage() {
             { href: '/faculty/analytics', icon: '\u{1F4CA}', label: 'Analytics' },
             { href: '/faculty/question-paper', icon: '\u{1F4DD}', label: 'Question Paper' },
             { href: '/faculty/create-material', icon: '\u{1F4DA}', label: 'Study Material' },
+            { href: '/faculty/research', icon: '🔬', label: 'Research Interns' },
             { href: '/profile', icon: '\u{1F464}', label: 'Profile' },
           ].map((item) => (
             <Link
