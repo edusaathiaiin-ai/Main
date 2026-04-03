@@ -135,3 +135,56 @@ website/
 - W4: Chat streaming, quota UI, board, news
 - W5: Pricing page, Razorpay integration, subscription management
 - W6: Profile page, soul editing, check-in widget
+
+---
+
+## Vertical ID Rule — READ THIS FIRST
+
+Any column named `vertical_id` in any table is a FK to `verticals(id)` and **MUST be a UUID. Never a slug.**
+
+This bug has caused production failures three times. Never insert a slug where `vertical_id` is expected.
+
+### Before any INSERT/UPDATE involving vertical_id:
+
+```typescript
+import { resolveVerticalId } from '@/lib/resolveVerticalId';
+
+const verticalId = await resolveVerticalId(slugOrIdFromAnywhere, supabase);
+if (!verticalId) {
+  // handle error — never insert null
+  return;
+}
+```
+
+Full documentation: `website/src/lib/resolveVerticalId.ts`
+
+### Tables with vertical_id FK (always use resolveVerticalId):
+
+| Table | Column |
+|-------|--------|
+| `student_soul` | `vertical_id` |
+| `bot_personas` | `vertical_id` |
+| `news_items` | `vertical_id` |
+| `board_questions` | `vertical_id` |
+| `board_answers` | `vertical_id` |
+| `faculty_sessions` | `vertical_id` |
+| `live_sessions` | `vertical_id` |
+| `lecture_requests` | `vertical_id` |
+| `learning_intents` | `vertical_id` |
+| `internship_postings` | `vertical_id` |
+| `daily_challenges` | `vertical_id` |
+| `saathi_stats_cache` | `vertical_id` |
+| `explore_resources` | `vertical_id` |
+
+### Adding a new table with vertical_id?
+
+- [ ] FK: `REFERENCES verticals(id)`
+- [ ] Add to the list above in `resolveVerticalId.ts`
+- [ ] Use `resolveVerticalId()` in all insert/update handlers
+- [ ] Add index: `CREATE INDEX ON new_table(vertical_id)`
+
+### When to call resolveVerticalId:
+
+**Call it** when the value comes from: URL params, user selection (Saathi picker), `profile.primary_saathi_id`, WhatsApp payloads, `SAATHIS[n].id` (slug field).
+
+**Skip it** when the value comes from: a DB query result's `.vertical_id` column, another table's `vertical_id` FK — those are already UUIDs.
