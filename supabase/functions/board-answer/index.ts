@@ -179,10 +179,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 3. Save answer to board_questions.ai_answer
+    // 3. Save answer + mark as answered
     await admin
       .from('board_questions')
-      .update({ ai_answer: answer })
+      .update({
+        ai_answer: answer,
+        status: 'answered',
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', questionId);
 
     // 4. Notify question author

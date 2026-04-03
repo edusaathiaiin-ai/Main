@@ -91,7 +91,7 @@ export function QuestionFeed() {
       .from('board_questions')
       .select('*', { count: 'exact' })
       .eq('vertical_id', verticalUuid)
-      .eq('status', 'open')
+      .in('status', ['open', 'answered'])
       .order('created_at', { ascending: false })
       .range(newPage * PAGE_SIZE, (newPage + 1) * PAGE_SIZE - 1);
 
