@@ -44,6 +44,51 @@ const PLAN_LABELS: Record<string, string> = {
   'institution': 'Institution',
 };
 
+// ── Refund confirmation email ──────────────────────────────────────────────
+
+async function sendRefundEmail(
+  email: string,
+  planId: string,
+  amountInr: number,
+  refundId: string,
+): Promise<void> {
+  if (!RESEND_API_KEY || !email) return;
+  const planLabel = PLAN_LABELS[planId] ?? planId;
+  const amountStr = `₹${(amountInr).toLocaleString('en-IN')}`;
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: RESEND_FROM_EMAIL,
+        to: [email],
+        subject: `Refund processed — ${amountStr} is on its way`,
+        html: `
+          <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
+            <h1 style="color:#C9993A;font-size:24px;margin-bottom:8px">Your refund is being processed</h1>
+            <p style="color:rgba(255,255,255,0.7);line-height:1.7">
+              We have issued a refund of <strong>${amountStr}</strong> for your
+              <strong>${planLabel}</strong> subscription. It will appear in your account
+              within 5–7 business days depending on your bank.
+            </p>
+            <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:16px">
+              Refund reference: ${refundId}<br>
+              Your account has been moved to the Free plan.<br>
+              Your learning history and Saathi memory are fully preserved.
+            </p>
+            <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:20px">
+              Questions? Reply to this email or write to support@edusaathiai.in
+            </p>
+          </div>
+        `,
+      }),
+    });
+  } catch (err) {
+    console.error('razorpay-webhook: refund email failed', err instanceof Error ? err.message : err);
+  }
+}
+
 // ── Payment confirmation email ─────────────────────────────────────────────
 
 async function sendUpgradeEmail(
@@ -154,11 +199,19 @@ type RazorpaySubscriptionEntity = {
   status?: string;
 };
 
+type RazorpayRefundEntity = {
+  id?: string;
+  payment_id?: string;
+  amount?: number;   // paise
+  status?: string;
+};
+
 type RazorpayWebhookPayload = {
   event?: string;
   payload?: {
-    payment?: { entity?: RazorpayPaymentEntity };
+    payment?  : { entity?: RazorpayPaymentEntity };
     subscription?: { entity?: RazorpaySubscriptionEntity };
+    refund?   : { entity?: RazorpayRefundEntity };
   };
 };
 
@@ -312,6 +365,89 @@ async function handleSubscriptionPaused(
   console.log(`razorpay-webhook: subscription.paused for profile ${profile.id}`);
 }
 
+// Handles both payment.refunded and refund.processed
+// payment.refunded  → payload.payment.entity has the payment, payload.refund.entity has refund
+// refund.processed  → same structure
+async function handlePaymentRefunded(
+  admin: AdminClient,
+  payment: RazorpayPaymentEntity,
+  refund: RazorpayRefundEntity,
+  rawPayload: RazorpayWebhookPayload,
+  eventName: string,
+): Promise<void> {
+  const paymentId = refund.payment_id ?? payment.id;
+  const refundId  = refund.id;
+  if (!paymentId) {
+    console.warn(`razorpay-webhook: ${eventName} — no payment_id found in payload`);
+    return;
+  }
+
+  // Idempotency: if refund_id already stored, skip
+  if (refundId) {
+    const { data: existing } = await admin
+      .from('subscriptions')
+      .select('id')
+      .eq('razorpay_refund_id', refundId)
+      .maybeSingle();
+    if (existing) {
+      console.log(`razorpay-webhook: duplicate refund_id '${refundId}' — skipping`);
+      return;
+    }
+  }
+
+  // Look up subscription by payment_id
+  const { data: subRow } = await admin
+    .from('subscriptions')
+    .select('id, user_id, plan_id, amount_inr, status')
+    .eq('razorpay_payment_id', paymentId)
+    .maybeSingle();
+
+  if (!subRow) {
+    console.warn(`razorpay-webhook: ${eventName} — no subscription found for payment_id '${paymentId}'`);
+    return;
+  }
+
+  const sub = subRow as { id: string; user_id: string; plan_id: string; amount_inr: number; status: string };
+
+  // Amount refunded (paise → INR). Fall back to original subscription amount.
+  const refundAmountInr = refund.amount ? Math.round(refund.amount / 100) : sub.amount_inr;
+
+  // Update subscription ledger
+  await admin.from('subscriptions').update({
+    status: 'refunded',
+    razorpay_refund_id: refundId ?? null,
+    refunded_at: new Date().toISOString(),
+    refund_amount_inr: refundAmountInr,
+    webhook_event: eventName,
+    raw_webhook: rawPayload,
+  }).eq('id', sub.id);
+
+  // Downgrade profile to free immediately
+  await admin.from('profiles').update({
+    plan_id: 'free',
+    subscription_status: 'cancelled',
+    subscription_expires_at: null,
+  }).eq('id', sub.user_id);
+
+  console.log(`razorpay-webhook: ${eventName} processed — user ${sub.user_id} downgraded to free`);
+
+  // Send refund email (fire-and-forget)
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('email')
+    .eq('id', sub.user_id)
+    .maybeSingle();
+
+  if (profile?.email) {
+    await sendRefundEmail(
+      profile.email as string,
+      sub.plan_id,
+      refundAmountInr,
+      refundId ?? paymentId,
+    );
+  }
+}
+
 async function handleSubscriptionResumed(
   admin: AdminClient,
   subscription: RazorpaySubscriptionEntity
@@ -414,6 +550,13 @@ Deno.serve(async (req: Request) => {
           fingerprint: ['payment-failed'],
         });
         await handlePaymentFailed(admin, payment, payload);
+        break;
+      }
+      case 'payment.refunded':
+      case 'refund.processed': {
+        const payment = payload.payload?.payment?.entity ?? {};
+        const refund  = payload.payload?.refund?.entity  ?? {};
+        await handlePaymentRefunded(admin, payment, refund, payload, event);
         break;
       }
       case 'subscription.cancelled': {
