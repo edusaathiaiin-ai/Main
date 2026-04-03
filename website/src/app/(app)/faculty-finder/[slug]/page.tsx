@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
 import Link from 'next/link';
 import { FacultyBadge } from '@/components/faculty/FacultyBadge';
+import { BookmarkButton } from '@/components/faculty/BookmarkButton';
 import { getFacultyBadgeType } from '@/lib/faculty-badge';
 
 type FacultyData = {
@@ -269,7 +270,10 @@ export default function FacultyProfilePage() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         <Link href="/faculty-finder" className="font-playfair text-xl font-bold" style={{ color: '#C9993A', textDecoration: 'none' }}>EdUsaathiAI</Link>
-        <Link href="/faculty-finder" className="text-sm" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>&larr; All Faculty</Link>
+        <div className="flex items-center gap-3">
+          <BookmarkButton facultyId={faculty.id} facultyName={faculty.full_name} />
+          <Link href="/faculty-finder" className="text-sm" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>&larr; All Faculty</Link>
+        </div>
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 py-8">

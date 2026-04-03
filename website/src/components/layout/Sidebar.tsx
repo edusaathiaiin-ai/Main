@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BotSelector } from '@/components/chat/BotSelector';
 import { getPlanTier } from '@/constants/plans';
+import { createClient } from '@/lib/supabase/client';
 import type { Saathi, Profile, QuotaState } from '@/types';
 
 
@@ -82,6 +84,17 @@ export function Sidebar({
   sessionCount = 0,
 }: Props) {
   const pathname = usePathname();
+  const [bookmarkCount, setBookmarkCount] = useState(0);
+
+  useEffect(() => {
+    if (!profile) return;
+    const supabase = createClient();
+    supabase
+      .from('faculty_bookmarks')
+      .select('id', { count: 'exact', head: true })
+      .eq('student_id', profile.id)
+      .then(({ count }) => setBookmarkCount(count ?? 0));
+  }, [profile]);
 
   return (
     <aside
@@ -275,6 +288,40 @@ export function Sidebar({
           <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Book 1:1 expert sessions</p>
         </div>
       </Link>
+
+      {/* Saved Faculty CTA — only when bookmarks exist */}
+      {bookmarkCount > 0 && (
+        <Link
+          href="/saved-faculty"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            margin: '4px 12px', padding: '10px 14px', borderRadius: '12px',
+            background: 'rgba(201,153,58,0.06)',
+            border: '0.5px solid rgba(201,153,58,0.2)',
+            textDecoration: 'none', transition: 'all 0.2s',
+          }}
+        >
+          <span style={{ fontSize: '16px' }}>🔖</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: '11px', fontWeight: '600', color: '#C9993A', margin: '0 0 1px' }}>Saved Faculty</p>
+            <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Revisit and book when ready</p>
+          </div>
+          <span
+            style={{
+              fontSize: '10px', fontWeight: '700',
+              minWidth: '18px', height: '18px',
+              borderRadius: '9px',
+              background: 'rgba(201,153,58,0.25)',
+              color: '#C9993A',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '0 5px',
+              flexShrink: 0,
+            }}
+          >
+            {bookmarkCount}
+          </span>
+        </Link>
+      )}
 
       {/* Live Sessions CTA */}
       <Link

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { SAATHIS } from '@/constants/saathis';
 import Link from 'next/link';
+import { BookmarkButton } from '@/components/faculty/BookmarkButton';
 
 type FacultyRow = {
   id: string;
@@ -381,11 +382,14 @@ export default function FacultyFinderPage() {
                           </>
                         )}
                       </div>
-                      <Link href={`/faculty-finder/${slug}`} onClick={(e) => e.stopPropagation()}
-                        className="px-5 py-2.5 rounded-xl text-xs font-bold"
-                        style={{ background: color, color: '#0B1F3A', textDecoration: 'none' }}>
-                        View &amp; Book &rarr;
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <BookmarkButton facultyId={f.id} facultyName={f.full_name} size="sm" />
+                        <Link href={`/faculty-finder/${slug}`} onClick={(e) => e.stopPropagation()}
+                          className="px-5 py-2.5 rounded-xl text-xs font-bold"
+                          style={{ background: color, color: '#0B1F3A', textDecoration: 'none' }}>
+                          View &amp; Book &rarr;
+                        </Link>
+                      </div>
                     </div>
                   </motion.div>
                 );
