@@ -90,7 +90,7 @@ export function QuestionFeed() {
     const supabase = createClient();
     let query = supabase
       .from('board_questions')
-      .select('*', { count: 'exact' })
+      .select('*, profiles!board_questions_user_id_fkey(full_name)', { count: 'exact' })
       .eq('vertical_id', verticalUuid)
       .in('status', ['open', 'answered'])
       .order('created_at', { ascending: false })
@@ -105,7 +105,7 @@ export function QuestionFeed() {
 
     const withMeta: QWithMeta[] = (data ?? []).map((q) => ({
       ...q,
-      authorName: q.is_anonymous ? undefined : q.user_id?.slice(0, 8),
+      authorName: q.is_anonymous ? undefined : ((q as Record<string, unknown>).profiles as { full_name: string | null } | null)?.full_name ?? 'Student',
       aiAnswer: (q as Record<string, unknown>).ai_answer as string | null,
       facultyVerified: (q as Record<string, unknown>).faculty_verified as boolean,
     }));
