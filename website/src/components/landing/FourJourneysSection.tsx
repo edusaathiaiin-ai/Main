@@ -34,13 +34,60 @@ const ROLE_CONTENT: Record<RoleId, RoleContent> = {
       'EdUsaathiAI is the only AI that remembers who you are — not just what you asked. Every session builds on the last.',
     bullets: [
       '24 specialist Saathis — Law, NEET, UPSC, CS, Finance, and more',
-      'Soul memory across every session — no more re-explaining yourself',
+      'Soul memory — your Saathi knows your name, semester, subjects, and dream',
       'Exam preparation + career discovery in the same platform',
+      'Book live lectures from verified professors — pay per seat, learn live',
+      'Request a lecture on any topic — professors read your profile and respond',
+      '1:1 sessions with subject experts — doubt clearing, research guidance, deep dives',
+      'Retired IISc, AIIMS, NLU professors — access otherwise impossible',
     ],
     cta: 'Begin for free →',
     ctaLink: '/login?role=student',
     ctaColor: '#C9993A',
     note: 'First 500 students get 60 days free. No card.',
+    spotlightCard: (
+      <div style={{
+        background: 'rgba(255,255,255,0.04)',
+        border: '0.5px solid rgba(255,255,255,0.12)',
+        borderRadius: '12px',
+        padding: '14px 16px',
+        marginBottom: '20px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+          <span style={{ fontSize: '16px' }}>👨‍🏫</span>
+          <p style={{ fontSize: '12px', fontWeight: '700', color: 'rgba(255,255,255,0.8)', margin: 0 }}>
+            Real professors. Real sessions.
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {[
+            { name: 'Prof. R.K. Krishnamurthy', detail: 'Constitutional Law · NLU Bangalore · 38 years', price: '₹1,500/session', color: '#C9993A' },
+            { name: 'Dr. Savitaben Desai', detail: 'Pharmacology · Gujarat University · 30 years', price: '₹1,000/session', color: '#4ADE80' },
+          ].map((prof, i) => (
+            <div key={i} style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '8px 10px',
+              background: 'rgba(255,255,255,0.03)',
+              border: '0.5px solid rgba(255,255,255,0.08)',
+              borderRadius: '8px',
+            }}>
+              <div>
+                <p style={{ fontSize: '12px', fontWeight: '700', color: '#fff', margin: '0 0 1px' }}>{prof.name}</p>
+                <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', margin: 0 }}>{prof.detail}</p>
+              </div>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: prof.color, whiteSpace: 'nowrap', marginLeft: '8px' }}>
+                {prof.price}
+              </span>
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', margin: '10px 0 0', lineHeight: 1.5 }}>
+          ✦ Professors read your soul profile before every session. They know your semester, subjects, and struggles. Not a YouTube video. A real expert who prepared for YOU.
+        </p>
+      </div>
+    ),
   },
   faculty: {
     heading: 'Your knowledge. India\'s students.',
