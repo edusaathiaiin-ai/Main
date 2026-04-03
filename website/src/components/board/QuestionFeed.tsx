@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { resolveVerticalId } from '@/lib/resolveVertical';
@@ -53,13 +54,12 @@ const DEFAULT_QUOTA: QuotaState = { limit: 5, used: 0, remaining: 5, coolingUnti
 export function QuestionFeed() {
   const { profile } = useAuthStore();
   const { activeSaathiId, activeBotSlot, setActiveBotSlot } = useChatStore();
+  const searchParams = useSearchParams();
 
   const saathiSlug = activeSaathiId ?? profile?.primary_saathi_id ?? SAATHIS[0].id;
   const activeSaathi: Saathi = SAATHIS.find((s) => s.id === saathiSlug) ?? SAATHIS[0];
 
-  // Resolved UUID for DB queries — slug → verticals.id
   const [verticalUuid, setVerticalUuid] = useState<string | null>(null);
-
   const [questions, setQuestions] = useState<QWithMeta[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0);
@@ -75,7 +75,7 @@ export function QuestionFeed() {
 
   const canPost = !profile?.is_geo_limited;
 
-  // Resolve slug → UUID whenever the active Saathi changes
+  // Resolve slug → UUID
   useEffect(() => {
     if (!profile) return;
     resolveVerticalId(saathiSlug).then(setVerticalUuid);
@@ -121,6 +121,25 @@ export function QuestionFeed() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, verticalUuid, filter]);
 
+  // Highlight question from ?question=UUID param
+  useEffect(() => {
+    const questionId = searchParams.get('question');
+    if (!questionId || loading) return;
+
+    setTimeout(() => {
+      const el = document.getElementById(`question-${questionId}`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.transition = 'border-color 0.3s, background 0.3s';
+      el.style.borderColor = activeSaathi.primary;
+      el.style.background = `${activeSaathi.primary}12`;
+      setTimeout(() => {
+        el.style.borderColor = '';
+        el.style.background = '';
+      }, 3000);
+    }, 500);
+  }, [searchParams, loading, activeSaathi.primary]);
+
   // Realtime subscription
   useEffect(() => {
     if (!profile || !verticalUuid) return;
@@ -142,7 +161,6 @@ export function QuestionFeed() {
   }, [profile, verticalUuid]);
 
   function handlePosted(newId: string) {
-    // Refresh from top
     setPage(0);
     fetchQuestions(filter, 0, false);
     setNewBanner(newId);
@@ -163,10 +181,7 @@ export function QuestionFeed() {
   const hasMore = questions.length < totalCount;
 
   return (
-    <div
-      className="flex h-screen overflow-hidden w-full"
-      style={{ background: '#060F1D' }}
-    >
+    <div className="flex h-screen overflow-hidden w-full" style={{ background: '#060F1D' }}>
       {/* App Sidebar */}
       <Sidebar
         profile={profile!}
@@ -197,21 +212,6 @@ export function QuestionFeed() {
               <span style={{ color: activeSaathi.primary }}>
                 ↑ New question posted — click to view
               </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Toast when user posts */}
-        <AnimatePresence>
-          {newBanner === questions[0]?.id && (
-            <motion.div
-              initial={{ opacity: 0, y: -16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              className="mx-6 mt-4 px-4 py-3 rounded-xl text-sm"
-              style={{ background: 'rgba(34,197,94,0.1)', border: '0.5px solid rgba(34,197,94,0.3)', color: '#4ADE80' }}
-            >
-              ✓ Posted! AI is generating an answer...
             </motion.div>
           )}
         </AnimatePresence>
@@ -250,10 +250,24 @@ export function QuestionFeed() {
                 {[0, 1, 2, 3].map((i) => <QuestionSkeleton key={i} />)}
               </div>
             ) : questions.length === 0 ? (
-              /* ── Empty state ────────────────────────────────────────────────── */
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <span className="text-5xl mb-4">{activeSaathi.emoji}</span>
-                {filter === 'all' ? (
+                {filter === 'mine' ? (
+                  <>
+                    <p className="font-playfair text-lg text-white/50 mb-4">
+                      You haven&apos;t asked any questions yet.
+                    </p>
+                    {canPost && (
+                      <button
+                        onClick={() => setModalOpen(true)}
+                        className="px-5 py-2.5 rounded-xl text-sm font-bold"
+                        style={{ background: '#C9993A', color: '#060F1D' }}
+                      >
+                        Ask your first question →
+                      </button>
+                    )}
+                  </>
+                ) : filter === 'all' ? (
                   <>
                     <p className="font-playfair text-lg text-white/50 mb-4">
                       Be the first to ask a question in {activeSaathi.name}!
@@ -296,15 +310,9 @@ export function QuestionFeed() {
                     {idx === 2 && getPlanTier(profile?.plan_id) === 'free' && !boardNudgeDismissed && (
                       <div
                         style={{
-                          margin: '16px 0',
-                          padding: '16px 20px',
-                          borderRadius: '14px',
-                          background: 'rgba(201,153,58,0.06)',
-                          border: '0.5px solid rgba(201,153,58,0.2)',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          gap: '16px',
+                          margin: '16px 0', padding: '16px 20px', borderRadius: '14px',
+                          background: 'rgba(201,153,58,0.06)', border: '0.5px solid rgba(201,153,58,0.2)',
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px',
                         }}
                       >
                         <div>
@@ -320,15 +328,10 @@ export function QuestionFeed() {
                             href="/pricing?trigger=board"
                             onClick={() => sessionStorage.setItem('upgrade_return_url', '/board')}
                             style={{
-                              padding: '8px 16px',
-                              borderRadius: '8px',
-                              background: 'rgba(201,153,58,0.2)',
-                              border: '0.5px solid rgba(201,153,58,0.4)',
-                              color: '#C9993A',
-                              fontSize: '12px',
-                              fontWeight: '600',
-                              textDecoration: 'none',
-                              whiteSpace: 'nowrap',
+                              padding: '8px 16px', borderRadius: '8px',
+                              background: 'rgba(201,153,58,0.2)', border: '0.5px solid rgba(201,153,58,0.4)',
+                              color: '#C9993A', fontSize: '12px', fontWeight: '600',
+                              textDecoration: 'none', whiteSpace: 'nowrap',
                             }}
                           >
                             Join Plus →

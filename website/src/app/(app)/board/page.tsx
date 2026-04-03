@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { QuestionFeed } from '@/components/board/QuestionFeed';
@@ -21,5 +22,9 @@ export default async function BoardPage() {
 
   if (!profile?.is_active) redirect('/onboard');
 
-  return <QuestionFeed />;
+  return (
+    <Suspense>
+      <QuestionFeed />
+    </Suspense>
+  );
 }

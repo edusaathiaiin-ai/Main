@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile } from '@/types';
@@ -36,7 +37,7 @@ function DialogOverlay({ onClose }: { onClose: () => void }) {
 type Props = {
   open: boolean;
   onClose: () => void;
-  saathiSlug: string;   // slug — used for tag lookup only
+  saathiSlug: string;   // slug — used for tag lookup + AI trigger
   verticalUuid: string; // UUID — used for DB insert
   saathiName: string;
   primaryColor: string;
@@ -59,9 +60,20 @@ export function PostQuestionModal({
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [postedId, setPostedId] = useState<string | null>(null);
 
   const tags = SAATHI_TAGS[saathiSlug] ?? DEFAULT_TAGS;
   const MAX_TITLE = 200;
+
+  function handleClose() {
+    // Reset form state when closing
+    setTitle('');
+    setTag('');
+    setIsAnonymous(false);
+    setError(null);
+    setPostedId(null);
+    onClose();
+  }
 
   async function handleSubmit() {
     if (!title.trim() || submitting) return;
@@ -86,7 +98,7 @@ export function PostQuestionModal({
       .from('board_questions')
       .insert({
         user_id: profile.id,
-        vertical_id: verticalUuid, // UUID — satisfies FK constraint
+        vertical_id: verticalUuid,
         title: title.trim(),
         body: '',
         tags: tag ? [tag] : [],
@@ -113,21 +125,21 @@ export function PostQuestionModal({
         },
         body: JSON.stringify({ questionId: q.id, saathiId: saathiSlug }),
       }
-    ).catch(() => {}); // non-blocking
+    ).catch(() => {});
 
+    // Notify parent to refresh feed
     onPosted(q.id);
-    setTitle('');
-    setTag('');
-    setIsAnonymous(false);
+
+    // Show success screen (don't close yet)
+    setPostedId(q.id);
     setSubmitting(false);
-    onClose();
   }
 
   return (
     <AnimatePresence>
       {open && (
         <>
-          <DialogOverlay onClose={onClose} />
+          <DialogOverlay onClose={handleClose} />
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -140,113 +152,188 @@ export function PostQuestionModal({
               boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
             }}
           >
-            {/* Close */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-sm"
-              style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}
-            >
-              ✕
-            </button>
-
-            <h2 className="font-playfair text-2xl font-bold text-white mb-1">
-              Ask {saathiName}
-            </h2>
-            <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              Your question will get an AI answer immediately, and community members can reply.
-            </p>
-
-            {/* Title textarea */}
-            <div className="mb-4">
-              <div className="flex justify-between mb-1.5">
-                <label className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  Your question <span style={{ color: primaryColor }}>*</span>
-                </label>
-                <span className="text-[10px]" style={{ color: title.length > MAX_TITLE - 30 ? '#FCA5A5' : 'rgba(255,255,255,0.25)' }}>
-                  {title.length} / {MAX_TITLE}
-                </span>
-              </div>
-              <textarea
-                value={title}
-                onChange={(e) => setTitle(e.target.value.slice(0, MAX_TITLE))}
-                placeholder="What would you like to understand or discuss?"
-                rows={3}
-                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all resize-none"
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '0.5px solid rgba(255,255,255,0.1)',
-                  fontFamily: 'var(--font-dm-sans)',
-                }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = `${primaryColor}80`)}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
-              />
-            </div>
-
-            {/* Topic tag */}
-            <div className="mb-5">
-              <p className="text-xs font-medium mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                Topic tag
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((t) => {
-                  const active = tag === t;
-                  return (
-                    <button
-                      key={t}
-                      onClick={() => setTag(active ? '' : t)}
-                      className="px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150"
-                      style={{
-                        background: active ? primaryColor : 'rgba(255,255,255,0.05)',
-                        border: `0.5px solid ${active ? primaryColor : 'rgba(255,255,255,0.1)'}`,
-                        color: active ? '#060F1D' : 'rgba(255,255,255,0.55)',
-                      }}
-                    >
-                      {t}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Anonymous toggle */}
-            <div className="flex items-center justify-between mb-6 py-3 px-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
-              <div>
-                <p className="text-sm text-white font-medium">Post anonymously</p>
-                <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                  Shows as &quot;Anonymous Student&quot;
-                </p>
-              </div>
-              <button
-                onClick={() => setIsAnonymous(!isAnonymous)}
-                className="w-11 h-6 rounded-full transition-all duration-200 relative"
-                style={{ background: isAnonymous ? primaryColor : 'rgba(255,255,255,0.12)' }}
+            {/* ── Success state ─────────────────────────────────────────── */}
+            {postedId ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                style={{ textAlign: 'center', padding: '32px 20px' }}
               >
-                <div
-                  className="absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-200"
-                  style={{ left: isAnonymous ? '1.5rem' : '0.25rem' }}
-                />
-              </button>
-            </div>
+                {/* Animated checkmark */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
+                  style={{
+                    width: '64px', height: '64px', borderRadius: '50%',
+                    background: 'rgba(74,222,128,0.15)', border: '2px solid #4ADE80',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 20px', fontSize: '28px', color: '#4ADE80',
+                  }}
+                >
+                  ✓
+                </motion.div>
 
-            {/* Error */}
-            {error && (
-              <p className="text-xs mb-4" style={{ color: '#FCA5A5' }}>⚠️ {error}</p>
+                <h3 style={{
+                  fontFamily: 'var(--font-playfair)', fontSize: '22px',
+                  fontWeight: '700', color: '#fff', margin: '0 0 10px',
+                }}>
+                  Question posted!
+                </h3>
+
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: '0 0 6px', lineHeight: 1.6 }}>
+                  {saathiName} is generating an AI answer right now.
+                </p>
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: '0 0 28px', lineHeight: 1.6 }}>
+                  Community members can also reply. We&apos;ll notify you when someone answers.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {/* Primary CTA — go see the question */}
+                  <Link
+                    href={`/board?question=${postedId}`}
+                    onClick={handleClose}
+                    style={{
+                      display: 'block', padding: '13px',
+                      background: primaryColor, color: '#0B1F3A',
+                      borderRadius: '12px', fontSize: '13px', fontWeight: '700',
+                      textDecoration: 'none', textAlign: 'center',
+                    }}
+                  >
+                    See your question + AI answer →
+                  </Link>
+
+                  {/* Secondary — stay here */}
+                  <button
+                    onClick={handleClose}
+                    style={{
+                      padding: '12px', background: 'transparent',
+                      border: '0.5px solid rgba(255,255,255,0.15)',
+                      borderRadius: '12px', color: 'rgba(255,255,255,0.5)',
+                      fontSize: '13px', cursor: 'pointer',
+                    }}
+                  >
+                    Back to chat
+                  </button>
+                </div>
+
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', marginTop: '16px' }}>
+                  You&apos;ll get a notification when someone from the community replies.
+                </p>
+              </motion.div>
+
+            ) : (
+              /* ── Post form ──────────────────────────────────────────── */
+              <>
+                {/* Close */}
+                <button
+                  onClick={handleClose}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-sm"
+                  style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}
+                >
+                  ✕
+                </button>
+
+                <h2 className="font-playfair text-2xl font-bold text-white mb-1">
+                  Ask {saathiName}
+                </h2>
+                <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  Your question will get an AI answer immediately, and community members can reply.
+                </p>
+
+                {/* Title textarea */}
+                <div className="mb-4">
+                  <div className="flex justify-between mb-1.5">
+                    <label className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      Your question <span style={{ color: primaryColor }}>*</span>
+                    </label>
+                    <span className="text-[10px]" style={{ color: title.length > MAX_TITLE - 30 ? '#FCA5A5' : 'rgba(255,255,255,0.25)' }}>
+                      {title.length} / {MAX_TITLE}
+                    </span>
+                  </div>
+                  <textarea
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value.slice(0, MAX_TITLE))}
+                    placeholder="What would you like to understand or discuss?"
+                    rows={3}
+                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all resize-none"
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '0.5px solid rgba(255,255,255,0.1)',
+                      fontFamily: 'var(--font-dm-sans)',
+                    }}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = `${primaryColor}80`)}
+                    onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                  />
+                </div>
+
+                {/* Topic tag */}
+                <div className="mb-5">
+                  <p className="text-xs font-medium mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    Topic tag
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((t) => {
+                      const active = tag === t;
+                      return (
+                        <button
+                          key={t}
+                          onClick={() => setTag(active ? '' : t)}
+                          className="px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150"
+                          style={{
+                            background: active ? primaryColor : 'rgba(255,255,255,0.05)',
+                            border: `0.5px solid ${active ? primaryColor : 'rgba(255,255,255,0.1)'}`,
+                            color: active ? '#060F1D' : 'rgba(255,255,255,0.55)',
+                          }}
+                        >
+                          {t}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Anonymous toggle */}
+                <div className="flex items-center justify-between mb-6 py-3 px-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
+                  <div>
+                    <p className="text-sm text-white font-medium">Post anonymously</p>
+                    <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                      Shows as &quot;Anonymous Student&quot;
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsAnonymous(!isAnonymous)}
+                    className="w-11 h-6 rounded-full transition-all duration-200 relative"
+                    style={{ background: isAnonymous ? primaryColor : 'rgba(255,255,255,0.12)' }}
+                  >
+                    <div
+                      className="absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-200"
+                      style={{ left: isAnonymous ? '1.5rem' : '0.25rem' }}
+                    />
+                  </button>
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <p className="text-xs mb-4" style={{ color: '#FCA5A5' }}>⚠️ {error}</p>
+                )}
+
+                {/* Submit */}
+                <button
+                  onClick={handleSubmit}
+                  disabled={!title.trim() || submitting}
+                  className="w-full rounded-xl py-3.5 text-base font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: primaryColor, color: '#060F1D' }}
+                >
+                  {submitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="w-4 h-4 rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D] animate-spin" />
+                      Posting...
+                    </span>
+                  ) : 'Post Question →'}
+                </button>
+              </>
             )}
-
-            {/* Submit */}
-            <button
-              onClick={handleSubmit}
-              disabled={!title.trim() || submitting}
-              className="w-full rounded-xl py-3.5 text-base font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: primaryColor, color: '#060F1D' }}
-            >
-              {submitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D] animate-spin" />
-                  Posting...
-                </span>
-              ) : 'Post Question →'}
-            </button>
           </motion.div>
         </>
       )}

@@ -5,18 +5,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import type { BoardQuestion } from '@/types';
 
-// ── Inline micro UI primitives ──────────────────────────────────────────────
-// (Shadcn-style but without the installation dependency on Tailwind v4 config)
-
-function Badge({ children, variant = 'gold' }: { children: React.ReactNode; variant?: 'gold' | 'green' | 'saathi' }) {
+function Badge({ children, variant = 'gold' }: { children: React.ReactNode; variant?: 'gold' | 'green' | 'saathi' | 'mine' }) {
   const styles: Record<string, React.CSSProperties> = {
-    gold: { background: 'rgba(201,153,58,0.15)', border: '0.5px solid rgba(201,153,58,0.4)', color: '#C9993A' },
-    green: { background: 'rgba(34,197,94,0.1)', border: '0.5px solid rgba(34,197,94,0.35)', color: '#4ADE80' },
-    saathi: { background: 'rgba(79,70,229,0.12)', border: '0.5px solid rgba(79,70,229,0.3)', color: '#818CF8' },
+    gold:   { background: 'rgba(201,153,58,0.15)',  border: '0.5px solid rgba(201,153,58,0.4)',  color: '#C9993A' },
+    green:  { background: 'rgba(34,197,94,0.1)',    border: '0.5px solid rgba(34,197,94,0.35)',  color: '#4ADE80' },
+    saathi: { background: 'rgba(79,70,229,0.12)',   border: '0.5px solid rgba(79,70,229,0.3)',   color: '#818CF8' },
+    mine:   { background: 'rgba(201,153,58,0.12)',  border: '0.5px solid rgba(201,153,58,0.3)',  color: '#C9993A' },
   };
   return (
     <span
-      className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+      className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full"
       style={styles[variant]}
     >
       {children}
@@ -47,10 +45,12 @@ type Props = {
   primaryColor: string;
 };
 
-export function QuestionCard({ question, currentUserId: _currentUserId, primaryColor }: Props) {
+export function QuestionCard({ question, currentUserId, primaryColor }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [flagged, setFlagged] = useState(false);
   const [hovered, setHovered] = useState(false);
+
+  const isOwn = !!currentUserId && question.user_id === currentUserId;
 
   const initials = question.is_anonymous
     ? 'A'
@@ -67,14 +67,17 @@ export function QuestionCard({ question, currentUserId: _currentUserId, primaryC
     await supabase.from('moderation_flags').insert({
       target_id: question.id,
       target_type: 'board_question',
-      reporter_user_id: _currentUserId,
+      reporter_user_id: currentUserId,
       reason: 'user_flag',
     });
     setFlagged(true);
   }
 
+  const hasAnswer = !!question.aiAnswer || (question.answer_count ?? 0) > 0;
+
   return (
     <motion.article
+      id={`question-${question.id}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       animate={{ y: hovered ? -2 : 0 }}
@@ -95,16 +98,13 @@ export function QuestionCard({ question, currentUserId: _currentUserId, primaryC
             {initials}
           </div>
           <div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-xs font-semibold text-white">
                 {question.is_anonymous ? 'Anonymous Student' : (question.authorName ?? 'Student')}
               </span>
-              {question.authorRole === 'faculty' && (
-                <Badge variant="green">✓ Faculty</Badge>
-              )}
-              {question.facultyVerified && (
-                <Badge variant="green">✓ Verified</Badge>
-              )}
+              {isOwn && <Badge variant="mine">Your question</Badge>}
+              {question.authorRole === 'faculty' && <Badge variant="green">✓ Faculty</Badge>}
+              {question.facultyVerified && <Badge variant="green">✓ Verified</Badge>}
             </div>
             <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
               {timeAgo(question.created_at)}
@@ -162,15 +162,32 @@ export function QuestionCard({ question, currentUserId: _currentUserId, primaryC
         </div>
       )}
 
+      {/* Awaiting answer indicator — only for own unanswered questions */}
+      {isOwn && !hasAnswer && (
+        <div className="mb-3 flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+          <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            Awaiting AI answer…
+          </span>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="flex items-center justify-between">
-        <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
-          {question.answer_count ?? 0} {question.answer_count === 1 ? 'answer' : 'answers'}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            {question.answer_count ?? 0} {question.answer_count === 1 ? 'answer' : 'answers'}
+          </span>
+          {isOwn && hasAnswer && (
+            <span className="text-[10px] font-semibold" style={{ color: '#4ADE80' }}>
+              ✓ Answered
+            </span>
+          )}
+        </div>
 
-        {/* Flag (hover reveal) */}
+        {/* Flag (hover reveal) — only for other people's questions */}
         <AnimatePresence>
-          {(hovered || flagged) && (
+          {!isOwn && (hovered || flagged) && (
             <motion.button
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}

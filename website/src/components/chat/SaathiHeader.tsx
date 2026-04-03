@@ -2,6 +2,7 @@
 
 import type { Saathi } from '@/types';
 import { useThemeStore } from '@/stores/themeStore';
+import { NotificationBell } from '@/components/layout/NotificationBell';
 
 type Props = {
   saathi: Saathi;
@@ -35,8 +36,9 @@ export function SaathiHeader({ saathi, botName, sessionCount, onCheckin }: Props
         </div>
       </div>
 
-      {/* Right: theme toggle + check-in */}
+      {/* Right: notifications + theme toggle + check-in */}
       <div className="flex items-center gap-2">
+        <NotificationBell />
 
         {/* Day / Night toggle */}
         <button
