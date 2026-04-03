@@ -122,6 +122,7 @@ export function PostQuestionModal({
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.session.access_token}`,
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
         },
         body: JSON.stringify({ questionId: q.id, saathiId: saathiSlug }),
       }

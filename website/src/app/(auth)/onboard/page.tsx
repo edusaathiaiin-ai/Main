@@ -981,7 +981,7 @@ function OnboardInner() {
     await supabase.from('profiles').update({
       full_name: data.fullName.trim(),
       city: data.city,
-      institution_name: data.educationParsed?.collegeName ?? data.educationParsed?.institution ?? null,
+      institution_name: (data.educationParsed?.collegeName ?? data.educationParsed?.institution ?? data.educationRaw.trim()) || null,
       degree_programme: data.educationParsed?.degree ?? null,
       university_affiliation: data.educationParsed?.university ?? null,
       current_semester: data.educationParsed?.year ?? null,
@@ -1101,7 +1101,7 @@ function OnboardInner() {
       id: userId,
       full_name: data.fullName.trim(),
       city: data.city,
-      institution_name: data.educationParsed?.collegeName ?? data.educationParsed?.institution ?? null,
+      institution_name: (data.educationParsed?.collegeName ?? data.educationParsed?.institution ?? data.educationRaw.trim()) || null,
       is_active: true,
     } as unknown as Profile);
 

@@ -19,7 +19,18 @@ export default async function AppLayout({
     if (!user) {
       redirect('/login');
     }
-  } catch {
+    // Users who haven't completed onboarding (no Saathi selected) go back to onboard
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('primary_saathi_id')
+      .eq('id', user.id)
+      .single();
+    if (!profile?.primary_saathi_id) {
+      redirect('/onboard');
+    }
+  } catch (e) {
+    // Redirect errors are thrown by Next.js — rethrow them
+    if (e instanceof Error && e.message === 'NEXT_REDIRECT') throw e;
     // If Supabase is unreachable or env vars missing, redirect to login
     redirect('/login');
   }
