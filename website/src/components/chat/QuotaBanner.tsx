@@ -15,7 +15,6 @@ export function QuotaBanner({ quota }: Props) {
 
   const isOut = remaining === 0;
   const isLow = remaining <= 2 && remaining > 0;
-  const isWarning = remaining >= 3 && remaining <= 5;
 
   const bgColor = isOut
     ? 'rgba(239,68,68,0.08)'

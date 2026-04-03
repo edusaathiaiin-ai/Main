@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -14,7 +14,7 @@ interface SuspensionScreenProps {
 export function SuspensionScreen({ tier, until, reason, isBanned = false }: SuspensionScreenProps) {
   const [timeLeft, setTimeLeft] = useState('');
 
-  const untilDate = until ? new Date(until) : null;
+  const untilDate = useMemo(() => until ? new Date(until) : null, [until]);
 
   useEffect(() => {
     if (!untilDate || isBanned) return;

@@ -87,7 +87,7 @@ export default function FacultyFinderPage() {
   }, []);
 
   const filtered = useMemo(() => {
-    let result = faculty.filter((f) => {
+    const result = faculty.filter((f) => {
       const fp = f.faculty_profiles;
       if (!fp) return false;
       if (search.trim()) {

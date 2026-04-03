@@ -70,13 +70,13 @@ export default function TermsPage() {
         <div className="space-y-6 text-base md:text-lg leading-relaxed opacity-90">
           <Heading id="acceptance">1. Acceptance of Terms</Heading>
           <p>
-            By accessing or using EdUsaathiAI ("the Platform", "we", "us"), you agree to be bound by these Terms of Service. 
+            By accessing or using EdUsaathiAI (&quot;the Platform&quot;, &quot;we&quot;, &quot;us&quot;), you agree to be bound by these Terms of Service.
             If you do not agree, do not use the Platform.
           </p>
 
           <Heading id="what-is">2. What EdUsaathiAI Is</Heading>
           <p>
-            EdUsaathiAI is an AI-powered learning companion platform. We provide subject-specific AI bots ("Saathis") 
+            EdUsaathiAI is an AI-powered learning companion platform. We provide subject-specific AI bots (&quot;Saathis&quot;)
             that assist students, faculty, and learners with educational content.
           </p>
 
@@ -171,11 +171,11 @@ export default function TermsPage() {
           <Heading id="privacy">9. Privacy</Heading>
           <p>
             Your use of EdUsaathiAI is governed by our Privacy Policy, which forms part of these Terms. 
-            We comply with India's Digital Personal Data Protection Act 2023.
+            We comply with India&#39;s Digital Personal Data Protection Act 2023.
           </p>
 
           <Heading id="liability">10. Limitation of Liability</Heading>
-          <p>EdUsaathiAI is provided "as is". We are not liable for:</p>
+          <p>EdUsaathiAI is provided &quot;as is&quot;. We are not liable for:</p>
           <ul className="list-disc pl-5 space-y-2">
             <li>Accuracy of AI-generated content</li>
             <li>Decisions made based on Saathi responses</li>

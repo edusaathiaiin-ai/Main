@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import type { Profile } from '@/types';
@@ -30,8 +31,9 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
   const isFree = tier === 'free';
 
   // Founding access: if active and within 60 day window from created_at
+  const [now] = useState(() => Date.now());
   const createdAt = new Date(profile.created_at);
-  const daysSinceCreation = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+  const daysSinceCreation = Math.floor((now - createdAt.getTime()) / (1000 * 60 * 60 * 24));
   const foundingDaysLeft = Math.max(0, 60 - daysSinceCreation);
   const isFoundingStudent = foundingDaysLeft > 0;
 

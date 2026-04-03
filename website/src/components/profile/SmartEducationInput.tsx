@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 
@@ -260,7 +260,7 @@ export function SmartEducationInput({
       {/* Hint */}
       {!loading && !result && (
         <p className="text-[10px] mt-1.5" style={{ color: 'rgba(255,255,255,0.25)' }}>
-          Just type naturally — we'll figure it out
+          Just type naturally — we&#39;ll figure it out
         </p>
       )}
 
@@ -311,7 +311,7 @@ export function SmartEducationInput({
                     className="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
                     style={{ background: 'rgba(34,197,94,0.2)', border: '0.5px solid rgba(34,197,94,0.4)', color: '#4ADE80' }}
                   >
-                    Yes, that's me ✓
+                    Yes, that&#39;s me ✓
                   </button>
                   <button
                     onClick={handleCorrect}
@@ -379,7 +379,7 @@ export function SmartEducationInput({
                 style={{ background: 'rgba(239,68,68,0.06)', border: '0.5px solid rgba(239,68,68,0.2)' }}
               >
                 <p className="text-xs font-semibold mb-1" style={{ color: '#FCA5A5' }}>
-                  We weren't sure — can you help us?
+                  We weren&#39;t sure — can you help us?
                 </p>
                 <p className="text-[10px] mb-3" style={{ color: 'rgba(255,255,255,0.35)' }}>
                   Select the closest match below, or retype more details.

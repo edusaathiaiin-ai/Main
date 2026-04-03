@@ -183,7 +183,7 @@ export function Sidebar({
       </nav>
 
       {/* Faculty Finder CTA */}
-      <a
+      <Link
         href="/faculty-finder"
         style={{
           display: 'flex', alignItems: 'center', gap: '10px',
@@ -198,10 +198,10 @@ export function Sidebar({
           <p style={{ fontSize: '12px', fontWeight: '700', color: '#818CF8', margin: '0 0 1px' }}>Faculty Finder</p>
           <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Book 1:1 expert sessions</p>
         </div>
-      </a>
+      </Link>
 
       {/* Live Sessions CTA */}
-      <a
+      <Link
         href="/live"
         style={{
           display: 'flex', alignItems: 'center', gap: '10px',
@@ -217,7 +217,7 @@ export function Sidebar({
           <p style={{ fontSize: '12px', fontWeight: '700', color: '#F87171', margin: '0 0 1px' }}>Live Sessions</p>
           <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Learn live from experts</p>
         </div>
-      </a>
+      </Link>
 
       {/* Lecture Requests */}
       <a

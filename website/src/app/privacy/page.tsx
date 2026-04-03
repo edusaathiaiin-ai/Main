@@ -50,7 +50,7 @@ export default function PrivacyPage() {
         </h1>
         <p className="text-lg opacity-80 mb-1"><strong>EdUsaathiAI — Ahmedabad, India</strong></p>
         <p className="text-sm opacity-60 m-0">Last updated: March 2026</p>
-        <p className="text-sm opacity-60 mb-12">Compliant with India's Digital Personal Data Protection Act 2023 (DPDP Act)</p>
+        <p className="text-sm opacity-60 mb-12">Compliant with India&#39;s Digital Personal Data Protection Act 2023 (DPDP Act)</p>
 
         {/* TOC */}
         <div className="p-6 rounded-2xl mb-16" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -138,7 +138,7 @@ export default function PrivacyPage() {
               </thead>
               <tbody className="divide-y divide-white/10">
                 <tr><td className="py-3 pr-4">Account info</td><td className="py-3">Identify you, personalise your experience</td></tr>
-                <tr><td className="py-3 pr-4">Soul profile</td><td className="py-3">Power your Saathi's memory and personalisation</td></tr>
+                <tr><td className="py-3 pr-4">Soul profile</td><td className="py-3">Power your Saathi&#39;s memory and personalisation</td></tr>
                 <tr><td className="py-3 pr-4">Usage data</td><td className="py-3">Improve the platform, detect abuse</td></tr>
                 <tr><td className="py-3 pr-4">Technical data</td><td className="py-3">Security, fraud prevention</td></tr>
               </tbody>
@@ -194,7 +194,7 @@ export default function PrivacyPage() {
           <Heading id="ai-disclosure">7. AI Processing Disclosure</Heading>
           <p>Your messages are processed by AI models to generate educational responses. We use a chain of providers including Claude (Anthropic), Gemini (Google), Grok (xAI), and Groq, selected automatically based on availability. We do not use your conversations to train AI models. System prompts containing your soul profile are never sent to the client device.</p>
 
-          <Heading id="children">8. Children's Privacy</Heading>
+          <Heading id="children">8. Children&#39;s Privacy</Heading>
           <p>
             EdUsaathiAI is available to users aged 13+. Users under 18 must have parental consent. 
             We do not knowingly collect data from children under 13. If we discover such data, 

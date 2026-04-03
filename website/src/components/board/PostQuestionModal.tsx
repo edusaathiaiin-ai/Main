@@ -211,7 +211,7 @@ export function PostQuestionModal({
               <div>
                 <p className="text-sm text-white font-medium">Post anonymously</p>
                 <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                  Shows as "Anonymous Student"
+                  Shows as &quot;Anonymous Student&quot;
                 </p>
               </div>
               <button

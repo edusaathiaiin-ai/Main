@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
-import type { Profile } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -61,7 +60,6 @@ type Applicant = {
 type DashboardView = 'listings' | 'post' | 'applicants';
 
 const DURATIONS = [1, 2, 3, 6] as const;
-const ORG_TYPES = ['university', 'company', 'ngo', 'government', 'other'] as const;
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 

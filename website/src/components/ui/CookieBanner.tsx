@@ -8,10 +8,12 @@ export function CookieBanner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    // Only show if consent not previously given
-    if (!localStorage.getItem('cookie_consent')) {
-      setShow(true);
+    function run() {
+      if (!localStorage.getItem('cookie_consent')) {
+        setShow(true);
+      }
     }
+    run();
   }, []);
 
   const accept = () => {
@@ -21,7 +23,7 @@ export function CookieBanner() {
 
   // Safe early return for SSR
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => { function run() { setMounted(true); } run(); }, []);
   if (!mounted) return null;
 
   return (

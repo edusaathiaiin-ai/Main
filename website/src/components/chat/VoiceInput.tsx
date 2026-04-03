@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // Web Speech API type declarations (not in default TypeScript lib)
@@ -39,7 +39,12 @@ export function VoiceInput({
 }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
-  const [supported, setSupported] = useState(false)
+  const [supported] = useState(() =>
+    typeof window !== 'undefined' && (
+      'SpeechRecognition' in window ||
+      'webkitSpeechRecognition' in window
+    )
+  )
   const [language, setLanguage] = useState('hi-IN')
   const recognitionRef = useRef<ISpeechRecognition | null>(null)
 
@@ -53,15 +58,6 @@ export function VoiceInput({
     { code: 'kn-IN', label: 'ಕನ್ನಡ' },
     { code: 'bn-IN', label: 'বাংলা' },
   ]
-
-  useEffect(() => {
-    setSupported(
-      typeof window !== 'undefined' && (
-        'SpeechRecognition' in window ||
-        'webkitSpeechRecognition' in window
-      )
-    )
-  }, [])
 
   function startListening() {
     const w = window as typeof window & {

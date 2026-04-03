@@ -413,7 +413,7 @@ function SectionDivider({ number, title, subtitle }: { number: string; title: st
 
 export function SoulProfileForm({
   saathiId,
-  academicLevel: _academicLevel,
+  academicLevel: _academicLevel,  // eslint-disable-line @typescript-eslint/no-unused-vars
   examTargetFromLevel,
   onContinue,
   onSkip,

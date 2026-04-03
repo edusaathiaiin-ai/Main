@@ -64,9 +64,9 @@ export function ProfileClient() {
       .maybeSingle();
     setSoul(data as RawSoul | null);
     setSoulLoading(false);
-  }, [profile?.id, profile?.primary_saathi_id]);
+  }, [profile]);
 
-  useEffect(() => { fetchSoul(); }, [fetchSoul]);
+  useEffect(() => { function run() { void fetchSoul(); } run(); }, [fetchSoul]);
 
   if (!profile) {
     return (

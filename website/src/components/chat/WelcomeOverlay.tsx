@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
@@ -18,7 +17,6 @@ type WelcomeOverlayProps = {
 };
 
 function WelcomeOverlay({ saathi, displayName, academicLevel, onBegin }: WelcomeOverlayProps) {
-  const router = useRouter();
   const firstName = displayName.split(' ')[0] ?? displayName;
 
   const academicLabel: Record<string, string> = {
@@ -205,18 +203,21 @@ export function ChatWelcomeGate({
   const [saathi, setSaathi] = useState<SaathiWithDescription | null>(null);
 
   useEffect(() => {
-    // Only show for first-ever session (session_count === 0)
-    if (sessionCount > 0) return;
+    function run() {
+      // Only show for first-ever session (session_count === 0)
+      if (sessionCount > 0) return;
 
-    // Find saathi from constants
-    const found = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
-    setSaathi(found);
+      // Find saathi from constants
+      const found = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
+      setSaathi(found);
 
-    // Check if welcome was already shown (client-side guard using localStorage as fallback)
-    const key = `edusaathiai.welcomed.${userId}`;
-    if (localStorage.getItem(key)) return;
+      // Check if welcome was already shown (client-side guard using localStorage as fallback)
+      const key = `edusaathiai.welcomed.${userId}`;
+      if (localStorage.getItem(key)) return;
 
-    setShowWelcome(true);
+      setShowWelcome(true);
+    }
+    run();
   }, [userId, saathiId, sessionCount]);
 
   const handleBegin = async () => {

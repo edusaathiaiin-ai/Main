@@ -124,7 +124,6 @@ export function ChatWindow() {
     setStreaming,
     appendStreamChunk,
     commitStreamedMessage,
-    clearMessages,
   } = useChatStore();
 
   const { mode } = useThemeStore();
@@ -245,6 +244,7 @@ export function ChatWindow() {
 
     fetchQuota(profile.id);
     fetchSoulBanner(profile.id, sid);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, setActiveSaathi]);
 
   async function fetchQuota(userId: string) {
@@ -416,6 +416,7 @@ export function ChatWindow() {
       }
       setErrorBanner(err instanceof Error ? err.message : 'Something went wrong. Try again.');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, isStreaming, quota, messages, saathiId, activeBotSlot, addMessage, setStreaming, appendStreamChunk, commitStreamedMessage, router]);
 
   // Starter click

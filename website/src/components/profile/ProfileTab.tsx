@@ -81,7 +81,6 @@ export default function ProfileTab({ profile, soul, onSaved }: ProfileTabProps) 
     profile.subscription_status === 'active' &&
     profile.subscription_expires_at &&
     new Date(profile.subscription_expires_at) > new Date();
-  const canChangeSaathi = !isFreeUser && !hasActiveSubscription;
 
   async function handleSaathiChange() {
     if (!newSaathi || confirmText !== 'CHANGE' || !profile.id) return;
@@ -202,7 +201,7 @@ export default function ProfileTab({ profile, soul, onSaved }: ProfileTabProps) 
       setToast('✓ Profile updated. Your Saathi will acknowledge this in your next session.');
       setTimeout(() => setToast(null), 5000);
       onSaved();
-    } catch (e) {
+    } catch {
       setToast('⚠️ Failed to save. Please try again.');
     } finally {
       setSaving(false);

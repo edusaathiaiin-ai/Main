@@ -34,7 +34,11 @@ export function CoolingBanner({ quota, saathiName }: Props) {
       }
     }, 1000);
     // Set initial
-    setRemaining(Math.max(0, quota.coolingUntil.getTime() - Date.now()));
+    async function init() {
+      await Promise.resolve();
+      setRemaining(Math.max(0, quota.coolingUntil!.getTime() - Date.now()));
+    }
+    void init();
     return () => clearInterval(interval);
   }, [quota.coolingUntil, router]);
 

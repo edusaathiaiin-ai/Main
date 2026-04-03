@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
@@ -21,7 +20,6 @@ const FORMATS = [
 type LectureInput = { title: string; date: string; duration: number };
 
 export default function CreateLiveSessionPage() {
-  const router = useRouter();
   const { profile } = useAuthStore();
 
   const [step, setStep] = useState<Step>('type');

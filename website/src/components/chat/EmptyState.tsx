@@ -91,7 +91,7 @@ export function EmptyState({ saathiId, saathiEmoji, botName, onStarterClick }: P
               e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
             }}
           >
-            "{starter}"
+            &quot;{starter}&quot;
           </motion.button>
         ))}
       </motion.div>

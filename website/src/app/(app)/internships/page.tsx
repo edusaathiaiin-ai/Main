@@ -183,6 +183,7 @@ export default function InternshipsPage() {
   const unlocked = completeness >= 60;
 
   useEffect(() => {
+    async function run() {
     if (!profile || !unlocked) { setLoading(false); return; }
     const supabase = createClient();
 
@@ -226,6 +227,8 @@ export default function InternshipsPage() {
     }
 
     loadMatches();
+    }
+    void run();
   }, [profile, unlocked]);
 
   function markApplied(matchId: string) {

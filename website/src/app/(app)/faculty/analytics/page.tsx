@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
@@ -13,7 +12,6 @@ type QuestionRow = { id: string; body: string; created_at: string };
 type StruggleRow = { struggle_topics: string[] | null };
 
 export default function FacultyAnalyticsPage() {
-  const router = useRouter();
   const { profile } = useAuthStore();
 
   const [totalAnswers, setTotalAnswers] = useState(0);

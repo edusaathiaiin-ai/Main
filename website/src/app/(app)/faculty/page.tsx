@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
 import Link from 'next/link';
-import type { Profile } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

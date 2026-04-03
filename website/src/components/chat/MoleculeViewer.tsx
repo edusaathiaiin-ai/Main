@@ -10,20 +10,24 @@ export function MoleculeViewer({ name }: { name: string }) {
   const pubchemUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(name)}/PNG`;
 
   useEffect(() => {
-    setLoading(true);
-    setError(false);
-    setImgUrl('');
+    async function run() {
+      await Promise.resolve();
+      setLoading(true);
+      setError(false);
+      setImgUrl('');
 
-    const img = new window.Image();
-    img.onload = () => {
-      setImgUrl(pubchemUrl);
-      setLoading(false);
-    };
-    img.onerror = () => {
-      setError(true);
-      setLoading(false);
-    };
-    img.src = pubchemUrl;
+      const img = new window.Image();
+      img.onload = () => {
+        setImgUrl(pubchemUrl);
+        setLoading(false);
+      };
+      img.onerror = () => {
+        setError(true);
+        setLoading(false);
+      };
+      img.src = pubchemUrl;
+    }
+    void run();
   }, [name, pubchemUrl]);
 
   return (

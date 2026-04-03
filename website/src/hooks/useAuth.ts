@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import type { Profile } from '@/types';
 
 export function useAuth() {
-  const { profile, isLoading, setProfile, setLoading } = useAuthStore();
+  const { profile, isLoading, setProfile } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {

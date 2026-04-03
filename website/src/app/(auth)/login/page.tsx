@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import ForcedLogoutScreen from '@/components/ui/ForcedLogoutScreen';
 
@@ -30,12 +31,15 @@ function LoginForm() {
   const isForced = searchParams.get('forced') === '1';
 
   useEffect(() => {
-    const err = searchParams.get('error');
-    if (err === 'link_expired') {
-      setError('Your login link expired. Links are valid for 24 hours. Request a new one below.');
-    } else if (err === 'unauthorized') {
-      setError('Authentication failed. Please try again.');
+    function run() {
+      const err = searchParams.get('error');
+      if (err === 'link_expired') {
+        setError('Your login link expired. Links are valid for 24 hours. Request a new one below.');
+      } else if (err === 'unauthorized') {
+        setError('Authentication failed. Please try again.');
+      }
     }
+    run();
   }, [searchParams]);
 
   // Show kicked-out screen if redirected from ChatWindow after forced logout
@@ -275,9 +279,9 @@ function LoginForm() {
       {/* New user link */}
       <p style={{fontSize:'13px', color:'rgba(255,255,255,0.35)', textAlign:'center', marginTop:'12px'}}>
         New to EdUsaathiAI?{' '}
-        <a href="/" style={{color:'rgba(255,255,255,0.6)', textDecoration:'underline', textUnderlineOffset:'3px'}}>
+        <Link href="/" style={{color:'rgba(255,255,255,0.6)', textDecoration:'underline', textUnderlineOffset:'3px'}}>
           Explore the platform →
-        </a>
+        </Link>
       </p>
 
       {/* Footer */}

@@ -41,8 +41,6 @@ export default function FacultyLiveDashboard() {
   const active = sessions.filter((s) => s.status === 'published');
   const completed = sessions.filter((s) => s.status === 'completed');
   const drafts = sessions.filter((s) => s.status === 'draft' || s.status === 'pending_review');
-  const cancelled = sessions.filter((s) => s.status === 'cancelled');
-
   const tabMap: Record<TabId, LiveSessionRow[]> = { active, upcoming: active, completed, drafts };
 
   const totalEarned = completed.reduce((a, s) => a + Math.round(s.seats_booked * s.price_per_seat_paise * 0.8), 0);

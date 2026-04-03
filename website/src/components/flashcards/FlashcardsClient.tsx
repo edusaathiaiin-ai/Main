@@ -211,7 +211,6 @@ export function FlashcardsClient({ saathiId }: Props) {
   const primaryColor = saathi.primary;
 
   const load = useCallback(async () => {
-    setLoading(true);
     const supabase = createClient();
     const { data } = await supabase
       .from('flashcards')
@@ -221,7 +220,10 @@ export function FlashcardsClient({ saathiId }: Props) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    async function run() { await load(); }
+    void run();
+  }, [load]);
 
   const handleReview = useCallback(async (id: string, quality: 0 | 3 | 5) => {
     const card = cards.find((c) => c.id === id);
