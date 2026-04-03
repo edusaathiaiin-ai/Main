@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
+import { toSlug } from '@/constants/verticalIds';
 import { BookmarkButton } from '@/components/faculty/BookmarkButton';
 
 type SavedFaculty = {
@@ -152,7 +153,7 @@ export default function SavedFacultyPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {saved.map((f, i) => {
-              const saathi = SAATHIS.find((s) => s.id === f.primary_saathi_id);
+              const saathi = SAATHIS.find((s) => s.id === toSlug(f.primary_saathi_id));
               const color = saathi?.primary ?? '#C9993A';
               const slug = f.faculty_slug ?? f.faculty_id;
               const minFee = getMinFee(f);

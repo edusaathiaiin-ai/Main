@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
+import { toSlug } from '@/constants/verticalIds';
 import Link from 'next/link';
 
 type RequestRow = {
@@ -54,7 +55,7 @@ export default function PublicRequestsPage() {
         const saathiMap: Record<string, string> = {};
         (fRes.data ?? []).forEach((f: { id: string; full_name: string }) => { fMap[f.id] = f.full_name; });
         (sRes.data ?? []).forEach((s: { id: string; full_name: string }) => { sMap[s.id] = s.full_name?.split(' ')[0] ?? 'Student'; });
-        (fpRes.data ?? []).forEach((p: { id: string; primary_saathi_id: string | null }) => { if (p.primary_saathi_id) saathiMap[p.id] = p.primary_saathi_id; });
+        (fpRes.data ?? []).forEach((p: { id: string; primary_saathi_id: string | null }) => { if (p.primary_saathi_id) saathiMap[p.id] = toSlug(p.primary_saathi_id) ?? p.primary_saathi_id; });
         rows.forEach((r) => {
           r.faculty_name = fMap[r.faculty_id];
           r.student_name = sMap[r.student_id];

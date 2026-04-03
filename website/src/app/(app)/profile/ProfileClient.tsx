@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useChatStore } from '@/stores/chatStore';
 import { SAATHIS } from '@/constants/saathis';
+import { toSlug } from '@/constants/verticalIds';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNav } from '@/components/layout/MobileNav';
 import ProfileTab from '@/components/profile/ProfileTab';
@@ -46,7 +47,7 @@ export function ProfileClient() {
   const { profile } = useAuthStore();
   const { activeSaathiId, activeBotSlot, setActiveBotSlot } = useChatStore();
 
-  const saathiId = activeSaathiId ?? profile?.primary_saathi_id ?? SAATHIS[0].id;
+  const saathiId = toSlug(activeSaathiId) ?? toSlug(profile?.primary_saathi_id) ?? SAATHIS[0].id;
   const activeSaathi: Saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
 
   const [activeTab, setActiveTab] = useState<Tab>('profile');

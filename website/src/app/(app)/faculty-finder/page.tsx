@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { SAATHIS } from '@/constants/saathis';
+import { toSlug } from '@/constants/verticalIds';
 import Link from 'next/link';
 import { BookmarkButton } from '@/components/faculty/BookmarkButton';
 
@@ -100,7 +101,7 @@ export default function FacultyFinderPage() {
           fp.expertise_tags?.some((t) => t.toLowerCase().includes(q));
         if (!matches) return false;
       }
-      if (filterSaathi !== 'all' && f.primary_saathi_id !== filterSaathi) return false;
+      if (filterSaathi !== 'all' && toSlug(f.primary_saathi_id) !== filterSaathi) return false;
       if (filterSession === 'doubt' && !fp.offers_doubt_session) return false;
       if (filterSession === 'research' && !fp.offers_research_session) return false;
       if (filterSession === 'deepdive' && !fp.offers_deepdive_session) return false;
@@ -231,7 +232,7 @@ export default function FacultyFinderPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {emeritusFaculty.slice(0, 3).map((f) => {
                 const fp = f.faculty_profiles!;
-                const saathi = SAATHIS.find((s) => s.id === f.primary_saathi_id);
+                const saathi = SAATHIS.find((s) => s.id === toSlug(f.primary_saathi_id));
                 const slug = fp.faculty_slug ?? f.id;
                 return (
                   <Link key={f.id} href={`/faculty-finder/${slug}`}
@@ -289,7 +290,7 @@ export default function FacultyFinderPage() {
             <AnimatePresence mode="popLayout">
               {filtered.map((f, i) => {
                 const fp = f.faculty_profiles!;
-                const saathi = SAATHIS.find((s) => s.id === f.primary_saathi_id);
+                const saathi = SAATHIS.find((s) => s.id === toSlug(f.primary_saathi_id));
                 const color = saathi?.primary ?? '#C9993A';
                 const minFee = getMinFee(fp);
                 const isVerified = fp.verification_status === 'verified';

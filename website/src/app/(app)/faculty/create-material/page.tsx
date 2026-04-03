@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
+import { toSlug } from '@/constants/verticalIds';
 import Link from 'next/link';
 
 const LEVELS = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Masters', 'PhD'];
@@ -76,7 +77,7 @@ format === 'casestudy' ? `Create a case study with:
 - Include "what if" scenarios
 - End with open-ended research questions
 - Ordered by difficulty`}`,
-          saathiSlug: profile?.primary_saathi_id ?? '',
+          saathiSlug: toSlug(profile?.primary_saathi_id) ?? '',
         }),
       },
     );

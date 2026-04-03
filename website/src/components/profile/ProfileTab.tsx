@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { SAATHIS } from '@/constants/saathis';
+import { toSlug, toVerticalUuid } from '@/constants/verticalIds';
 import { useAuthStore } from '@/stores/authStore';
 import { useChatStore } from '@/stores/chatStore';
 import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete';
@@ -66,7 +67,7 @@ export default function ProfileTab({ profile, soul, onSaved }: ProfileTabProps) 
   const [toast, setToast] = useState<string | null>(null);
 
   // Saathi change flow
-  const currentSaathi: Saathi | null = SAATHIS.find((s) => s.id === profile.primary_saathi_id) ?? null;
+  const currentSaathi: Saathi | null = SAATHIS.find((s) => s.id === toSlug(profile.primary_saathi_id)) ?? null;
   const [showSaathiChange, setShowSaathiChange] = useState(false);
   const [newSaathi, setNewSaathi] = useState<Saathi | null>(null);
   const [confirmText, setConfirmText] = useState('');
@@ -104,9 +105,11 @@ export default function ProfileTab({ profile, soul, onSaved }: ProfileTabProps) 
     }
 
     // 2. Update profile with new Saathi + reset to free plan
+    // newSaathi.id is a slug — convert to UUID for FK columns
+    const newVerticalUuid = toVerticalUuid(newSaathi.id) ?? newSaathi.id;
     await supabase.from('profiles').update({
-      primary_saathi_id: newSaathi.id,
-      wa_saathi_id: newSaathi.id,
+      primary_saathi_id: newVerticalUuid,
+      wa_saathi_id: newVerticalUuid,
       plan_id: 'free',
       subscription_status: 'cancelled',
     }).eq('id', profile.id);
@@ -114,7 +117,7 @@ export default function ProfileTab({ profile, soul, onSaved }: ProfileTabProps) 
     // 3. Create fresh soul row for new Saathi
     await supabase.from('student_soul').upsert({
       user_id: profile.id,
-      vertical_id: newSaathi.id,
+      vertical_id: newVerticalUuid,
       display_name: profile.full_name ?? 'Student',
       academic_level: soul?.academic_level ?? 'bachelor',
       depth_calibration: 38,

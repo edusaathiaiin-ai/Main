@@ -9,6 +9,7 @@ import { resolveVerticalId } from '@/lib/resolveVertical';
 import { useAuthStore } from '@/stores/authStore';
 import { useChatStore } from '@/stores/chatStore';
 import { SAATHIS } from '@/constants/saathis';
+import { toSlug } from '@/constants/verticalIds';
 import { getPlanTier } from '@/constants/plans';
 import { QuestionCard } from './QuestionCard';
 import { PostQuestionModal } from './PostQuestionModal';
@@ -56,7 +57,7 @@ export function QuestionFeed() {
   const { activeSaathiId, activeBotSlot, setActiveBotSlot } = useChatStore();
   const searchParams = useSearchParams();
 
-  const saathiSlug = activeSaathiId ?? profile?.primary_saathi_id ?? SAATHIS[0].id;
+  const saathiSlug = toSlug(activeSaathiId) ?? toSlug(profile?.primary_saathi_id) ?? SAATHIS[0].id;
   const activeSaathi: Saathi = SAATHIS.find((s) => s.id === saathiSlug) ?? SAATHIS[0];
 
   const [verticalUuid, setVerticalUuid] = useState<string | null>(null);

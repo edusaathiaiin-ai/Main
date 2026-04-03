@@ -142,14 +142,17 @@ function CallbackInner() {
         );
 
         // ── Saathi instant bonding ────────────────────────────────────────────
-        // primary_saathi_id is a TEXT slug column (e.g. 'kanoonsaathi')
-        // FK → verticals(id) which is also TEXT slug. Save slug directly.
+        // primary_saathi_id is UUID FK → verticals(id). Resolve slug → UUID before saving.
         if (saathiSlug) {
           try {
-            await supabase
-              .from('profiles')
-              .update({ primary_saathi_id: saathiSlug })
-              .eq('id', resolvedSession.user.id);
+            const { toVerticalUuid } = await import('@/constants/verticalIds');
+            const verticalUuid = toVerticalUuid(saathiSlug);
+            if (verticalUuid) {
+              await supabase
+                .from('profiles')
+                .update({ primary_saathi_id: verticalUuid })
+                .eq('id', resolvedSession.user.id);
+            }
           } catch {
             // Non-critical — onboarding will let user pick anyway
           }

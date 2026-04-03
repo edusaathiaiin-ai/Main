@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { SAATHIS } from '@/constants/saathis';
+import { SLUG_TO_UUID, toSlug } from '@/constants/verticalIds';
 import { useAuthStore } from '@/stores/authStore';
 import {
   ACADEMIC_LEVEL_CARDS,
@@ -942,10 +943,12 @@ function OnboardInner() {
 
   // ── Step 1: Saathi selection ───────────────────────────────────────────────
   async function handleSaathi(saathiId: string) {
+    // saathiId is a slug from the picker. Convert to UUID for DB FK.
+    const uuid = SLUG_TO_UUID[saathiId] ?? saathiId;
     setSaving(true);
     const supabase = createClient();
-    await supabase.from('profiles').update({ primary_saathi_id: saathiId }).eq('id', profile!.id);
-    setLocalProfile((p) => p ? { ...p, primary_saathi_id: saathiId } : p);
+    await supabase.from('profiles').update({ primary_saathi_id: uuid }).eq('id', profile!.id);
+    setLocalProfile((p) => p ? { ...p, primary_saathi_id: uuid } : p);
     setSaving(false);
     setStep('profile');
   }
@@ -999,7 +1002,7 @@ function OnboardInner() {
     }).eq('id', userId);
 
     // Upsert student_soul with all calibrated values
-    // primary_saathi_id IS the verticals.id (TEXT slug FK) — query by id directly
+    // primary_saathi_id is a UUID FK → verticals(id) — query by id directly
     let verticalUUID: string | null = null;
     if (profile?.primary_saathi_id) {
       const { data: vRow } = await supabase

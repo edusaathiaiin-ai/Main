@@ -8,6 +8,7 @@ import { streamChat } from '@/lib/ai';
 import { useChatStore } from '@/stores/chatStore';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
+import { toSlug } from '@/constants/verticalIds';
 import { BOTS } from '@/constants/bots';
 import { getPlanTier } from '@/constants/plans';
 import { getSaathiTheme } from '@/lib/saathiThemes';
@@ -148,8 +149,8 @@ export function ChatWindow() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const conversionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Resolve active Saathi
-  const saathiId = activeSaathiId ?? profile?.primary_saathi_id ?? SAATHIS[0].id;
+  // Resolve active Saathi — primary_saathi_id is UUID, SAATHIS uses slugs
+  const saathiId = toSlug(activeSaathiId) ?? toSlug(profile?.primary_saathi_id) ?? SAATHIS[0].id;
   const activeSaathi: Saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
   const activeBot = BOTS.find((b) => b.slot === activeBotSlot) ?? BOTS[0];
   const theme = getSaathiTheme(saathiId, mode);
@@ -240,8 +241,9 @@ export function ChatWindow() {
   // Init: set saathi + fetch quota + soul banner
   useEffect(() => {
     if (!profile) return;
-    const sid = profile.primary_saathi_id ?? SAATHIS[0].id;
-    setActiveSaathi(sid);
+    const sid = profile.primary_saathi_id ?? '';       // UUID for DB queries
+    const sidSlug = toSlug(sid) ?? SAATHIS[0].id;     // slug for chatStore / SAATHIS lookup
+    setActiveSaathi(sidSlug);
 
     fetchQuota(profile.id);
     fetchSoulBanner(profile.id, sid);

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
+import { toSlug } from '@/constants/verticalIds';
 import Link from 'next/link';
 import { VerificationBanner } from '@/components/faculty/VerificationBanner';
 import { FacultyBadge } from '@/components/faculty/FacultyBadge';
@@ -230,7 +231,7 @@ export default function FacultyPage() {
             Authorization: `Bearer ${session?.access_token}`,
             apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
           },
-          body: JSON.stringify({ questionText, saathiSlug: profile?.primary_saathi_id ?? '' }),
+          body: JSON.stringify({ questionText, saathiSlug: toSlug(profile?.primary_saathi_id) ?? '' }),
         },
       );
       const data = await res.json();

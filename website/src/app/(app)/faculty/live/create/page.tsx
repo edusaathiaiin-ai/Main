@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { resolveVerticalId } from '@/lib/resolveVertical';
+import { toSlug } from '@/constants/verticalIds';
 import { useAuthStore } from '@/stores/authStore';
 import { getSubjectChips } from '@/constants/subjectChips';
 import Link from 'next/link';
@@ -60,7 +61,7 @@ export default function CreateLiveSessionPage() {
   const [published, setPublished] = useState(false);
   const [sessionUrl, setSessionUrl] = useState('');
 
-  const saathiId = profile?.primary_saathi_id ?? '';
+  const saathiId = toSlug(profile?.primary_saathi_id) ?? '';
   const chips = getSubjectChips(saathiId);
 
   function toggleTag(t: string) { setTags((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : prev.length < 5 ? [...prev, t] : prev); }

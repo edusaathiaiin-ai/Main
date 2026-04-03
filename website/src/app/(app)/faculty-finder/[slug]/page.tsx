@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
+import { toSlug } from '@/constants/verticalIds';
 import Link from 'next/link';
 import { FacultyBadge } from '@/components/faculty/FacultyBadge';
 import { BookmarkButton } from '@/components/faculty/BookmarkButton';
@@ -252,7 +253,7 @@ export default function FacultyProfilePage() {
   }
 
   const fp = faculty.faculty_profiles;
-  const saathi = SAATHIS.find((s) => s.id === faculty.primary_saathi_id);
+  const saathi = SAATHIS.find((s) => s.id === toSlug(faculty.primary_saathi_id));
   const color = saathi?.primary ?? '#C9993A';
   const badgeType = getFacultyBadgeType({
     verification_status: fp.verification_status,
