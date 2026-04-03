@@ -40,6 +40,7 @@ const ROLE_CONTENT: Record<RoleId, RoleContent> = {
       'Request a lecture on any topic — professors read your profile and respond',
       '1:1 sessions with subject experts — doubt clearing, research guidance, deep dives',
       'Retired IISc, AIIMS, NLU professors — access otherwise impossible',
+      'Declare what you want to learn — matching professors find YOU and build a session around it',
     ],
     cta: 'Begin for free →',
     ctaLink: '/login?role=student',

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
@@ -21,12 +22,28 @@ type LectureInput = { title: string; date: string; duration: number };
 
 export default function CreateLiveSessionPage() {
   const { profile } = useAuthStore();
+  const searchParams = useSearchParams();
+
+  // Intent pre-fill from demand dashboard
+  const intentId = searchParams.get('intent');
+  const intentTopic = searchParams.get('topic') ?? '';
 
   const [step, setStep] = useState<Step>('type');
   const [format, setFormat] = useState('single');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [prepNotes, setPrepNotes] = useState('');
+
+  // Pre-fill title from intent topic on mount
+  useEffect(() => {
+    function run() {
+      if (intentTopic && !title) {
+        setTitle(intentTopic);
+      }
+    }
+    run();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [tags, setTags] = useState<string[]>([]);
   const [lectures, setLectures] = useState<LectureInput[]>([{ title: 'Lecture 1', date: '', duration: 60 }]);
   const [singleDate, setSingleDate] = useState('');
@@ -78,9 +95,19 @@ export default function CreateLiveSessionPage() {
       total_seats: totalSeats,
       min_seats: minSeats,
       status: 'published', // auto-publish for verified faculty
+      intent_id: intentId ?? null,
+      priority_booking_until: intentId ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null,
     }).select('id').single();
 
     if (error || !sess) { setSaving(false); return; }
+
+    // Fulfill intent if created from demand dashboard
+    if (intentId) {
+      await supabase
+        .from('learning_intents')
+        .update({ status: 'fulfilled', resulting_session_id: sess.id })
+        .eq('id', intentId);
+    }
 
     // Create lectures
     const lectureRows = format === 'single'
@@ -135,7 +162,11 @@ export default function CreateLiveSessionPage() {
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
             <p className="text-5xl mb-4">{'\u{1F389}'}</p>
             <h2 className="font-playfair text-3xl font-bold text-white mb-3">Published!</h2>
-            <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.5)' }}>Students matching your subject have been notified.</p>
+            <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              {intentId
+                ? 'Students who wanted this topic get 24 hours of priority booking access.'
+                : 'Students matching your subject have been notified.'}
+            </p>
             <div className="rounded-xl p-4 mb-6" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <p className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Share this link:</p>
               <p className="text-sm text-white font-mono break-all">{sessionUrl}</p>
@@ -147,6 +178,26 @@ export default function CreateLiveSessionPage() {
         ) : (
           <>
             <h1 className="font-playfair text-3xl font-bold text-white mb-2">Create Live Session</h1>
+
+            {/* Intent banner */}
+            {intentId && intentTopic && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '12px 16px', borderRadius: '12px', marginBottom: '20px',
+                background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.3)',
+              }}>
+                <span style={{ fontSize: '18px' }}>🎯</span>
+                <div>
+                  <p style={{ fontSize: '12px', fontWeight: '700', color: '#4ADE80', margin: '0 0 1px' }}>
+                    Creating from student demand
+                  </p>
+                  <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+                    &quot;{intentTopic}&quot; · Students who declared this intent get 24-hour priority booking
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Progress */}
             <div className="flex gap-1.5 mb-8">
               {STEPS.map((s, i) => (

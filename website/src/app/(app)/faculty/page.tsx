@@ -270,6 +270,7 @@ export default function FacultyPage() {
           {[
             { href: '/chat', icon: '\u{1F4AC}', label: 'My Saathi' },
             { href: '/faculty', icon: '\u{1F4CB}', label: 'Board' },
+            { href: '/faculty/demand', icon: '🔥', label: 'Student Demand' },
             { href: '/faculty/analytics', icon: '\u{1F4CA}', label: 'Analytics' },
             { href: '/faculty/question-paper', icon: '\u{1F4DD}', label: 'Question Paper' },
             { href: '/faculty/create-material', icon: '\u{1F4DA}', label: 'Study Material' },

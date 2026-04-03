@@ -182,6 +182,30 @@ export function Sidebar({
         })}
       </nav>
 
+      {/* Learn Intent CTA — students only */}
+      {profile.role === 'student' && (
+        <Link
+          href="/learn"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            margin: '4px 12px', padding: '11px 14px', borderRadius: '12px',
+            background: 'linear-gradient(135deg, rgba(74,222,128,0.1), rgba(74,222,128,0.03))',
+            border: '0.5px solid rgba(74,222,128,0.28)',
+            textDecoration: 'none', transition: 'all 0.2s ease',
+          }}
+        >
+          <span style={{ fontSize: '18px', flexShrink: 0 }}>🎯</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: '12px', fontWeight: '700', color: '#4ADE80', margin: '0 0 1px' }}>
+              Declare What You Want
+            </p>
+            <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.32)', margin: 0 }}>
+              Professors find you → sessions happen
+            </p>
+          </div>
+        </Link>
+      )}
+
       {/* Faculty Finder CTA */}
       <Link
         href="/faculty-finder"
