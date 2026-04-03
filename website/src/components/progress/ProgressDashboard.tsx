@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
+import { SAATHIS } from '@/constants/saathis'
 
 type SoulRow = {
   display_name: string | null
@@ -21,6 +22,15 @@ type SessionRow = {
   quota_date_ist: string
   message_count: number
   bot_slot: number
+}
+
+type CommunityStats = {
+  total_students: number
+  active_students: number
+  avg_depth: number
+  top_topics: string[]
+  community_label: string
+  last_refreshed_at: string
 }
 
 type DayActivity = {
@@ -141,7 +151,10 @@ function TopicPill({ topic, type, color }: { topic: string; type: 'top' | 'strug
 export function ProgressDashboard({ saathiId, saathiName, primaryColor }: ProgressDashboardProps) {
   const [soul, setSoul] = useState<SoulRow | null>(null)
   const [sessions, setSessions] = useState<SessionRow[]>([])
+  const [community, setCommunity] = useState<CommunityStats | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const saathi = SAATHIS.find(s => s.id === saathiId)
 
   useEffect(() => {
     async function load() {
@@ -149,7 +162,7 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const [soulRes, sessionRes] = await Promise.all([
+      const [soulRes, sessionRes, communityRes] = await Promise.all([
         supabase
           .from('student_soul')
           .select('display_name, ambition_level, session_count, top_topics, struggle_topics, last_session_summary, flame_stage, passion_intensity, depth_calibration, learning_style')
@@ -163,10 +176,16 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
           .eq('vertical_id', saathiId)
           .order('quota_date_ist', { ascending: false })
           .limit(14),
+        supabase
+          .from('saathi_stats_cache')
+          .select('total_students,active_students,avg_depth,top_topics,community_label,last_refreshed_at')
+          .eq('vertical_id', saathiId)
+          .single(),
       ])
 
       setSoul(soulRes.data ?? null)
       setSessions((sessionRes.data ?? []) as SessionRow[])
+      if (communityRes.data) setCommunity(communityRes.data as CommunityStats)
       setLoading(false)
     }
 
@@ -332,6 +351,104 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
               </div>
             </div>
           )}
+        </motion.div>
+      )}
+
+      {/* Community card */}
+      {community && community.total_students > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.28 }}
+          style={{
+            background: `${primaryColor}08`,
+            border: `0.5px solid ${primaryColor}25`,
+            borderRadius: '14px',
+            padding: '20px',
+            marginBottom: '16px',
+          }}
+        >
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '22px' }}>{saathi?.emoji ?? '📚'}</span>
+            <div>
+              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>
+                Your Community
+              </p>
+              <p style={{ fontSize: '16px', fontWeight: '700', color: '#fff', margin: 0 }}>
+                {community.total_students.toLocaleString('en-IN')}{' '}
+                <span style={{ color: primaryColor }}>{saathiName} {community.community_label}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Depth comparison */}
+          {soul?.depth_calibration != null && (
+            <div style={{ marginBottom: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                  Community avg depth
+                </span>
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                  {community.avg_depth}/100
+                </span>
+              </div>
+              <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}>
+                <div style={{ height: '100%', width: `${community.avg_depth}%`, background: 'rgba(255,255,255,0.2)', borderRadius: '4px' }} />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                  Your depth
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: soul.depth_calibration >= community.avg_depth ? '#4ADE80' : primaryColor }}>
+                  {soul.depth_calibration}/100
+                  {soul.depth_calibration >= community.avg_depth ? ' · above avg ✦' : ''}
+                </span>
+              </div>
+              <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${soul.depth_calibration}%` }}
+                  transition={{ duration: 0.7, delay: 0.3 }}
+                  style={{
+                    height: '100%',
+                    background: soul.depth_calibration >= community.avg_depth ? '#4ADE80' : primaryColor,
+                    borderRadius: '4px',
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Active students note */}
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginBottom: community.top_topics.length > 0 ? '12px' : '0' }}>
+            {community.active_students.toLocaleString('en-IN')} students studied {saathiName} in the last 30 days
+          </p>
+
+          {/* Community top topics */}
+          {community.top_topics.length > 0 && (
+            <div>
+              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
+                What this community explores most
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {community.top_topics.map((t) => (
+                  <span key={t} style={{
+                    fontSize: '11px', padding: '3px 9px', borderRadius: '20px',
+                    background: `${primaryColor}12`, border: `0.5px solid ${primaryColor}30`,
+                    color: primaryColor,
+                  }}>
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.15)', marginTop: '12px', marginBottom: 0 }}>
+            Data refreshed every 48h · {new Date(community.last_refreshed_at).toLocaleDateString('en-IN')}
+          </p>
         </motion.div>
       )}
 

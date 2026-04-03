@@ -25,6 +25,7 @@ import { MobileNav } from '@/components/layout/MobileNav';
 import { UpgradeBanner } from '@/components/ui/UpgradeBanner';
 import type { UpgradeTrigger } from '@/components/ui/UpgradeBanner';
 import { SuspensionScreen } from './SuspensionScreen';
+import { SaathiCommunityBanner } from './SaathiCommunityBanner';
 import type { QuotaState, Saathi } from '@/types';
 
 const DEFAULT_QUOTA: QuotaState = {
@@ -525,6 +526,15 @@ export function ChatWindow() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Community count banner */}
+        <SaathiCommunityBanner
+          saathiId={saathiId}
+          saathiName={activeSaathi.name}
+          saathiColor={activeSaathi.primary}
+          saathiEmoji={activeSaathi.emoji}
+          studentName={profile?.full_name ?? 'Student'}
+        />
 
         {/* Error banner */}
         <AnimatePresence>
