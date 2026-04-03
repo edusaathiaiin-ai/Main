@@ -31,12 +31,13 @@ export const BOARD_STATUS = {
 export type BoardStatus = typeof BOARD_STATUS[keyof typeof BOARD_STATUS];
 
 // ── moderation_flags.status ──────────────────────────────────────────────────
-// CHECK (status IN ('open', 'in_review', 'resolved', 'rejected'))
+// CHECK (status IN ('open', 'in_review', 'resolved', 'rejected', 'auto_flagged'))
 export const MODERATION_STATUS = {
-  OPEN:      'open',
-  IN_REVIEW: 'in_review',
-  RESOLVED:  'resolved',
-  REJECTED:  'rejected',
+  OPEN:         'open',
+  IN_REVIEW:    'in_review',
+  RESOLVED:     'resolved',
+  REJECTED:     'rejected',
+  AUTO_FLAGGED: 'auto_flagged', // set by suspensions edge function for violations
 } as const;
 export type ModerationStatus = typeof MODERATION_STATUS[keyof typeof MODERATION_STATUS];
 

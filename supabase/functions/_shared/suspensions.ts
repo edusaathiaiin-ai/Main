@@ -101,10 +101,10 @@ export async function recordViolationAndCheck(
   // 1. Log the violation to moderation_flags
   admin.from('moderation_flags').insert({
     reporter_user_id: userId,
-    target_type: violationType,
     target_id: userId,
     reason: violationType,
-    details: {
+    violation_type: violationType,
+    details_json: {
       message: messageContent.slice(0, 200),
       saathi_id: saathiId,
       severity,
