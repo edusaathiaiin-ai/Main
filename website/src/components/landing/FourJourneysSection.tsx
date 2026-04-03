@@ -61,8 +61,8 @@ const ROLE_CONTENT: Record<RoleId, RoleContent> = {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {[
-            { name: 'Prof. R.K. Krishnamurthy', detail: 'Constitutional Law · NLU Bangalore · 38 years', price: '₹1,500/session', color: '#C9993A' },
-            { name: 'Dr. Savitaben Desai', detail: 'Pharmacology · Gujarat University · 30 years', price: '₹1,000/session', color: '#4ADE80' },
+            { name: 'Prof. R.K. Krishnamurthy', detail: 'Constitutional Law · NLU · 38 years', price: '₹1,500', color: '#C9993A' },
+            { name: 'Dr. Savitaben Desai', detail: 'Pharmacology · Gujarat Uni · 30 years', price: '₹1,000', color: '#4ADE80' },
           ].map((prof, i) => (
             <div key={i} style={{
               display: 'flex',
