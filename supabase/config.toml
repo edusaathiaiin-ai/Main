@@ -411,3 +411,6 @@ verify_jwt = false
 
 [functions.resume-subscription]
 verify_jwt = false
+
+[functions.admin-digest]
+verify_jwt = false
