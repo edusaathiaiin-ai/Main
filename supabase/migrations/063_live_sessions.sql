@@ -7,7 +7,7 @@
 CREATE TABLE IF NOT EXISTS live_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   faculty_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  vertical_id UUID NOT NULL REFERENCES verticals(id),
+  vertical_id TEXT NOT NULL REFERENCES verticals(id),
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   preparation_notes TEXT NULL,
