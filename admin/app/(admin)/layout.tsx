@@ -26,6 +26,21 @@ const NAV_SECTIONS: NavSection[] = [
       { href: '/financials',  label: 'Financials',    emoji: '💰' },
     ],
   },
+  {
+    title: 'Marketplace',
+    items: [
+      { href: '/careers',           label: 'Careers',           emoji: '🎯' },
+      { href: '/learning-intents',  label: 'Learning Intents',  emoji: '🧠' },
+    ],
+  },
+  {
+    title: 'Intelligence',
+    items: [
+      { href: '/saathi-stats',    label: 'Saathi Stats',    emoji: '📊' },
+      { href: '/nudge-centre',    label: 'Nudge Centre',    emoji: '🔔' },
+      { href: '/platform-health', label: 'Platform Health', emoji: '⚙️' },
+    ],
+  },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
