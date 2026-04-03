@@ -49,31 +49,22 @@ ON public.profiles FOR ALL TO service_role
 USING (true) WITH CHECK (true);
 
 -- Faculty: read profiles of students connected to them
--- Wraps intern table references in a DO block so the policy degrades
--- gracefully if intern_listings / intern_interests don't exist yet.
-DO $$ DECLARE
-  using_clause TEXT :=
-    'id = auth.uid() OR public.is_admin() OR (
-      public.is_faculty() AND EXISTS (
+DROP POLICY IF EXISTS profiles_faculty_session_read ON public.profiles;
+
+CREATE POLICY profiles_faculty_session_read
+ON public.profiles FOR SELECT TO authenticated
+USING (
+  id = auth.uid()
+  OR public.is_admin()
+  OR (
+    public.is_faculty()
+    AND (
+      EXISTS (
         SELECT 1 FROM public.faculty_sessions fs
         WHERE fs.faculty_id = auth.uid()
           AND fs.student_id = profiles.id
       )
-    )';
-BEGIN
-  DROP POLICY IF EXISTS profiles_faculty_session_read ON public.profiles;
-
-  IF EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_name = 'intern_listings'
-  ) AND EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_name = 'intern_interests'
-  ) THEN
-    using_clause := using_clause || '
-    OR (
-      public.is_faculty()
-      AND EXISTS (
+      OR EXISTS (
         SELECT 1 FROM public.intern_listings il
         WHERE il.institution_user_id = auth.uid()
           AND EXISTS (
@@ -82,60 +73,38 @@ BEGIN
               AND ii.student_user_id = profiles.id
           )
       )
-    )';
-  END IF;
-
-  EXECUTE format(
-    'CREATE POLICY profiles_faculty_session_read
-     ON public.profiles FOR SELECT TO authenticated
-     USING (%s)',
-    using_clause
-  );
-END $$;
+    )
+  )
+);
 
 
 -- ── FIX 2: student_soul — faculty read souls of connected students ───────────
 
 DROP POLICY IF EXISTS soul_faculty_session_read ON public.student_soul;
 
-DO $$ DECLARE
-  using_clause TEXT :=
-    'user_id = auth.uid() OR public.is_admin() OR (
-      public.is_faculty()
-      AND EXISTS (
+CREATE POLICY soul_faculty_session_read
+ON public.student_soul FOR SELECT TO authenticated
+USING (
+  user_id = auth.uid()
+  OR public.is_admin()
+  OR (
+    public.is_faculty()
+    AND (
+      EXISTS (
         SELECT 1 FROM public.faculty_sessions fs
         WHERE fs.faculty_id = auth.uid()
           AND fs.student_id = student_soul.user_id
-          AND fs.status IN (''accepted'',''paid'',''confirmed'',''completed'',''reviewed'')
+          AND fs.status IN ('accepted','paid','confirmed','completed','reviewed')
       )
-    )';
-BEGIN
-  IF EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_name = 'intern_interests'
-  ) AND EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_name = 'intern_listings'
-  ) THEN
-    using_clause := using_clause || '
-    OR (
-      public.is_faculty()
-      AND EXISTS (
+      OR EXISTS (
         SELECT 1 FROM public.intern_interests ii
         JOIN public.intern_listings il ON il.id = ii.listing_id
         WHERE il.institution_user_id = auth.uid()
           AND ii.student_user_id = student_soul.user_id
       )
-    )';
-  END IF;
-
-  EXECUTE format(
-    'CREATE POLICY soul_faculty_session_read
-     ON public.student_soul FOR SELECT TO authenticated
-     USING (%s)',
-    using_clause
-  );
-END $$;
+    )
+  )
+);
 
 
 -- ── FIX 3: intern_listings — faculty read + admin full access ────────────────
