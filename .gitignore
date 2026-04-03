@@ -8,3 +8,10 @@ dist/
 .next/
 build/
 *.log
+
+# Credentials and key files — never commit
+*.csv
+rzp-key*.csv
+*payment*.csv
+*secret*.csv
+*credentials*.csv

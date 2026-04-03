@@ -164,34 +164,31 @@ export function NewsFeed() {
     setLoading(false);
   }
 
-  useEffect(() => { fetchAll(); }, [profile, saathiId, futureResearchArea]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    async function run() { await fetchAll(); }
+    void run();
+  }, [profile, saathiId, futureResearchArea]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Admin: trigger RSS fetch
+  // Admin: trigger RSS fetch via server-side proxy (cron secret never exposed to client)
   async function handleAdminFetch() {
     if (!profile) return;
     setAdminFetching(true);
-    const supabase = createClient();
-    const { data: session } = await supabase.auth.getSession();
-    await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/rss-fetch`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.session?.access_token}`,
-          'x-cron-secret': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-        },
-      }
-    );
+    await fetch('/api/admin/trigger-rss', { method: 'POST' });
     setTimeout(() => { setAdminFetching(false); fetchAll(); }, 3000);
   }
 
-  function formatLastUpdated(): string {
-    if (!lastUpdated) return '';
-    const mins = Math.floor((Date.now() - lastUpdated.getTime()) / 60000);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
-    return `${Math.floor(mins / 60)}h ago`;
-  }
+  const [lastUpdatedLabel, setLastUpdatedLabel] = useState('');
+  useEffect(() => {
+    async function computeLabel() {
+      await Promise.resolve();
+      if (!lastUpdated) { setLastUpdatedLabel(''); return; }
+      const mins = Math.floor((Date.now() - lastUpdated.getTime()) / 60000);
+      if (mins < 1) setLastUpdatedLabel('just now');
+      else if (mins < 60) setLastUpdatedLabel(`${mins}m ago`);
+      else setLastUpdatedLabel(`${Math.floor(mins / 60)}h ago`);
+    }
+    void computeLabel();
+  }, [lastUpdated]);
 
   // Filter logic
   const filteredNews = newsItems.filter((item) => {
@@ -255,7 +252,7 @@ export function NewsFeed() {
             <div className="flex items-center gap-2 shrink-0">
               {lastUpdated && (
                 <span className="text-[11px] hidden sm:block" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                  Updated {formatLastUpdated()}
+                  Updated {lastUpdatedLabel}
                 </span>
               )}
               <button
