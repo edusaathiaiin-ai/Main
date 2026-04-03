@@ -65,8 +65,9 @@ export function QuestionCard({ question, currentUserId: _currentUserId, primaryC
     if (flagged) return;
     const supabase = createClient();
     await supabase.from('moderation_flags').insert({
-      question_id: question.id,
-      user_id: _currentUserId,
+      target_id: question.id,
+      target_type: 'board_question',
+      reporter_user_id: _currentUserId,
       reason: 'user_flag',
     });
     setFlagged(true);

@@ -315,8 +315,9 @@ export function ChatWindow() {
   async function handleFlag(messageId: string) {
     const supabase = createClient();
     await supabase.from('moderation_flags').insert({
-      message_id: messageId,
-      user_id: profile?.id,
+      target_id: messageId,
+      target_type: 'chat_message',
+      reporter_user_id: profile?.id,
       reason: 'user_flag',
     });
   }
