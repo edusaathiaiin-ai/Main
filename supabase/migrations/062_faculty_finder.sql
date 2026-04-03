@@ -69,6 +69,11 @@ CREATE TABLE IF NOT EXISTS faculty_sessions (
 
 ALTER TABLE faculty_sessions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS sessions_student        ON faculty_sessions;
+DROP POLICY IF EXISTS sessions_faculty_read   ON faculty_sessions;
+DROP POLICY IF EXISTS sessions_faculty_update ON faculty_sessions;
+DROP POLICY IF EXISTS sessions_service        ON faculty_sessions;
+
 CREATE POLICY sessions_student ON faculty_sessions
 FOR ALL TO authenticated
 USING (student_id = auth.uid()) WITH CHECK (student_id = auth.uid());
@@ -104,6 +109,9 @@ CREATE TABLE IF NOT EXISTS session_reviews (
 
 ALTER TABLE session_reviews ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS reviews_own     ON session_reviews;
+DROP POLICY IF EXISTS reviews_service ON session_reviews;
+
 CREATE POLICY reviews_own ON session_reviews
 FOR ALL TO authenticated
 USING (session_id IN (SELECT id FROM faculty_sessions WHERE student_id = auth.uid() OR faculty_id = auth.uid()));
@@ -122,6 +130,8 @@ CREATE TABLE IF NOT EXISTS session_messages (
 );
 
 ALTER TABLE session_messages ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS messages_participants ON session_messages;
 
 CREATE POLICY messages_participants ON session_messages
 FOR ALL TO authenticated
@@ -146,6 +156,9 @@ CREATE TABLE IF NOT EXISTS faculty_payouts (
 );
 
 ALTER TABLE faculty_payouts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS payouts_faculty ON faculty_payouts;
+DROP POLICY IF EXISTS payouts_service ON faculty_payouts;
 
 CREATE POLICY payouts_faculty ON faculty_payouts
 FOR SELECT TO authenticated USING (faculty_id = auth.uid());

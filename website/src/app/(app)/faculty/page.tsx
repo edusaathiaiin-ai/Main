@@ -29,6 +29,7 @@ type FacultyProfile = {
   employment_status: 'active' | 'retired' | 'independent' | null;
   is_emeritus: boolean;
   verification_doc_url: string | null;
+  payout_upi_id: string | null;
 };
 
 type BoardQuestion = {
@@ -107,6 +108,9 @@ export default function FacultyPage() {
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [draftingAi, setDraftingAi] = useState<string | null>(null);
   const [expandedAi, setExpandedAi] = useState<Set<string>>(new Set());
+  const [upiEdit, setUpiEdit] = useState<string | null>(null); // null = not editing
+  const [upiSaving, setUpiSaving] = useState(false);
+  const [upiToast, setUpiToast] = useState<string | null>(null);
 
   // Load faculty profile
   useEffect(() => {
@@ -176,6 +180,22 @@ export default function FacultyPage() {
 
     loadMyAnswers();
   }, [profile, tab]);
+
+  async function saveUpi() {
+    if (!profile || upiEdit === null) return;
+    setUpiSaving(true);
+    const supabase = createClient();
+    const value = upiEdit.trim() || null;
+    await supabase
+      .from('faculty_profiles')
+      .update({ payout_upi_id: value })
+      .eq('user_id', profile.id);
+    setFaculty((prev) => prev ? { ...prev, payout_upi_id: value } : prev);
+    setUpiEdit(null);
+    setUpiSaving(false);
+    setUpiToast(value ? 'UPI ID saved!' : 'UPI ID removed');
+    setTimeout(() => setUpiToast(null), 3000);
+  }
 
   async function submitAnswer(questionId: string) {
     if (!profile || !answerText[questionId]?.trim()) return;
@@ -360,6 +380,78 @@ export default function FacultyPage() {
             </div>
           )}
         </motion.div>
+
+        {/* Payout Settings card */}
+        <div className="rounded-2xl p-5 mb-6" style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)' }}>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm font-semibold text-white">Payout UPI ID</p>
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                Add this so we can transfer your session earnings directly
+              </p>
+            </div>
+            {upiEdit === null && (
+              <button
+                onClick={() => setUpiEdit(faculty?.payout_upi_id ?? '')}
+                className="text-xs px-3 py-1.5 rounded-lg transition-all"
+                style={{ background: 'rgba(201,153,58,0.12)', border: '0.5px solid rgba(201,153,58,0.3)', color: '#C9993A' }}
+              >
+                {faculty?.payout_upi_id ? '✏️ Edit' : '+ Add'}
+              </button>
+            )}
+          </div>
+
+          {upiEdit === null ? (
+            faculty?.payout_upi_id ? (
+              <p className="text-sm font-mono" style={{ color: '#E5B86A' }}>{faculty.payout_upi_id}</p>
+            ) : (
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.25)' }}>Not set — optional, but required before we can pay you</p>
+            )
+          ) : (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={upiEdit}
+                onChange={(e) => setUpiEdit(e.target.value)}
+                placeholder="e.g. yourname@upi"
+                autoFocus
+                className="flex-1 rounded-xl px-4 py-2.5 text-sm text-white outline-none"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(201,153,58,0.4)' }}
+                onKeyDown={(e) => { if (e.key === 'Enter') saveUpi(); if (e.key === 'Escape') setUpiEdit(null); }}
+              />
+              <button
+                onClick={saveUpi}
+                disabled={upiSaving}
+                className="px-4 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all"
+                style={{ background: '#C9993A', color: '#060F1D' }}
+              >
+                {upiSaving ? 'Saving…' : 'Save'}
+              </button>
+              <button
+                onClick={() => setUpiEdit(null)}
+                className="px-3 py-2.5 rounded-xl text-sm transition-all"
+                style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {/* Toast */}
+          <AnimatePresence>
+            {upiToast && (
+              <motion.p
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="mt-2 text-xs font-semibold"
+                style={{ color: '#4ADE80' }}
+              >
+                ✓ {upiToast}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Tab bar */}
         <div className="flex gap-1 mb-6 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.06)', width: 'fit-content' }}>

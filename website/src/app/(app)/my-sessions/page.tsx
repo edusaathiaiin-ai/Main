@@ -28,6 +28,7 @@ export default function MySessionsPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'upcoming' | 'pending' | 'past'>('upcoming');
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [paying, setPaying] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -60,17 +61,95 @@ export default function MySessionsPage() {
 
   const upcoming = sessions.filter((s) => ['accepted', 'paid', 'confirmed'].includes(s.status));
   const pending = sessions.filter((s) => s.status === 'requested');
-  const past = sessions.filter((s) => ['completed', 'reviewed', 'declined', 'cancelled'].includes(s.status));
+  const past = sessions.filter((s) => ['completed', 'reviewed', 'declined', 'cancelled', 'disputed'].includes(s.status));
+
+  async function payForSession(session: SessionRow) {
+    setPaying(session.id);
+    const supabase = createClient();
+    const { data: { session: authSession } } = await supabase.auth.getSession();
+
+    try {
+      // Create Razorpay order for this session
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/razorpay-order`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authSession?.access_token}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+          },
+          body: JSON.stringify({ sessionId: session.id }),
+        }
+      );
+      const order = await res.json() as { orderId?: string; amount?: number; currency?: string; keyId?: string; error?: string };
+      if (!order.orderId || !order.keyId) throw new Error(order.error ?? 'Order creation failed');
+
+      // Load Razorpay checkout script dynamically
+      await new Promise<void>((resolve, reject) => {
+        if ((window as unknown as Record<string, unknown>).Razorpay) { resolve(); return; }
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Razorpay script failed to load'));
+        document.body.appendChild(script);
+      });
+
+      const fac = facultyMap[session.faculty_id];
+
+      // Open Razorpay checkout
+      await new Promise<void>((resolve, reject) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rzp = new (window as any).Razorpay({
+          key:         order.keyId,
+          order_id:    order.orderId,
+          amount:      order.amount,
+          currency:    order.currency ?? 'INR',
+          name:        'EdUsaathiAI',
+          description: session.topic,
+          prefill:     { name: profile?.full_name ?? '' },
+          theme:       { color: '#C9993A' },
+          handler: () => {
+            // Webhook will update the DB; optimistically reflect in UI
+            setSessions((prev) => prev.map((s) =>
+              s.id === session.id ? { ...s, status: 'paid' } : s
+            ));
+            resolve();
+          },
+          modal: {
+            ondismiss: () => reject(new Error('cancelled')),
+          },
+        });
+        rzp.open();
+      });
+    } catch (err) {
+      if (err instanceof Error && err.message !== 'cancelled') {
+        console.error('payForSession error', err.message);
+      }
+    } finally {
+      setPaying(null);
+    }
+  }
 
   async function confirmSession(sessionId: string) {
     setConfirming(sessionId);
     const supabase = createClient();
-    await supabase.from('faculty_sessions').update({
-      student_confirmed_at: new Date().toISOString(),
-      status: 'reviewed',
-      payout_status: 'released',
-    }).eq('id', sessionId);
-    setSessions((prev) => prev.map((s) => s.id === sessionId ? { ...s, status: 'reviewed', student_confirmed_at: new Date().toISOString() } : s));
+    const { data: { session } } = await supabase.auth.getSession();
+    await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/session-request`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+        },
+        body: JSON.stringify({ action: 'confirm', sessionId }),
+      }
+    );
+    setSessions((prev) => prev.map((s) =>
+      s.id === sessionId ? { ...s, status: 'completed', student_confirmed_at: new Date().toISOString() } : s
+    ));
     setConfirming(null);
   }
 
@@ -144,7 +223,25 @@ export default function MySessionsPage() {
                     </p>
                   )}
 
-                  {s.meeting_link && ['accepted', 'paid', 'confirmed'].includes(s.status) && (
+                  {/* Pay to confirm slot — shown when faculty has accepted but student hasn't paid */}
+                  {s.status === 'accepted' && (
+                    <div className="mt-3 rounded-xl p-4" style={{ background: 'rgba(201,153,58,0.08)', border: '0.5px solid rgba(201,153,58,0.25)' }}>
+                      <p className="text-xs mb-3" style={{ color: '#E5B86A', lineHeight: 1.6 }}>
+                        ✓ {facultyMap[s.faculty_id]?.full_name ?? 'Faculty'} accepted your request.
+                        Pay now to confirm your slot.
+                      </p>
+                      <button
+                        onClick={() => payForSession(s)}
+                        disabled={paying === s.id}
+                        className="w-full py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+                        style={{ background: '#C9993A', color: '#060F1D' }}
+                      >
+                        {paying === s.id ? 'Opening payment…' : `Pay ₹${(s.fee_paise / 100).toLocaleString('en-IN')} to confirm slot →`}
+                      </button>
+                    </div>
+                  )}
+
+                  {s.meeting_link && ['paid', 'confirmed'].includes(s.status) && (
                     <a href={s.meeting_link} target="_blank" rel="noopener noreferrer"
                       className="inline-block text-xs px-3 py-1.5 rounded-lg mb-2 font-semibold"
                       style={{ background: 'rgba(99,102,241,0.12)', color: '#818CF8', textDecoration: 'none' }}>
@@ -152,7 +249,7 @@ export default function MySessionsPage() {
                     </a>
                   )}
 
-                  {/* Confirm session happened */}
+                  {/* Confirm session happened — calls edge function, sets payout_status=pending for admin review */}
                   {s.status === 'completed' && !s.student_confirmed_at && (
                     <button onClick={() => confirmSession(s.id)} disabled={confirming === s.id}
                       className="text-xs px-4 py-2 rounded-lg font-semibold mt-2 transition-all disabled:opacity-50"

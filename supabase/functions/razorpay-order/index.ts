@@ -140,21 +140,9 @@ Deno.serve(async (req: Request) => {
     }
 
     // Parse request
-    type RequestBody = { planId?: string; billing?: string };
+    type RequestBody = { planId?: string; billing?: string; sessionId?: string };
     const body = (await req.json()) as RequestBody;
-    const { planId: rawPlanId, billing = 'monthly' } = body;
-
-    // Normalise: 'plus' + 'monthly' → 'plus-monthly'
-    const planId = rawPlanId && rawPlanId !== 'institution'
-      ? `${rawPlanId}-${billing}`
-      : rawPlanId;
-
-    if (!planId || !PLAN_AMOUNTS[planId]) {
-      return new Response(JSON.stringify({ error: 'Invalid planId' }), {
-        status: 400,
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-      });
-    }
+    const { planId: rawPlanId, billing = 'monthly', sessionId } = body;
 
     if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
       return new Response(JSON.stringify({ error: 'Payment gateway not configured' }), {
@@ -191,11 +179,77 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // ── Faculty session payment ───────────────────────────────────────────────
+    if (sessionId) {
+      const { data: sess, error: sessErr } = await admin
+        .from('faculty_sessions')
+        .select('id, fee_paise, status, student_id, topic, faculty_id')
+        .eq('id', sessionId)
+        .eq('student_id', user.id)
+        .eq('status', 'accepted')
+        .single();
+
+      if (sessErr || !sess) {
+        return new Response(JSON.stringify({ error: 'Session not found or not payable' }), {
+          status: 404,
+          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const session = sess as {
+        id: string; fee_paise: number; status: string;
+        student_id: string; topic: string; faculty_id: string;
+      };
+
+      const receipt = `sess_${session.id.slice(0, 8)}_${Date.now()}`;
+      const rzpOrder = await createRazorpayOrder({
+        amountPaise: session.fee_paise,
+        receipt,
+        notes: {
+          user_id:    user.id,
+          session_id: session.id,
+          product:    'EdUsaathiAI Faculty Session',
+        },
+      });
+
+      // Store order ID on the session row so webhook can look it up
+      await admin
+        .from('faculty_sessions')
+        .update({ razorpay_order_id: rzpOrder.orderId, updated_at: new Date().toISOString() })
+        .eq('id', session.id);
+
+      return new Response(
+        JSON.stringify({
+          orderId:   rzpOrder.orderId,
+          amount:    rzpOrder.amount,
+          currency:  rzpOrder.currency,
+          keyId:     RAZORPAY_KEY_ID,
+          sessionId: session.id,
+          topic:     session.topic,
+        }),
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ── Subscription payment (existing flow) ─────────────────────────────────
+    // Normalise: 'plus' + 'monthly' → 'plus-monthly'
+    const planId = rawPlanId && rawPlanId !== 'institution'
+      ? `${rawPlanId}-${billing}`
+      : rawPlanId;
+
+    if (!planId || !PLAN_AMOUNTS[planId]) {
+      return new Response(JSON.stringify({ error: 'Invalid planId' }), {
+        status: 400,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+
     const plan = PLAN_AMOUNTS[planId];
     const amountPaise = plan.amountInr * 100;
     const receipt = `eusa_${user.id.slice(0, 8)}_${Date.now()}`;
 
-    // Create Razorpay order
     const rzpOrder = await createRazorpayOrder({
       amountPaise,
       receipt,
@@ -205,9 +259,6 @@ Deno.serve(async (req: Request) => {
         product: 'EdUsaathiAI',
       },
     });
-
-    // Insert subscription ledger row (status: 'created')
-    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const { data: subRow, error: insertError } = await admin
       .from('subscriptions')

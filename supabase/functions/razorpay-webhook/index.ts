@@ -254,7 +254,44 @@ async function handlePaymentCaptured(
     .maybeSingle();
 
   if (fetchError || !subRow) {
-    console.error('razorpay-webhook: subscription lookup failed', fetchError?.message ?? 'not found');
+    // Not a subscription order — check if it's a faculty session payment
+    const { data: sessRow } = await admin
+      .from('faculty_sessions')
+      .select('id, student_id, faculty_id, fee_paise, status, topic')
+      .eq('razorpay_order_id', orderId)
+      .maybeSingle();
+
+    if (sessRow) {
+      const sess = sessRow as {
+        id: string; student_id: string; faculty_id: string;
+        fee_paise: number; status: string; topic: string;
+      };
+
+      if (sess.status === 'paid') {
+        console.log(`razorpay-webhook: session '${sess.id}' already paid — skipping`);
+        return;
+      }
+
+      await admin.from('faculty_sessions').update({
+        status:               'paid',
+        razorpay_payment_id:  paymentId ?? null,
+        paid_at:              new Date().toISOString(),
+        updated_at:           new Date().toISOString(),
+      }).eq('id', sess.id);
+
+      // Notify faculty
+      await admin.from('notifications').insert({
+        user_id:    sess.faculty_id,
+        type:       'session_paid',
+        title:      'Session payment received',
+        body:       `A student has paid for "${sess.topic}". Prepare for the session!`,
+        action_url: '/faculty/sessions',
+      });
+
+      console.log(`razorpay-webhook: faculty session '${sess.id}' marked paid`);
+    } else {
+      console.error('razorpay-webhook: no subscription or session found for order', orderId);
+    }
     return;
   }
 
