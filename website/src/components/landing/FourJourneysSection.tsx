@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,7 @@ type RoleContent = {
   ctaLink: string;
   ctaColor: string;
   note: string;
+  spotlightCard?: ReactNode;
 };
 
 const TABS: { id: RoleId; emoji: string; label: string }[] = [
@@ -43,16 +45,45 @@ const ROLE_CONTENT: Record<RoleId, RoleContent> = {
   faculty: {
     heading: 'Your knowledge. India\'s students.',
     subheading:
-      'EdUsaathiAI gives verified faculty a platform to reach students far beyond the walls of their classroom.',
+      'EdUsaathiAI gives verified faculty a platform to teach, earn, and reach students far beyond their classroom walls.',
     bullets: [
-      'Answer student questions and earn your Faculty Verified ✓ badge',
+      'Earn ₹800–₹4,000 per 1:1 student session',
+      'Announce lectures — students book seats and pay upfront',
+      'Teach a series of 3–5 lectures, earn per session completed',
       'Your expertise reaches students across India — not just your college',
-      'Free Plus access during faculty beta programme',
+      'Faculty Verified ✓ badge on every answer',
+      'AI tools — question paper generator, study material creator, analytics',
+      'Retired? Our Emeritus programme welcomes you back to the classroom',
     ],
-    cta: 'Join as Faculty →',
+    cta: 'Join as Faculty — Start Earning →',
     ctaLink: '/login?role=faculty',
     ctaColor: '#4ADE80',
     note: 'Faculty badge verified within 48 hours.',
+    spotlightCard: (
+      <div style={{
+        background: 'rgba(201,153,58,0.1)',
+        border: '0.5px solid rgba(201,153,58,0.35)',
+        borderRadius: '12px',
+        padding: '12px 16px',
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+      }}>
+        <span style={{ fontSize: '24px' }}>💰</span>
+        <div>
+          <p style={{ fontSize: '13px', fontWeight: '700', color: '#C9993A', margin: '0 0 2px' }}>
+            Faculty earning potential
+          </p>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.5 }}>
+            5 sessions/month at ₹1,500 =
+            <strong style={{ color: '#fff' }}> ₹6,000/month</strong>
+            {' '}· 30-seat lecture at ₹1,000 =
+            <strong style={{ color: '#fff' }}> ₹24,000 in one evening</strong>
+          </p>
+        </div>
+      </div>
+    ),
   },
   public: {
     heading: 'Curious minds. No exam required.',
@@ -235,6 +266,9 @@ export function FourJourneysSection() {
               </div>
             ))}
           </div>
+
+          {/* Earning spotlight (faculty only) */}
+          {content.spotlightCard}
 
           {/* CTA row */}
           <div style={{

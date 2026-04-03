@@ -431,7 +431,7 @@ function SaathiStep({
 
 // ── Step 2: Profile Form (level-adaptive) ─────────────────────────────────────
 
-function ProfileStep({
+export function ProfileStep({
   academicLevel,
   examTargetFromLevel,
   onContinue,
@@ -801,7 +801,8 @@ function OnboardInner() {
 
     // Read searchParams synchronously before async work (avoids stale closure)
     const roleParam = searchParams.get('role') as DbUserRole | null;
-    if (roleParam) setUrlRole(roleParam);
+    function applyRole() { if (roleParam) setUrlRole(roleParam); }
+    applyRole();
 
     let cancelled = false;
 
@@ -879,6 +880,7 @@ function OnboardInner() {
     });
 
     return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // ← EMPTY — runs exactly once on mount only
 
   // ── Step 0: Academic level ─────────────────────────────────────────────────
