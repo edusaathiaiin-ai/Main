@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
+import { resolveVerticalId } from '@/lib/resolveVertical';
 import { useAuthStore } from '@/stores/authStore';
 import { useChatStore } from '@/stores/chatStore';
 import { SAATHIS } from '@/constants/saathis';
@@ -77,13 +78,7 @@ export function QuestionFeed() {
   // Resolve slug → UUID whenever the active Saathi changes
   useEffect(() => {
     if (!profile) return;
-    const supabase = createClient();
-    supabase
-      .from('verticals')
-      .select('id')
-      .eq('slug', saathiSlug)
-      .single()
-      .then(({ data }) => setVerticalUuid(data?.id ?? null));
+    resolveVerticalId(saathiSlug).then(setVerticalUuid);
   }, [saathiSlug, profile]);
 
   // Fetch questions

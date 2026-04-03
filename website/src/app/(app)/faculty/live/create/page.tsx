@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
+import { resolveVerticalId } from '@/lib/resolveVertical';
 import { useAuthStore } from '@/stores/authStore';
 import { getSubjectChips } from '@/constants/subjectChips';
 import Link from 'next/link';
@@ -79,10 +80,14 @@ export default function CreateLiveSessionPage() {
 
     const supabase = createClient();
 
+    // Resolve saathi slug → UUID (live_sessions.vertical_id has FK to verticals.id)
+    const verticalUuid = await resolveVerticalId(profile.primary_saathi_id ?? '');
+    if (!verticalUuid) { setSaving(false); return; }
+
     // Create session
     const { data: sess, error } = await supabase.from('live_sessions').insert({
       faculty_id: profile.id,
-      vertical_id: profile.primary_saathi_id,
+      vertical_id: verticalUuid,
       title: title.trim(),
       description: description.trim(),
       preparation_notes: prepNotes.trim() || null,
