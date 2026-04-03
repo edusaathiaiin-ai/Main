@@ -7,6 +7,9 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
 import Link from 'next/link';
+import { VerificationBanner } from '@/components/faculty/VerificationBanner';
+import { FacultyBadge } from '@/components/faculty/FacultyBadge';
+import { getFacultyBadgeType } from '@/lib/faculty-badge';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -14,6 +17,7 @@ type VerificationStatus = 'pending' | 'verified' | 'rejected';
 
 type FacultyProfile = {
   id: string;
+  user_id: string;
   institution_name: string;
   department: string;
   designation: string | null;
@@ -22,6 +26,9 @@ type FacultyProfile = {
   verification_status: VerificationStatus;
   verified_at: string | null;
   rejection_reason: string | null;
+  employment_status: 'active' | 'retired' | 'independent' | null;
+  is_emeritus: boolean;
+  verification_doc_url: string | null;
 };
 
 type BoardQuestion = {
@@ -295,6 +302,16 @@ export default function FacultyPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
+        {/* Verification banner for retired faculty who haven't uploaded a doc */}
+        {faculty && profile && (
+          <VerificationBanner
+            userId={profile.id}
+            employmentStatus={faculty.employment_status ?? 'active'}
+            verificationDocUrl={faculty.verification_doc_url}
+            verificationStatus={faculty.verification_status}
+          />
+        )}
+
         {/* Header card */}
         <motion.div
           initial={{ opacity: 0, y: -12 }}
@@ -311,7 +328,7 @@ export default function FacultyPage() {
                 Welcome, {displayName.split(' ')[0]}
               </h1>
               <div className="flex flex-wrap items-center gap-2">
-                <VerificationBadge status={faculty?.verification_status ?? 'pending'} />
+                {faculty && <FacultyBadge type={getFacultyBadgeType({ verification_status: faculty.verification_status, employment_status: faculty.employment_status ?? 'active', is_emeritus: faculty.is_emeritus })} size="md" />}
                 {faculty?.subject_expertise.map((s) => <SubjectTag key={s} label={s} />)}
               </div>
             </div>

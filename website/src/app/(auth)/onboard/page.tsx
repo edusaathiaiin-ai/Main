@@ -16,6 +16,7 @@ import {
 import { SoulProfileForm, type SoulProfileData } from '@/components/onboard/SoulProfileForm';
 import { computeProfileCompleteness } from '@/lib/profileCompleteness';
 import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete';
+import { validateFacultyEmail } from '@/lib/faculty-email-validation';
 import type { Saathi, Profile } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -782,6 +783,9 @@ function OnboardInner() {
   const [facultyEmployment, setFacultyEmployment] = useState<'active' | 'retired' | 'independent'>('active');
   const [facultyRetirementYear, setFacultyRetirementYear] = useState('');
   const [facultyFormerInstitution, setFacultyFormerInstitution] = useState('');
+  const [facultyIndependentCredential, setFacultyIndependentCredential] = useState('');
+  const [facultyIndependentLinkedin, setFacultyIndependentLinkedin] = useState('');
+  const [facultyEmailValidation, setFacultyEmailValidation] = useState<import('@/lib/faculty-email-validation').EmailValidationResult | null>(null);
 
   // Institution-specific state
   const [orgName, setOrgName] = useState('');
@@ -882,6 +886,21 @@ function OnboardInner() {
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // ← EMPTY — runs exactly once on mount only
+
+  // ── Faculty email validation — runs when employment status changes ──────────
+  useEffect(() => {
+    if (urlRole !== 'faculty' || !profile) return;
+    let cancelled = false;
+    async function checkEmail() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email || cancelled) return;
+      const result = await validateFacultyEmail(user.email, facultyEmployment, supabase);
+      if (!cancelled) setFacultyEmailValidation(result);
+    }
+    void checkEmail();
+    return () => { cancelled = true; };
+  }, [urlRole, facultyEmployment, profile]);
 
   // ── Step 0: Academic level ─────────────────────────────────────────────────
   async function handleAcademicLevel(
@@ -1017,34 +1036,33 @@ function OnboardInner() {
     }
     // Upsert faculty profile (enriched)
     if (urlRole === 'faculty') {
-      // Email domain validation — block generic email providers (skip for retired faculty)
-      if (facultyEmployment !== 'retired') {
-        const BLOCKED_DOMAINS = ['gmail.com', 'yahoo.com', 'yahoo.in', 'hotmail.com', 'outlook.com', 'live.com', 'rediffmail.com', 'protonmail.com', 'aol.com', 'icloud.com', 'mail.com'];
-        const userEmail = (await supabase.auth.getUser()).data?.user?.email ?? '';
-        const emailDomain = userEmail.split('@')[1]?.toLowerCase() ?? '';
-        const isGenericEmail = BLOCKED_DOMAINS.includes(emailDomain);
-
-        if (isGenericEmail) {
-          setFacultyEmailError(`Faculty registration requires an institutional email. "${emailDomain}" is not accepted. Please use your university email (e.g. yourname@iitb.ac.in or yourname@university.edu.in). If your institution doesn't provide email, contact support@edusaathiai.in.`);
-          setSaving(false);
-          return;
-        }
+      // Email domain validation via allowed_domains table
+      const userEmail = (await supabase.auth.getUser()).data?.user?.email ?? '';
+      const validation = await validateFacultyEmail(userEmail, facultyEmployment, supabase);
+      if (!validation.allowed) {
+        setFacultyEmailError(validation.message);
+        setSaving(false);
+        return;
       }
+      setFacultyEmailValidation(validation);
 
       const expertiseTags = [
         ...(facultyDepartment.trim() ? [facultyDepartment.trim()] : []),
         ...facultySpecialities,
       ].slice(0, 8);
 
+      // Auto-verify if domain is in allowed_domains with auto_verify = true
+      const autoVerified = validation.status === 'auto_verify';
+
       await supabase.from('faculty_profiles').upsert({
         user_id: userId,
-        institution_name: facultyInstitution.trim() || data.fullName.trim(),
+        institution_name: validation.institution_name ?? (facultyInstitution.trim() || data.fullName.trim()),
         department: facultyDepartment.trim() || 'General',
         designation: facultyDesignation.trim() || null,
         subject_expertise: expertiseTags,
         years_experience: parseInt(facultyYrsExp) || 0,
         highest_qualification: facultyQualification || null,
-        linkedin_url: facultyLinkedin.trim() || null,
+        linkedin_url: (facultyLinkedin.trim() || facultyIndependentLinkedin.trim()) || null,
         google_scholar_url: facultyScholar.trim() || null,
         current_research: facultyResearch.trim() || null,
         thesis_title: facultyThesis.trim() || null,
@@ -1052,7 +1070,10 @@ function OnboardInner() {
         employment_status: facultyEmployment,
         retirement_year: facultyEmployment === 'retired' && facultyRetirementYear ? parseInt(facultyRetirementYear) : null,
         former_institution: facultyEmployment === 'retired' ? (facultyFormerInstitution.trim() || null) : null,
-        verification_status: 'pending',
+        independent_credential: facultyEmployment === 'independent' ? (facultyIndependentCredential.trim() || null) : null,
+        verification_status: autoVerified ? 'verified' : 'pending',
+        badge_type: autoVerified ? 'faculty_verified' : 'pending',
+        ...(autoVerified ? { verified_at: new Date().toISOString() } : {}),
       }, { onConflict: 'user_id' });
     }
 
@@ -1174,10 +1195,25 @@ function OnboardInner() {
                       </div>
                     </div>
 
-                    {/* Email domain warning */}
+                    {/* Email validation status */}
+                    {facultyEmailValidation && !facultyEmailError && (() => {
+                      const v = facultyEmailValidation;
+                      const cfg = v.status === 'auto_verify'
+                        ? { bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.3)', color: '#4ADE80', icon: '✅' }
+                        : v.status === 'skipped'
+                        ? { bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.25)', color: '#93C5FD', icon: 'ℹ️' }
+                        : v.status === 'blocked'
+                        ? { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.25)', color: '#F87171', icon: '❌' }
+                        : { bg: 'rgba(251,146,60,0.08)', border: 'rgba(251,146,60,0.25)', color: '#FB923C', icon: '🟡' };
+                      return (
+                        <div className="rounded-xl p-3 mb-3" style={{ background: cfg.bg, border: `0.5px solid ${cfg.border}` }}>
+                          <p className="text-xs" style={{ color: cfg.color }}>{cfg.icon} {v.message}</p>
+                        </div>
+                      );
+                    })()}
                     {facultyEmailError && (
                       <div className="rounded-xl p-3 mb-4" style={{ background: 'rgba(239,68,68,0.08)', border: '0.5px solid rgba(239,68,68,0.25)' }}>
-                        <p className="text-xs" style={{ color: '#F87171' }}>{facultyEmailError}</p>
+                        <p className="text-xs" style={{ color: '#F87171' }}>❌ {facultyEmailError}</p>
                       </div>
                     )}
 
@@ -1233,9 +1269,43 @@ function OnboardInner() {
                               </div>
                             </div>
                             <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                              Verification: retirement letter, pension slip, or last appointment letter accepted.
-                              Admin verifies within 48 hours.
+                              Upload your verification document (retirement letter, pension slip, or appointment letter)
+                              from your faculty dashboard after signup. Admin verifies within 48 hours.
                             </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Independent faculty: credential fields */}
+                      {facultyEmployment === 'independent' && (
+                        <div className="rounded-xl p-4" style={{ background: 'rgba(45,212,191,0.05)', border: '0.5px solid rgba(45,212,191,0.2)' }}>
+                          <p className="text-xs font-semibold mb-1" style={{ color: '#2DD4BF' }}>🌐 Independent Professional</p>
+                          <p className="text-[10px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                            Tell us about your credentials. Our team reviews within 48 hours and issues an Expert Verified badge.
+                          </p>
+                          <div className="space-y-2">
+                            <div>
+                              <label className="block text-[9px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Your credentials *</label>
+                              <textarea
+                                value={facultyIndependentCredential}
+                                onChange={(e) => setFacultyIndependentCredential(e.target.value.slice(0, 300))}
+                                placeholder="e.g. PhD IIT Bombay, 10 years industry at Reliance, SEBI-registered advisor..."
+                                rows={3}
+                                className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none resize-none"
+                                style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                              />
+                              <p className="text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>{300 - facultyIndependentCredential.length} chars remaining</p>
+                            </div>
+                            <div>
+                              <label className="block text-[9px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>LinkedIn URL (strongly recommended)</label>
+                              <input
+                                value={facultyIndependentLinkedin}
+                                onChange={(e) => setFacultyIndependentLinkedin(e.target.value)}
+                                placeholder="linkedin.com/in/yourprofile"
+                                className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none"
+                                style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                              />
+                            </div>
                           </div>
                         </div>
                       )}

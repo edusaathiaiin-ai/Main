@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { ActionModal } from '@/components/ui/ActionModal';
 import {
   verifyFaculty,
   rejectFaculty,
   markEmeritus,
   revokeFacultyVerification,
+  verifyIndependent,
 } from './actions';
 
 export function VerifyButton({
@@ -139,6 +141,65 @@ export function EmeritusButton({
             className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
           />
         </div>
+      </div>
+    </ActionModal>
+  );
+}
+
+export function DownloadDocButton({ userId }: { userId: string }) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleDownload() {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/faculty-doc?userId=${encodeURIComponent(userId)}`);
+      if (!res.ok) { alert('Could not fetch document link'); return; }
+      const { url } = await res.json() as { url: string };
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={() => void handleDownload()}
+      disabled={loading}
+      className="text-xs bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+    >
+      {loading ? '…' : '📄 View Doc'}
+    </button>
+  );
+}
+
+export function ExpertVerifyButton({
+  userId,
+  name,
+}: {
+  userId: string;
+  name: string;
+}) {
+  return (
+    <ActionModal
+      trigger={
+        <button className="text-xs bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 font-semibold px-3 py-1.5 rounded-lg transition-colors">
+          ✓ Expert Verify
+        </button>
+      }
+      title={`Verify independent expert — ${name}`}
+      confirmLabel="Confirm Expert Verification"
+      action={async (fd) => {
+        fd.set('user_id', userId);
+        await verifyIndependent(fd);
+      }}
+    >
+      <div>
+        <label className="text-xs text-slate-400 mb-1 block">Admin note (optional)</label>
+        <input
+          name="note"
+          placeholder="e.g. Verified via LinkedIn profile"
+          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-teal-500"
+        />
       </div>
     </ActionModal>
   );

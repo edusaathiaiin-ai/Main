@@ -88,3 +88,30 @@ export async function revokeFacultyVerification(formData: FormData) {
 
   revalidatePath('/faculty');
 }
+
+export async function verifyIndependent(formData: FormData) {
+  await requireAdmin();
+  const userId = formData.get('user_id') as string;
+  const note = formData.get('note') as string;
+  if (!userId) return;
+
+  const admin = getAdminClient();
+
+  await admin
+    .from('faculty_profiles')
+    .update({
+      verification_status: 'verified',
+      badge_type: 'expert_verified',
+      verified_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId);
+
+  await admin.from('moderation_flags').insert({
+    flag_type: 'faculty_verified',
+    content: `Independent expert verified: ${userId}${note ? ` — ${note}` : ''}`,
+    reported_by: null,
+    resolved: true,
+  });
+
+  revalidatePath('/faculty');
+}

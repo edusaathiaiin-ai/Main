@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { SAATHIS } from '@/constants/saathis';
 import Link from 'next/link';
+import { FacultyBadge } from '@/components/faculty/FacultyBadge';
+import { getFacultyBadgeType } from '@/lib/faculty-badge';
 
 type FacultyData = {
   id: string;
@@ -18,6 +20,11 @@ type FacultyData = {
     department: string;
     designation: string | null;
     verification_status: string;
+    employment_status: 'active' | 'retired' | 'independent' | null;
+    is_emeritus: boolean;
+    retirement_year: number | null;
+    former_institution: string | null;
+    badge_type: string | null;
     session_bio: string | null;
     expertise_tags: string[];
     research_areas: string | null;
@@ -90,6 +97,7 @@ export default function FacultyProfilePage() {
         .from('profiles')
         .select(`id, full_name, city, primary_saathi_id, faculty_profiles (
           institution_name, department, designation, verification_status,
+          employment_status, is_emeritus, retirement_year, former_institution, badge_type,
           session_bio, expertise_tags, research_areas, session_active,
           session_fee_doubt, session_fee_research, session_fee_deepdive,
           offers_doubt_session, offers_research_session, offers_deepdive_session,
@@ -245,7 +253,14 @@ export default function FacultyProfilePage() {
   const fp = faculty.faculty_profiles;
   const saathi = SAATHIS.find((s) => s.id === faculty.primary_saathi_id);
   const color = saathi?.primary ?? '#C9993A';
-  const isVerified = fp.verification_status === 'verified';
+  const badgeType = getFacultyBadgeType({
+    verification_status: fp.verification_status,
+    employment_status: fp.employment_status ?? 'active',
+    is_emeritus: fp.is_emeritus,
+  });
+  const isEmeritus = fp.is_emeritus && fp.verification_status === 'verified';
+  const isIndependent = fp.employment_status === 'independent';
+  const heroBorderLeft = isEmeritus ? '3px solid #C9993A' : isIndependent ? '3px solid #2DD4BF' : undefined;
 
   const selectedFee = (fp[`session_fee_${selectedType}` as keyof typeof fp] as number) ?? 100000;
 
@@ -264,19 +279,30 @@ export default function FacultyProfilePage() {
             {/* Hero */}
             <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
               className="rounded-2xl p-6 mb-6"
-              style={{ background: 'rgba(255,255,255,0.03)', border: `0.5px solid ${color}25` }}>
+              style={{ background: 'rgba(255,255,255,0.03)', border: `0.5px solid ${color}25`, ...(heroBorderLeft ? { borderLeft: heroBorderLeft } : {}) }}>
               <div className="flex gap-4 items-start mb-4">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl shrink-0"
                   style={{ background: `${color}20`, border: `2px solid ${color}40` }}>
                   {saathi?.emoji ?? '\u{1F393}'}
                 </div>
                 <div>
-                  <h1 className="font-playfair text-2xl font-bold text-white mb-1">{faculty.full_name}</h1>
-                  <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    {fp.designation} &middot; {fp.institution_name}{faculty.city ? ` \u00B7 ${faculty.city}` : ''}
-                  </p>
+                  <h1 className="font-playfair text-2xl font-bold text-white mb-1">
+                    {faculty.full_name}{isEmeritus ? ' ✦ Emeritus' : ''}
+                  </h1>
+                  {isEmeritus ? (
+                    <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      Former: {fp.former_institution ?? fp.institution_name}
+                      {fp.retirement_year ? ` · Retired ${fp.retirement_year}` : ''}
+                      {fp.years_experience ? ` · ${fp.years_experience} years of experience` : ''}
+                      {faculty.city ? ` · ${faculty.city}` : ''}
+                    </p>
+                  ) : (
+                    <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      {fp.designation} &middot; {fp.institution_name}{faculty.city ? ` \u00B7 ${faculty.city}` : ''}
+                    </p>
+                  )}
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {isVerified && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ADE80' }}>Verified Faculty</span>}
+                    <FacultyBadge type={badgeType} size="sm" />
                     {fp.open_to_research && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(99,102,241,0.12)', color: '#818CF8' }}>Open to Research</span>}
                     <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>{fp.years_experience}y experience</span>
                     {fp.total_sessions_completed > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>{fp.total_sessions_completed} sessions</span>}
