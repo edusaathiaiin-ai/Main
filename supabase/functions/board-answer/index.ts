@@ -10,6 +10,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { captureError } from '../_shared/sentry.ts';
+import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -138,6 +139,12 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Rate limit: 5 board questions per user per minute (fire-and-forget caller)
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const rateLimitId = authHeader.slice(-16) || 'anon'; // last 16 chars of JWT as cheap ID
+    const allowed = await checkRateLimit('board-answer', rateLimitId, 5, 60);
+    if (!allowed) return rateLimitResponse(CORS_HEADERS);
+
     const { questionId, saathiId } = await req.json() as {
       questionId: string;
       saathiId: string;

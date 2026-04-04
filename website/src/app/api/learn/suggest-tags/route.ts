@@ -1,12 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+// Simple in-process rate limiter — no Redis needed for this low-volume endpoint.
+// 20 requests per user per minute (generous for tag suggestions on keystroke).
+const userRequestCounts = new Map<string, { count: number; resetAt: number }>();
+
+function isRateLimited(userId: string): boolean {
+  const now = Date.now();
+  const entry = userRequestCounts.get(userId);
+  if (!entry || now > entry.resetAt) {
+    userRequestCounts.set(userId, { count: 1, resetAt: now + 60_000 });
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > 20;
+}
+
 export async function POST(req: NextRequest) {
   // Auth check
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (isRateLimited(user.id)) {
+    return NextResponse.json({ tags: [] }, { status: 429 });
   }
 
   const body = await req.json() as { topic?: string; vertical_id?: string };

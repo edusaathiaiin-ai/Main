@@ -9,6 +9,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { captureError } from '../_shared/sentry.ts';
+import { checkRateLimit } from '../_shared/rateLimit.ts';
 import { SUBJECT_GUARDRAILS } from '../chat/guardrails.ts';
 import { detectViolation } from '../_shared/violations.ts';
 import { checkSuspension, recordViolationAndCheck } from '../_shared/suspensions.ts';
@@ -116,6 +117,13 @@ serve(async (req) => {
   const from: string = message.from; // e.g. "919825123456"
   const waPhone = `+${from}`;
   const messageId: string = message.id;
+
+  // Rate limit: 20 messages per phone number per minute (Meta sends retries — this prevents loops)
+  const waAllowed = await checkRateLimit('whatsapp-webhook', from, 20, 60);
+  if (!waAllowed) {
+    // Return 200 to Meta so it doesn't retry — just silently drop
+    return new Response('OK', { status: 200 });
+  }
 
   // Only handle text messages at launch
   if (message.type !== 'text') {

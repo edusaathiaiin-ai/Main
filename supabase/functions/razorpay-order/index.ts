@@ -10,6 +10,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -138,6 +139,10 @@ Deno.serve(async (req: Request) => {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
+
+    // Rate limit: 5 order creations per user per minute
+    const allowed = await checkRateLimit('razorpay-order', user.id, 5, 60);
+    if (!allowed) return rateLimitResponse(CORS_HEADERS);
 
     // Parse request
     type RequestBody = { planId?: string; billing?: string; sessionId?: string };

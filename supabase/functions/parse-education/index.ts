@@ -21,6 +21,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
 
 // ── Env ───────────────────────────────────────────────────────────────────────
 
@@ -228,6 +229,10 @@ Deno.serve(async (req: Request) => {
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
+
+  // Rate limit: 10 parse calls per user per minute (onboarding only — very generous)
+  const allowed = await checkRateLimit('parse-education', user.id, 10, 60);
+  if (!allowed) return rateLimitResponse(CORS_HEADERS);
 
   // ── 2. Parse body ──────────────────────────────────────────────────────────
 

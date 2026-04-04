@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -109,6 +110,11 @@ Deno.serve(async (req: Request) => {
     const deviceId = body.deviceId?.trim() ?? '';
 
     if (action === 'precheck') {
+      // Rate limit precheck by IP — 20 per minute (unauthenticated endpoint)
+      const ip = extractClientIp(req) ?? 'unknown';
+      const precheckAllowed = await checkRateLimit('auth-precheck', ip, 20, 60);
+      if (!precheckAllowed) return rateLimitResponse(CORS_HEADERS);
+
       // Block device during precheck (new registrations only — user not yet authenticated)
       if (deviceId.length > 0 && (await deviceExists(admin, deviceId))) {
         return new Response(JSON.stringify({ error: 'Account exists on this device' }), {
@@ -164,6 +170,10 @@ Deno.serve(async (req: Request) => {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
+
+    // Rate limit register_profile by user ID — 5 per minute
+    const registerAllowed = await checkRateLimit('auth-register', user.id, 5, 60);
+    if (!registerAllowed) return rateLimitResponse(CORS_HEADERS);
 
     // Block only if device belongs to a DIFFERENT user (returning users on their own device must pass)
     if (deviceId.length > 0) {
