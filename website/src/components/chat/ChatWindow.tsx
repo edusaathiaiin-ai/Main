@@ -758,8 +758,16 @@ export function ChatWindow() {
       className="flex h-screen w-full overflow-hidden"
       style={{
         ...theme,
-        background: 'var(--bg-primary)',
-        color: 'var(--text-primary)',
+        // Hex fallback first — oklch not supported in older Chrome/Edge on Windows
+        background: '#0B1F3A',
+        color: '#ffffff',
+        // CSS var overrides the fallback when oklch is supported
+        ...(typeof CSS !== 'undefined' && CSS.supports('color', 'oklch(50% 0 0)')
+          ? {
+              background: 'var(--bg-primary)',
+              color: 'var(--text-primary)',
+            }
+          : {}),
         transition: 'background 0.4s ease, color 0.3s ease',
       }}
     >
@@ -777,7 +785,7 @@ export function ChatWindow() {
       />
 
       {/* Main chat area */}
-      <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+      <main className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         {/* Saathi header */}
         <SaathiHeader
           saathi={activeSaathi}
@@ -870,7 +878,7 @@ export function ChatWindow() {
 
         {/* Messages */}
         <div
-          className="flex-1 overflow-y-auto px-4 py-4 md:px-6"
+          className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6"
           style={{ position: 'relative' }}
         >
           <ChatWatermark saathiSlug={saathiId} />
