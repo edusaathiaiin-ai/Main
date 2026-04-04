@@ -413,18 +413,26 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── Parse body ─────────────────────────────────────────────────────────────
-  let saathiId = 'kanoonsaathi';
+  // saathiId = UUID (for DB queries)
+  // saathiSlug = slug like 'kanoonsaathi' (for subjectHint + staticFallback)
+  let saathiId    = '';
+  let saathiSlug  = 'kanoonsaathi';
   let forceRefresh = false;
   try {
-    const body = await req.json() as { saathiId?: string; forceRefresh?: boolean };
+    const body = await req.json() as {
+      saathiId?: string;
+      saathiSlug?: string;
+      forceRefresh?: boolean;
+    };
     saathiId    = body.saathiId    ?? saathiId;
+    saathiSlug  = body.saathiSlug  ?? saathiSlug;
     forceRefresh = body.forceRefresh ?? false;
   } catch { /* body absent — use defaults */ }
 
   const weekNumber = getISOWeekNumber(new Date());
 
-  // ── Cache check ────────────────────────────────────────────────────────────
-  if (!forceRefresh) {
+  // ── Cache check (use UUID for vertical_id FK) ──────────────────────────────
+  if (!forceRefresh && saathiId) {
     const { data: cached } = await admin
       .from('explore_resources')
       .select('*')
@@ -440,15 +448,19 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // ── Get vertical details ──────────────────────────────────────────────────
-  const { data: vertical } = await admin
-    .from('verticals')
-    .select('id, name')
-    .eq('id', saathiId)
-    .single();
+  // ── Get vertical name for the AI prompt ───────────────────────────────────
+  let saathiName = saathiSlug;
+  if (saathiId) {
+    const { data: vertical } = await admin
+      .from('verticals')
+      .select('name')
+      .eq('id', saathiId)
+      .single();
+    if (vertical?.name) saathiName = vertical.name;
+  }
 
-  const saathiName = vertical?.name ?? saathiId;
-  const slug       = vertical?.id   ?? saathiId;
+  // slug is used for subjectHint() and staticFallback() — NOT for DB queries
+  const slug = saathiSlug;
 
   // ── Generate with Claude ──────────────────────────────────────────────────
   const prompt = `You are curating the definitive weekly reading list for ${saathiName} students in India.
@@ -545,7 +557,7 @@ Today: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long',
 
     const toInsert = parsed.resources.map((r) => ({
       ...r,
-      vertical_id: saathiId,
+      vertical_id: saathiId || null,  // UUID
       week_number: weekNumber,
       curated_by:  'ai',
       // Ensure valid resource_type — default to 'website' if unknown

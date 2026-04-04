@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ExploreClient } from '@/components/explore/ExploreClient'
+import { toSlug } from '@/constants/verticalIds'
 
 export const metadata = {
   title: 'Explore Beyond · EdUsaathiAI',
@@ -23,7 +24,9 @@ export default async function ExplorePage() {
 
   if (!profile) redirect('/onboard')
 
-  return (
-    <ExploreClient saathiId={profile.primary_saathi_id ?? 'kanoonsaathi'} />
-  )
+  // primary_saathi_id is a UUID in the DB — convert to slug for ExploreClient
+  const saathiSlug =
+    toSlug(profile.primary_saathi_id) ?? 'kanoonsaathi'
+
+  return <ExploreClient saathiId={saathiSlug} />
 }

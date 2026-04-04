@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { SAATHIS } from '@/constants/saathis'
+import { toVerticalUuid } from '@/constants/verticalIds'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,9 +57,23 @@ export function ExploreClient({ saathiId }: Props) {
   const [cached, setCached] = useState(false)
   const [updatedLabel, setUpdatedLabel] = useState('')
   const [error, setError] = useState(false)
+  const [errorMsg, setErrorMsg] = useState(
+    'Could not load resources. Try again.'
+  )
 
+  // saathiId is always a slug here (page.tsx converts UUID → slug)
   const saathi = SAATHIS.find((s) => s.id === saathiId)
   const color = saathi?.primary ?? '#C9993A'
+  const saathiName = saathi?.name ?? 'Your Saathi'
+  // UUID for DB operations
+  const verticalUuid = toVerticalUuid(saathiId)
+
+  const sortResources = (list: Resource[]) =>
+    [...list].sort((a, b) => {
+      if (a.is_featured && !b.is_featured) return -1
+      if (!a.is_featured && b.is_featured) return 1
+      return a.display_order - b.display_order
+    })
 
   const fetchResources = useCallback(
     async (forceRefresh: boolean) => {
@@ -66,8 +81,10 @@ export function ExploreClient({ saathiId }: Props) {
       else setLoading(true)
       setError(false)
 
+      const supabase = createClient()
+
+      // ── 1. Try edge function (AI-curated weekly refresh) ─────────────────────
       try {
-        const supabase = createClient()
         const {
           data: { session },
         } = await supabase.auth.getSession()
@@ -81,43 +98,78 @@ export function ExploreClient({ saathiId }: Props) {
               Authorization: `Bearer ${session?.access_token ?? ''}`,
               apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
             },
-            body: JSON.stringify({ saathiId, forceRefresh }),
+            // Send both UUID (for DB) and slug (for subject hints + fallback)
+            body: JSON.stringify({
+              saathiId: verticalUuid ?? saathiId,
+              saathiSlug: saathiId,
+              forceRefresh,
+            }),
           }
         )
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const data = (await res.json()) as {
-          resources: Resource[]
-          cached: boolean
-          week: number
+        if (res.ok) {
+          const data = (await res.json()) as {
+            resources: Resource[]
+            cached: boolean
+            week: number
+          }
+
+          if (data.resources && data.resources.length > 0) {
+            setResources(sortResources(data.resources))
+            setWeek(data.week ?? 0)
+            setCached(data.cached ?? false)
+            setUpdatedLabel(
+              new Date().toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })
+            )
+            setLoading(false)
+            setRefreshing(false)
+            return
+          }
         }
-
-        // Stable sort: featured first, then by display_order
-        const sorted = [...(data.resources ?? [])].sort((a, b) => {
-          if (a.is_featured && !b.is_featured) return -1
-          if (!a.is_featured && b.is_featured) return 1
-          return a.display_order - b.display_order
-        })
-
-        setResources(sorted)
-        setWeek(data.week ?? 0)
-        setCached(data.cached ?? false)
-        setUpdatedLabel(
-          new Date().toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          })
-        )
-      } catch (err) {
-        console.error('Explore fetch error:', err)
-        setError(true)
-      } finally {
-        setLoading(false)
-        setRefreshing(false)
+      } catch {
+        // Edge function failed — try DB fallback below
       }
+
+      // ── 2. DB fallback: query explore_resources directly ─────────────────────
+      if (verticalUuid) {
+        const { data: dbRows, error: dbErr } = await supabase
+          .from('explore_resources')
+          .select('*')
+          .eq('vertical_id', verticalUuid)
+          .order('display_order', { ascending: true })
+
+        if (dbErr) {
+          setErrorMsg(
+            dbErr.code === '42P01'
+              ? 'Explore Beyond is being set up. Check back soon!'
+              : `Error: ${dbErr.message}`
+          )
+          setError(true)
+        } else if (dbRows && dbRows.length > 0) {
+          setResources(sortResources(dbRows as Resource[]))
+          setUpdatedLabel(
+            new Date().toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })
+          )
+        }
+        // If dbRows is empty → shows empty state (not error)
+      } else {
+        setErrorMsg('Could not identify your Saathi. Try refreshing.')
+        setError(true)
+      }
+
+      setLoading(false)
+      setRefreshing(false)
     },
-    [saathiId]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [saathiId, verticalUuid]
   )
 
   useEffect(() => {
@@ -182,7 +234,7 @@ export function ExploreClient({ saathiId }: Props) {
                   color,
                 }}
               >
-                {saathi?.name ?? saathiId} · Treasure Chest
+                {saathiName} · Treasure Chest
               </span>
             </div>
 
@@ -323,9 +375,10 @@ export function ExploreClient({ saathiId }: Props) {
               fontSize: '14px',
               color: 'rgba(255,255,255,0.5)',
               marginBottom: '16px',
+              lineHeight: 1.6,
             }}
           >
-            Could not load resources. Check your connection and try again.
+            {errorMsg}
           </p>
           <button
             onClick={() => fetchResources(false)}
@@ -480,9 +533,21 @@ export function ExploreClient({ saathiId }: Props) {
             color: 'rgba(255,255,255,0.35)',
           }}
         >
-          <p style={{ fontSize: '28px', marginBottom: '12px' }}>📭</p>
-          <p style={{ fontSize: '14px', marginBottom: '16px' }}>
-            No resources found. Your Saathi will curate them now.
+          <p style={{ fontSize: '40px', marginBottom: '12px' }}>🗺️</p>
+          <p
+            style={{
+              fontSize: '14px',
+              fontWeight: '700',
+              color: 'rgba(255,255,255,0.6)',
+              marginBottom: '8px',
+            }}
+          >
+            Treasure chest being filled
+          </p>
+          <p style={{ fontSize: '12px', marginBottom: '20px', lineHeight: 1.6 }}>
+            Curated resources for {saathiName} coming soon.
+            <br />
+            Tap below to generate now.
           </p>
           <button
             onClick={() => fetchResources(true)}
