@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { todayIST } from '@/lib/date';
 import { SAATHIS } from '@/constants/saathis';
 
 type Flashcard = {
@@ -243,7 +244,7 @@ export function FlashcardsClient({ saathiId }: Props) {
     setCards((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayIST();
   const dueCards = cards.filter((c) => c.next_review_date <= today);
   const displayCards = tab === 'due' ? dueCards : cards;
 

@@ -104,6 +104,7 @@ async function sendAnswerEmail(
     body: JSON.stringify({
       from: 'EdUsaathiAI <noreply@edusaathiai.in>',
       to: [email],
+      reply_to: 'support@edusaathiai.in',
       subject: `Your question was answered — ${safeName}`,
       html: `
 <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#0B1F3A;color:#fff;padding:36px;border-radius:16px">

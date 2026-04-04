@@ -370,15 +370,17 @@ export default function InstitutionPage() {
 
   async function updateIfAppStatus(appId: string, status: string) {
     const supabase = createClient();
-    await supabase.from('intern_applications').update({ status }).eq('id', appId);
-    setIfApplicants((prev) => prev.map((a) => (a.id === appId ? { ...a, status } : a)));
+    const { error: appError } = await supabase.from('intern_applications').update({ status }).eq('id', appId);
+    if (!appError) {
+      setIfApplicants((prev) => prev.map((a) => (a.id === appId ? { ...a, status } : a)));
+    }
   }
 
   async function postIfListing() {
     if (!profile || !ifForm.title.trim() || !ifForm.description.trim()) return;
     setIfPosting(true);
     const supabase = createClient();
-    await supabase.from('internship_postings').insert({
+    const { error: ifInsertError } = await supabase.from('internship_postings').insert({
       posted_by: profile.id,
       posting_type: 'institution',
       title: ifForm.title.trim(),
@@ -406,7 +408,7 @@ export default function InstitutionPage() {
     });
     await loadIfPostings();
     setIfPosting(false);
-    setIfPosted(true);
+    if (!ifInsertError) setIfPosted(true);
     setIfForm({ title: '', description: '', responsibilities: '', requirements: '', vertical_id: '', min_depth: 30, min_academic_level: 'any', preferred_subjects_raw: '', duration_months: 3, stipend_monthly: '', is_paid: false, offers_coauthorship: false, offers_certificate: true, location: '', is_remote: false, work_mode: 'onsite', total_seats: 1, application_deadline: '', company_name: '', industry: '', listing_plan: 'basic' });
     setTimeout(() => { setIfPosted(false); setView('intern_finder'); }, 2500);
   }

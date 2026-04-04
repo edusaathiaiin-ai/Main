@@ -19,7 +19,8 @@ const SUPABASE_URL              = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY') ?? '';
 const RESEND_FROM               = Deno.env.get('RESEND_FROM_EMAIL') ?? 'noreply@edusaathiai.in';
-const ADMIN_EMAIL               = 'jaydeep@edusaathiai.in';
+const ADMIN_EMAIL               = Deno.env.get('ADMIN_DIGEST_EMAIL') ?? 'jaydeep@edusaathiai.in';
+const ADMIN_DASHBOARD_URL       = Deno.env.get('ADMIN_DASHBOARD_URL') ?? '${ADMIN_DASHBOARD_URL}';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -146,7 +147,7 @@ function buildDailyHtml(metrics: Awaited<ReturnType<typeof fetchDailyMetrics>>, 
   </div>
 
   <div style="text-align:center;padding-top:16px;border-top:1px solid #1e293b;">
-    <a href="https://edusaathiai-admin.vercel.app/platform-health" style="color:#c9993a;font-size:12px;text-decoration:none;">View Platform Health →</a>
+    <a href="${ADMIN_DASHBOARD_URL}/platform-health" style="color:#c9993a;font-size:12px;text-decoration:none;">View Platform Health →</a>
   </div>
 </div>
 </body>
@@ -216,11 +217,11 @@ function buildWeeklyHtml(
   ${totals.pendingModeration > 0 ? `
   <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:14px;margin-bottom:24px;">
     <p style="color:#ef4444;font-size:13px;margin:0;">⚠️ ${totals.pendingModeration} content flag${totals.pendingModeration !== 1 ? 's' : ''} pending review.</p>
-    <a href="https://edusaathiai-admin.vercel.app/moderation" style="color:#ef4444;font-size:12px;">Review now →</a>
+    <a href="${ADMIN_DASHBOARD_URL}/moderation" style="color:#ef4444;font-size:12px;">Review now →</a>
   </div>` : ''}
 
   <div style="text-align:center;padding-top:16px;border-top:1px solid #1e293b;">
-    <a href="https://edusaathiai-admin.vercel.app" style="color:#c9993a;font-size:12px;text-decoration:none;">Open Admin Dashboard →</a>
+    <a href="${ADMIN_DASHBOARD_URL}" style="color:#c9993a;font-size:12px;text-decoration:none;">Open Admin Dashboard →</a>
   </div>
 </div>
 </body>

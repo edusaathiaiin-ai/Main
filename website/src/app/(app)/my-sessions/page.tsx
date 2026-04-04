@@ -85,14 +85,24 @@ export default function MySessionsPage() {
       const order = await res.json() as { orderId?: string; amount?: number; currency?: string; keyId?: string; error?: string };
       if (!order.orderId || !order.keyId) throw new Error(order.error ?? 'Order creation failed');
 
-      // Load Razorpay checkout script dynamically
+      // Load Razorpay checkout script dynamically (idempotent — skip if already loaded)
       await new Promise<void>((resolve, reject) => {
         if ((window as unknown as Record<string, unknown>).Razorpay) { resolve(); return; }
+        const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+        if (existing) {
+          const poll = setInterval(() => {
+            if ((window as unknown as Record<string, unknown>).Razorpay) { clearInterval(poll); resolve(); }
+          }, 100);
+          setTimeout(() => { clearInterval(poll); reject(new Error('Razorpay load timeout')); }, 10000);
+          return;
+        }
         const script = document.createElement('script');
         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
         script.onload = () => resolve();
         script.onerror = () => reject(new Error('Razorpay script failed to load'));
         document.body.appendChild(script);
+        setTimeout(() => reject(new Error('Razorpay load timeout')), 10000);
       });
 
       const fac = facultyMap[session.faculty_id];

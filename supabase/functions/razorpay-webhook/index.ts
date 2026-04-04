@@ -64,6 +64,7 @@ async function sendRefundEmail(
       body: JSON.stringify({
         from: RESEND_FROM_EMAIL,
         to: [email],
+        reply_to: 'support@edusaathiai.in',
         subject: `Refund processed — ${amountStr} is on its way`,
         html: `
           <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
@@ -115,6 +116,7 @@ async function sendUpgradeEmail(
       body: JSON.stringify({
         from: RESEND_FROM_EMAIL,
         to: [email],
+        reply_to: 'support@edusaathiai.in',
         subject: `Welcome to ${planLabel} - Your upgrade is confirmed`,
         html: `
           <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">

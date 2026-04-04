@@ -206,7 +206,7 @@ export default function FacultyProfilePage() {
     if (!myProfile || !faculty || !requestSubject.trim()) return;
     setRequestSending(true);
     const supabase = createClient();
-    await supabase.from('lecture_requests').insert({
+    const { error: reqError } = await supabase.from('lecture_requests').insert({
       student_id: myProfile.id,
       faculty_id: faculty.id,
       subject: requestSubject.trim().slice(0, 100),
@@ -215,7 +215,7 @@ export default function FacultyProfilePage() {
       upvoter_ids: [myProfile.id],
     });
     setRequestSending(false);
-    setRequestSent(true);
+    if (!reqError) setRequestSent(true);
   }
 
   async function upvoteRequest(requestId: string) {
@@ -223,13 +223,15 @@ export default function FacultyProfilePage() {
     const supabase = createClient();
     const req = publicRequests.find((r) => r.id === requestId);
     if (!req || req.upvoter_ids.includes(myProfile.id) || req.student_id === myProfile.id) return;
-    await supabase.from('lecture_requests').update({
+    const { error: upvoteError } = await supabase.from('lecture_requests').update({
       upvote_count: req.upvote_count + 1,
       upvoter_ids: [...req.upvoter_ids, myProfile.id],
     }).eq('id', requestId);
-    setPublicRequests((prev) => prev.map((r) =>
-      r.id === requestId ? { ...r, upvote_count: r.upvote_count + 1, upvoter_ids: [...r.upvoter_ids, myProfile.id] } : r
-    ));
+    if (!upvoteError) {
+      setPublicRequests((prev) => prev.map((r) =>
+        r.id === requestId ? { ...r, upvote_count: r.upvote_count + 1, upvoter_ids: [...r.upvoter_ids, myProfile.id] } : r
+      ));
+    }
   }
 
   if (loading) {

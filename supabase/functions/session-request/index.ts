@@ -310,6 +310,7 @@ async function sendEmail(to: string, subject: string, body: string) {
     body: JSON.stringify({
       from: 'EdUsaathiAI <support@edusaathiai.in>',
       to: [to],
+      reply_to: 'support@edusaathiai.in',
       subject,
       html: `<div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px"><p style="color:rgba(255,255,255,0.7);line-height:1.7">${body}</p><br><p style="color:rgba(255,255,255,0.3);font-size:11px">EdUsaathiAI &middot; support@edusaathiai.in</p></div>`,
     }),

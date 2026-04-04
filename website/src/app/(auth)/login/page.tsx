@@ -252,7 +252,7 @@ function LoginForm() {
         <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.1)' }} />
       </div>
       <a
-        href="https://wa.me/919XXXXXXXXX?text=Hi"
+        href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER ?? '919XXXXXXXXX'}?text=Hi`}
         target="_blank"
         rel="noopener noreferrer"
         style={{
