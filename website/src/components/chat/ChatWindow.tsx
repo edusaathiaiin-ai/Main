@@ -310,6 +310,8 @@ export function ChatWindow() {
   // Post-upgrade celebration — refresh profile from DB so new plan takes effect
   // Uses a ref to run only once (not on every profile change)
   const upgradeHandled = useRef(false)
+  // Store timer in a ref so React effect cleanup on profile change doesn't cancel it
+  const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (upgradeHandled.current) return
     if (searchParams.get('upgraded') !== 'true') return
@@ -318,35 +320,52 @@ export function ChatWindow() {
 
     // Show celebration immediately
     setShowCelebration(true)
+    // Fix: was '\chat' (backslash = relative path bug) — must be '/chat'
     router.replace('/chat', { scroll: false })
 
     // Poll for webhook to update plan_id (may take 2-5 seconds)
     const supabase = createClient()
     let attempts = 0
     const maxAttempts = 6
+    const capturedProfileId = profile.id
 
     const pollProfile = async () => {
       const { data } = await supabase
         .from('profiles')
         .select('plan_id, subscription_status, subscription_expires_at')
-        .eq('id', profile.id)
+        .eq('id', capturedProfileId)
         .single()
 
       if (data && data.plan_id !== 'free') {
-        useAuthStore.getState().setProfile({ ...profile, ...data })
+        useAuthStore.getState().setProfile({
+          ...useAuthStore.getState().profile!,
+          ...data,
+        })
+        // Re-fetch quota with the confirmed new plan so limit updates immediately
+        fetchQuota(capturedProfileId, data.plan_id)
         return
       }
 
       attempts++
       if (attempts < maxAttempts) {
-        setTimeout(pollProfile, 2000) // retry every 2s
+        setTimeout(pollProfile, 2000)
       }
     }
     void pollProfile()
 
-    const t = setTimeout(() => setShowCelebration(false), 3500)
-    return () => clearTimeout(t)
+    // Store in ref — NOT returned as cleanup — so profile-change re-runs don't cancel it
+    celebrationTimerRef.current = setTimeout(
+      () => setShowCelebration(false),
+      3500
+    )
   }, [searchParams, router, profile])
+
+  // Cleanup celebration timer only on unmount
+  useEffect(() => {
+    return () => {
+      if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current)
+    }
+  }, [])
 
   // Upgrade banner trigger logic — free plan only
   useEffect(() => {
@@ -428,7 +447,7 @@ export function ChatWindow() {
     }
   }, [mode, saathiId])
 
-  async function fetchQuota(userId: string) {
+  async function fetchQuota(userId: string, overridePlanId?: string) {
     const supabase = createClient()
     const { data } = await supabase
       .from('chat_sessions')
@@ -446,7 +465,8 @@ export function ChatWindow() {
       pro: 50,
       unlimited: 9999,
     }
-    const limit = planLimits[profile?.plan_id ?? 'free'] ?? 5
+    const planId = overridePlanId ?? profile?.plan_id ?? 'free'
+    const limit = planLimits[planId] ?? 5
     const used = data.message_count ?? 0
     const coolingUntil = data.cooling_until
       ? new Date(data.cooling_until)
