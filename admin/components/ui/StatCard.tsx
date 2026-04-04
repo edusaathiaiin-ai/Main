@@ -5,13 +5,17 @@ export function StatCard({
   accent = false,
   dot,
 }: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  accent?: boolean;
-  dot?: 'green' | 'red' | 'amber';
+  label: string
+  value: string | number
+  sub?: string
+  accent?: boolean
+  dot?: 'green' | 'red' | 'amber'
 }) {
-  const dotColor = { green: 'bg-emerald-400', red: 'bg-red-400', amber: 'bg-amber-400' };
+  const dotColor = {
+    green: 'bg-emerald-400',
+    red: 'bg-red-400',
+    amber: 'bg-amber-400',
+  }
   return (
     <div
       className={`rounded-2xl border p-5 ${
@@ -26,7 +30,9 @@ export function StatCard({
             className={`inline-block w-2 h-2 rounded-full shrink-0 ${dotColor[dot]}`}
           />
         )}
-        <div className="text-xs text-slate-500 uppercase tracking-wider">{label}</div>
+        <div className="text-xs text-slate-500 uppercase tracking-wider">
+          {label}
+        </div>
       </div>
       <div
         className={`text-3xl font-bold ${accent ? 'text-amber-400' : 'text-white'}`}
@@ -35,5 +41,5 @@ export function StatCard({
       </div>
       {sub && <div className="text-xs text-slate-500 mt-1.5">{sub}</div>}
     </div>
-  );
+  )
 }

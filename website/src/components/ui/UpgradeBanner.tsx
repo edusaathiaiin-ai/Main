@@ -1,7 +1,7 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
+import Link from 'next/link'
+import { motion } from 'framer-motion'
 
 export type UpgradeTrigger =
   | 'session_milestone'
@@ -9,15 +9,15 @@ export type UpgradeTrigger =
   | 'cooling'
   | 'shell_broken'
   | 'board_engaged'
-  | 'news_engaged';
+  | 'news_engaged'
 
 type BannerConfig = {
-  headline: string;
-  subtext: string;
-  cta: string;
-  ctaUrl: string;
-  urgency: 'low' | 'medium' | 'high';
-};
+  headline: string
+  subtext: string
+  cta: string
+  ctaUrl: string
+  urgency: 'low' | 'medium' | 'high'
+}
 
 const BANNER_CONFIGS: Record<UpgradeTrigger, BannerConfig> = {
   session_milestone: {
@@ -29,71 +29,76 @@ const BANNER_CONFIGS: Record<UpgradeTrigger, BannerConfig> = {
   },
   quota_low: {
     headline: 'Running low on chats today',
-    subtext: 'Plus gives you 20 every day. Pro gives you 50. Never stop mid-thought.',
+    subtext:
+      'Plus gives you 20 every day. Pro gives you 50. Never stop mid-thought.',
     cta: 'Remove the limit →',
     ctaUrl: '/pricing?plan=plus&trigger=quota',
     urgency: 'medium',
   },
   cooling: {
     headline: 'Your Saathi is ready. Are you? 🔥',
-    subtext: 'Upgrade to Plus and the cooling period disappears — forever. ₹199/month.',
+    subtext:
+      'Upgrade to Plus and the cooling period disappears — forever. ₹199/month.',
     cta: 'End the wait →',
     ctaUrl: '/pricing?plan=plus&trigger=cooling',
     urgency: 'high',
   },
   shell_broken: {
     headline: 'You just found your direction ✦',
-    subtext: "Don't let daily limits slow what you just started. Plus removes every barrier.",
+    subtext:
+      "Don't let daily limits slow what you just started. Plus removes every barrier.",
     cta: 'Protect your momentum →',
     ctaUrl: '/pricing?plan=plus&trigger=shell',
     urgency: 'high',
   },
   board_engaged: {
     headline: 'Learning from the community?',
-    subtext: 'Plus members post unlimited questions. Faculty answers yours first.',
+    subtext:
+      'Plus members post unlimited questions. Faculty answers yours first.',
     cta: 'Join Plus →',
     ctaUrl: '/pricing?plan=plus&trigger=board',
     urgency: 'low',
   },
   news_engaged: {
     headline: 'Stay ahead in your field',
-    subtext: 'Plus members get research alerts matched to their soul profile. Daily.',
+    subtext:
+      'Plus members get research alerts matched to their soul profile. Daily.',
     cta: 'Get personalised alerts →',
     ctaUrl: '/pricing?plan=plus&trigger=news',
     urgency: 'low',
   },
-};
+}
 
 const URGENCY_BG: Record<string, string> = {
   low: 'rgba(201,153,58,0.12)',
   medium: 'rgba(251,146,60,0.12)',
   high: 'rgba(239,68,68,0.1)',
-};
+}
 const URGENCY_BORDER: Record<string, string> = {
   low: 'rgba(201,153,58,0.35)',
   medium: 'rgba(251,146,60,0.4)',
   high: 'rgba(239,68,68,0.35)',
-};
+}
 const URGENCY_ACCENT: Record<string, string> = {
   low: '#C9993A',
   medium: '#FB923C',
   high: '#F87171',
-};
+}
 
 export function UpgradeBanner({
   trigger,
   studentName,
   onDismiss,
 }: {
-  trigger: UpgradeTrigger;
-  studentName?: string;
-  onDismiss: () => void;
+  trigger: UpgradeTrigger
+  studentName?: string
+  onDismiss: () => void
 }) {
-  const config = BANNER_CONFIGS[trigger];
+  const config = BANNER_CONFIGS[trigger]
 
   function handleUpgrade() {
-    sessionStorage.setItem('upgrade_return_url', window.location.pathname);
-    sessionStorage.setItem('upgrade_trigger', trigger);
+    sessionStorage.setItem('upgrade_return_url', window.location.pathname)
+    sessionStorage.setItem('upgrade_trigger', trigger)
   }
 
   return (
@@ -123,10 +128,26 @@ export function UpgradeBanner({
     >
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: '13px', fontWeight: '600', color: '#ffffff', margin: '0 0 3px' }}>
-          {studentName ? config.headline.replace('[Name]', studentName) : config.headline}
+        <p
+          style={{
+            fontSize: '13px',
+            fontWeight: '600',
+            color: '#ffffff',
+            margin: '0 0 3px',
+          }}
+        >
+          {studentName
+            ? config.headline.replace('[Name]', studentName)
+            : config.headline}
         </p>
-        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.5 }}>
+        <p
+          style={{
+            fontSize: '11px',
+            color: 'rgba(255,255,255,0.5)',
+            margin: 0,
+            lineHeight: 1.5,
+          }}
+        >
           {config.subtext}
         </p>
       </div>
@@ -167,5 +188,5 @@ export function UpgradeBanner({
         ×
       </button>
     </motion.div>
-  );
+  )
 }

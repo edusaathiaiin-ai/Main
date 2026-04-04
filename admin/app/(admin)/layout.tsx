@@ -1,15 +1,15 @@
-import Link from 'next/link';
-import { requireAdmin } from '@/lib/auth';
-import { LogoutButton } from '@/components/LogoutButton';
+import Link from 'next/link'
+import { requireAdmin } from '@/lib/auth'
+import { LogoutButton } from '@/components/LogoutButton'
 
-type NavItem = { href: string; label: string; emoji: string };
-type NavSection = { title?: string; items: NavItem[] };
+type NavItem = { href: string; label: string; emoji: string }
+type NavSection = { title?: string; items: NavItem[] }
 
 const NAV_SECTIONS: NavSection[] = [
   {
     items: [
-      { href: '/users',    label: 'Users',        emoji: '👥' },
-      { href: '/revenue',  label: 'Revenue',      emoji: '💳' },
+      { href: '/users', label: 'Users', emoji: '👥' },
+      { href: '/revenue', label: 'Revenue', emoji: '💳' },
       { href: '/moderation', label: 'Moderation', emoji: '🛡️' },
       { href: '/observability', label: 'Observability', emoji: '📡' },
     ],
@@ -17,34 +17,38 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Session 4',
     items: [
-      { href: '/whatsapp',    label: 'WhatsApp',      emoji: '📱' },
-      { href: '/suspensions', label: 'Suspensions',   emoji: '🚨' },
-      { href: '/faculty',     label: 'Faculty',       emoji: '👨‍🏫' },
-      { href: '/sessions',    label: 'Sessions (1:1)', emoji: '🔍' },
-      { href: '/live',        label: 'Live Lectures', emoji: '🎙️' },
-      { href: '/requests',    label: 'Requests',      emoji: '✉️' },
-      { href: '/financials',  label: 'Financials',    emoji: '💰' },
+      { href: '/whatsapp', label: 'WhatsApp', emoji: '📱' },
+      { href: '/suspensions', label: 'Suspensions', emoji: '🚨' },
+      { href: '/faculty', label: 'Faculty', emoji: '👨‍🏫' },
+      { href: '/sessions', label: 'Sessions (1:1)', emoji: '🔍' },
+      { href: '/live', label: 'Live Lectures', emoji: '🎙️' },
+      { href: '/requests', label: 'Requests', emoji: '✉️' },
+      { href: '/financials', label: 'Financials', emoji: '💰' },
     ],
   },
   {
     title: 'Marketplace',
     items: [
-      { href: '/careers',           label: 'Careers',           emoji: '🎯' },
-      { href: '/learning-intents',  label: 'Learning Intents',  emoji: '🧠' },
+      { href: '/careers', label: 'Careers', emoji: '🎯' },
+      { href: '/learning-intents', label: 'Learning Intents', emoji: '🧠' },
     ],
   },
   {
     title: 'Intelligence',
     items: [
-      { href: '/saathi-stats',    label: 'Saathi Stats',    emoji: '📊' },
-      { href: '/nudge-centre',    label: 'Nudge Centre',    emoji: '🔔' },
+      { href: '/saathi-stats', label: 'Saathi Stats', emoji: '📊' },
+      { href: '/nudge-centre', label: 'Nudge Centre', emoji: '🔔' },
       { href: '/platform-health', label: 'Platform Health', emoji: '⚙️' },
     ],
   },
-];
+]
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  await requireAdmin();
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  await requireAdmin()
   return (
     <div className="flex h-full min-h-screen">
       {/* Sidebar */}
@@ -63,7 +67,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 </div>
               )}
               <div className="space-y-0.5">
-                {section.items.map(n => (
+                {section.items.map((n) => (
                   <Link
                     key={n.href}
                     href={n.href}
@@ -79,15 +83,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </nav>
 
         <div className="px-5 py-4 border-t border-slate-800">
-          <div className="text-xs text-slate-600 mb-2 px-1">edusaathiai-admin.vercel.app</div>
+          <div className="text-xs text-slate-600 mb-2 px-1">
+            edusaathiai-admin.vercel.app
+          </div>
           <LogoutButton />
         </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto bg-slate-950">
-        {children}
-      </main>
+      <main className="flex-1 overflow-auto bg-slate-950">{children}</main>
     </div>
-  );
+  )
 }

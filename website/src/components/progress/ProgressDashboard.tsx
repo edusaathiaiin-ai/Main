@@ -79,14 +79,36 @@ function StatCard({
         padding: '16px 20px',
       }}
     >
-      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+      <p
+        style={{
+          fontSize: '11px',
+          color: 'rgba(255,255,255,0.35)',
+          marginBottom: '6px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}
+      >
         {label}
       </p>
-      <p style={{ fontSize: '28px', fontWeight: '700', color, margin: 0, fontFamily: 'var(--font-playfair)' }}>
+      <p
+        style={{
+          fontSize: '28px',
+          fontWeight: '700',
+          color,
+          margin: 0,
+          fontFamily: 'var(--font-playfair)',
+        }}
+      >
         {value}
       </p>
       {sub && (
-        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>
+        <p
+          style={{
+            fontSize: '11px',
+            color: 'rgba(255,255,255,0.3)',
+            marginTop: '4px',
+          }}
+        >
           {sub}
         </p>
       )}
@@ -95,11 +117,19 @@ function StatCard({
 }
 
 function ActivityGrid({ days, color }: { days: DayActivity[]; color: string }) {
-  const maxCount = Math.max(...days.map(d => d.count), 1)
+  const maxCount = Math.max(...days.map((d) => d.count), 1)
 
   return (
     <div>
-      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
+      <p
+        style={{
+          fontSize: '11px',
+          color: 'rgba(255,255,255,0.35)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          marginBottom: '10px',
+        }}
+      >
         Last 14 days activity
       </p>
       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
@@ -113,9 +143,12 @@ function ActivityGrid({ days, color }: { days: DayActivity[]; color: string }) {
                 width: '28px',
                 height: '28px',
                 borderRadius: '6px',
-                background: day.count === 0
-                  ? 'rgba(255,255,255,0.04)'
-                  : `${color}${Math.round(intensity * 200 + 30).toString(16).padStart(2, '0')}`,
+                background:
+                  day.count === 0
+                    ? 'rgba(255,255,255,0.04)'
+                    : `${color}${Math.round(intensity * 200 + 30)
+                        .toString(16)
+                        .padStart(2, '0')}`,
                 border: '0.5px solid rgba(255,255,255,0.06)',
                 cursor: 'default',
                 transition: 'all 0.2s',
@@ -128,7 +161,15 @@ function ActivityGrid({ days, color }: { days: DayActivity[]; color: string }) {
   )
 }
 
-function TopicPill({ topic, type, color }: { topic: string; type: 'top' | 'struggle'; color: string }) {
+function TopicPill({
+  topic,
+  type,
+  color,
+}: {
+  topic: string
+  type: 'top' | 'struggle'
+  color: string
+}) {
   return (
     <span
       style={{
@@ -143,29 +184,38 @@ function TopicPill({ topic, type, color }: { topic: string; type: 'top' | 'strug
         marginBottom: '6px',
       }}
     >
-      {type === 'struggle' ? '⚡ ' : '✦ '}{topic}
+      {type === 'struggle' ? '⚡ ' : '✦ '}
+      {topic}
     </span>
   )
 }
 
-export function ProgressDashboard({ saathiId, saathiName, primaryColor }: ProgressDashboardProps) {
+export function ProgressDashboard({
+  saathiId,
+  saathiName,
+  primaryColor,
+}: ProgressDashboardProps) {
   const [soul, setSoul] = useState<SoulRow | null>(null)
   const [sessions, setSessions] = useState<SessionRow[]>([])
   const [community, setCommunity] = useState<CommunityStats | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const saathi = SAATHIS.find(s => s.id === saathiId)
+  const saathi = SAATHIS.find((s) => s.id === saathiId)
 
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user) return
 
       const [soulRes, sessionRes, communityRes] = await Promise.all([
         supabase
           .from('student_soul')
-          .select('display_name, ambition_level, session_count, top_topics, struggle_topics, last_session_summary, flame_stage, passion_intensity, depth_calibration, learning_style')
+          .select(
+            'display_name, ambition_level, session_count, top_topics, struggle_topics, last_session_summary, flame_stage, passion_intensity, depth_calibration, learning_style'
+          )
           .eq('user_id', user.id)
           .eq('vertical_id', saathiId)
           .maybeSingle(),
@@ -178,7 +228,9 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
           .limit(14),
         supabase
           .from('saathi_stats_cache')
-          .select('total_students,active_students,avg_depth,top_topics,community_label,last_refreshed_at')
+          .select(
+            'total_students,active_students,avg_depth,top_topics,community_label,last_refreshed_at'
+          )
           .eq('vertical_id', saathiId)
           .single(),
       ])
@@ -197,24 +249,41 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
     const d = new Date()
     d.setDate(d.getDate() - (13 - i))
     const dateStr = d.toISOString().split('T')[0]
-    const found = sessions.find(s => s.quota_date_ist === dateStr)
+    const found = sessions.find((s) => s.quota_date_ist === dateStr)
     return { date: dateStr, count: found?.message_count ?? 0 }
   })
 
   // Bot slot usage breakdown
   const slotUsage: Record<number, number> = {}
-  sessions.forEach(s => {
+  sessions.forEach((s) => {
     slotUsage[s.bot_slot] = (slotUsage[s.bot_slot] ?? 0) + s.message_count
   })
 
   const totalMessages = sessions.reduce((sum, s) => sum + s.message_count, 0)
   const sessionCount = soul?.session_count ?? 0
-  const flameLabel = FLAME_LABELS[soul?.flame_stage ?? 'cold'] ?? 'Just Starting'
+  const flameLabel =
+    FLAME_LABELS[soul?.flame_stage ?? 'cold'] ?? 'Just Starting'
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
-        <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${primaryColor}30`, borderTop: `2px solid ${primaryColor}`, animation: 'spin 0.8s linear infinite' }} />
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '300px',
+        }}
+      >
+        <div
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            border: `2px solid ${primaryColor}30`,
+            borderTop: `2px solid ${primaryColor}`,
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
       </div>
     )
   }
@@ -223,23 +292,59 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
     <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginBottom: '4px' }}>
+        <p
+          style={{
+            fontSize: '12px',
+            color: 'rgba(255,255,255,0.3)',
+            marginBottom: '4px',
+          }}
+        >
           Learning journey with
         </p>
-        <h1 style={{ fontSize: '28px', fontFamily: 'var(--font-playfair)', color: '#fff', margin: 0 }}>
+        <h1
+          style={{
+            fontSize: '28px',
+            fontFamily: 'var(--font-playfair)',
+            color: '#fff',
+            margin: 0,
+          }}
+        >
           <span style={{ color: primaryColor }}>{saathiName}</span> Progress
         </h1>
         {soul?.display_name && (
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '14px', marginTop: '6px' }}>
+          <p
+            style={{
+              color: 'rgba(255,255,255,0.45)',
+              fontSize: '14px',
+              marginTop: '6px',
+            }}
+          >
             {soul.display_name} · {flameLabel}
           </p>
         )}
       </div>
 
       {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px' }}>
-        <StatCard label="Sessions" value={sessionCount} sub="total with this Saathi" color={primaryColor} />
-        <StatCard label="Messages" value={totalMessages} sub="last 14 days" color="#E5B86A" />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          gap: '12px',
+          marginBottom: '24px',
+        }}
+      >
+        <StatCard
+          label="Sessions"
+          value={sessionCount}
+          sub="total with this Saathi"
+          color={primaryColor}
+        />
+        <StatCard
+          label="Messages"
+          value={totalMessages}
+          sub="last 14 days"
+          color="#E5B86A"
+        />
         <StatCard
           label="Depth level"
           value={`${soul?.depth_calibration ?? 40}/100`}
@@ -248,7 +353,12 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
         />
         <StatCard
           label="Flame"
-          value={soul?.passion_intensity !== null && soul?.passion_intensity !== undefined ? `${soul.passion_intensity}%` : '—'}
+          value={
+            soul?.passion_intensity !== null &&
+            soul?.passion_intensity !== undefined
+              ? `${soul.passion_intensity}%`
+              : '—'
+          }
           sub={flameLabel}
           color="#F59E0B"
         />
@@ -284,27 +394,56 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
             marginBottom: '16px',
           }}
         >
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
+          <p
+            style={{
+              fontSize: '11px',
+              color: 'rgba(255,255,255,0.35)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: '14px',
+            }}
+          >
             Bot usage breakdown
           </p>
           {Object.entries(slotUsage).map(([slot, count]) => {
             const pct = Math.round((count / Math.max(totalMessages, 1)) * 100)
             return (
               <div key={slot} style={{ marginBottom: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: '4px',
+                  }}
+                >
+                  <span
+                    style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}
+                  >
                     {SLOT_NAMES[Number(slot)] ?? `Bot ${slot}`}
                   </span>
-                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                  <span
+                    style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}
+                  >
                     {count} msgs · {pct}%
                   </span>
                 </div>
-                <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    height: '4px',
+                    background: 'rgba(255,255,255,0.06)',
+                    borderRadius: '4px',
+                    overflow: 'hidden',
+                  }}
+                >
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
                     transition={{ duration: 0.6, delay: 0.2 }}
-                    style={{ height: '100%', background: primaryColor, borderRadius: '4px' }}
+                    style={{
+                      height: '100%',
+                      background: primaryColor,
+                      borderRadius: '4px',
+                    }}
                   />
                 </div>
               </div>
@@ -314,7 +453,8 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
       )}
 
       {/* Topics */}
-      {((soul?.top_topics?.length ?? 0) > 0 || (soul?.struggle_topics?.length ?? 0) > 0) && (
+      {((soul?.top_topics?.length ?? 0) > 0 ||
+        (soul?.struggle_topics?.length ?? 0) > 0) && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -329,24 +469,50 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
         >
           {(soul?.top_topics?.length ?? 0) > 0 && (
             <div style={{ marginBottom: '16px' }}>
-              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
+              <p
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.35)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  marginBottom: '10px',
+                }}
+              >
                 Topics you love
               </p>
               <div>
-                {soul!.top_topics!.map(t => (
-                  <TopicPill key={t} topic={t} type="top" color={primaryColor} />
+                {soul!.top_topics!.map((t) => (
+                  <TopicPill
+                    key={t}
+                    topic={t}
+                    type="top"
+                    color={primaryColor}
+                  />
                 ))}
               </div>
             </div>
           )}
           {(soul?.struggle_topics?.length ?? 0) > 0 && (
             <div>
-              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
+              <p
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.35)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  marginBottom: '10px',
+                }}
+              >
                 Topics to master
               </p>
               <div>
-                {soul!.struggle_topics!.map(t => (
-                  <TopicPill key={t} topic={t} type="struggle" color={primaryColor} />
+                {soul!.struggle_topics!.map((t) => (
+                  <TopicPill
+                    key={t}
+                    topic={t}
+                    type="struggle"
+                    color={primaryColor}
+                  />
                 ))}
               </div>
             </div>
@@ -369,15 +535,39 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
           }}
         >
           {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              marginBottom: '16px',
+            }}
+          >
             <span style={{ fontSize: '22px' }}>{saathi?.emoji ?? '📚'}</span>
             <div>
-              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>
+              <p
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.35)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  margin: '0 0 2px',
+                }}
+              >
                 Your Community
               </p>
-              <p style={{ fontSize: '16px', fontWeight: '700', color: '#fff', margin: 0 }}>
+              <p
+                style={{
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#fff',
+                  margin: 0,
+                }}
+              >
                 {community.total_students.toLocaleString('en-IN')}{' '}
-                <span style={{ color: primaryColor }}>{saathiName} {community.community_label}</span>
+                <span style={{ color: primaryColor }}>
+                  {saathiName} {community.community_label}
+                </span>
               </p>
             </div>
           </div>
@@ -385,35 +575,89 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
           {/* Depth comparison */}
           {soul?.depth_calibration != null && (
             <div style={{ marginBottom: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: '6px',
+                }}
+              >
+                <span
+                  style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}
+                >
                   Community avg depth
                 </span>
-                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                <span
+                  style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}
+                >
                   {community.avg_depth}/100
                 </span>
               </div>
-              <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}>
-                <div style={{ height: '100%', width: `${community.avg_depth}%`, background: 'rgba(255,255,255,0.2)', borderRadius: '4px' }} />
+              <div
+                style={{
+                  height: '4px',
+                  background: 'rgba(255,255,255,0.06)',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                  marginBottom: '8px',
+                }}
+              >
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${community.avg_depth}%`,
+                    background: 'rgba(255,255,255,0.2)',
+                    borderRadius: '4px',
+                  }}
+                />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: '6px',
+                }}
+              >
+                <span
+                  style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}
+                >
                   Your depth
                 </span>
-                <span style={{ fontSize: '12px', fontWeight: '700', color: soul.depth_calibration >= community.avg_depth ? '#4ADE80' : primaryColor }}>
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    color:
+                      soul.depth_calibration >= community.avg_depth
+                        ? '#4ADE80'
+                        : primaryColor,
+                  }}
+                >
                   {soul.depth_calibration}/100
-                  {soul.depth_calibration >= community.avg_depth ? ' · above avg ✦' : ''}
+                  {soul.depth_calibration >= community.avg_depth
+                    ? ' · above avg ✦'
+                    : ''}
                 </span>
               </div>
-              <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  height: '4px',
+                  background: 'rgba(255,255,255,0.06)',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                }}
+              >
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${soul.depth_calibration}%` }}
                   transition={{ duration: 0.7, delay: 0.3 }}
                   style={{
                     height: '100%',
-                    background: soul.depth_calibration >= community.avg_depth ? '#4ADE80' : primaryColor,
+                    background:
+                      soul.depth_calibration >= community.avg_depth
+                        ? '#4ADE80'
+                        : primaryColor,
                     borderRadius: '4px',
                   }}
                 />
@@ -422,23 +666,42 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
           )}
 
           {/* Active students note */}
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginBottom: community.top_topics.length > 0 ? '12px' : '0' }}>
-            {community.active_students.toLocaleString('en-IN')} students studied {saathiName} in the last 30 days
+          <p
+            style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.35)',
+              marginBottom: community.top_topics.length > 0 ? '12px' : '0',
+            }}
+          >
+            {community.active_students.toLocaleString('en-IN')} students studied{' '}
+            {saathiName} in the last 30 days
           </p>
 
           {/* Community top topics */}
           {community.top_topics.length > 0 && (
             <div>
-              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
+              <p
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.3)',
+                  marginBottom: '8px',
+                }}
+              >
                 What this community explores most
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {community.top_topics.map((t) => (
-                  <span key={t} style={{
-                    fontSize: '11px', padding: '3px 9px', borderRadius: '20px',
-                    background: `${primaryColor}12`, border: `0.5px solid ${primaryColor}30`,
-                    color: primaryColor,
-                  }}>
+                  <span
+                    key={t}
+                    style={{
+                      fontSize: '11px',
+                      padding: '3px 9px',
+                      borderRadius: '20px',
+                      background: `${primaryColor}12`,
+                      border: `0.5px solid ${primaryColor}30`,
+                      color: primaryColor,
+                    }}
+                  >
                     {t}
                   </span>
                 ))}
@@ -446,8 +709,16 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
             </div>
           )}
 
-          <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.15)', marginTop: '12px', marginBottom: 0 }}>
-            Data refreshed every 48h · {new Date(community.last_refreshed_at).toLocaleDateString('en-IN')}
+          <p
+            style={{
+              fontSize: '9px',
+              color: 'rgba(255,255,255,0.15)',
+              marginTop: '12px',
+              marginBottom: 0,
+            }}
+          >
+            Data refreshed every 48h ·{' '}
+            {new Date(community.last_refreshed_at).toLocaleDateString('en-IN')}
           </p>
         </motion.div>
       )}
@@ -465,10 +736,26 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
             padding: '20px',
           }}
         >
-          <p style={{ fontSize: '11px', color: primaryColor, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
+          <p
+            style={{
+              fontSize: '11px',
+              color: primaryColor,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: '10px',
+            }}
+          >
             Last session memory
           </p>
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, margin: 0, fontStyle: 'italic' }}>
+          <p
+            style={{
+              fontSize: '14px',
+              color: 'rgba(255,255,255,0.7)',
+              lineHeight: 1.7,
+              margin: 0,
+              fontStyle: 'italic',
+            }}
+          >
             &ldquo;{soul.last_session_summary}&rdquo;
           </p>
         </motion.div>
@@ -476,14 +763,20 @@ export function ProgressDashboard({ saathiId, saathiName, primaryColor }: Progre
 
       {/* No soul yet */}
       {!soul && (
-        <div style={{
-          textAlign: 'center',
-          padding: '60px 20px',
-          color: 'rgba(255,255,255,0.3)',
-        }}>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '60px 20px',
+            color: 'rgba(255,255,255,0.3)',
+          }}
+        >
           <p style={{ fontSize: '40px', marginBottom: '12px' }}>🌱</p>
-          <p style={{ fontSize: '16px', marginBottom: '8px' }}>Your journey is just beginning</p>
-          <p style={{ fontSize: '13px' }}>Start chatting with {saathiName} to build your soul profile.</p>
+          <p style={{ fontSize: '16px', marginBottom: '8px' }}>
+            Your journey is just beginning
+          </p>
+          <p style={{ fontSize: '13px' }}>
+            Start chatting with {saathiName} to build your soul profile.
+          </p>
         </div>
       )}
     </div>

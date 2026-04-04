@@ -23,7 +23,7 @@ interface ISpeechRecognition extends EventTarget {
 }
 
 interface ISpeechRecognitionConstructor {
-  new(): ISpeechRecognition
+  new (): ISpeechRecognition
 }
 
 type VoiceInputProps = {
@@ -35,15 +35,14 @@ type VoiceInputProps = {
 export function VoiceInput({
   onTranscript,
   disabled,
-  saathiColor = '#C9993A'
+  saathiColor = '#C9993A',
 }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
-  const [supported] = useState(() =>
-    typeof window !== 'undefined' && (
-      'SpeechRecognition' in window ||
-      'webkitSpeechRecognition' in window
-    )
+  const [supported] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
   )
   const [language, setLanguage] = useState('hi-IN')
   const recognitionRef = useRef<ISpeechRecognition | null>(null)
@@ -64,7 +63,8 @@ export function VoiceInput({
       webkitSpeechRecognition?: ISpeechRecognitionConstructor
       SpeechRecognition?: ISpeechRecognitionConstructor
     }
-    const SpeechRecognitionAPI = w.webkitSpeechRecognition ?? w.SpeechRecognition
+    const SpeechRecognitionAPI =
+      w.webkitSpeechRecognition ?? w.SpeechRecognition
 
     if (!SpeechRecognitionAPI) return
 
@@ -124,7 +124,14 @@ export function VoiceInput({
   if (!supported) return null
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        position: 'relative',
+      }}
+    >
       <select
         value={language}
         onChange={(e) => setLanguage(e.target.value)}
@@ -139,7 +146,7 @@ export function VoiceInput({
           outline: 'none',
         }}
       >
-        {LANGUAGES.map(l => (
+        {LANGUAGES.map((l) => (
           <option key={l.code} value={l.code} style={{ background: '#0B1F3A' }}>
             {l.label}
           </option>
@@ -157,7 +164,11 @@ export function VoiceInput({
           scale: isListening ? [1, 1.1, 1] : 1,
           background: isListening ? saathiColor : 'rgba(255,255,255,0.06)',
         }}
-        transition={{ scale: isListening ? { repeat: Infinity, duration: 1 } : { duration: 0.2 } }}
+        transition={{
+          scale: isListening
+            ? { repeat: Infinity, duration: 1 }
+            : { duration: 0.2 },
+        }}
         style={{
           width: '40px',
           height: '40px',
@@ -214,7 +225,15 @@ export function VoiceInput({
               zIndex: 10,
             }}
           >
-            <span style={{ color: saathiColor, marginRight: '6px', fontSize: '10px' }}>● LIVE</span>
+            <span
+              style={{
+                color: saathiColor,
+                marginRight: '6px',
+                fontSize: '10px',
+              }}
+            >
+              ● LIVE
+            </span>
             {transcript}
           </motion.div>
         )}

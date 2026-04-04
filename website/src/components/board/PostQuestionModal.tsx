@@ -1,23 +1,72 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { createClient } from '@/lib/supabase/client';
-import type { Profile } from '@/types';
+import { useState } from 'react'
+import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
+import { createClient } from '@/lib/supabase/client'
+import type { Profile } from '@/types'
 
 // ── Per-Saathi topic tags ──────────────────────────────────────────────────────
 
 const SAATHI_TAGS: Record<string, string[]> = {
-  kanoonsaathi: ['Constitutional Law', 'IPC / BNSS', 'Civil Law', 'Criminal Law', 'UPSC Law', 'Other'],
-  mathsaathi: ['Calculus', 'Algebra', 'Statistics', 'Geometry', 'Number Theory', 'Other'],
-  sciencesaathi: ['Physics', 'Chemistry', 'Biology', 'Environmental Science', 'Research Methods', 'Other'],
-  historysaathi: ['Ancient India', 'Medieval India', 'Modern India', 'World History', 'UPSC History', 'Other'],
-  geosaathi: ['Physical Geography', 'Human Geography', 'Indian Geography', 'Maps', 'UPSC Geo', 'Other'],
-  ecoSaathi: ['Microeconomics', 'Macroeconomics', 'Indian Economy', 'Development', 'Policy', 'Other'],
-};
+  kanoonsaathi: [
+    'Constitutional Law',
+    'IPC / BNSS',
+    'Civil Law',
+    'Criminal Law',
+    'UPSC Law',
+    'Other',
+  ],
+  mathsaathi: [
+    'Calculus',
+    'Algebra',
+    'Statistics',
+    'Geometry',
+    'Number Theory',
+    'Other',
+  ],
+  sciencesaathi: [
+    'Physics',
+    'Chemistry',
+    'Biology',
+    'Environmental Science',
+    'Research Methods',
+    'Other',
+  ],
+  historysaathi: [
+    'Ancient India',
+    'Medieval India',
+    'Modern India',
+    'World History',
+    'UPSC History',
+    'Other',
+  ],
+  geosaathi: [
+    'Physical Geography',
+    'Human Geography',
+    'Indian Geography',
+    'Maps',
+    'UPSC Geo',
+    'Other',
+  ],
+  ecoSaathi: [
+    'Microeconomics',
+    'Macroeconomics',
+    'Indian Economy',
+    'Development',
+    'Policy',
+    'Other',
+  ],
+}
 
-const DEFAULT_TAGS = ['Concept', 'Theory', 'Practice', 'Exam Prep', 'Fast Answer', 'Other'];
+const DEFAULT_TAGS = [
+  'Concept',
+  'Theory',
+  'Practice',
+  'Exam Prep',
+  'Fast Answer',
+  'Other',
+]
 
 // ── Inline Dialog primitive ───────────────────────────────────────────────────
 
@@ -31,19 +80,19 @@ function DialogOverlay({ onClose }: { onClose: () => void }) {
       className="fixed inset-0 z-40"
       style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)' }}
     />
-  );
+  )
 }
 
 type Props = {
-  open: boolean;
-  onClose: () => void;
-  saathiSlug: string;   // slug — used for tag lookup + AI trigger
-  verticalUuid: string; // UUID — used for DB insert
-  saathiName: string;
-  primaryColor: string;
-  profile: Profile;
-  onPosted: (newId: string) => void;
-};
+  open: boolean
+  onClose: () => void
+  saathiSlug: string // slug — used for tag lookup + AI trigger
+  verticalUuid: string // UUID — used for DB insert
+  saathiName: string
+  primaryColor: string
+  profile: Profile
+  onPosted: (newId: string) => void
+}
 
 export function PostQuestionModal({
   open,
@@ -55,44 +104,51 @@ export function PostQuestionModal({
   profile,
   onPosted,
 }: Props) {
-  const [title, setTitle] = useState('');
-  const [tag, setTag] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [postedId, setPostedId] = useState<string | null>(null);
+  const [title, setTitle] = useState('')
+  const [tag, setTag] = useState('')
+  const [isAnonymous, setIsAnonymous] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [postedId, setPostedId] = useState<string | null>(null)
 
-  const tags = SAATHI_TAGS[saathiSlug] ?? DEFAULT_TAGS;
-  const MAX_TITLE = 200;
+  const tags = SAATHI_TAGS[saathiSlug] ?? DEFAULT_TAGS
+  const MAX_TITLE = 200
 
   function handleClose() {
     // Reset form state when closing
-    setTitle('');
-    setTag('');
-    setIsAnonymous(false);
-    setError(null);
-    setPostedId(null);
-    onClose();
+    setTitle('')
+    setTag('')
+    setIsAnonymous(false)
+    setError(null)
+    setPostedId(null)
+    onClose()
   }
 
   async function handleSubmit() {
-    if (!title.trim() || submitting) return;
-    setSubmitting(true);
-    setError(null);
+    if (!title.trim() || submitting) return
+    setSubmitting(true)
+    setError(null)
 
     // 24-hour new account restriction
-    const registeredAt = new Date(profile.registered_at);
-    const hoursSinceRegistration = (Date.now() - registeredAt.getTime()) / (1000 * 60 * 60);
+    const registeredAt = new Date(profile.registered_at)
+    const hoursSinceRegistration =
+      (Date.now() - registeredAt.getTime()) / (1000 * 60 * 60)
     if (hoursSinceRegistration < 24) {
-      const hoursLeft = Math.ceil(24 - hoursSinceRegistration);
-      setError(`Board posting unlocks ${hoursLeft} hour${hoursLeft === 1 ? '' : 's'} after registration. Keep learning in the meantime!`);
-      setSubmitting(false);
-      return;
+      const hoursLeft = Math.ceil(24 - hoursSinceRegistration)
+      setError(
+        `Board posting unlocks ${hoursLeft} hour${hoursLeft === 1 ? '' : 's'} after registration. Keep learning in the meantime!`
+      )
+      setSubmitting(false)
+      return
     }
 
-    const supabase = createClient();
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session) { setError('Not logged in'); setSubmitting(false); return; }
+    const supabase = createClient()
+    const { data: session } = await supabase.auth.getSession()
+    if (!session.session) {
+      setError('Not logged in')
+      setSubmitting(false)
+      return
+    }
 
     const { data: q, error: err } = await supabase
       .from('board_questions')
@@ -106,34 +162,31 @@ export function PostQuestionModal({
         status: 'open',
       })
       .select('id')
-      .single();
+      .single()
 
     if (err || !q) {
-      setError(err?.message ?? 'Failed to post. Try again.');
-      setSubmitting(false);
-      return;
+      setError(err?.message ?? 'Failed to post. Try again.')
+      setSubmitting(false)
+      return
     }
 
     // Trigger AI auto-answer (fire and forget)
-    fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/board-answer`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.session.access_token}`,
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-        },
-        body: JSON.stringify({ questionId: q.id, saathiId: saathiSlug }),
-      }
-    ).catch(() => {});
+    fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/board-answer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.session.access_token}`,
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+      },
+      body: JSON.stringify({ questionId: q.id, saathiId: saathiSlug }),
+    }).catch(() => {})
 
     // Notify parent to refresh feed
-    onPosted(q.id);
+    onPosted(q.id)
 
     // Show success screen (don't close yet)
-    setPostedId(q.id);
-    setSubmitting(false);
+    setPostedId(q.id)
+    setSubmitting(false)
   }
 
   return (
@@ -146,7 +199,7 @@ export function PostQuestionModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 mx-auto max-w-lg rounded-3xl p-7"
+            className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-lg -translate-y-1/2 rounded-3xl p-7"
             style={{
               background: 'linear-gradient(160deg,#0B1F3A 0%,#060F1D 100%)',
               border: '0.5px solid rgba(255,255,255,0.1)',
@@ -166,39 +219,77 @@ export function PostQuestionModal({
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
                   style={{
-                    width: '64px', height: '64px', borderRadius: '50%',
-                    background: 'rgba(74,222,128,0.15)', border: '2px solid #4ADE80',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    margin: '0 auto 20px', fontSize: '28px', color: '#4ADE80',
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    background: 'rgba(74,222,128,0.15)',
+                    border: '2px solid #4ADE80',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 20px',
+                    fontSize: '28px',
+                    color: '#4ADE80',
                   }}
                 >
                   ✓
                 </motion.div>
 
-                <h3 style={{
-                  fontFamily: 'var(--font-playfair)', fontSize: '22px',
-                  fontWeight: '700', color: '#fff', margin: '0 0 10px',
-                }}>
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-playfair)',
+                    fontSize: '22px',
+                    fontWeight: '700',
+                    color: '#fff',
+                    margin: '0 0 10px',
+                  }}
+                >
                   Question posted!
                 </h3>
 
-                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: '0 0 6px', lineHeight: 1.6 }}>
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: 'rgba(255,255,255,0.5)',
+                    margin: '0 0 6px',
+                    lineHeight: 1.6,
+                  }}
+                >
                   {saathiName} is generating an AI answer right now.
                 </p>
-                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: '0 0 28px', lineHeight: 1.6 }}>
-                  Community members can also reply. We&apos;ll notify you when someone answers.
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: 'rgba(255,255,255,0.5)',
+                    margin: '0 0 28px',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Community members can also reply. We&apos;ll notify you when
+                  someone answers.
                 </p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
                   {/* Primary CTA — go see the question */}
                   <Link
                     href={`/board?question=${postedId}`}
                     onClick={handleClose}
                     style={{
-                      display: 'block', padding: '13px',
-                      background: primaryColor, color: '#0B1F3A',
-                      borderRadius: '12px', fontSize: '13px', fontWeight: '700',
-                      textDecoration: 'none', textAlign: 'center',
+                      display: 'block',
+                      padding: '13px',
+                      background: primaryColor,
+                      color: '#0B1F3A',
+                      borderRadius: '12px',
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      textDecoration: 'none',
+                      textAlign: 'center',
                     }}
                   >
                     See your question + AI answer →
@@ -208,107 +299,164 @@ export function PostQuestionModal({
                   <button
                     onClick={handleClose}
                     style={{
-                      padding: '12px', background: 'transparent',
+                      padding: '12px',
+                      background: 'transparent',
                       border: '0.5px solid rgba(255,255,255,0.15)',
-                      borderRadius: '12px', color: 'rgba(255,255,255,0.5)',
-                      fontSize: '13px', cursor: 'pointer',
+                      borderRadius: '12px',
+                      color: 'rgba(255,255,255,0.5)',
+                      fontSize: '13px',
+                      cursor: 'pointer',
                     }}
                   >
                     Back to chat
                   </button>
                 </div>
 
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', marginTop: '16px' }}>
-                  You&apos;ll get a notification when someone from the community replies.
+                <p
+                  style={{
+                    fontSize: '11px',
+                    color: 'rgba(255,255,255,0.2)',
+                    marginTop: '16px',
+                  }}
+                >
+                  You&apos;ll get a notification when someone from the community
+                  replies.
                 </p>
               </motion.div>
-
             ) : (
               /* ── Post form ──────────────────────────────────────────── */
               <>
                 {/* Close */}
                 <button
                   onClick={handleClose}
-                  className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-sm"
-                  style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}
+                  className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full text-sm"
+                  style={{
+                    background: 'rgba(255,255,255,0.06)',
+                    color: 'rgba(255,255,255,0.4)',
+                  }}
                 >
                   ✕
                 </button>
 
-                <h2 className="font-playfair text-2xl font-bold text-white mb-1">
+                <h2 className="font-playfair mb-1 text-2xl font-bold text-white">
                   Ask {saathiName}
                 </h2>
-                <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  Your question will get an AI answer immediately, and community members can reply.
+                <p
+                  className="mb-6 text-sm"
+                  style={{ color: 'rgba(255,255,255,0.4)' }}
+                >
+                  Your question will get an AI answer immediately, and community
+                  members can reply.
                 </p>
 
                 {/* Title textarea */}
                 <div className="mb-4">
-                  <div className="flex justify-between mb-1.5">
-                    <label className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                      Your question <span style={{ color: primaryColor }}>*</span>
+                  <div className="mb-1.5 flex justify-between">
+                    <label
+                      className="text-xs font-medium"
+                      style={{ color: 'rgba(255,255,255,0.5)' }}
+                    >
+                      Your question{' '}
+                      <span style={{ color: primaryColor }}>*</span>
                     </label>
-                    <span className="text-[10px]" style={{ color: title.length > MAX_TITLE - 30 ? '#FCA5A5' : 'rgba(255,255,255,0.25)' }}>
+                    <span
+                      className="text-[10px]"
+                      style={{
+                        color:
+                          title.length > MAX_TITLE - 30
+                            ? '#FCA5A5'
+                            : 'rgba(255,255,255,0.25)',
+                      }}
+                    >
                       {title.length} / {MAX_TITLE}
                     </span>
                   </div>
                   <textarea
                     value={title}
-                    onChange={(e) => setTitle(e.target.value.slice(0, MAX_TITLE))}
+                    onChange={(e) =>
+                      setTitle(e.target.value.slice(0, MAX_TITLE))
+                    }
                     placeholder="What would you like to understand or discuss?"
                     rows={3}
-                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all resize-none"
+                    className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
                     style={{
                       background: 'rgba(255,255,255,0.05)',
                       border: '0.5px solid rgba(255,255,255,0.1)',
                       fontFamily: 'var(--font-dm-sans)',
                     }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = `${primaryColor}80`)}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                    onFocus={(e) =>
+                      (e.currentTarget.style.borderColor = `${primaryColor}80`)
+                    }
+                    onBlur={(e) =>
+                      (e.currentTarget.style.borderColor =
+                        'rgba(255,255,255,0.1)')
+                    }
                   />
                 </div>
 
                 {/* Topic tag */}
                 <div className="mb-5">
-                  <p className="text-xs font-medium mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <p
+                    className="mb-2 text-xs font-medium"
+                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                  >
                     Topic tag
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {tags.map((t) => {
-                      const active = tag === t;
+                      const active = tag === t
                       return (
                         <button
                           key={t}
                           onClick={() => setTag(active ? '' : t)}
-                          className="px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150"
+                          className="rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150"
                           style={{
-                            background: active ? primaryColor : 'rgba(255,255,255,0.05)',
+                            background: active
+                              ? primaryColor
+                              : 'rgba(255,255,255,0.05)',
                             border: `0.5px solid ${active ? primaryColor : 'rgba(255,255,255,0.1)'}`,
-                            color: active ? '#060F1D' : 'rgba(255,255,255,0.55)',
+                            color: active
+                              ? '#060F1D'
+                              : 'rgba(255,255,255,0.55)',
                           }}
                         >
                           {t}
                         </button>
-                      );
+                      )
                     })}
                   </div>
                 </div>
 
                 {/* Anonymous toggle */}
-                <div className="flex items-center justify-between mb-6 py-3 px-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
+                <div
+                  className="mb-6 flex items-center justify-between rounded-xl px-4 py-3"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '0.5px solid rgba(255,255,255,0.07)',
+                  }}
+                >
                   <div>
-                    <p className="text-sm text-white font-medium">Post anonymously</p>
-                    <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    <p className="text-sm font-medium text-white">
+                      Post anonymously
+                    </p>
+                    <p
+                      className="text-[11px]"
+                      style={{ color: 'rgba(255,255,255,0.35)' }}
+                    >
                       Shows as &quot;Anonymous Student&quot;
                     </p>
                   </div>
                   <button
                     onClick={() => setIsAnonymous(!isAnonymous)}
-                    className="w-11 h-6 rounded-full transition-all duration-200 relative"
-                    style={{ background: isAnonymous ? primaryColor : 'rgba(255,255,255,0.12)' }}
+                    className="relative h-6 w-11 rounded-full transition-all duration-200"
+                    style={{
+                      background: isAnonymous
+                        ? primaryColor
+                        : 'rgba(255,255,255,0.12)',
+                    }}
                   >
                     <div
-                      className="absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-200"
+                      className="absolute top-1 h-4 w-4 rounded-full bg-white transition-all duration-200"
                       style={{ left: isAnonymous ? '1.5rem' : '0.25rem' }}
                     />
                   </button>
@@ -316,22 +464,26 @@ export function PostQuestionModal({
 
                 {/* Error */}
                 {error && (
-                  <p className="text-xs mb-4" style={{ color: '#FCA5A5' }}>⚠️ {error}</p>
+                  <p className="mb-4 text-xs" style={{ color: '#FCA5A5' }}>
+                    ⚠️ {error}
+                  </p>
                 )}
 
                 {/* Submit */}
                 <button
                   onClick={handleSubmit}
                   disabled={!title.trim() || submitting}
-                  className="w-full rounded-xl py-3.5 text-base font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full rounded-xl py-3.5 text-base font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
                   style={{ background: primaryColor, color: '#060F1D' }}
                 >
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
-                      <span className="w-4 h-4 rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D] animate-spin" />
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D]" />
                       Posting...
                     </span>
-                  ) : 'Post Question →'}
+                  ) : (
+                    'Post Question →'
+                  )}
                 </button>
               </>
             )}
@@ -339,5 +491,5 @@ export function PostQuestionModal({
         </>
       )}
     </AnimatePresence>
-  );
+  )
 }

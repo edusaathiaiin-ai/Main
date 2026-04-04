@@ -1,21 +1,21 @@
-import type { Metadata } from 'next';
-import { Playfair_Display, DM_Sans } from 'next/font/google';
-import './globals.css';
-import { AuthProvider } from '@/components/AuthProvider';
+import type { Metadata } from 'next'
+import { Playfair_Display, DM_Sans } from 'next/font/google'
+import './globals.css'
+import { AuthProvider } from '@/components/AuthProvider'
 
-import { CookieBanner } from '@/components/ui/CookieBanner';
+import { CookieBanner } from '@/components/ui/CookieBanner'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-playfair',
   display: 'swap',
-});
+})
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-dm-sans',
   display: 'swap',
-});
+})
 
 export const metadata: Metadata = {
   title: {
@@ -24,7 +24,9 @@ export const metadata: Metadata = {
   },
   description:
     '24 AI subject companions. Built for India. ₹199/month. Your Saathi knows your name, remembers your journey.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://edusaathiai.in'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? 'https://edusaathiai.in'
+  ),
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -40,10 +42,10 @@ export const metadata: Metadata = {
     apple: '/icon.png',
     shortcut: '/icon.png',
   },
-};
+}
 
 // Build-time version stamp — changes every deploy, forces stale tabs to reload
-const BUILD_VERSION = Date.now().toString();
+const BUILD_VERSION = Date.now().toString()
 
 export default function RootLayout({
   children,
@@ -70,11 +72,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-[#060F1D] text-white antialiased font-sans flex flex-col">
+      <body className="flex min-h-screen flex-col bg-[#060F1D] font-sans text-white antialiased">
         <AuthProvider>{children}</AuthProvider>
         <CookieBanner />
       </body>
     </html>
-  );
+  )
 }
-

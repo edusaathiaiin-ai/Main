@@ -9,26 +9,26 @@
  * coolingHours: 0 means NO cooling — quota resets at midnight IST daily.
  */
 
-export type PlanId = 'free' | 'plus' | 'pro' | 'unlimited';
+export type PlanId = 'free' | 'plus' | 'pro' | 'unlimited'
 
 export type Plan = {
-  id: PlanId;
-  name: string;
-  priceMonthly: number;
-  priceAnnual: number | null;
-  billing: 'free' | 'monthly' | 'annual';
-  dailyChatLimit: number;
-  coolingHours: number;
-  allowedBotSlots: number[];
-  maxSaathis: number;
-  checkinsPerMonth: number | null;
-  canExportNotes: boolean;
-  canPause: boolean;
-  refundPolicy: 'na' | 'prorata' | 'none';
-  priorityResponse?: boolean;
-  fastestResponse?: boolean;
-  badge?: string;
-};
+  id: PlanId
+  name: string
+  priceMonthly: number
+  priceAnnual: number | null
+  billing: 'free' | 'monthly' | 'annual'
+  dailyChatLimit: number
+  coolingHours: number
+  allowedBotSlots: number[]
+  maxSaathis: number
+  checkinsPerMonth: number | null
+  canExportNotes: boolean
+  canPause: boolean
+  refundPolicy: 'na' | 'prorata' | 'none'
+  priorityResponse?: boolean
+  fastestResponse?: boolean
+  badge?: string
+}
 
 export const PLAN_CONFIG: Record<PlanId, Plan> = {
   free: {
@@ -96,44 +96,44 @@ export const PLAN_CONFIG: Record<PlanId, Plan> = {
     fastestResponse: true,
     badge: '🔥 Unlimited',
   },
-};
+}
 
 export const PLANS: Plan[] = [
   PLAN_CONFIG.free,
   PLAN_CONFIG.plus,
   PLAN_CONFIG.pro,
   PLAN_CONFIG.unlimited,
-];
+]
 
-export const PAID_PLANS: Plan[] = PLANS.filter((p) => p.id !== 'free');
+export const PAID_PLANS: Plan[] = PLANS.filter((p) => p.id !== 'free')
 
 /** Extract the tier from a DB plan_id like 'plus-monthly' → 'plus' */
 export function getPlanTier(planId: string | null | undefined): PlanId {
-  if (!planId || planId === 'free') return 'free';
-  if (planId.startsWith('plus')) return 'plus';
-  if (planId.startsWith('pro')) return 'pro';
-  if (planId.startsWith('unlimited')) return 'unlimited';
-  return 'free';
+  if (!planId || planId === 'free') return 'free'
+  if (planId.startsWith('plus')) return 'plus'
+  if (planId.startsWith('pro')) return 'pro'
+  if (planId.startsWith('unlimited')) return 'unlimited'
+  return 'free'
 }
 
 export function getPlan(planId: string | null | undefined): Plan {
   // Direct match first, then tier-based match (e.g. 'plus-monthly' → 'plus')
-  const direct = PLAN_CONFIG[(planId ?? 'free') as PlanId];
-  if (direct) return direct;
-  return PLAN_CONFIG[getPlanTier(planId)] ?? PLAN_CONFIG.free;
+  const direct = PLAN_CONFIG[(planId ?? 'free') as PlanId]
+  if (direct) return direct
+  return PLAN_CONFIG[getPlanTier(planId)] ?? PLAN_CONFIG.free
 }
 
 // ── Free trial config — first 7 days after signup ──────────────────────────
-export const FREE_TRIAL_DAYS = 7;
-export const FREE_TRIAL_DAILY_LIMIT = 10;
-export const FREE_TRIAL_ALLOWED_SLOTS = [1, 2, 3, 4, 5];
+export const FREE_TRIAL_DAYS = 7
+export const FREE_TRIAL_DAILY_LIMIT = 10
+export const FREE_TRIAL_ALLOWED_SLOTS = [1, 2, 3, 4, 5]
 
 /** Returns true if the account is within the 7-day free trial window */
 export function isInFreeTrial(createdAt: string | null | undefined): boolean {
-  if (!createdAt) return false;
-  const created = new Date(createdAt).getTime();
-  const now = Date.now();
-  return now - created < FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+  if (!createdAt) return false
+  const created = new Date(createdAt).getTime()
+  const now = Date.now()
+  return now - created < FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000
 }
 
-export type RazorpayPlanId = 'plus' | 'pro' | 'unlimited';
+export type RazorpayPlanId = 'plus' | 'pro' | 'unlimited'

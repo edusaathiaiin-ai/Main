@@ -9,19 +9,19 @@ export type TriggerType =
   | 'quota_hit'
   | 'checkin_complete'
   | 'day_45'
-  | 'plus_bot_tap';
+  | 'plus_bot_tap'
 
 export type TriggerCopy = {
-  emoji?: string;
-  badge?: string;
+  emoji?: string
+  badge?: string
   /** Use [Name] as placeholder – replaced at runtime */
-  title: string;
-  body: string;
-  priceLabel: string;
-  priceLabel2?: string;
-  ctaLabel: string;
-  dismissLabel: string;
-};
+  title: string
+  body: string
+  priceLabel: string
+  priceLabel2?: string
+  ctaLabel: string
+  dismissLabel: string
+}
 
 export const CONVERSION_COPY: Record<TriggerType, TriggerCopy> = {
   session_5: {
@@ -47,7 +47,7 @@ export const CONVERSION_COPY: Record<TriggerType, TriggerCopy> = {
       "Here's the honest math: a vada pav costs ₹30. " +
       'You probably spend ₹200 on snacks this week without thinking about it.\n\n' +
       'For the same ₹199, you get unlimited chats — no daily walls, ' +
-      "no \"try again tomorrow.\" Just you and your Saathi, whenever you need it.",
+      'no "try again tomorrow." Just you and your Saathi, whenever you need it.',
     priceLabel: '₹199/month · Less than ₹7/day',
     ctaLabel: 'Go unlimited →',
     dismissLabel: "I'll wait for tomorrow",
@@ -97,15 +97,16 @@ export const CONVERSION_COPY: Record<TriggerType, TriggerCopy> = {
     ctaLabel: 'Unlock [BotName] →',
     dismissLabel: 'Stay on free bots for now',
   },
-};
+}
 
 /** Replace [Name] and [BotName] tokens in copy strings */
 export function interpolateCopy(
   text: string,
   replacements: { name?: string; botName?: string }
 ): string {
-  let result = text;
-  if (replacements.name) result = result.replace(/\[Name\]/g, replacements.name);
-  if (replacements.botName) result = result.replace(/\[BotName\]/g, replacements.botName);
-  return result;
+  let result = text
+  if (replacements.name) result = result.replace(/\[Name\]/g, replacements.name)
+  if (replacements.botName)
+    result = result.replace(/\[BotName\]/g, replacements.botName)
+  return result
 }

@@ -8,13 +8,13 @@
 
 /** Returns today's date in IST as "YYYY-MM-DD" */
 export function todayIST(): string {
-  const now = new Date();
-  const ist = new Date(now.getTime() + 330 * 60 * 1000); // UTC+5:30
-  return ist.toISOString().split('T')[0];
+  const now = new Date()
+  const ist = new Date(now.getTime() + 330 * 60 * 1000) // UTC+5:30
+  return ist.toISOString().split('T')[0]
 }
 
 /** Formats any Date in IST as "YYYY-MM-DD" */
 export function toDateIST(d: Date): string {
-  const ist = new Date(d.getTime() + 330 * 60 * 1000);
-  return ist.toISOString().split('T')[0];
+  const ist = new Date(d.getTime() + 330 * 60 * 1000)
+  return ist.toISOString().split('T')[0]
 }

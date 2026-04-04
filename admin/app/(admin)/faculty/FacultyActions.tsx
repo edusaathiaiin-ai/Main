@@ -1,23 +1,23 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { ActionModal } from '@/components/ui/ActionModal';
+import { useState } from 'react'
+import { ActionModal } from '@/components/ui/ActionModal'
 import {
   verifyFaculty,
   rejectFaculty,
   markEmeritus,
   revokeFacultyVerification,
   verifyIndependent,
-} from './actions';
+} from './actions'
 
 export function VerifyButton({
   userId,
   name,
   institution,
 }: {
-  userId: string;
-  name: string;
-  institution: string;
+  userId: string
+  name: string
+  institution: string
 }) {
   return (
     <ActionModal
@@ -29,13 +29,15 @@ export function VerifyButton({
       title={`Verify ${name}`}
       confirmLabel="Confirm Verification"
       action={async (fd) => {
-        fd.set('user_id', userId);
-        await verifyFaculty(fd);
+        fd.set('user_id', userId)
+        await verifyFaculty(fd)
       }}
     >
       <div className="space-y-3">
         <div>
-          <label className="text-xs text-slate-400 mb-1 block">Confirm institution</label>
+          <label className="text-xs text-slate-400 mb-1 block">
+            Confirm institution
+          </label>
           <input
             name="institution"
             defaultValue={institution}
@@ -43,7 +45,9 @@ export function VerifyButton({
           />
         </div>
         <div>
-          <label className="text-xs text-slate-400 mb-1 block">Admin note (optional)</label>
+          <label className="text-xs text-slate-400 mb-1 block">
+            Admin note (optional)
+          </label>
           <input
             name="note"
             placeholder="e.g. Verified via LinkedIn"
@@ -52,10 +56,16 @@ export function VerifyButton({
         </div>
       </div>
     </ActionModal>
-  );
+  )
 }
 
-export function RejectButton({ userId, name }: { userId: string; name: string }) {
+export function RejectButton({
+  userId,
+  name,
+}: {
+  userId: string
+  name: string
+}) {
   return (
     <ActionModal
       trigger={
@@ -67,27 +77,35 @@ export function RejectButton({ userId, name }: { userId: string; name: string })
       danger
       confirmLabel="Reject Application"
       action={async (fd) => {
-        fd.set('user_id', userId);
-        await rejectFaculty(fd);
+        fd.set('user_id', userId)
+        await rejectFaculty(fd)
       }}
     >
       <div className="space-y-3">
         <div>
-          <label className="text-xs text-slate-400 mb-1 block">Reason <span className="text-red-400">*</span></label>
+          <label className="text-xs text-slate-400 mb-1 block">
+            Reason <span className="text-red-400">*</span>
+          </label>
           <select
             name="reason"
             required
             className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500"
           >
             <option value="">Select reason…</option>
-            <option value="Cannot verify credentials">Cannot verify credentials</option>
+            <option value="Cannot verify credentials">
+              Cannot verify credentials
+            </option>
             <option value="Institution not found">Institution not found</option>
-            <option value="Incomplete information">Incomplete information</option>
+            <option value="Incomplete information">
+              Incomplete information
+            </option>
             <option value="Policy violation">Policy violation</option>
           </select>
         </div>
         <div>
-          <label className="text-xs text-slate-400 mb-1 block">Custom message (optional)</label>
+          <label className="text-xs text-slate-400 mb-1 block">
+            Custom message (optional)
+          </label>
           <textarea
             name="custom"
             rows={3}
@@ -97,7 +115,7 @@ export function RejectButton({ userId, name }: { userId: string; name: string })
         </div>
       </div>
     </ActionModal>
-  );
+  )
 }
 
 export function EmeritusButton({
@@ -105,9 +123,9 @@ export function EmeritusButton({
   name,
   institution,
 }: {
-  userId: string;
-  name: string;
-  institution: string;
+  userId: string
+  name: string
+  institution: string
 }) {
   return (
     <ActionModal
@@ -119,13 +137,15 @@ export function EmeritusButton({
       title={`Mark as Emeritus — ${name}`}
       confirmLabel="Confirm Emeritus Status"
       action={async (fd) => {
-        fd.set('user_id', userId);
-        await markEmeritus(fd);
+        fd.set('user_id', userId)
+        await markEmeritus(fd)
       }}
     >
       <div className="space-y-3">
         <div>
-          <label className="text-xs text-slate-400 mb-1 block">Retirement year</label>
+          <label className="text-xs text-slate-400 mb-1 block">
+            Retirement year
+          </label>
           <input
             name="retirement_year"
             type="number"
@@ -134,7 +154,9 @@ export function EmeritusButton({
           />
         </div>
         <div>
-          <label className="text-xs text-slate-400 mb-1 block">Former institution</label>
+          <label className="text-xs text-slate-400 mb-1 block">
+            Former institution
+          </label>
           <input
             name="former_institution"
             defaultValue={institution}
@@ -143,21 +165,26 @@ export function EmeritusButton({
         </div>
       </div>
     </ActionModal>
-  );
+  )
 }
 
 export function DownloadDocButton({ userId }: { userId: string }) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false)
 
   async function handleDownload() {
-    setLoading(true);
+    setLoading(true)
     try {
-      const res = await fetch(`/api/admin/faculty-doc?userId=${encodeURIComponent(userId)}`);
-      if (!res.ok) { alert('Could not fetch document link'); return; }
-      const { url } = await res.json() as { url: string };
-      window.open(url, '_blank', 'noopener,noreferrer');
+      const res = await fetch(
+        `/api/admin/faculty-doc?userId=${encodeURIComponent(userId)}`
+      )
+      if (!res.ok) {
+        alert('Could not fetch document link')
+        return
+      }
+      const { url } = (await res.json()) as { url: string }
+      window.open(url, '_blank', 'noopener,noreferrer')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -169,15 +196,15 @@ export function DownloadDocButton({ userId }: { userId: string }) {
     >
       {loading ? '…' : '📄 View Doc'}
     </button>
-  );
+  )
 }
 
 export function ExpertVerifyButton({
   userId,
   name,
 }: {
-  userId: string;
-  name: string;
+  userId: string
+  name: string
 }) {
   return (
     <ActionModal
@@ -189,12 +216,14 @@ export function ExpertVerifyButton({
       title={`Verify independent expert — ${name}`}
       confirmLabel="Confirm Expert Verification"
       action={async (fd) => {
-        fd.set('user_id', userId);
-        await verifyIndependent(fd);
+        fd.set('user_id', userId)
+        await verifyIndependent(fd)
       }}
     >
       <div>
-        <label className="text-xs text-slate-400 mb-1 block">Admin note (optional)</label>
+        <label className="text-xs text-slate-400 mb-1 block">
+          Admin note (optional)
+        </label>
         <input
           name="note"
           placeholder="e.g. Verified via LinkedIn profile"
@@ -202,10 +231,16 @@ export function ExpertVerifyButton({
         />
       </div>
     </ActionModal>
-  );
+  )
 }
 
-export function RevokeButton({ userId, name }: { userId: string; name: string }) {
+export function RevokeButton({
+  userId,
+  name,
+}: {
+  userId: string
+  name: string
+}) {
   return (
     <ActionModal
       trigger={
@@ -217,9 +252,9 @@ export function RevokeButton({ userId, name }: { userId: string; name: string })
       danger
       confirmLabel="Revoke Verification"
       action={async (fd) => {
-        fd.set('user_id', userId);
-        await revokeFacultyVerification(fd);
+        fd.set('user_id', userId)
+        await revokeFacultyVerification(fd)
       }}
     />
-  );
+  )
 }

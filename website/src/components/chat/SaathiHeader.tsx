@@ -1,26 +1,36 @@
-'use client';
+'use client'
 
-import type { Saathi } from '@/types';
-import { useThemeStore } from '@/stores/themeStore';
-import { NotificationBell } from '@/components/layout/NotificationBell';
+import type { Saathi } from '@/types'
+import { useThemeStore } from '@/stores/themeStore'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 
 type Props = {
-  saathi: Saathi;
-  botName: string;
-  sessionCount: number;
-  onCheckin?: () => void;
-  isLegalTheme?: boolean;
-};
+  saathi: Saathi
+  botName: string
+  sessionCount: number
+  onCheckin?: () => void
+  isLegalTheme?: boolean
+}
 
-export function SaathiHeader({ saathi, botName, sessionCount, onCheckin, isLegalTheme = false }: Props) {
-  const { mode, toggleMode } = useThemeStore();
+export function SaathiHeader({
+  saathi,
+  botName,
+  sessionCount,
+  onCheckin,
+  isLegalTheme = false,
+}: Props) {
+  const { mode, toggleMode } = useThemeStore()
 
   return (
     <div
-      className="h-16 flex items-center justify-between px-5 shrink-0"
+      className="flex h-16 shrink-0 items-center justify-between px-5"
       style={{
-        background: isLegalTheme ? '#FFFFFF' : `${saathi.bg ?? saathi.primary}26`,
-        borderBottom: isLegalTheme ? '1px solid #E0E0E0' : `0.5px solid ${saathi.primary}33`,
+        background: isLegalTheme
+          ? '#FFFFFF'
+          : `${saathi.bg ?? saathi.primary}26`,
+        borderBottom: isLegalTheme
+          ? '1px solid #E0E0E0'
+          : `0.5px solid ${saathi.primary}33`,
         transition: 'background 0.4s ease, border-color 0.4s ease',
       }}
     >
@@ -29,13 +39,25 @@ export function SaathiHeader({ saathi, botName, sessionCount, onCheckin, isLegal
         <span className="text-3xl leading-none">{saathi.emoji}</span>
         <div>
           <h2
-            className="font-playfair font-bold text-base leading-tight"
+            className="font-playfair text-base leading-tight font-bold"
             style={{ color: isLegalTheme ? '#1A1A1A' : '#ffffff' }}
           >
             {saathi.name}
           </h2>
-          <p className="text-[11px] leading-none mt-0.5" style={{ color: isLegalTheme ? '#888888' : 'rgba(255,255,255,0.45)' }}>
-            {botName}  ·  <span style={{ color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)' }}>{saathi.tagline}</span>
+          <p
+            className="mt-0.5 text-[11px] leading-none"
+            style={{
+              color: isLegalTheme ? '#888888' : 'rgba(255,255,255,0.45)',
+            }}
+          >
+            {botName} ·{' '}
+            <span
+              style={{
+                color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)',
+              }}
+            >
+              {saathi.tagline}
+            </span>
           </p>
         </div>
       </div>
@@ -47,16 +69,28 @@ export function SaathiHeader({ saathi, botName, sessionCount, onCheckin, isLegal
         {/* Day / Night toggle */}
         <button
           onClick={toggleMode}
-          title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-200"
+          title={
+            mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+          }
+          className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-all duration-200"
           style={{
             background: isLegalTheme ? '#F0F0F0' : 'rgba(255,255,255,0.07)',
-            border: isLegalTheme ? '0.5px solid #D0D0D0' : '0.5px solid rgba(255,255,255,0.15)',
+            border: isLegalTheme
+              ? '0.5px solid #D0D0D0'
+              : '0.5px solid rgba(255,255,255,0.15)',
             color: isLegalTheme ? '#555555' : 'rgba(255,255,255,0.55)',
             cursor: 'pointer',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = isLegalTheme ? '#E4E4E4' : 'rgba(255,255,255,0.12)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = isLegalTheme ? '#F0F0F0' : 'rgba(255,255,255,0.07)'; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = isLegalTheme
+              ? '#E4E4E4'
+              : 'rgba(255,255,255,0.12)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = isLegalTheme
+              ? '#F0F0F0'
+              : 'rgba(255,255,255,0.07)'
+          }}
         >
           {mode === 'dark' ? '☀️ Day' : '🌙 Night'}
         </button>
@@ -65,15 +99,23 @@ export function SaathiHeader({ saathi, botName, sessionCount, onCheckin, isLegal
         {sessionCount >= 5 && onCheckin && (
           <button
             onClick={onCheckin}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150"
-            style={{ background: 'rgba(201,153,58,0.15)', border: '0.5px solid #C9993A', color: '#C9993A' }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(201,153,58,0.25)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(201,153,58,0.15)'; }}
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-150"
+            style={{
+              background: 'rgba(201,153,58,0.15)',
+              border: '0.5px solid #C9993A',
+              color: '#C9993A',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(201,153,58,0.25)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(201,153,58,0.15)'
+            }}
           >
             ✦ Check-in
           </button>
         )}
       </div>
     </div>
-  );
+  )
 }

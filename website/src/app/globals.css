@@ -1,11 +1,11 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
-  --navy: #0B1F3A;
-  --navy-deep: #060F1D;
-  --gold: #C9993A;
-  --gold-light: #E5B86A;
-  --cream: #FAF7F2;
+  --navy: #0b1f3a;
+  --navy-deep: #060f1d;
+  --gold: #c9993a;
+  --gold-light: #e5b86a;
+  --cream: #faf7f2;
 }
 
 * {

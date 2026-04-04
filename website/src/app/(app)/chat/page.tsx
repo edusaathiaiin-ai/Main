@@ -1,20 +1,22 @@
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { ChatWindow } from '@/components/chat/ChatWindow';
-import { ChatWelcomeGate } from '@/components/chat/WelcomeOverlay';
-import { DailyChallengeWidget } from '@/components/chat/DailyChallengeWidget';
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { ChatWindow } from '@/components/chat/ChatWindow'
+import { ChatWelcomeGate } from '@/components/chat/WelcomeOverlay'
+import { DailyChallengeWidget } from '@/components/chat/DailyChallengeWidget'
 
 export const metadata = {
   title: 'Chat with your Saathi · EdUsaathiAI',
   description: 'Your personal AI learning companion',
-};
+}
 
 export default async function ChatPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login');
+    redirect('/login')
   }
 
   // Fetch profile — if not active yet, redirect to onboarding
@@ -22,10 +24,10 @@ export default async function ChatPage() {
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single();
+    .single()
 
   if (!profile || !profile.is_active) {
-    redirect('/onboard');
+    redirect('/onboard')
   }
 
   // Fetch soul data — only columns guaranteed to exist in DB
@@ -36,7 +38,7 @@ export default async function ChatPage() {
     .select('session_count, academic_level')
     .eq('user_id', user.id)
     .eq('vertical_id', profile.primary_saathi_id ?? '')
-    .maybeSingle();
+    .maybeSingle()
 
   return (
     <>
@@ -49,7 +51,9 @@ export default async function ChatPage() {
       >
         <ChatWindow />
       </ChatWelcomeGate>
-      <DailyChallengeWidget saathiId={profile.primary_saathi_id ?? 'kanoonsaathi'} />
+      <DailyChallengeWidget
+        saathiId={profile.primary_saathi_id ?? 'kanoonsaathi'}
+      />
     </>
-  );
+  )
 }

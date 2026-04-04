@@ -1,16 +1,16 @@
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 
-export type BillingCycle = 'monthly' | 'annual';
+export type BillingCycle = 'monthly' | 'annual'
 
 export interface PricingCardProps {
-  id: 'free' | 'plus' | 'pro' | 'unlimited';
-  billing: BillingCycle;
-  onUpgrade: (planId: string) => void;
-  index: number;
-  disabled?: boolean;
+  id: 'free' | 'plus' | 'pro' | 'unlimited'
+  billing: BillingCycle
+  onUpgrade: (planId: string) => void
+  index: number
+  disabled?: boolean
 }
 
 // ── Plan definitions (UI layer — prices from spec) ────────────────────────────
@@ -134,23 +134,31 @@ const PLAN_DEFS = {
     subText: 'No refunds — pause anytime instead',
     featured: false,
   },
-} as const;
+} as const
 
-export default function PricingCard({ id, billing, onUpgrade, index, disabled = false }: PricingCardProps) {
-  const plan = PLAN_DEFS[id];
-  const router = useRouter();
+export default function PricingCard({
+  id,
+  billing,
+  onUpgrade,
+  index,
+  disabled = false,
+}: PricingCardProps) {
+  const plan = PLAN_DEFS[id]
+  const router = useRouter()
 
   // Compute displayed price
-  const showAnnual = billing === 'annual' && id !== 'unlimited' && id !== 'free';
-  const displayPrice = showAnnual ? `₹${plan.priceAnnual ?? plan.priceMonthly}` : plan.priceLabel;
-  const displaySuffix = plan.priceSuffix;
+  const showAnnual = billing === 'annual' && id !== 'unlimited' && id !== 'free'
+  const displayPrice = showAnnual
+    ? `₹${plan.priceAnnual ?? plan.priceMonthly}`
+    : plan.priceLabel
+  const displaySuffix = plan.priceSuffix
 
   function handleCTA() {
     if (id === 'free') {
-      router.push('/login');
-      return;
+      router.push('/login')
+      return
     }
-    onUpgrade(id);
+    onUpgrade(id)
   }
 
   return (
@@ -158,9 +166,13 @@ export default function PricingCard({ id, billing, onUpgrade, index, disabled = 
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
-      transition={{ delay: index * 0.1, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{
+        delay: index * 0.1,
+        duration: 0.5,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      }}
       whileHover={{ y: -6, transition: { duration: 0.2 } }}
-      className="relative flex flex-col rounded-2xl p-6 h-full"
+      className="relative flex h-full flex-col rounded-2xl p-6"
       style={{
         background: plan.bg,
         border: `${plan.featured ? '2px' : '1px'} solid ${plan.border}`,
@@ -171,7 +183,7 @@ export default function PricingCard({ id, billing, onUpgrade, index, disabled = 
       {plan.badge && (
         <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
           <div
-            className="px-4 py-1 rounded-full text-xs font-bold tracking-wide whitespace-nowrap"
+            className="rounded-full px-4 py-1 text-xs font-bold tracking-wide whitespace-nowrap"
             style={{
               background: plan.badgeColor ?? '#C9993A',
               color: plan.badgeColor === '#C9993A' ? '#060F1D' : '#fff',
@@ -184,11 +196,15 @@ export default function PricingCard({ id, billing, onUpgrade, index, disabled = 
 
       {/* Header */}
       <div className="mb-5">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="mb-1 flex items-center gap-2">
           <span className="text-2xl">{plan.emoji}</span>
-          <h3 className="font-playfair text-lg font-bold text-white">{plan.name}</h3>
+          <h3 className="font-playfair text-lg font-bold text-white">
+            {plan.name}
+          </h3>
         </div>
-        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>{plan.tagline}</p>
+        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          {plan.tagline}
+        </p>
       </div>
 
       {/* Price */}
@@ -203,7 +219,12 @@ export default function PricingCard({ id, billing, onUpgrade, index, disabled = 
             {displayPrice}
           </motion.span>
           {id !== 'free' && (
-            <span className="text-sm mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>{displaySuffix}</span>
+            <span
+              className="mb-1 text-sm"
+              style={{ color: 'rgba(255,255,255,0.4)' }}
+            >
+              {displaySuffix}
+            </span>
           )}
         </div>
         {plan.annualNote && (
@@ -211,30 +232,41 @@ export default function PricingCard({ id, billing, onUpgrade, index, disabled = 
             key={billing + id}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-xs mt-1"
+            className="mt-1 text-xs"
             style={{ color: showAnnual ? '#4ADE80' : 'rgba(255,255,255,0.3)' }}
           >
             {showAnnual ? plan.annualNote : ''}
           </motion.p>
         )}
         {id === 'unlimited' && (
-          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <p
+            className="mt-1 text-xs"
+            style={{ color: 'rgba(255,255,255,0.35)' }}
+          >
             Monthly only — no annual plan
           </p>
         )}
       </div>
 
       {/* Features */}
-      <ul className="flex-1 space-y-2.5 mb-6">
+      <ul className="mb-6 flex-1 space-y-2.5">
         {plan.features.map((f, i) => (
           <li key={i} className="flex items-start gap-2.5 text-sm">
             <span
               className="mt-0.5 shrink-0 font-bold"
-              style={{ color: f.included ? '#4ADE80' : 'rgba(255,255,255,0.2)' }}
+              style={{
+                color: f.included ? '#4ADE80' : 'rgba(255,255,255,0.2)',
+              }}
             >
               {f.included ? '✓' : '✗'}
             </span>
-            <span style={{ color: f.included ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)' }}>
+            <span
+              style={{
+                color: f.included
+                  ? 'rgba(255,255,255,0.8)'
+                  : 'rgba(255,255,255,0.3)',
+              }}
+            >
               {f.text}
             </span>
           </li>
@@ -246,7 +278,7 @@ export default function PricingCard({ id, billing, onUpgrade, index, disabled = 
         <button
           onClick={handleCTA}
           disabled={disabled}
-          className="w-full rounded-xl py-3.5 text-sm font-bold transition-all duration-200 hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full rounded-xl py-3.5 text-sm font-bold transition-all duration-200 hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           style={
             plan.ctaStyle === 'outline'
               ? {
@@ -264,11 +296,14 @@ export default function PricingCard({ id, billing, onUpgrade, index, disabled = 
           {plan.ctaLabel}
         </button>
         {plan.subText && (
-          <p className="text-center text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <p
+            className="mt-2 text-center text-[11px]"
+            style={{ color: 'rgba(255,255,255,0.3)' }}
+          >
             {plan.subText}
           </p>
         )}
       </div>
     </motion.div>
-  );
+  )
 }

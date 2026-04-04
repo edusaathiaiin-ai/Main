@@ -1,132 +1,174 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { createClient } from '@/lib/supabase/client';
-import { SAATHIS } from '@/constants/saathis';
-import { SLUG_TO_UUID, toSlug } from '@/constants/verticalIds';
-import { useAuthStore } from '@/stores/authStore';
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { createClient } from '@/lib/supabase/client'
+import { SAATHIS } from '@/constants/saathis'
+import { SLUG_TO_UUID, toSlug } from '@/constants/verticalIds'
+import { useAuthStore } from '@/stores/authStore'
 import {
   ACADEMIC_LEVEL_CARDS,
   instantCalibrate,
   type AcademicLevel,
   type AcademicLevelCard,
-} from '@/lib/instantSoulCalibration';
-import { SoulProfileForm, type SoulProfileData } from '@/components/onboard/SoulProfileForm';
-import { computeProfileCompleteness } from '@/lib/profileCompleteness';
-import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete';
-import { validateFacultyEmail } from '@/lib/faculty-email-validation';
-import type { Saathi, Profile } from '@/types';
+} from '@/lib/instantSoulCalibration'
+import {
+  SoulProfileForm,
+  type SoulProfileData,
+} from '@/components/onboard/SoulProfileForm'
+import { computeProfileCompleteness } from '@/lib/profileCompleteness'
+import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete'
+import { validateFacultyEmail } from '@/lib/faculty-email-validation'
+import type { Saathi, Profile } from '@/types'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type DbUserRole = 'student' | 'faculty' | 'public' | 'institution';
-type OnboardStep = 'loading' | 'role_extra' | 'academic' | 'saathi' | 'profile';
+type DbUserRole = 'student' | 'faculty' | 'public' | 'institution'
+type OnboardStep = 'loading' | 'role_extra' | 'academic' | 'saathi' | 'profile'
 
 type MinProfile = {
-  id: string;
-  role: DbUserRole | null;
-  primary_saathi_id: string | null;
-  full_name: string | null;
-  academic_level: string | null;
-};
+  id: string
+  role: DbUserRole | null
+  primary_saathi_id: string | null
+  full_name: string | null
+  academic_level: string | null
+}
 
 type ProfileForm = {
-  fullName: string;
-  city: string;
-  institution: string;
-  examTarget: string;
-  futureResearch: string;
+  fullName: string
+  city: string
+  institution: string
+  examTarget: string
+  futureResearch: string
   // Level-specific
-  previousDegree: string;
-  thesisArea: string;
-  prepDuration: string;
-  currentYear: number | null;
-  totalYears: number | null;
+  previousDegree: string
+  thesisArea: string
+  prepDuration: string
+  currentYear: number | null
+  totalYears: number | null
   // Faculty-specific
-  facultySubject: string;
-  facultyYears: string;
+  facultySubject: string
+  facultyYears: string
   // Institution-specific
-  orgName: string;
-  orgType: string;
-  orgContactEmail: string;
-};
+  orgName: string
+  orgType: string
+  orgContactEmail: string
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const CITIES = [
-  'Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad',
-  'Ahmedabad', 'Pune', 'Kolkata', 'Jaipur', 'Surat',
-  'Vadodara', 'Rajkot', 'Nagpur', 'Lucknow', 'Bhopal',
-  'Indore', 'Patna', 'Chandigarh', 'Kochi', 'Coimbatore', 'Other',
-];
+  'Mumbai',
+  'Delhi',
+  'Bangalore',
+  'Chennai',
+  'Hyderabad',
+  'Ahmedabad',
+  'Pune',
+  'Kolkata',
+  'Jaipur',
+  'Surat',
+  'Vadodara',
+  'Rajkot',
+  'Nagpur',
+  'Lucknow',
+  'Bhopal',
+  'Indore',
+  'Patna',
+  'Chandigarh',
+  'Kochi',
+  'Coimbatore',
+  'Other',
+]
 
 const PREP_DURATIONS = [
-  'Just started', '3–6 months', '6–12 months', '1–2 years', '2+ years',
-];
+  'Just started',
+  '3–6 months',
+  '6–12 months',
+  '1–2 years',
+  '2+ years',
+]
 
 // All 24 Saathis are now live
-const LIVE_SAATHIS = { has: (_id: string) => true };
+const LIVE_SAATHIS = { has: (_id: string) => true }
 
 // ── Animation presets ─────────────────────────────────────────────────────────
 
-const spring = { type: 'spring', stiffness: 300, damping: 30 } as const;
+const spring = { type: 'spring', stiffness: 300, damping: 30 } as const
 
 const stepVariants = {
   enter: { x: 60, opacity: 0 },
   center: { x: 0, opacity: 1, transition: { duration: 0.3 } },
   exit: { x: -60, opacity: 0, transition: { duration: 0.2 } },
-};
+}
 
 const cardItem = {
   enter: { opacity: 0, y: 16 },
   center: { opacity: 1, y: 0, transition: { duration: 0.28 } },
-};
+}
 
 // ── Step Indicator ────────────────────────────────────────────────────────────
 
 function StepIndicator({ step }: { step: OnboardStep }) {
-  const steps: Exclude<OnboardStep, 'loading'>[] = ['academic', 'saathi', 'profile'];
-  const labels = ['Academic Level', 'Your Saathi', 'Your Profile'];
-  const currentIdx = steps.indexOf(step as Exclude<OnboardStep, 'loading'>);
+  const steps: Exclude<OnboardStep, 'loading'>[] = [
+    'academic',
+    'saathi',
+    'profile',
+  ]
+  const labels = ['Academic Level', 'Your Saathi', 'Your Profile']
+  const currentIdx = steps.indexOf(step as Exclude<OnboardStep, 'loading'>)
   return (
     <div className="flex items-center gap-2">
       {steps.map((s, i) => {
-        const done = i < currentIdx;
-        const active = i === currentIdx;
+        const done = i < currentIdx
+        const active = i === currentIdx
         return (
           <div key={s} className="flex items-center gap-2">
             <div className="flex flex-col items-center gap-1">
               <motion.div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold"
                 animate={{
-                  background: done ? '#C9993A' : active ? 'rgba(201,153,58,0.2)' : 'rgba(255,255,255,0.06)',
-                  borderColor: done || active ? '#C9993A' : 'rgba(255,255,255,0.12)',
-                  color: done ? '#060F1D' : active ? '#C9993A' : 'rgba(255,255,255,0.25)',
+                  background: done
+                    ? '#C9993A'
+                    : active
+                      ? 'rgba(201,153,58,0.2)'
+                      : 'rgba(255,255,255,0.06)',
+                  borderColor:
+                    done || active ? '#C9993A' : 'rgba(255,255,255,0.12)',
+                  color: done
+                    ? '#060F1D'
+                    : active
+                      ? '#C9993A'
+                      : 'rgba(255,255,255,0.25)',
                 }}
                 style={{ border: '1.5px solid' }}
                 transition={spring}
               >
                 {done ? '✓' : i + 1}
               </motion.div>
-              <span className="text-[9px] hidden sm:block" style={{ color: active ? '#C9993A' : 'rgba(255,255,255,0.25)' }}>
+              <span
+                className="hidden text-[9px] sm:block"
+                style={{ color: active ? '#C9993A' : 'rgba(255,255,255,0.25)' }}
+              >
                 {labels[i]}
               </span>
             </div>
             {i < steps.length - 1 && (
               <motion.div
-                className="h-px w-8 mb-3"
-                animate={{ background: done ? '#C9993A' : 'rgba(255,255,255,0.1)' }}
+                className="mb-3 h-px w-8"
+                animate={{
+                  background: done ? '#C9993A' : 'rgba(255,255,255,0.1)',
+                }}
                 transition={spring}
               />
             )}
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 function BackButton({ onClick }: { onClick: () => void }) {
@@ -135,30 +177,50 @@ function BackButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       className="flex items-center gap-1.5 text-sm transition-colors duration-150"
       style={{ color: 'rgba(255,255,255,0.35)' }}
-      onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')
+      }
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')
+      }
     >
       ← Back
     </button>
-  );
+  )
 }
 
-function InputField({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function InputField({
+  label,
+  required,
+  children,
+}: {
+  label: string
+  required?: boolean
+  children: React.ReactNode
+}) {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-        {label}{required && <span className="ml-0.5" style={{ color: '#C9993A' }}>*</span>}
+      <label
+        className="mb-1.5 block text-xs font-medium"
+        style={{ color: 'rgba(255,255,255,0.5)' }}
+      >
+        {label}
+        {required && (
+          <span className="ml-0.5" style={{ color: '#C9993A' }}>
+            *
+          </span>
+        )}
       </label>
       {children}
     </div>
-  );
+  )
 }
 
 const inputStyle = {
   background: 'rgba(255,255,255,0.05)',
   border: '0.5px solid rgba(255,255,255,0.1)',
   color: '#fff',
-} as const;
+} as const
 
 // ── Step 0: Academic Level ────────────────────────────────────────────────────
 
@@ -166,49 +228,55 @@ function AcademicLevelStep({
   onContinue,
   saving,
 }: {
-  onContinue: (level: AcademicLevel, yearIdx: number | null, examTarget: string | null) => Promise<void>;
-  saving: boolean;
+  onContinue: (
+    level: AcademicLevel,
+    yearIdx: number | null,
+    examTarget: string | null
+  ) => Promise<void>
+  saving: boolean
 }) {
-  const [selected, setSelected] = useState<AcademicLevelCard | null>(null);
-  const [yearIdx, setYearIdx] = useState<number | null>(null);
-  const [examTarget, setExamTarget] = useState<string | null>(null);
+  const [selected, setSelected] = useState<AcademicLevelCard | null>(null)
+  const [yearIdx, setYearIdx] = useState<number | null>(null)
+  const [examTarget, setExamTarget] = useState<string | null>(null)
 
-  const canProceed = !!selected && (
-    selected.yearOptions.length === 0 ||
-    yearIdx !== null ||
-    examTarget !== null
-  );
+  const canProceed =
+    !!selected &&
+    (selected.yearOptions.length === 0 ||
+      yearIdx !== null ||
+      examTarget !== null)
 
   function handleCardClick(card: AcademicLevelCard) {
-    setSelected(card);
-    setYearIdx(null);
-    setExamTarget(null);
+    setSelected(card)
+    setYearIdx(null)
+    setExamTarget(null)
   }
 
   async function handleContinue() {
-    if (!selected) return;
-    const resolvedYear = selected.id === 'competitive' ? null : yearIdx;
-    const resolvedExam = selected.id === 'competitive' ? examTarget : null;
-    await onContinue(selected.id, resolvedYear, resolvedExam);
+    if (!selected) return
+    const resolvedYear = selected.id === 'competitive' ? null : yearIdx
+    const resolvedExam = selected.id === 'competitive' ? examTarget : null
+    await onContinue(selected.id, resolvedYear, resolvedExam)
   }
 
   return (
-    <div className="flex flex-col items-center w-full px-4 py-8 max-w-3xl mx-auto">
+    <div className="mx-auto flex w-full max-w-3xl flex-col items-center px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
+        className="mb-8 text-center"
       >
-        <h1 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-3">
+        <h1 className="font-playfair mb-3 text-4xl font-bold text-white md:text-5xl">
           Where are you right now?
         </h1>
-        <p className="text-white/50 text-lg">Your Saathi calibrates instantly to your level</p>
+        <p className="text-lg text-white/50">
+          Your Saathi calibrates instantly to your level
+        </p>
       </motion.div>
 
       {/* 8 Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full mb-6">
+      <div className="mb-6 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {ACADEMIC_LEVEL_CARDS.map((card, i) => {
-          const isSelected = selected?.id === card.id;
+          const isSelected = selected?.id === card.id
           return (
             <motion.button
               key={card.id}
@@ -216,9 +284,11 @@ function AcademicLevelStep({
               animate={{ opacity: 1, y: 0, transition: { delay: i * 0.06 } }}
               onClick={() => handleCardClick(card)}
               whileHover={{ y: -4, transition: { duration: 0.18 } }}
-              className="relative text-left rounded-2xl p-4 outline-none transition-shadow"
+              className="relative rounded-2xl p-4 text-left transition-shadow outline-none"
               style={{
-                background: isSelected ? `${card.color}22` : 'rgba(255,255,255,0.03)',
+                background: isSelected
+                  ? `${card.color}22`
+                  : 'rgba(255,255,255,0.03)',
                 border: `1.5px solid ${isSelected ? card.color : 'rgba(255,255,255,0.07)'}`,
                 boxShadow: isSelected ? `0 0 24px ${card.color}33` : undefined,
               }}
@@ -227,20 +297,30 @@ function AcademicLevelStep({
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                  className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
                   style={{ background: card.color, color: '#fff' }}
                 >
                   ✓
                 </motion.div>
               )}
-              <span className="text-3xl mb-2 block">{card.emoji}</span>
-              <p className="text-white font-semibold text-sm mb-0.5">{card.title}</p>
-              <p className="text-[11px] mb-1.5" style={{ color: 'rgba(255,255,255,0.45)' }}>{card.subtitle}</p>
-              <p className="text-[10px] px-2 py-0.5 rounded-full inline-block" style={{ background: `${card.color}22`, color: card.color }}>
+              <span className="mb-2 block text-3xl">{card.emoji}</span>
+              <p className="mb-0.5 text-sm font-semibold text-white">
+                {card.title}
+              </p>
+              <p
+                className="mb-1.5 text-[11px]"
+                style={{ color: 'rgba(255,255,255,0.45)' }}
+              >
+                {card.subtitle}
+              </p>
+              <p
+                className="inline-block rounded-full px-2 py-0.5 text-[10px]"
+                style={{ background: `${card.color}22`, color: card.color }}
+              >
                 {card.durationHint}
               </p>
             </motion.button>
-          );
+          )
         })}
       </div>
 
@@ -252,35 +332,48 @@ function AcademicLevelStep({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="w-full mb-6 overflow-hidden"
+            className="mb-6 w-full overflow-hidden"
           >
-            <div className="rounded-2xl p-5" style={{ background: `${selected.color}12`, border: `1px solid ${selected.color}33` }}>
-              <p className="text-sm font-semibold mb-3 text-white">{selected.yearQuestion}</p>
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                background: `${selected.color}12`,
+                border: `1px solid ${selected.color}33`,
+              }}
+            >
+              <p className="mb-3 text-sm font-semibold text-white">
+                {selected.yearQuestion}
+              </p>
               <div className="flex flex-wrap gap-2">
                 {selected.yearOptions.map((opt, i) => {
-                  const isYearActive = selected.id === 'competitive' ? examTarget === opt : yearIdx === i;
+                  const isYearActive =
+                    selected.id === 'competitive'
+                      ? examTarget === opt
+                      : yearIdx === i
                   return (
                     <button
                       key={opt}
                       onClick={() => {
                         if (selected.id === 'competitive') {
-                          setExamTarget(opt);
-                          setYearIdx(null);
+                          setExamTarget(opt)
+                          setYearIdx(null)
                         } else {
-                          setYearIdx(i);
-                          setExamTarget(null);
+                          setYearIdx(i)
+                          setExamTarget(null)
                         }
                       }}
                       className="rounded-full px-4 py-2 text-sm font-medium transition-all duration-150"
                       style={{
-                        background: isYearActive ? selected.color : 'rgba(255,255,255,0.06)',
+                        background: isYearActive
+                          ? selected.color
+                          : 'rgba(255,255,255,0.06)',
                         border: `0.5px solid ${isYearActive ? selected.color : 'rgba(255,255,255,0.12)'}`,
                         color: isYearActive ? '#fff' : 'rgba(255,255,255,0.6)',
                       }}
                     >
                       {opt}
                     </button>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -291,7 +384,8 @@ function AcademicLevelStep({
       <motion.button
         animate={{
           opacity: canProceed ? 1 : 0.4,
-          background: canProceed && selected ? selected.color : 'rgba(255,255,255,0.1)',
+          background:
+            canProceed && selected ? selected.color : 'rgba(255,255,255,0.1)',
         }}
         onClick={handleContinue}
         disabled={!canProceed || saving}
@@ -299,13 +393,17 @@ function AcademicLevelStep({
       >
         {saving ? (
           <span className="flex items-center justify-center gap-2">
-            <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
             Calibrating…
           </span>
-        ) : canProceed ? `Continue as ${selected?.title} →` : 'Select your level to continue'}
+        ) : canProceed ? (
+          `Continue as ${selected?.title} →`
+        ) : (
+          'Select your level to continue'
+        )}
       </motion.button>
     </div>
-  );
+  )
 }
 
 // ── Step 1: Saathi Picker ─────────────────────────────────────────────────────
@@ -315,57 +413,75 @@ function SaathiStep({
   onBack,
   saving,
 }: {
-  onContinue: (saathiId: string) => Promise<void>;
-  onBack: () => void;
-  saving: boolean;
+  onContinue: (saathiId: string) => Promise<void>
+  onBack: () => void
+  saving: boolean
 }) {
-  const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<Saathi | null>(null);
+  const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState<Saathi | null>(null)
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return SAATHIS;
-    const q = search.toLowerCase();
+    if (!search.trim()) return SAATHIS
+    const q = search.toLowerCase()
     return SAATHIS.filter(
-      (s) => s.name.toLowerCase().includes(q) || s.tagline.toLowerCase().includes(q)
-    );
-  }, [search]);
+      (s) =>
+        s.name.toLowerCase().includes(q) || s.tagline.toLowerCase().includes(q)
+    )
+  }, [search])
 
   return (
-    <div className="flex flex-col items-center w-full px-4 py-8">
-      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-6">
-        <h2 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-3">Pick your Saathi</h2>
-        <p className="text-white/50 text-base">Your subject companion &mdash; this choice is permanent.</p>
-        <p className="text-white/25 text-xs mt-1">One student. One soul. One Saathi. Choose the subject you are studying.</p>
+    <div className="flex w-full flex-col items-center px-4 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6 text-center"
+      >
+        <h2 className="font-playfair mb-3 text-4xl font-bold text-white md:text-5xl">
+          Pick your Saathi
+        </h2>
+        <p className="text-base text-white/50">
+          Your subject companion &mdash; this choice is permanent.
+        </p>
+        <p className="mt-1 text-xs text-white/25">
+          One student. One soul. One Saathi. Choose the subject you are
+          studying.
+        </p>
       </motion.div>
 
-      <div className="w-full max-w-md mb-6">
+      <div className="mb-6 w-full max-w-md">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search subjects…"
-          className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
+          className="w-full rounded-xl px-4 py-3 text-sm transition-all outline-none"
           style={inputStyle}
-          onFocus={(e) => (e.currentTarget.style.outline = '1.5px solid #C9993A')}
+          onFocus={(e) =>
+            (e.currentTarget.style.outline = '1.5px solid #C9993A')
+          }
           onBlur={(e) => (e.currentTarget.style.outline = 'none')}
         />
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 w-full max-w-4xl mb-8">
+      <div className="mb-8 grid w-full max-w-4xl grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
         {filtered.map((saathi) => {
-          const isSelected = selected?.id === saathi.id;
-          const isLive = LIVE_SAATHIS.has(saathi.id);
+          const isSelected = selected?.id === saathi.id
+          const isLive = LIVE_SAATHIS.has(saathi.id)
           return (
             <motion.button
               key={saathi.id}
               variants={cardItem}
               onClick={() => setSelected(saathi)}
               whileHover={{ y: -4, transition: { duration: 0.18 } }}
-              className="relative text-left rounded-xl p-4 outline-none"
+              className="relative rounded-xl p-4 text-left outline-none"
               style={{
-                background: isSelected ? `${saathi.primary}33` : 'rgba(255,255,255,0.03)',
+                background: isSelected
+                  ? `${saathi.primary}33`
+                  : 'rgba(255,255,255,0.03)',
                 border: `1.5px solid ${isSelected ? '#C9993A' : 'rgba(255,255,255,0.07)'}`,
-                boxShadow: isSelected ? '0 0 20px rgba(201,153,58,0.2)' : undefined,
+                boxShadow: isSelected
+                  ? '0 0 20px rgba(201,153,58,0.2)'
+                  : undefined,
               }}
             >
               <div className="absolute top-2 right-2">
@@ -373,21 +489,38 @@ function SaathiStep({
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                    className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
                     style={{ background: '#C9993A', color: '#060F1D' }}
-                  >✓</motion.div>
+                  >
+                    ✓
+                  </motion.div>
                 ) : isLive ? (
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                    style={{ background: 'rgba(34,197,94,0.15)', border: '0.5px solid rgba(34,197,94,0.4)', color: '#4ADE80' }}>
+                  <span
+                    className="rounded-full px-1.5 py-0.5 text-[9px] font-bold"
+                    style={{
+                      background: 'rgba(34,197,94,0.15)',
+                      border: '0.5px solid rgba(34,197,94,0.4)',
+                      color: '#4ADE80',
+                    }}
+                  >
                     LIVE ✓
                   </span>
                 ) : null}
               </div>
-              <span className="text-[40px] mb-2 block leading-none">{saathi.emoji}</span>
-              <p className="text-white font-bold text-xs mb-0.5 leading-tight">{saathi.name}</p>
-              <p className="text-[10px] leading-relaxed line-clamp-2" style={{ color: 'rgba(255,255,255,0.38)' }}>{saathi.tagline}</p>
+              <span className="mb-2 block text-[40px] leading-none">
+                {saathi.emoji}
+              </span>
+              <p className="mb-0.5 text-xs leading-tight font-bold text-white">
+                {saathi.name}
+              </p>
+              <p
+                className="line-clamp-2 text-[10px] leading-relaxed"
+                style={{ color: 'rgba(255,255,255,0.38)' }}
+              >
+                {saathi.tagline}
+              </p>
             </motion.button>
-          );
+          )
         })}
       </div>
 
@@ -403,32 +536,56 @@ function SaathiStep({
         >
           {saving ? (
             <span className="flex items-center justify-center gap-2">
-              <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
               Saving…
             </span>
-          ) : selected ? `Begin with ${selected.name} →` : 'Choose a Saathi to continue'}
+          ) : selected ? (
+            `Begin with ${selected.name} →`
+          ) : (
+            'Choose a Saathi to continue'
+          )}
         </motion.button>
         {selected && (
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', textAlign: 'center', maxWidth: '320px', lineHeight: '1.5' }}>
-            Your Saathi will be locked to <strong style={{ color: '#C9993A' }}>{selected.name}</strong>. To change later, you&apos;ll need a full profile and soul reset.
+          <p
+            style={{
+              fontSize: '11px',
+              color: 'rgba(255,255,255,0.3)',
+              textAlign: 'center',
+              maxWidth: '320px',
+              lineHeight: '1.5',
+            }}
+          >
+            Your Saathi will be locked to{' '}
+            <strong style={{ color: '#C9993A' }}>{selected.name}</strong>. To
+            change later, you&apos;ll need a full profile and soul reset.
           </p>
         )}
         <BackButton onClick={onBack} />
         <div style={{ marginTop: '16px', textAlign: 'center' }}>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', margin: 0 }}>
+          <p
+            style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.25)',
+              margin: 0,
+            }}
+          >
             Can&apos;t find your subject?{' '}
             <a
               href="mailto:support@edusaathiai.in?subject=New Saathi Suggestion"
-              style={{ color: 'rgba(201,153,58,0.7)', textDecoration: 'underline', cursor: 'pointer' }}
+              style={{
+                color: 'rgba(201,153,58,0.7)',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+              }}
             >
               Write to us
-            </a>
-            {' '}and we&apos;ll add it and notify you.
+            </a>{' '}
+            and we&apos;ll add it and notify you.
           </p>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 // ── Step 2: Profile Form (level-adaptive) ─────────────────────────────────────
@@ -441,12 +598,12 @@ export function ProfileStep({
   onBack,
   saving,
 }: {
-  academicLevel: AcademicLevel;
-  examTargetFromLevel: string | null;
-  onContinue: (form: ProfileForm) => Promise<void>;
-  onSkip: () => void;
-  onBack: () => void;
-  saving: boolean;
+  academicLevel: AcademicLevel
+  examTargetFromLevel: string | null
+  onContinue: (form: ProfileForm) => Promise<void>
+  onSkip: () => void
+  onBack: () => void
+  saving: boolean
 }) {
   const [form, setForm] = useState<ProfileForm>({
     fullName: '',
@@ -464,17 +621,17 @@ export function ProfileStep({
     orgName: '',
     orgType: '',
     orgContactEmail: '',
-  });
+  })
 
   const set = (key: keyof ProfileForm) => (val: string | number | null) =>
-    setForm((prev) => ({ ...prev, [key]: val }));
+    setForm((prev) => ({ ...prev, [key]: val }))
 
-  const canSubmit = form.fullName.trim().length > 0 && form.city !== '';
+  const canSubmit = form.fullName.trim().length > 0 && form.city !== ''
 
-  const isPhD = academicLevel === 'phd' || academicLevel === 'postdoc';
-  const isMasters = academicLevel === 'masters';
-  const isCompetitive = academicLevel === 'competitive';
-  const isProfessional = academicLevel === 'professional_learner';
+  const isPhD = academicLevel === 'phd' || academicLevel === 'postdoc'
+  const isMasters = academicLevel === 'masters'
+  const isCompetitive = academicLevel === 'competitive'
+  const isProfessional = academicLevel === 'professional_learner'
 
   const levelLabel: Record<AcademicLevel, string> = {
     diploma: 'Diploma / Certificate',
@@ -486,25 +643,32 @@ export function ProfileStep({
     competitive: 'Exam Prep',
     professional_learner: 'Working Professional',
     exploring: 'Explorer',
-  };
+  }
 
   return (
-    <div className="flex flex-col items-center w-full px-4 py-8">
+    <div className="flex w-full flex-col items-center px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-xl mb-6"
+        className="mb-6 w-full max-w-xl"
       >
         {/* Level badge */}
         <div className="mb-4">
-          <span className="text-[11px] font-bold px-3 py-1 rounded-full" style={{ background: 'rgba(201,153,58,0.15)', border: '0.5px solid rgba(201,153,58,0.3)', color: '#C9993A' }}>
+          <span
+            className="rounded-full px-3 py-1 text-[11px] font-bold"
+            style={{
+              background: 'rgba(201,153,58,0.15)',
+              border: '0.5px solid rgba(201,153,58,0.3)',
+              color: '#C9993A',
+            }}
+          >
             {levelLabel[academicLevel]} · Soul calibrated ✓
           </span>
         </div>
-        <h2 className="font-playfair text-3xl md:text-4xl font-bold text-white mb-2">
+        <h2 className="font-playfair mb-2 text-3xl font-bold text-white md:text-4xl">
           Tell your Saathi about you
         </h2>
-        <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
           The more you share, the more personal your Saathi becomes.
         </p>
       </motion.div>
@@ -521,10 +685,14 @@ export function ProfileStep({
             value={form.fullName}
             onChange={(e) => set('fullName')(e.target.value)}
             placeholder="Your name as your Saathi will call you"
-            className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+            className="w-full rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
             style={inputStyle}
-            onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')}
-            onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+            onFocus={(e) =>
+              (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
+            }
           />
         </InputField>
 
@@ -533,23 +701,40 @@ export function ProfileStep({
           <select
             value={form.city}
             onChange={(e) => set('city')(e.target.value)}
-            className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all appearance-none"
-            style={{ ...inputStyle, color: form.city ? '#fff' : 'rgba(255,255,255,0.35)' }}
+            className="w-full appearance-none rounded-xl px-4 py-3 text-sm transition-all outline-none"
+            style={{
+              ...inputStyle,
+              color: form.city ? '#fff' : 'rgba(255,255,255,0.35)',
+            }}
           >
-            <option value="" disabled style={{ background: '#0B1F3A' }}>Select your city</option>
+            <option value="" disabled style={{ background: '#0B1F3A' }}>
+              Select your city
+            </option>
             {CITIES.map((c) => (
-              <option key={c} value={c} style={{ background: '#0B1F3A', color: '#fff' }}>{c}</option>
+              <option
+                key={c}
+                value={c}
+                style={{ background: '#0B1F3A', color: '#fff' }}
+              >
+                {c}
+              </option>
             ))}
           </select>
         </InputField>
 
         {/* Institution */}
-        <InputField label={isPhD ? 'Institution & Department' : 'Institution / College'}>
+        <InputField
+          label={isPhD ? 'Institution & Department' : 'Institution / College'}
+        >
           <CollegeAutocomplete
             value={form.institution}
             onChange={set('institution')}
-            placeholder={isPhD ? 'e.g. IIT Bombay, Dept. of Electrical Engineering' : 'Start typing your college name…'}
-            className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+            placeholder={
+              isPhD
+                ? 'e.g. IIT Bombay, Dept. of Electrical Engineering'
+                : 'Start typing your college name…'
+            }
+            className="w-full rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
             inputStyle={inputStyle}
           />
         </InputField>
@@ -565,10 +750,14 @@ export function ProfileStep({
                 value={form.previousDegree}
                 onChange={(e) => set('previousDegree')(e.target.value)}
                 placeholder="e.g. B.Tech Mech from NIT Surat"
-                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+                className="w-full rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
                 style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
+                }
               />
             </InputField>
             <InputField label="Your specialisation / thesis area">
@@ -577,10 +766,14 @@ export function ProfileStep({
                 value={form.thesisArea}
                 onChange={(e) => set('thesisArea')(e.target.value)}
                 placeholder="e.g. Thermal Engineering / Heat Transfer"
-                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+                className="w-full rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
                 style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
+                }
               />
             </InputField>
           </>
@@ -595,10 +788,14 @@ export function ProfileStep({
                 onChange={(e) => set('thesisArea')(e.target.value)}
                 placeholder="What is your research question? Even a rough statement is fine."
                 rows={3}
-                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all resize-none"
+                className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
                 style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
+                }
               />
             </InputField>
             <InputField label="Your previous degree">
@@ -607,10 +804,14 @@ export function ProfileStep({
                 value={form.previousDegree}
                 onChange={(e) => set('previousDegree')(e.target.value)}
                 placeholder="e.g. M.Tech from IIT Delhi"
-                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+                className="w-full rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
                 style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
+                }
               />
             </InputField>
           </>
@@ -625,16 +826,20 @@ export function ProfileStep({
                 value={form.examTarget}
                 onChange={(e) => set('examTarget')(e.target.value)}
                 placeholder="UPSC / GATE / NEET / CA…"
-                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+                className="w-full rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
                 style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
+                }
               />
             </InputField>
             <InputField label="How long have you been preparing?">
-              <div className="flex flex-wrap gap-2 mt-0.5">
+              <div className="mt-0.5 flex flex-wrap gap-2">
                 {PREP_DURATIONS.map((d) => {
-                  const isActive = form.prepDuration === d;
+                  const isActive = form.prepDuration === d
                   return (
                     <button
                       key={d}
@@ -642,14 +847,16 @@ export function ProfileStep({
                       onClick={() => set('prepDuration')(isActive ? '' : d)}
                       className="rounded-full px-4 py-2 text-sm font-medium transition-all duration-150"
                       style={{
-                        background: isActive ? '#C9993A' : 'rgba(255,255,255,0.05)',
+                        background: isActive
+                          ? '#C9993A'
+                          : 'rgba(255,255,255,0.05)',
                         border: `0.5px solid ${isActive ? '#C9993A' : 'rgba(255,255,255,0.1)'}`,
                         color: isActive ? '#060F1D' : 'rgba(255,255,255,0.6)',
                       }}
                     >
                       {d}
                     </button>
-                  );
+                  )
                 })}
               </div>
             </InputField>
@@ -665,10 +872,14 @@ export function ProfileStep({
                 value={form.previousDegree}
                 onChange={(e) => set('previousDegree')(e.target.value)}
                 placeholder="e.g. Software Engineer at Infosys"
-                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+                className="w-full rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
                 style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
+                }
               />
             </InputField>
             <InputField label="What are you upskilling in?">
@@ -677,10 +888,14 @@ export function ProfileStep({
                 value={form.thesisArea}
                 onChange={(e) => set('thesisArea')(e.target.value)}
                 placeholder="e.g. Machine Learning, Corporate Law, Finance"
-                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+                className="w-full rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
                 style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
+                }
               />
             </InputField>
           </>
@@ -688,7 +903,13 @@ export function ProfileStep({
 
         {/* Future research (for bachelor/diploma) or "What brings you here?" (exploring) */}
         {!isPhD && !isMasters && !isCompetitive && !isProfessional && (
-          <InputField label={academicLevel === 'exploring' ? 'What are you curious about?' : 'Future research / career dream'}>
+          <InputField
+            label={
+              academicLevel === 'exploring'
+                ? 'What are you curious about?'
+                : 'Future research / career dream'
+            }
+          >
             <textarea
               value={form.futureResearch}
               onChange={(e) => set('futureResearch')(e.target.value)}
@@ -698,10 +919,14 @@ export function ProfileStep({
                   : 'What excites you most, even if it feels far away?'
               }
               rows={3}
-              className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all resize-none"
+              className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
               style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+              onFocus={(e) =>
+                (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
+              }
+              onBlur={(e) =>
+                (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
+              }
             />
           </InputField>
         )}
@@ -711,17 +936,22 @@ export function ProfileStep({
           animate={{ opacity: canSubmit ? 1 : 0.45 }}
           onClick={() => canSubmit && onContinue(form)}
           disabled={!canSubmit || saving}
-          className="w-full rounded-xl py-4 text-base font-semibold mt-2 transition-colors duration-200 disabled:cursor-not-allowed"
+          className="mt-2 w-full rounded-xl py-4 text-base font-semibold transition-colors duration-200 disabled:cursor-not-allowed"
           style={{ background: '#C9993A', color: '#060F1D' }}
-          onMouseEnter={(e) => { if (canSubmit && !saving) e.currentTarget.style.background = '#E5B86A'; }}
+          onMouseEnter={(e) => {
+            if (canSubmit && !saving)
+              e.currentTarget.style.background = '#E5B86A'
+          }}
           onMouseLeave={(e) => (e.currentTarget.style.background = '#C9993A')}
         >
           {saving ? (
             <span className="flex items-center justify-center gap-2">
-              <span className="w-4 h-4 rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D] animate-spin" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D]" />
               Setting up your Saathi…
             </span>
-          ) : 'Begin Your Journey →'}
+          ) : (
+            'Begin Your Journey →'
+          )}
         </motion.button>
 
         <div className="flex items-center justify-between">
@@ -730,234 +960,287 @@ export function ProfileStep({
             onClick={onSkip}
             className="text-xs underline underline-offset-2 transition-colors duration-150"
             style={{ color: 'rgba(255,255,255,0.25)' }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.25)')}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = 'rgba(255,255,255,0.25)')
+            }
           >
             Skip for now — I&apos;ll complete this later
           </button>
         </div>
       </motion.div>
     </div>
-  );
+  )
 }
 
 // ── Main Onboard Page ─────────────────────────────────────────────────────────
 
 export default function OnboardPage() {
   return (
-    <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center" style={{ background: '#060F1D' }}>
-        <div className="w-10 h-10 rounded-full border-2 border-white/10 animate-spin" style={{ borderTopColor: '#C9993A' }} />
-      </main>
-    }>
+    <Suspense
+      fallback={
+        <main
+          className="flex min-h-screen items-center justify-center"
+          style={{ background: '#060F1D' }}
+        >
+          <div
+            className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
+            style={{ borderTopColor: '#C9993A' }}
+          />
+        </main>
+      }
+    >
       <OnboardInner />
     </Suspense>
-  );
+  )
 }
 
 function OnboardInner() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { setProfile } = useAuthStore();
-  const [step, setStep] = useState<OnboardStep>('loading');
-  const [profile, setLocalProfile] = useState<MinProfile | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [urlRole, setUrlRole] = useState<DbUserRole | null>(null);
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { setProfile } = useAuthStore()
+  const [step, setStep] = useState<OnboardStep>('loading')
+  const [profile, setLocalProfile] = useState<MinProfile | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [urlRole, setUrlRole] = useState<DbUserRole | null>(null)
   // Academic level state (carried through all steps)
-  const [academicLevel, setAcademicLevel] = useState<AcademicLevel>('bachelor');
-  const [currentYear, setCurrentYear] = useState<number | null>(null);
-  const [totalYears, setTotalYears] = useState<number | null>(null);
-  const [examTargetFromLevel, setExamTargetFromLevel] = useState<string | null>(null);
+  const [academicLevel, setAcademicLevel] = useState<AcademicLevel>('bachelor')
+  const [currentYear, setCurrentYear] = useState<number | null>(null)
+  const [totalYears, setTotalYears] = useState<number | null>(null)
+  const [examTargetFromLevel, setExamTargetFromLevel] = useState<string | null>(
+    null
+  )
 
   // Faculty-specific state
-  const [facultyDesignation, setFacultyDesignation] = useState('');
-  const [facultyDepartment, setFacultyDepartment] = useState('');
-  const [facultyInstitution, setFacultyInstitution] = useState('');
-  const [facultyYrsExp, setFacultyYrsExp] = useState('');
-  const [facultyQualification, setFacultyQualification] = useState('');
-  const [facultyLinkedin, setFacultyLinkedin] = useState('');
-  const [facultyScholar, setFacultyScholar] = useState('');
-  const [facultyResearch, setFacultyResearch] = useState('');
-  const [facultyThesis, setFacultyThesis] = useState('');
-  const [facultySpecialities, setFacultySpecialities] = useState<string[]>([]);
-  const [facultyEmailError, setFacultyEmailError] = useState('');
-  const [facultyEmployment, setFacultyEmployment] = useState<'active' | 'retired' | 'independent'>('active');
-  const [facultyRetirementYear, setFacultyRetirementYear] = useState('');
-  const [facultyFormerInstitution, setFacultyFormerInstitution] = useState('');
-  const [facultyIndependentCredential, setFacultyIndependentCredential] = useState('');
-  const [facultyIndependentLinkedin, setFacultyIndependentLinkedin] = useState('');
-  const [facultyEmailValidation, setFacultyEmailValidation] = useState<import('@/lib/faculty-email-validation').EmailValidationResult | null>(null);
+  const [facultyDesignation, setFacultyDesignation] = useState('')
+  const [facultyDepartment, setFacultyDepartment] = useState('')
+  const [facultyInstitution, setFacultyInstitution] = useState('')
+  const [facultyYrsExp, setFacultyYrsExp] = useState('')
+  const [facultyQualification, setFacultyQualification] = useState('')
+  const [facultyLinkedin, setFacultyLinkedin] = useState('')
+  const [facultyScholar, setFacultyScholar] = useState('')
+  const [facultyResearch, setFacultyResearch] = useState('')
+  const [facultyThesis, setFacultyThesis] = useState('')
+  const [facultySpecialities, setFacultySpecialities] = useState<string[]>([])
+  const [facultyEmailError, setFacultyEmailError] = useState('')
+  const [facultyEmployment, setFacultyEmployment] = useState<
+    'active' | 'retired' | 'independent'
+  >('active')
+  const [facultyRetirementYear, setFacultyRetirementYear] = useState('')
+  const [facultyFormerInstitution, setFacultyFormerInstitution] = useState('')
+  const [facultyIndependentCredential, setFacultyIndependentCredential] =
+    useState('')
+  const [facultyIndependentLinkedin, setFacultyIndependentLinkedin] =
+    useState('')
+  const [facultyEmailValidation, setFacultyEmailValidation] = useState<
+    import('@/lib/faculty-email-validation').EmailValidationResult | null
+  >(null)
 
   // Institution-specific state
-  const [orgName, setOrgName] = useState('');
-  const [orgType, setOrgType] = useState('');
-  const [orgWebsite, setOrgWebsite] = useState('');
-  const [orgContactPerson, setOrgContactPerson] = useState('');
-  const [orgContactEmail, setOrgContactEmail] = useState('');
-  const [orgCity, setOrgCity] = useState('');
-  const [orgDescription, setOrgDescription] = useState('');
+  const [orgName, setOrgName] = useState('')
+  const [orgType, setOrgType] = useState('')
+  const [orgWebsite, setOrgWebsite] = useState('')
+  const [orgContactPerson, setOrgContactPerson] = useState('')
+  const [orgContactEmail, setOrgContactEmail] = useState('')
+  const [orgCity, setOrgCity] = useState('')
+  const [orgDescription, setOrgDescription] = useState('')
 
   // ── Mount — runs ONCE only ────────────────────────────────────────────────
-  const initRef = useRef(false);
+  const initRef = useRef(false)
   useEffect(() => {
     // Strict-mode / double-mount guard — ensures loadProfile runs exactly once
-    if (initRef.current) return;
-    initRef.current = true;
+    if (initRef.current) return
+    initRef.current = true
 
     // Read searchParams synchronously before async work (avoids stale closure)
-    const roleParam = searchParams.get('role') as DbUserRole | null;
-    function applyRole() { if (roleParam) setUrlRole(roleParam); }
-    applyRole();
+    const roleParam = searchParams.get('role') as DbUserRole | null
+    function applyRole() {
+      if (roleParam) setUrlRole(roleParam)
+    }
+    applyRole()
 
-    let cancelled = false;
+    let cancelled = false
 
     async function loadProfile() {
-      const supabase = createClient();
+      const supabase = createClient()
 
       // ── Auth check — use getUser() for server-verified identity after OAuth ──
       // getSession() can return stale/null immediately after Google redirect;
       // getUser() re-validates the JWT with Supabase server.
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) { router.replace('/login'); return; }
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+      if (userError || !user) {
+        router.replace('/login')
+        return
+      }
 
       // ── Small initial delay — lets the session cookie propagate to the client
       // before the first profile fetch, especially after Google OAuth redirects.
-      await new Promise((r) => setTimeout(r, 1000));
-      if (cancelled) return;
+      await new Promise((r) => setTimeout(r, 1000))
+      if (cancelled) return
 
       // ── Fetch profile with max 4 retries (2 s gap) — never infinite ─────────
       let data: {
-        id: string;
-        role: DbUserRole | null;
-        primary_saathi_id: string | null;
-        full_name: string | null;
-        academic_level: string | null;
-      } | null = null;
+        id: string
+        role: DbUserRole | null
+        primary_saathi_id: string | null
+        full_name: string | null
+        academic_level: string | null
+      } | null = null
 
       for (let attempt = 0; attempt < 4; attempt++) {
-        if (cancelled) return;
+        if (cancelled) return
         // maybeSingle() returns null (not error) when row is missing
         const { data: row, error } = await supabase
           .from('profiles')
           .select('id, role, primary_saathi_id, full_name, academic_level')
           .eq('id', user.id)
-          .maybeSingle();
+          .maybeSingle()
 
-        if (!error && row) { data = row as unknown as MinProfile; break; }
+        if (!error && row) {
+          data = row as unknown as MinProfile
+          break
+        }
 
         if (attempt < 3) {
           // Wait 2 s before next attempt
-          await new Promise((r) => setTimeout(r, 2000));
+          await new Promise((r) => setTimeout(r, 2000))
         }
       }
 
-      if (cancelled) return;
+      if (cancelled) return
 
       if (!data) {
         // Profile still missing after 3 attempts — session is broken, back to login
-        router.replace('/login?error=profile_missing');
-        return;
+        router.replace('/login?error=profile_missing')
+        return
       }
 
-      const p = data as MinProfile;
-      setLocalProfile(p);
+      const p = data as MinProfile
+      setLocalProfile(p)
 
       // Faculty and institution skip the academic level step
-      const effectiveRole = roleParam ?? p.role;
-      const skipAcademic = effectiveRole === 'faculty' || effectiveRole === 'institution';
+      const effectiveRole = roleParam ?? p.role
+      const skipAcademic =
+        effectiveRole === 'faculty' || effectiveRole === 'institution'
 
       // Resume at the right step
       // If user already completed onboarding (is_active + full_name), go straight to chat
       // even if primary_saathi_id is null (they can pick from chat sidebar)
       if (p.full_name && (data as { is_active?: boolean }).is_active) {
-        router.replace('/chat');
+        router.replace('/chat')
       } else if (!p.primary_saathi_id) {
-        setStep(skipAcademic ? 'saathi' : (p.academic_level ? 'saathi' : 'academic'));
+        setStep(
+          skipAcademic ? 'saathi' : p.academic_level ? 'saathi' : 'academic'
+        )
       } else if (!p.full_name) {
-        setStep('profile');
+        setStep('profile')
       } else {
-        router.replace('/chat');
+        router.replace('/chat')
       }
     }
 
     loadProfile().catch(() => {
-      if (!cancelled) router.replace('/login?error=profile_missing');
-    });
+      if (!cancelled) router.replace('/login?error=profile_missing')
+    })
 
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // ← EMPTY — runs exactly once on mount only
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // ← EMPTY — runs exactly once on mount only
 
   // ── Faculty email validation — runs when employment status changes ──────────
   useEffect(() => {
-    if (urlRole !== 'faculty' || !profile) return;
-    let cancelled = false;
+    if (urlRole !== 'faculty' || !profile) return
+    let cancelled = false
     async function checkEmail() {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.email || cancelled) return;
-      const result = await validateFacultyEmail(user.email, facultyEmployment, supabase);
-      if (!cancelled) setFacultyEmailValidation(result);
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user?.email || cancelled) return
+      const result = await validateFacultyEmail(
+        user.email,
+        facultyEmployment,
+        supabase
+      )
+      if (!cancelled) setFacultyEmailValidation(result)
     }
-    void checkEmail();
-    return () => { cancelled = true; };
-  }, [urlRole, facultyEmployment, profile]);
+    void checkEmail()
+    return () => {
+      cancelled = true
+    }
+  }, [urlRole, facultyEmployment, profile])
 
   // ── Step 0: Academic level ─────────────────────────────────────────────────
   async function handleAcademicLevel(
     level: AcademicLevel,
     yearIdx: number | null,
-    examTarget: string | null,
+    examTarget: string | null
   ) {
-    setSaving(true);
-    const supabase = createClient();
+    setSaving(true)
+    const supabase = createClient()
 
     // Compute year numbers from year index
-    const card = ACADEMIC_LEVEL_CARDS.find((c) => c.id === level)!;
-    const compYearIdx = yearIdx ?? 0;
-    const compCurrentYear = level === 'competitive' || card.yearOptions.length === 0
-      ? null
-      : compYearIdx + 1;
-    const compTotalYears = card.yearOptions.length > 0 && level !== 'competitive'
-      ? card.yearOptions.length
-      : null;
+    const card = ACADEMIC_LEVEL_CARDS.find((c) => c.id === level)!
+    const compYearIdx = yearIdx ?? 0
+    const compCurrentYear =
+      level === 'competitive' || card.yearOptions.length === 0
+        ? null
+        : compYearIdx + 1
+    const compTotalYears =
+      card.yearOptions.length > 0 && level !== 'competitive'
+        ? card.yearOptions.length
+        : null
 
     // Map level → role (respect URL role override)
-    const role: DbUserRole = urlRole ?? (card.mapToRole === 'public' ? 'public' : 'student');
+    const role: DbUserRole =
+      urlRole ?? (card.mapToRole === 'public' ? 'public' : 'student')
 
     // Save academic_level + role to profiles
-    await supabase.from('profiles').update({
-      academic_level: level,
-      role,
-      exam_target: examTarget ?? undefined,
-    }).eq('id', profile!.id);
+    await supabase
+      .from('profiles')
+      .update({
+        academic_level: level,
+        role,
+        exam_target: examTarget ?? undefined,
+      })
+      .eq('id', profile!.id)
 
-    setAcademicLevel(level);
-    setCurrentYear(compCurrentYear);
-    setTotalYears(compTotalYears);
-    setExamTargetFromLevel(examTarget);
-    setLocalProfile((p) => p ? { ...p, academic_level: level, role } : p);
-    setSaving(false);
-    setStep('saathi');
+    setAcademicLevel(level)
+    setCurrentYear(compCurrentYear)
+    setTotalYears(compTotalYears)
+    setExamTargetFromLevel(examTarget)
+    setLocalProfile((p) => (p ? { ...p, academic_level: level, role } : p))
+    setSaving(false)
+    setStep('saathi')
   }
 
   // ── Step 1: Saathi selection ───────────────────────────────────────────────
   async function handleSaathi(saathiId: string) {
     // saathiId is a slug from the picker. Convert to UUID for DB FK.
-    const uuid = SLUG_TO_UUID[saathiId] ?? saathiId;
-    setSaving(true);
-    const supabase = createClient();
-    await supabase.from('profiles').update({ primary_saathi_id: uuid }).eq('id', profile!.id);
-    setLocalProfile((p) => p ? { ...p, primary_saathi_id: uuid } : p);
-    setSaving(false);
-    setStep('profile');
+    const uuid = SLUG_TO_UUID[saathiId] ?? saathiId
+    setSaving(true)
+    const supabase = createClient()
+    await supabase
+      .from('profiles')
+      .update({ primary_saathi_id: uuid })
+      .eq('id', profile!.id)
+    setLocalProfile((p) => (p ? { ...p, primary_saathi_id: uuid } : p))
+    setSaving(false)
+    setStep('profile')
   }
 
   // ── Step 2: Soul profile form ─────────────────────────────────────────────
   async function handleProfile(data: SoulProfileData) {
-    setSaving(true);
-    const supabase = createClient();
-    const userId = profile!.id;
+    setSaving(true)
+    const supabase = createClient()
+    const userId = profile!.id
 
     // Run instant soul calibration
     const calibration = instantCalibrate({
@@ -966,7 +1249,7 @@ function OnboardInner() {
       totalYears,
       examTarget: data.examTarget || examTargetFromLevel || null,
       previousDegree: null,
-    });
+    })
 
     // Compute completeness
     const pct = computeProfileCompleteness({
@@ -978,39 +1261,46 @@ function OnboardInner() {
       dream: data.dream,
       examTarget: data.examTarget,
       interests: data.interestAreas,
-    });
+    })
 
     // Update profiles table with all soul fields
-    await supabase.from('profiles').update({
-      full_name: data.fullName.trim(),
-      city: data.city,
-      institution_name: (data.educationParsed?.collegeName ?? data.educationParsed?.institution ?? data.educationRaw.trim()) || null,
-      degree_programme: data.educationParsed?.degree ?? null,
-      university_affiliation: data.educationParsed?.university ?? null,
-      current_semester: data.educationParsed?.year ?? null,
-      academic_level: academicLevel,
-      exam_target: data.examTarget || null,
-      current_subjects: data.currentSubjects,
-      interest_areas: data.interestAreas,
-      learning_style: data.learningStyle || null,
-      nudge_preference: data.nudgePreference,
-      profile_completeness_pct: pct,
-      last_profile_updated_at: new Date().toISOString(),
-      ...(urlRole === 'faculty' ? { role: 'faculty' } : {}),
-      ...(urlRole === 'institution' ? { role: 'institution' } : {}),
-      is_active: true,
-    }).eq('id', userId);
+    await supabase
+      .from('profiles')
+      .update({
+        full_name: data.fullName.trim(),
+        city: data.city,
+        institution_name:
+          (data.educationParsed?.collegeName ??
+            data.educationParsed?.institution ??
+            data.educationRaw.trim()) ||
+          null,
+        degree_programme: data.educationParsed?.degree ?? null,
+        university_affiliation: data.educationParsed?.university ?? null,
+        current_semester: data.educationParsed?.year ?? null,
+        academic_level: academicLevel,
+        exam_target: data.examTarget || null,
+        current_subjects: data.currentSubjects,
+        interest_areas: data.interestAreas,
+        learning_style: data.learningStyle || null,
+        nudge_preference: data.nudgePreference,
+        profile_completeness_pct: pct,
+        last_profile_updated_at: new Date().toISOString(),
+        ...(urlRole === 'faculty' ? { role: 'faculty' } : {}),
+        ...(urlRole === 'institution' ? { role: 'institution' } : {}),
+        is_active: true,
+      })
+      .eq('id', userId)
 
     // Upsert student_soul with all calibrated values
     // primary_saathi_id is a UUID FK → verticals(id) — query by id directly
-    let verticalUUID: string | null = null;
+    let verticalUUID: string | null = null
     if (profile?.primary_saathi_id) {
       const { data: vRow } = await supabase
         .from('verticals')
         .select('id')
         .eq('id', profile.primary_saathi_id)
-        .maybeSingle();
-      verticalUUID = vRow?.id ?? null;
+        .maybeSingle()
+      verticalUUID = vRow?.id ?? null
     }
     if (verticalUUID) {
       await supabase.from('student_soul').upsert(
@@ -1035,68 +1325,96 @@ function OnboardInner() {
           session_count: 0,
         },
         { onConflict: 'user_id,vertical_id' }
-      );
+      )
     }
     // Upsert faculty profile (enriched)
     if (urlRole === 'faculty') {
       // Email domain validation via allowed_domains table
-      const userEmail = (await supabase.auth.getUser()).data?.user?.email ?? '';
-      const validation = await validateFacultyEmail(userEmail, facultyEmployment, supabase);
+      const userEmail = (await supabase.auth.getUser()).data?.user?.email ?? ''
+      const validation = await validateFacultyEmail(
+        userEmail,
+        facultyEmployment,
+        supabase
+      )
       if (!validation.allowed) {
-        setFacultyEmailError(validation.message);
-        setSaving(false);
-        return;
+        setFacultyEmailError(validation.message)
+        setSaving(false)
+        return
       }
-      setFacultyEmailValidation(validation);
+      setFacultyEmailValidation(validation)
 
       const expertiseTags = [
         ...(facultyDepartment.trim() ? [facultyDepartment.trim()] : []),
         ...facultySpecialities,
-      ].slice(0, 8);
+      ].slice(0, 8)
 
       // Auto-verify if domain is in allowed_domains with auto_verify = true
-      const autoVerified = validation.status === 'auto_verify';
+      const autoVerified = validation.status === 'auto_verify'
 
-      await supabase.from('faculty_profiles').upsert({
-        user_id: userId,
-        institution_name: validation.institution_name ?? (facultyInstitution.trim() || data.fullName.trim()),
-        department: facultyDepartment.trim() || 'General',
-        designation: facultyDesignation.trim() || null,
-        subject_expertise: expertiseTags,
-        years_experience: parseInt(facultyYrsExp) || 0,
-        highest_qualification: facultyQualification || null,
-        linkedin_url: (facultyLinkedin.trim() || facultyIndependentLinkedin.trim()) || null,
-        google_scholar_url: facultyScholar.trim() || null,
-        current_research: facultyResearch.trim() || null,
-        thesis_title: facultyThesis.trim() || null,
-        speciality_areas: facultySpecialities,
-        employment_status: facultyEmployment,
-        retirement_year: facultyEmployment === 'retired' && facultyRetirementYear ? parseInt(facultyRetirementYear) : null,
-        former_institution: facultyEmployment === 'retired' ? (facultyFormerInstitution.trim() || null) : null,
-        independent_credential: facultyEmployment === 'independent' ? (facultyIndependentCredential.trim() || null) : null,
-        verification_status: autoVerified ? 'verified' : 'pending',
-        badge_type: autoVerified ? 'faculty_verified' : 'pending',
-        ...(autoVerified ? { verified_at: new Date().toISOString() } : {}),
-      }, { onConflict: 'user_id' });
+      await supabase.from('faculty_profiles').upsert(
+        {
+          user_id: userId,
+          institution_name:
+            validation.institution_name ??
+            (facultyInstitution.trim() || data.fullName.trim()),
+          department: facultyDepartment.trim() || 'General',
+          designation: facultyDesignation.trim() || null,
+          subject_expertise: expertiseTags,
+          years_experience: parseInt(facultyYrsExp) || 0,
+          highest_qualification: facultyQualification || null,
+          linkedin_url:
+            facultyLinkedin.trim() || facultyIndependentLinkedin.trim() || null,
+          google_scholar_url: facultyScholar.trim() || null,
+          current_research: facultyResearch.trim() || null,
+          thesis_title: facultyThesis.trim() || null,
+          speciality_areas: facultySpecialities,
+          employment_status: facultyEmployment,
+          retirement_year:
+            facultyEmployment === 'retired' && facultyRetirementYear
+              ? parseInt(facultyRetirementYear)
+              : null,
+          former_institution:
+            facultyEmployment === 'retired'
+              ? facultyFormerInstitution.trim() || null
+              : null,
+          independent_credential:
+            facultyEmployment === 'independent'
+              ? facultyIndependentCredential.trim() || null
+              : null,
+          verification_status: autoVerified ? 'verified' : 'pending',
+          badge_type: autoVerified ? 'faculty_verified' : 'pending',
+          ...(autoVerified ? { verified_at: new Date().toISOString() } : {}),
+        },
+        { onConflict: 'user_id' }
+      )
     }
 
     // Upsert institution profile
     if (urlRole === 'institution') {
-      const validOrgType = (['university','company','ngo','government','other'] as const)
-        .includes(orgType.toLowerCase() as 'university')
-        ? orgType.toLowerCase() as 'university' | 'company' | 'ngo' | 'government' | 'other'
-        : 'other';
-      await supabase.from('institution_profiles').upsert({
-        user_id: userId,
-        org_name: orgName.trim() || data.fullName.trim(),
-        org_type: validOrgType,
-        website: orgWebsite.trim() || null,
-        contact_person: orgContactPerson.trim() || null,
-        contact_email: orgContactEmail.trim() || '',
-        city: orgCity.trim() || data.city || null,
-        description: orgDescription.trim() || null,
-        verification_status: 'pending',
-      }, { onConflict: 'user_id' });
+      const validOrgType = (
+        ['university', 'company', 'ngo', 'government', 'other'] as const
+      ).includes(orgType.toLowerCase() as 'university')
+        ? (orgType.toLowerCase() as
+            | 'university'
+            | 'company'
+            | 'ngo'
+            | 'government'
+            | 'other')
+        : 'other'
+      await supabase.from('institution_profiles').upsert(
+        {
+          user_id: userId,
+          org_name: orgName.trim() || data.fullName.trim(),
+          org_type: validOrgType,
+          website: orgWebsite.trim() || null,
+          contact_person: orgContactPerson.trim() || null,
+          contact_email: orgContactEmail.trim() || '',
+          city: orgCity.trim() || data.city || null,
+          description: orgDescription.trim() || null,
+          verification_status: 'pending',
+        },
+        { onConflict: 'user_id' }
+      )
     }
 
     setProfile({
@@ -1104,55 +1422,75 @@ function OnboardInner() {
       id: userId,
       full_name: data.fullName.trim(),
       city: data.city,
-      institution_name: (data.educationParsed?.collegeName ?? data.educationParsed?.institution ?? data.educationRaw.trim()) || null,
+      institution_name:
+        (data.educationParsed?.collegeName ??
+          data.educationParsed?.institution ??
+          data.educationRaw.trim()) ||
+        null,
       is_active: true,
-    } as unknown as Profile);
+    } as unknown as Profile)
 
-
-    setSaving(false);
+    setSaving(false)
     // Route to role-specific dashboard
     router.push(
-      urlRole === 'faculty' ? '/faculty' :
-      urlRole === 'institution' ? '/institution' :
-      '/chat'
-    );
+      urlRole === 'faculty'
+        ? '/faculty'
+        : urlRole === 'institution'
+          ? '/institution'
+          : '/chat'
+    )
   }
 
   function goBack() {
     if (step === 'saathi') {
-      const skipAcademic = urlRole === 'faculty' || urlRole === 'institution';
-      setStep(skipAcademic ? 'saathi' : 'academic');
-    } else if (step === 'profile') setStep('saathi');
+      const skipAcademic = urlRole === 'faculty' || urlRole === 'institution'
+      setStep(skipAcademic ? 'saathi' : 'academic')
+    } else if (step === 'profile') setStep('saathi')
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
   if (step === 'loading') {
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: '#060F1D' }}>
-        <div className="w-10 h-10 rounded-full border-2 border-white/10 animate-spin" style={{ borderTopColor: '#C9993A' }} />
+      <main
+        className="flex min-h-screen items-center justify-center"
+        style={{ background: '#060F1D' }}
+      >
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
+          style={{ borderTopColor: '#C9993A' }}
+        />
       </main>
-    );
+    )
   }
 
   return (
     <main
-      className="min-h-screen relative overflow-x-hidden"
-      style={{ background: 'linear-gradient(180deg, #060F1D 0%, #0B1F3A 55%, #060F1D 100%)' }}
+      className="relative min-h-screen overflow-x-hidden"
+      style={{
+        background:
+          'linear-gradient(180deg, #060F1D 0%, #0B1F3A 55%, #060F1D 100%)',
+      }}
     >
       {/* Ambient glow */}
       <div
-        className="absolute pointer-events-none"
+        className="pointer-events-none absolute"
         style={{
-          width: 800, height: 800,
-          top: '20%', left: '50%',
+          width: 800,
+          height: 800,
+          top: '20%',
+          left: '50%',
           transform: 'translate(-50%, -50%)',
-          background: 'radial-gradient(circle, rgba(201,153,58,0.06) 0%, transparent 70%)',
+          background:
+            'radial-gradient(circle, rgba(201,153,58,0.06) 0%, transparent 70%)',
         }}
       />
 
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between px-6 py-5 max-w-5xl mx-auto">
-        <span className="font-playfair text-xl font-bold" style={{ color: '#C9993A' }}>
+      <div className="relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
+        <span
+          className="font-playfair text-xl font-bold"
+          style={{ color: '#C9993A' }}
+        >
           EdUsaathiAI
         </span>
         {step !== 'academic' && <StepIndicator step={step} />}
@@ -1162,83 +1500,213 @@ function OnboardInner() {
       <div className="relative z-10">
         <AnimatePresence mode="wait">
           {step === 'academic' && (
-            <motion.div key="academic" variants={stepVariants} initial="enter" animate="center" exit="exit">
-              <AcademicLevelStep onContinue={handleAcademicLevel} saving={saving} />
+            <motion.div
+              key="academic"
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+            >
+              <AcademicLevelStep
+                onContinue={handleAcademicLevel}
+                saving={saving}
+              />
             </motion.div>
           )}
           {step === 'saathi' && (
-            <motion.div key="saathi" variants={stepVariants} initial="enter" animate="center" exit="exit">
-              <SaathiStep onContinue={handleSaathi} onBack={goBack} saving={saving} />
+            <motion.div
+              key="saathi"
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+            >
+              <SaathiStep
+                onContinue={handleSaathi}
+                onBack={goBack}
+                saving={saving}
+              />
             </motion.div>
           )}
           {step === 'profile' && (
-            <motion.div key="profile" variants={stepVariants} initial="enter" animate="center" exit="exit">
+            <motion.div
+              key="profile"
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+            >
               <SoulProfileForm
                 saathiId={profile?.primary_saathi_id ?? null}
                 academicLevel={academicLevel}
                 examTargetFromLevel={examTargetFromLevel}
                 onContinue={handleProfile}
-                onSkip={() => router.push(
-                  urlRole === 'faculty' ? '/faculty' :
-                  urlRole === 'institution' ? '/institution' :
-                  '/chat'
-                )}
+                onSkip={() =>
+                  router.push(
+                    urlRole === 'faculty'
+                      ? '/faculty'
+                      : urlRole === 'institution'
+                        ? '/institution'
+                        : '/chat'
+                  )
+                }
                 onBack={goBack}
                 saving={saving}
               />
               {/* Faculty extra fields — rich, conversational */}
               {urlRole === 'faculty' && (
-                <div className="max-w-xl mx-auto px-4 pb-8">
-                  <div className="rounded-2xl p-6 mt-4" style={{ background: 'rgba(22,163,74,0.06)', border: '0.5px solid rgba(22,163,74,0.2)' }}>
-                    <div className="flex items-center gap-3 mb-5">
-                      <span className="text-2xl">{'\u{1F468}\u200D\u{1F3EB}'}</span>
+                <div className="mx-auto max-w-xl px-4 pb-8">
+                  <div
+                    className="mt-4 rounded-2xl p-6"
+                    style={{
+                      background: 'rgba(22,163,74,0.06)',
+                      border: '0.5px solid rgba(22,163,74,0.2)',
+                    }}
+                  >
+                    <div className="mb-5 flex items-center gap-3">
+                      <span className="text-2xl">
+                        {'\u{1F468}\u200D\u{1F3EB}'}
+                      </span>
                       <div>
-                        <p className="text-sm font-semibold text-white">Your Faculty Profile</p>
-                        <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Students see this when they find you on Faculty Finder</p>
+                        <p className="text-sm font-semibold text-white">
+                          Your Faculty Profile
+                        </p>
+                        <p
+                          className="text-[10px]"
+                          style={{ color: 'rgba(255,255,255,0.35)' }}
+                        >
+                          Students see this when they find you on Faculty Finder
+                        </p>
                       </div>
                     </div>
 
                     {/* Email validation status */}
-                    {facultyEmailValidation && !facultyEmailError && (() => {
-                      const v = facultyEmailValidation;
-                      const cfg = v.status === 'auto_verify'
-                        ? { bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.3)', color: '#4ADE80', icon: '✅' }
-                        : v.status === 'skipped'
-                        ? { bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.25)', color: '#93C5FD', icon: 'ℹ️' }
-                        : v.status === 'blocked'
-                        ? { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.25)', color: '#F87171', icon: '❌' }
-                        : { bg: 'rgba(251,146,60,0.08)', border: 'rgba(251,146,60,0.25)', color: '#FB923C', icon: '🟡' };
-                      return (
-                        <div className="rounded-xl p-3 mb-3" style={{ background: cfg.bg, border: `0.5px solid ${cfg.border}` }}>
-                          <p className="text-xs" style={{ color: cfg.color }}>{cfg.icon} {v.message}</p>
-                        </div>
-                      );
-                    })()}
+                    {facultyEmailValidation &&
+                      !facultyEmailError &&
+                      (() => {
+                        const v = facultyEmailValidation
+                        const cfg =
+                          v.status === 'auto_verify'
+                            ? {
+                                bg: 'rgba(74,222,128,0.08)',
+                                border: 'rgba(74,222,128,0.3)',
+                                color: '#4ADE80',
+                                icon: '✅',
+                              }
+                            : v.status === 'skipped'
+                              ? {
+                                  bg: 'rgba(96,165,250,0.08)',
+                                  border: 'rgba(96,165,250,0.25)',
+                                  color: '#93C5FD',
+                                  icon: 'ℹ️',
+                                }
+                              : v.status === 'blocked'
+                                ? {
+                                    bg: 'rgba(239,68,68,0.08)',
+                                    border: 'rgba(239,68,68,0.25)',
+                                    color: '#F87171',
+                                    icon: '❌',
+                                  }
+                                : {
+                                    bg: 'rgba(251,146,60,0.08)',
+                                    border: 'rgba(251,146,60,0.25)',
+                                    color: '#FB923C',
+                                    icon: '🟡',
+                                  }
+                        return (
+                          <div
+                            className="mb-3 rounded-xl p-3"
+                            style={{
+                              background: cfg.bg,
+                              border: `0.5px solid ${cfg.border}`,
+                            }}
+                          >
+                            <p className="text-xs" style={{ color: cfg.color }}>
+                              {cfg.icon} {v.message}
+                            </p>
+                          </div>
+                        )
+                      })()}
                     {facultyEmailError && (
-                      <div className="rounded-xl p-3 mb-4" style={{ background: 'rgba(239,68,68,0.08)', border: '0.5px solid rgba(239,68,68,0.25)' }}>
-                        <p className="text-xs" style={{ color: '#F87171' }}>❌ {facultyEmailError}</p>
+                      <div
+                        className="mb-4 rounded-xl p-3"
+                        style={{
+                          background: 'rgba(239,68,68,0.08)',
+                          border: '0.5px solid rgba(239,68,68,0.25)',
+                        }}
+                      >
+                        <p className="text-xs" style={{ color: '#F87171' }}>
+                          ❌ {facultyEmailError}
+                        </p>
                       </div>
                     )}
 
                     <div className="space-y-4">
                       {/* Employment status */}
                       <div>
-                        <label className="block text-[10px] font-semibold mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>I am currently...</label>
+                        <label
+                          className="mb-1.5 block text-[10px] font-semibold"
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                        >
+                          I am currently...
+                        </label>
                         <div className="grid grid-cols-3 gap-2">
-                          {([
-                            { id: 'active' as const, label: 'Teaching', emoji: '\u{1F4DA}', desc: 'At an institution' },
-                            { id: 'retired' as const, label: 'Retired', emoji: '\u{2726}', desc: 'Ready to teach again' },
-                            { id: 'independent' as const, label: 'Independent', emoji: '\u{1F310}', desc: 'Freelance / consultant' },
-                          ]).map((opt) => (
-                            <button key={opt.id} onClick={() => setFacultyEmployment(opt.id)}
-                              className="text-left rounded-xl p-3 transition-all"
+                          {[
+                            {
+                              id: 'active' as const,
+                              label: 'Teaching',
+                              emoji: '\u{1F4DA}',
+                              desc: 'At an institution',
+                            },
+                            {
+                              id: 'retired' as const,
+                              label: 'Retired',
+                              emoji: '\u{2726}',
+                              desc: 'Ready to teach again',
+                            },
+                            {
+                              id: 'independent' as const,
+                              label: 'Independent',
+                              emoji: '\u{1F310}',
+                              desc: 'Freelance / consultant',
+                            },
+                          ].map((opt) => (
+                            <button
+                              key={opt.id}
+                              onClick={() => setFacultyEmployment(opt.id)}
+                              className="rounded-xl p-3 text-left transition-all"
                               style={{
-                                background: facultyEmployment === opt.id ? (opt.id === 'retired' ? 'rgba(201,153,58,0.12)' : 'rgba(22,163,74,0.1)') : 'rgba(255,255,255,0.03)',
+                                background:
+                                  facultyEmployment === opt.id
+                                    ? opt.id === 'retired'
+                                      ? 'rgba(201,153,58,0.12)'
+                                      : 'rgba(22,163,74,0.1)'
+                                    : 'rgba(255,255,255,0.03)',
                                 border: `1px solid ${facultyEmployment === opt.id ? (opt.id === 'retired' ? 'rgba(201,153,58,0.5)' : 'rgba(22,163,74,0.4)') : 'rgba(255,255,255,0.06)'}`,
-                              }}>
-                              <span className="text-lg block mb-0.5">{opt.emoji}</span>
-                              <p className="text-xs font-semibold" style={{ color: facultyEmployment === opt.id ? (opt.id === 'retired' ? '#C9993A' : '#4ADE80') : 'rgba(255,255,255,0.5)' }}>{opt.label}</p>
-                              <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>{opt.desc}</p>
+                              }}
+                            >
+                              <span className="mb-0.5 block text-lg">
+                                {opt.emoji}
+                              </span>
+                              <p
+                                className="text-xs font-semibold"
+                                style={{
+                                  color:
+                                    facultyEmployment === opt.id
+                                      ? opt.id === 'retired'
+                                        ? '#C9993A'
+                                        : '#4ADE80'
+                                      : 'rgba(255,255,255,0.5)',
+                                }}
+                              >
+                                {opt.label}
+                              </p>
+                              <p
+                                className="text-[9px]"
+                                style={{ color: 'rgba(255,255,255,0.25)' }}
+                              >
+                                {opt.desc}
+                              </p>
                             </button>
                           ))}
                         </div>
@@ -1246,34 +1714,79 @@ function OnboardInner() {
 
                       {/* Retired faculty: special fields */}
                       {facultyEmployment === 'retired' && (
-                        <div className="rounded-xl p-4" style={{ background: 'rgba(201,153,58,0.06)', border: '0.5px solid rgba(201,153,58,0.2)' }}>
-                          <p className="text-xs font-semibold mb-3" style={{ color: '#C9993A' }}>{'\u2726'} Welcome back, Professor.</p>
-                          <p className="text-[10px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                            Your decades of experience are exactly what students need. No institutional email required.
+                        <div
+                          className="rounded-xl p-4"
+                          style={{
+                            background: 'rgba(201,153,58,0.06)',
+                            border: '0.5px solid rgba(201,153,58,0.2)',
+                          }}
+                        >
+                          <p
+                            className="mb-3 text-xs font-semibold"
+                            style={{ color: '#C9993A' }}
+                          >
+                            {'\u2726'} Welcome back, Professor.
+                          </p>
+                          <p
+                            className="mb-3 text-[10px]"
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
+                          >
+                            Your decades of experience are exactly what students
+                            need. No institutional email required.
                           </p>
                           <div className="space-y-2">
                             <div className="grid grid-cols-2 gap-2">
                               <div>
-                                <label className="block text-[9px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Former institution *</label>
+                                <label
+                                  className="mb-1 block text-[9px] font-semibold"
+                                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                                >
+                                  Former institution *
+                                </label>
                                 <CollegeAutocomplete
                                   value={facultyFormerInstitution}
                                   onChange={setFacultyFormerInstitution}
                                   placeholder="e.g. Gujarat University"
                                   className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none"
-                                  inputStyle={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                                  inputStyle={{
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '0.5px solid rgba(255,255,255,0.1)',
+                                    color: '#fff',
+                                  }}
                                 />
                               </div>
                               <div>
-                                <label className="block text-[9px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Retirement year</label>
-                                <input value={facultyRetirementYear} onChange={(e) => setFacultyRetirementYear(e.target.value)}
-                                  placeholder="e.g. 2022" type="number" min="1980" max="2026"
+                                <label
+                                  className="mb-1 block text-[9px] font-semibold"
+                                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                                >
+                                  Retirement year
+                                </label>
+                                <input
+                                  value={facultyRetirementYear}
+                                  onChange={(e) =>
+                                    setFacultyRetirementYear(e.target.value)
+                                  }
+                                  placeholder="e.g. 2022"
+                                  type="number"
+                                  min="1980"
+                                  max="2026"
                                   className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none"
-                                  style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                                  style={{
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '0.5px solid rgba(255,255,255,0.1)',
+                                  }}
+                                />
                               </div>
                             </div>
-                            <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                              Upload your verification document (retirement letter, pension slip, or appointment letter)
-                              from your faculty dashboard after signup. Admin verifies within 48 hours.
+                            <p
+                              className="text-[9px]"
+                              style={{ color: 'rgba(255,255,255,0.25)' }}
+                            >
+                              Upload your verification document (retirement
+                              letter, pension slip, or appointment letter) from
+                              your faculty dashboard after signup. Admin
+                              verifies within 48 hours.
                             </p>
                           </div>
                         </div>
@@ -1281,32 +1794,75 @@ function OnboardInner() {
 
                       {/* Independent faculty: credential fields */}
                       {facultyEmployment === 'independent' && (
-                        <div className="rounded-xl p-4" style={{ background: 'rgba(45,212,191,0.05)', border: '0.5px solid rgba(45,212,191,0.2)' }}>
-                          <p className="text-xs font-semibold mb-1" style={{ color: '#2DD4BF' }}>🌐 Independent Professional</p>
-                          <p className="text-[10px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                            Tell us about your credentials. Our team reviews within 48 hours and issues an Expert Verified badge.
+                        <div
+                          className="rounded-xl p-4"
+                          style={{
+                            background: 'rgba(45,212,191,0.05)',
+                            border: '0.5px solid rgba(45,212,191,0.2)',
+                          }}
+                        >
+                          <p
+                            className="mb-1 text-xs font-semibold"
+                            style={{ color: '#2DD4BF' }}
+                          >
+                            🌐 Independent Professional
+                          </p>
+                          <p
+                            className="mb-3 text-[10px]"
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
+                          >
+                            Tell us about your credentials. Our team reviews
+                            within 48 hours and issues an Expert Verified badge.
                           </p>
                           <div className="space-y-2">
                             <div>
-                              <label className="block text-[9px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Your credentials *</label>
+                              <label
+                                className="mb-1 block text-[9px] font-semibold"
+                                style={{ color: 'rgba(255,255,255,0.35)' }}
+                              >
+                                Your credentials *
+                              </label>
                               <textarea
                                 value={facultyIndependentCredential}
-                                onChange={(e) => setFacultyIndependentCredential(e.target.value.slice(0, 300))}
+                                onChange={(e) =>
+                                  setFacultyIndependentCredential(
+                                    e.target.value.slice(0, 300)
+                                  )
+                                }
                                 placeholder="e.g. PhD IIT Bombay, 10 years industry at Reliance, SEBI-registered advisor..."
                                 rows={3}
-                                className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none resize-none"
-                                style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                                className="w-full resize-none rounded-lg px-3 py-2 text-xs text-white outline-none"
+                                style={{
+                                  background: 'rgba(255,255,255,0.05)',
+                                  border: '0.5px solid rgba(255,255,255,0.1)',
+                                }}
                               />
-                              <p className="text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>{300 - facultyIndependentCredential.length} chars remaining</p>
+                              <p
+                                className="mt-0.5 text-[9px]"
+                                style={{ color: 'rgba(255,255,255,0.2)' }}
+                              >
+                                {300 - facultyIndependentCredential.length}{' '}
+                                chars remaining
+                              </p>
                             </div>
                             <div>
-                              <label className="block text-[9px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>LinkedIn URL (strongly recommended)</label>
+                              <label
+                                className="mb-1 block text-[9px] font-semibold"
+                                style={{ color: 'rgba(255,255,255,0.35)' }}
+                              >
+                                LinkedIn URL (strongly recommended)
+                              </label>
                               <input
                                 value={facultyIndependentLinkedin}
-                                onChange={(e) => setFacultyIndependentLinkedin(e.target.value)}
+                                onChange={(e) =>
+                                  setFacultyIndependentLinkedin(e.target.value)
+                                }
                                 placeholder="linkedin.com/in/yourprofile"
                                 className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none"
-                                style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                                style={{
+                                  background: 'rgba(255,255,255,0.05)',
+                                  border: '0.5px solid rgba(255,255,255,0.1)',
+                                }}
                               />
                             </div>
                           </div>
@@ -1316,24 +1872,87 @@ function OnboardInner() {
                       {/* Row 1: Designation + Qualification */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Designation *</label>
-                          <select value={facultyDesignation} onChange={(e) => setFacultyDesignation(e.target.value)}
-                            className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none"
-                            style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: facultyDesignation ? '#fff' : 'rgba(255,255,255,0.35)' }}>
-                            <option value="" style={{ background: '#0B1F3A' }}>Select designation</option>
-                            {['Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer', 'Senior Lecturer', 'Visiting Faculty', 'Research Fellow', 'Adjunct Faculty'].map((d) => (
-                              <option key={d} value={d} style={{ background: '#0B1F3A', color: '#fff' }}>{d}</option>
+                          <label
+                            className="mb-1 block text-[10px] font-semibold"
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
+                          >
+                            Designation *
+                          </label>
+                          <select
+                            value={facultyDesignation}
+                            onChange={(e) =>
+                              setFacultyDesignation(e.target.value)
+                            }
+                            className="w-full appearance-none rounded-xl px-4 py-3 text-sm outline-none"
+                            style={{
+                              background: 'rgba(255,255,255,0.05)',
+                              border: '0.5px solid rgba(255,255,255,0.1)',
+                              color: facultyDesignation
+                                ? '#fff'
+                                : 'rgba(255,255,255,0.35)',
+                            }}
+                          >
+                            <option value="" style={{ background: '#0B1F3A' }}>
+                              Select designation
+                            </option>
+                            {[
+                              'Professor',
+                              'Associate Professor',
+                              'Assistant Professor',
+                              'Lecturer',
+                              'Senior Lecturer',
+                              'Visiting Faculty',
+                              'Research Fellow',
+                              'Adjunct Faculty',
+                            ].map((d) => (
+                              <option
+                                key={d}
+                                value={d}
+                                style={{ background: '#0B1F3A', color: '#fff' }}
+                              >
+                                {d}
+                              </option>
                             ))}
                           </select>
                         </div>
                         <div>
-                          <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Highest qualification</label>
-                          <select value={facultyQualification} onChange={(e) => setFacultyQualification(e.target.value)}
-                            className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none"
-                            style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: facultyQualification ? '#fff' : 'rgba(255,255,255,0.35)' }}>
-                            <option value="" style={{ background: '#0B1F3A' }}>Select qualification</option>
-                            {['PhD', 'M.Phil', 'Masters', 'Professional (MD/LLM/MBA/CA)', 'Post-Doctoral'].map((q) => (
-                              <option key={q} value={q} style={{ background: '#0B1F3A', color: '#fff' }}>{q}</option>
+                          <label
+                            className="mb-1 block text-[10px] font-semibold"
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
+                          >
+                            Highest qualification
+                          </label>
+                          <select
+                            value={facultyQualification}
+                            onChange={(e) =>
+                              setFacultyQualification(e.target.value)
+                            }
+                            className="w-full appearance-none rounded-xl px-4 py-3 text-sm outline-none"
+                            style={{
+                              background: 'rgba(255,255,255,0.05)',
+                              border: '0.5px solid rgba(255,255,255,0.1)',
+                              color: facultyQualification
+                                ? '#fff'
+                                : 'rgba(255,255,255,0.35)',
+                            }}
+                          >
+                            <option value="" style={{ background: '#0B1F3A' }}>
+                              Select qualification
+                            </option>
+                            {[
+                              'PhD',
+                              'M.Phil',
+                              'Masters',
+                              'Professional (MD/LLM/MBA/CA)',
+                              'Post-Doctoral',
+                            ].map((q) => (
+                              <option
+                                key={q}
+                                value={q}
+                                style={{ background: '#0B1F3A', color: '#fff' }}
+                              >
+                                {q}
+                              </option>
                             ))}
                           </select>
                         </div>
@@ -1341,140 +1960,316 @@ function OnboardInner() {
 
                       {/* Department */}
                       <div>
-                        <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Department / Subject area *</label>
-                        <input value={facultyDepartment} onChange={(e) => setFacultyDepartment(e.target.value)}
+                        <label
+                          className="mb-1 block text-[10px] font-semibold"
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                        >
+                          Department / Subject area *
+                        </label>
+                        <input
+                          value={facultyDepartment}
+                          onChange={(e) => setFacultyDepartment(e.target.value)}
                           placeholder="e.g. Physics, Constitutional Law, Pharmacology"
                           className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                          style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                          style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '0.5px solid rgba(255,255,255,0.1)',
+                          }}
+                        />
                       </div>
 
                       {/* Institution — with CollegeAutocomplete */}
                       <div>
-                        <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Institution *</label>
+                        <label
+                          className="mb-1 block text-[10px] font-semibold"
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                        >
+                          Institution *
+                        </label>
                         <CollegeAutocomplete
                           value={facultyInstitution}
                           onChange={setFacultyInstitution}
                           placeholder="Start typing your institution name..."
                           className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                          inputStyle={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                          inputStyle={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '0.5px solid rgba(255,255,255,0.1)',
+                            color: '#fff',
+                          }}
                         />
                       </div>
 
                       {/* Row: Years + Publications */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Years teaching</label>
-                          <input value={facultyYrsExp} onChange={(e) => setFacultyYrsExp(e.target.value)}
-                            placeholder="e.g. 12" type="number" min="0" max="50"
+                          <label
+                            className="mb-1 block text-[10px] font-semibold"
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
+                          >
+                            Years teaching
+                          </label>
+                          <input
+                            value={facultyYrsExp}
+                            onChange={(e) => setFacultyYrsExp(e.target.value)}
+                            placeholder="e.g. 12"
+                            type="number"
+                            min="0"
+                            max="50"
                             className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                            style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                            style={{
+                              background: 'rgba(255,255,255,0.05)',
+                              border: '0.5px solid rgba(255,255,255,0.1)',
+                            }}
+                          />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Speciality areas</label>
+                          <label
+                            className="mb-1 block text-[10px] font-semibold"
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
+                          >
+                            Speciality areas
+                          </label>
                           <input
                             placeholder="e.g. Quantum Optics, Fluid Dynamics"
                             className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                            style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                            style={{
+                              background: 'rgba(255,255,255,0.05)',
+                              border: '0.5px solid rgba(255,255,255,0.1)',
+                            }}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter' && e.currentTarget.value.trim() && facultySpecialities.length < 5) {
-                                e.preventDefault();
-                                setFacultySpecialities([...facultySpecialities, e.currentTarget.value.trim()]);
-                                e.currentTarget.value = '';
+                              if (
+                                e.key === 'Enter' &&
+                                e.currentTarget.value.trim() &&
+                                facultySpecialities.length < 5
+                              ) {
+                                e.preventDefault()
+                                setFacultySpecialities([
+                                  ...facultySpecialities,
+                                  e.currentTarget.value.trim(),
+                                ])
+                                e.currentTarget.value = ''
                               }
                             }}
                           />
                           {facultySpecialities.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-2">
+                            <div className="mt-2 flex flex-wrap gap-1.5">
                               {facultySpecialities.map((s) => (
-                                <button key={s} onClick={() => setFacultySpecialities(facultySpecialities.filter((x) => x !== s))}
-                                  className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-                                  style={{ background: 'rgba(22,163,74,0.15)', border: '0.5px solid rgba(22,163,74,0.3)', color: '#4ADE80' }}>
+                                <button
+                                  key={s}
+                                  onClick={() =>
+                                    setFacultySpecialities(
+                                      facultySpecialities.filter((x) => x !== s)
+                                    )
+                                  }
+                                  className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                                  style={{
+                                    background: 'rgba(22,163,74,0.15)',
+                                    border: '0.5px solid rgba(22,163,74,0.3)',
+                                    color: '#4ADE80',
+                                  }}
+                                >
                                   {s} {'\u00D7'}
                                 </button>
                               ))}
                             </div>
                           )}
-                          <p className="text-[9px] mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>Press Enter to add (max 5)</p>
+                          <p
+                            className="mt-1 text-[9px]"
+                            style={{ color: 'rgba(255,255,255,0.2)' }}
+                          >
+                            Press Enter to add (max 5)
+                          </p>
                         </div>
                       </div>
 
                       {/* Divider */}
-                      <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+                      <div
+                        style={{
+                          height: '0.5px',
+                          background: 'rgba(255,255,255,0.06)',
+                          margin: '4px 0',
+                        }}
+                      />
 
                       {/* Current research */}
                       <div>
-                        <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>What are you currently researching?</label>
-                        <textarea value={facultyResearch} onChange={(e) => setFacultyResearch(e.target.value.slice(0, 500))}
+                        <label
+                          className="mb-1 block text-[10px] font-semibold"
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                        >
+                          What are you currently researching?
+                        </label>
+                        <textarea
+                          value={facultyResearch}
+                          onChange={(e) =>
+                            setFacultyResearch(e.target.value.slice(0, 500))
+                          }
                           placeholder="Your current research focus, ongoing projects, or areas of active investigation..."
-                          rows={2} className="w-full rounded-xl px-4 py-3 text-xs text-white outline-none resize-none"
-                          style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
-                        <p className="text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>Students looking for research guidance will see this</p>
+                          rows={2}
+                          className="w-full resize-none rounded-xl px-4 py-3 text-xs text-white outline-none"
+                          style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '0.5px solid rgba(255,255,255,0.1)',
+                          }}
+                        />
+                        <p
+                          className="mt-0.5 text-[9px]"
+                          style={{ color: 'rgba(255,255,255,0.2)' }}
+                        >
+                          Students looking for research guidance will see this
+                        </p>
                       </div>
 
                       {/* Thesis */}
                       <div>
-                        <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>PhD/Masters thesis title (optional)</label>
-                        <input value={facultyThesis} onChange={(e) => setFacultyThesis(e.target.value.slice(0, 300))}
+                        <label
+                          className="mb-1 block text-[10px] font-semibold"
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                        >
+                          PhD/Masters thesis title (optional)
+                        </label>
+                        <input
+                          value={facultyThesis}
+                          onChange={(e) =>
+                            setFacultyThesis(e.target.value.slice(0, 300))
+                          }
                           placeholder="e.g. Quantum entanglement in topological materials"
                           className="w-full rounded-xl px-4 py-3 text-xs text-white outline-none"
-                          style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                          style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '0.5px solid rgba(255,255,255,0.1)',
+                          }}
+                        />
                       </div>
 
                       {/* Divider */}
-                      <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+                      <div
+                        style={{
+                          height: '0.5px',
+                          background: 'rgba(255,255,255,0.06)',
+                          margin: '4px 0',
+                        }}
+                      />
 
                       {/* Academic links */}
                       <div>
-                        <label className="block text-[10px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Academic links (optional but recommended)</label>
+                        <label
+                          className="mb-1 block text-[10px] font-semibold"
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                        >
+                          Academic links (optional but recommended)
+                        </label>
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm w-5 text-center opacity-40">in</span>
-                            <input value={facultyLinkedin} onChange={(e) => setFacultyLinkedin(e.target.value)}
+                            <span className="w-5 text-center text-sm opacity-40">
+                              in
+                            </span>
+                            <input
+                              value={facultyLinkedin}
+                              onChange={(e) =>
+                                setFacultyLinkedin(e.target.value)
+                              }
                               placeholder="LinkedIn profile URL"
                               className="flex-1 rounded-xl px-4 py-2.5 text-xs text-white outline-none"
-                              style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                              style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '0.5px solid rgba(255,255,255,0.1)',
+                              }}
+                            />
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm w-5 text-center opacity-40">{'\u{1F393}'}</span>
-                            <input value={facultyScholar} onChange={(e) => setFacultyScholar(e.target.value)}
+                            <span className="w-5 text-center text-sm opacity-40">
+                              {'\u{1F393}'}
+                            </span>
+                            <input
+                              value={facultyScholar}
+                              onChange={(e) =>
+                                setFacultyScholar(e.target.value)
+                              }
                               placeholder="Google Scholar profile URL"
                               className="flex-1 rounded-xl px-4 py-2.5 text-xs text-white outline-none"
-                              style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }} />
+                              style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '0.5px solid rgba(255,255,255,0.1)',
+                              }}
+                            />
                           </div>
                         </div>
-                        <p className="text-[9px] mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>Helps students trust your expertise. Verified badge comes faster with these.</p>
+                        <p
+                          className="mt-1 text-[9px]"
+                          style={{ color: 'rgba(255,255,255,0.2)' }}
+                        >
+                          Helps students trust your expertise. Verified badge
+                          comes faster with these.
+                        </p>
                       </div>
                     </div>
 
-                    <p className="text-[10px] mt-4" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                      {'\u{1F512}'} Submitted for admin review. Faculty Verified badge within 48 hours.
-                      Institutional email speeds up verification.
+                    <p
+                      className="mt-4 text-[10px]"
+                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                    >
+                      {'\u{1F512}'} Submitted for admin review. Faculty Verified
+                      badge within 48 hours. Institutional email speeds up
+                      verification.
                     </p>
                   </div>
                 </div>
               )}
               {/* Institution extra fields — fully controlled */}
               {urlRole === 'institution' && (
-                <div className="max-w-xl mx-auto px-4 pb-8">
-                  <div className="rounded-2xl p-5 mt-4" style={{ background: 'rgba(124,58,237,0.08)', border: '0.5px solid rgba(124,58,237,0.25)' }}>
-                    <p className="text-sm font-semibold mb-4" style={{ color: '#A78BFA' }}>🏢 Institution registration</p>
+                <div className="mx-auto max-w-xl px-4 pb-8">
+                  <div
+                    className="mt-4 rounded-2xl p-5"
+                    style={{
+                      background: 'rgba(124,58,237,0.08)',
+                      border: '0.5px solid rgba(124,58,237,0.25)',
+                    }}
+                  >
+                    <p
+                      className="mb-4 text-sm font-semibold"
+                      style={{ color: '#A78BFA' }}
+                    >
+                      🏢 Institution registration
+                    </p>
                     <div className="space-y-3">
                       <input
                         value={orgName}
                         onChange={(e) => setOrgName(e.target.value)}
                         placeholder="Organisation name *"
                         className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
+                        }}
                       />
                       <select
                         value={orgType}
                         onChange={(e) => setOrgType(e.target.value)}
-                        className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', color: orgType ? '#fff' : 'rgba(255,255,255,0.35)' }}
+                        className="w-full appearance-none rounded-xl px-4 py-3 text-sm outline-none"
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
+                          color: orgType ? '#fff' : 'rgba(255,255,255,0.35)',
+                        }}
                       >
-                        <option value="" style={{ background: '#0B1F3A' }}>Organisation type *</option>
-                        {[['University','university'],['Company','company'],['NGO','ngo'],['Government','government'],['Other','other']].map(([label, val]) => (
-                          <option key={val} value={val} style={{ background: '#0B1F3A', color: '#fff' }}>{label}</option>
+                        <option value="" style={{ background: '#0B1F3A' }}>
+                          Organisation type *
+                        </option>
+                        {[
+                          ['University', 'university'],
+                          ['Company', 'company'],
+                          ['NGO', 'ngo'],
+                          ['Government', 'government'],
+                          ['Other', 'other'],
+                        ].map(([label, val]) => (
+                          <option
+                            key={val}
+                            value={val}
+                            style={{ background: '#0B1F3A', color: '#fff' }}
+                          >
+                            {label}
+                          </option>
                         ))}
                       </select>
                       <input
@@ -1482,14 +2277,20 @@ function OnboardInner() {
                         onChange={(e) => setOrgWebsite(e.target.value)}
                         placeholder="Website (optional)"
                         className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
+                        }}
                       />
                       <input
                         value={orgContactPerson}
                         onChange={(e) => setOrgContactPerson(e.target.value)}
                         placeholder="Contact person name"
                         className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
+                        }}
                       />
                       <input
                         value={orgContactEmail}
@@ -1497,14 +2298,20 @@ function OnboardInner() {
                         placeholder="Primary contact email *"
                         type="email"
                         className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
+                        }}
                       />
                       <input
                         value={orgCity}
                         onChange={(e) => setOrgCity(e.target.value)}
                         placeholder="City"
                         className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
+                        }}
                       />
                       <textarea
                         value={orgDescription}
@@ -1512,11 +2319,20 @@ function OnboardInner() {
                         placeholder="Brief description (max 200 chars)"
                         maxLength={200}
                         rows={3}
-                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none resize-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+                        className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
+                        }}
                       />
                     </div>
-                    <p className="text-xs mt-3" style={{ color: 'rgba(255,255,255,0.3)' }}>Flagged for admin verification. Our team will reach out within 24 hours.</p>
+                    <p
+                      className="mt-3 text-xs"
+                      style={{ color: 'rgba(255,255,255,0.3)' }}
+                    >
+                      Flagged for admin verification. Our team will reach out
+                      within 24 hours.
+                    </p>
                   </div>
                 </div>
               )}
@@ -1525,5 +2341,5 @@ function OnboardInner() {
         </AnimatePresence>
       </div>
     </main>
-  );
+  )
 }

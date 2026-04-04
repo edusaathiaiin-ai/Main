@@ -1,20 +1,20 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Script from 'next/script';
-import { motion, AnimatePresence } from 'framer-motion';
-import { createClient } from '@/lib/supabase/client';
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Script from 'next/script'
+import { motion, AnimatePresence } from 'framer-motion'
+import { createClient } from '@/lib/supabase/client'
 
-import FoundingBanner from '@/components/pricing/FoundingBanner';
-import BillingToggle from '@/components/pricing/BillingToggle';
-import PricingCard from '@/components/pricing/PricingCard';
-import ComparisonTable from '@/components/pricing/ComparisonTable';
-import PricingFAQ from '@/components/pricing/PricingFAQ';
+import FoundingBanner from '@/components/pricing/FoundingBanner'
+import BillingToggle from '@/components/pricing/BillingToggle'
+import PricingCard from '@/components/pricing/PricingCard'
+import ComparisonTable from '@/components/pricing/ComparisonTable'
+import PricingFAQ from '@/components/pricing/PricingFAQ'
 
 // ── Env flag — set NEXT_PUBLIC_PAYMENTS_ACTIVE=true when Razorpay is live ─────
-const PAYMENTS_ACTIVE = process.env.NEXT_PUBLIC_PAYMENTS_ACTIVE === 'true';
-type BillingCycle = 'monthly' | 'annual';
+const PAYMENTS_ACTIVE = process.env.NEXT_PUBLIC_PAYMENTS_ACTIVE === 'true'
+type BillingCycle = 'monthly' | 'annual'
 
 // ── ChatGPT comparison data ───────────────────────────────────────────────────
 const CHATGPT_CONS = [
@@ -25,7 +25,7 @@ const CHATGPT_CONS = [
   'No Check-ins or study rhythm tracking',
   'Costs ₹1,650/month — 8× more expensive',
   'Not built for Indian students',
-];
+]
 
 const EDUSAATHI_PROS = [
   '20 specialised Saathis — Law, Medicine, UPSC, Maths…',
@@ -35,7 +35,7 @@ const EDUSAATHI_PROS = [
   'Saathi Check-ins + study rhythm tracking',
   'Only ₹199/month — less than a pizza delivery',
   'Built exclusively for Indian students by IAES Ahmedabad',
-];
+]
 
 // ── Founding Access Modal (shown when PAYMENTS_ACTIVE=false) ─────────────────
 const FOUNDING_BENEFITS = [
@@ -45,14 +45,22 @@ const FOUNDING_BENEFITS = [
   'Unlimited Saathi Check-ins to track your growth',
   'Indian curriculum alignment + exam-mode for UPSC, GATE, NEET',
   'Special Founding Member rate locked in when payments open',
-];
+]
 
-function FoundingModal({ onClose, returnUrl, userEmail }: { onClose: () => void; returnUrl: string; userEmail: string }) {
-  const router = useRouter();
+function FoundingModal({
+  onClose,
+  returnUrl,
+  userEmail,
+}: {
+  onClose: () => void
+  returnUrl: string
+  userEmail: string
+}) {
+  const router = useRouter()
 
   function handleBack() {
-    onClose();
-    router.push(returnUrl);
+    onClose()
+    router.push(returnUrl)
   }
 
   return (
@@ -70,38 +78,55 @@ function FoundingModal({ onClose, returnUrl, userEmail }: { onClose: () => void;
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md rounded-2xl p-8"
-        style={{ background: '#0B1F3A', border: '1.5px solid rgba(201,153,58,0.4)' }}
+        style={{
+          background: '#0B1F3A',
+          border: '1.5px solid rgba(201,153,58,0.4)',
+        }}
       >
-        <div className="text-4xl mb-4 text-center">✦</div>
-        <h3 className="font-playfair text-2xl font-bold text-white mb-2 text-center">
+        <div className="mb-4 text-center text-4xl">✦</div>
+        <h3 className="font-playfair mb-2 text-center text-2xl font-bold text-white">
           You&apos;re early — beautifully so
         </h3>
-        <p className="text-sm mb-5 text-center" style={{ color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
-          Payments are opening very soon. As a Founding Student, you already have{' '}
-          <strong className="text-white">full Plus access for 60 days — completely free.</strong>
+        <p
+          className="mb-5 text-center text-sm"
+          style={{ color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}
+        >
+          Payments are opening very soon. As a Founding Student, you already
+          have{' '}
+          <strong className="text-white">
+            full Plus access for 60 days — completely free.
+          </strong>
         </p>
 
         {/* 6 benefits with gold checkmarks */}
-        <ul className="space-y-2.5 mb-5">
+        <ul className="mb-5 space-y-2.5">
           {FOUNDING_BENEFITS.map((benefit, i) => (
             <li key={i} className="flex items-start gap-2.5 text-sm">
-              <span className="shrink-0 mt-0.5 font-bold" style={{ color: '#C9993A' }}>✓</span>
+              <span
+                className="mt-0.5 shrink-0 font-bold"
+                style={{ color: '#C9993A' }}
+              >
+                ✓
+              </span>
               <span style={{ color: 'rgba(255,255,255,0.7)' }}>{benefit}</span>
             </li>
           ))}
         </ul>
 
         {userEmail && (
-          <p className="text-xs mb-5 text-center" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p
+            className="mb-5 text-center text-xs"
+            style={{ color: 'rgba(255,255,255,0.4)' }}
+          >
             We&apos;ll notify{' '}
-            <strong style={{ color: '#C9993A' }}>{userEmail}</strong>{' '}
-            the moment paid plans go live.
+            <strong style={{ color: '#C9993A' }}>{userEmail}</strong> the moment
+            paid plans go live.
           </p>
         )}
 
         <button
           onClick={handleBack}
-          className="w-full rounded-xl py-3 text-sm font-bold transition-all hover:brightness-110 mb-2"
+          className="mb-2 w-full rounded-xl py-3 text-sm font-bold transition-all hover:brightness-110"
           style={{ background: '#C9993A', color: '#060F1D' }}
         >
           Got it — back to learning →
@@ -110,99 +135,132 @@ function FoundingModal({ onClose, returnUrl, userEmail }: { onClose: () => void;
           onClick={onClose}
           className="w-full rounded-xl py-2.5 text-xs transition-all"
           style={{ background: 'transparent', color: 'rgba(255,255,255,0.35)' }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')
+          }
         >
           Stay on pricing page
         </button>
       </motion.div>
     </motion.div>
-  );
+  )
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function PricingPage() {
-  const router = useRouter();
-  const [billing, setBilling] = useState<BillingCycle>('monthly');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
-  const [showFoundingModal, setShowFoundingModal] = useState(false);
-  const [foundingReturnUrl, setFoundingReturnUrl] = useState('/chat');
-  const [isLoading, setIsLoading] = useState(false);
-  const [paymentError, setPaymentError] = useState('');
+  const router = useRouter()
+  const [billing, setBilling] = useState<BillingCycle>('monthly')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
+  const [showFoundingModal, setShowFoundingModal] = useState(false)
+  const [foundingReturnUrl, setFoundingReturnUrl] = useState('/chat')
+  const [isLoading, setIsLoading] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
 
   useEffect(() => {
-    const supabase = createClient();
+    const supabase = createClient()
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsLoggedIn(!!session);
-      setUserEmail(session?.user?.email ?? '');
-    });
-  }, []);
+      setIsLoggedIn(!!session)
+      setUserEmail(session?.user?.email ?? '')
+    })
+  }, [])
 
   function ensureRazorpayLoaded(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (typeof window !== 'undefined' && window.Razorpay) {
-        resolve();
-        return;
+        resolve()
+        return
       }
       const existing = document.querySelector(
         'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
-      );
+      )
       if (existing) {
         // Script tag exists but not yet executed — wait briefly
         const poll = setInterval(() => {
-          if (window.Razorpay) { clearInterval(poll); resolve(); }
-        }, 100);
-        setTimeout(() => { clearInterval(poll); reject(new Error('Razorpay load timeout')); }, 10000);
-        return;
+          if (window.Razorpay) {
+            clearInterval(poll)
+            resolve()
+          }
+        }, 100)
+        setTimeout(() => {
+          clearInterval(poll)
+          reject(new Error('Razorpay load timeout'))
+        }, 10000)
+        return
       }
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.async = true;
-      script.onload = () => { resolve(); };
-      script.onerror = () => reject(new Error('Razorpay script failed to load'));
-      document.body.appendChild(script);
-      setTimeout(() => reject(new Error('Razorpay load timeout')), 10000);
-    });
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.async = true
+      script.onload = () => {
+        resolve()
+      }
+      script.onerror = () => reject(new Error('Razorpay script failed to load'))
+      document.body.appendChild(script)
+      setTimeout(() => reject(new Error('Razorpay load timeout')), 10000)
+    })
   }
 
   async function handleUpgrade(planId: string) {
-    const returnUrl = sessionStorage.getItem('upgrade_return_url') ?? '/chat';
-    setPaymentError('');
+    const returnUrl = sessionStorage.getItem('upgrade_return_url') ?? '/chat'
+    setPaymentError('')
 
     if (!isLoggedIn) {
-      sessionStorage.setItem('upgrade_return_url', returnUrl);
-      router.push('/login?redirect=/pricing');
-      return;
+      sessionStorage.setItem('upgrade_return_url', returnUrl)
+      router.push('/login?redirect=/pricing')
+      return
     }
     if (!PAYMENTS_ACTIVE) {
-      setFoundingReturnUrl(returnUrl);
-      setShowFoundingModal(true);
-      return;
+      setFoundingReturnUrl(returnUrl)
+      setShowFoundingModal(true)
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      await ensureRazorpayLoaded();
+      await ensureRazorpayLoaded()
 
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push('/login?redirect=/pricing'); return; }
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { router.push('/login?redirect=/pricing'); return; }
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login?redirect=/pricing')
+        return
+      }
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) {
+        router.push('/login?redirect=/pricing')
+        return
+      }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/razorpay-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-        },
-        body: JSON.stringify({ planId, billing }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/razorpay-order`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+          },
+          body: JSON.stringify({ planId, billing }),
+        }
+      )
 
-      const order = await res.json() as { orderId?: string; amount?: number; currency?: string; error?: string };
-      if (!order.orderId) throw new Error(order.error || `Order creation failed (HTTP ${res.status})`);
+      const order = (await res.json()) as {
+        orderId?: string
+        amount?: number
+        currency?: string
+        error?: string
+      }
+      if (!order.orderId)
+        throw new Error(
+          order.error || `Order creation failed (HTTP ${res.status})`
+        )
 
       const rzp = new window.Razorpay({
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ?? '',
@@ -213,22 +271,30 @@ export default function PricingPage() {
         description: `Saathi ${planId.charAt(0).toUpperCase() + planId.slice(1)} Plan`,
         theme: { color: '#C9993A' },
         handler: () => {
-          try { sessionStorage.removeItem('upgrade_return_url'); } catch { /* noop */ }
-          try { sessionStorage.removeItem('upgrade_trigger'); } catch { /* noop */ }
-          window.location.replace('/chat?upgraded=true');
+          try {
+            sessionStorage.removeItem('upgrade_return_url')
+          } catch {
+            /* noop */
+          }
+          try {
+            sessionStorage.removeItem('upgrade_trigger')
+          } catch {
+            /* noop */
+          }
+          window.location.replace('/chat?upgraded=true')
         },
         modal: { ondismiss: () => setIsLoading(false) },
-      });
-      rzp.open();
+      })
+      rzp.open()
     } catch (err) {
-      console.error('Payment error:', err);
-      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      console.error('Payment error:', err)
+      const msg = err instanceof Error ? err.message : 'Something went wrong'
       setPaymentError(
         msg.includes('timeout') || msg.includes('failed to load')
           ? 'Payment could not load. Please refresh and try again.'
           : 'Payment failed. Please try again.'
-      );
-      setIsLoading(false);
+      )
+      setIsLoading(false)
     }
   }
 
@@ -238,34 +304,43 @@ export default function PricingPage() {
       <Script
         src="https://checkout.razorpay.com/v1/checkout.js"
         strategy="afterInteractive"
-        onLoad={() => { /* script ready */ }}
-        onError={() => setPaymentError('Payment gateway failed to load. Please refresh.')}
+        onLoad={() => {
+          /* script ready */
+        }}
+        onError={() =>
+          setPaymentError('Payment gateway failed to load. Please refresh.')
+        }
       />
 
       <main
-        className="min-h-screen relative"
-        style={{ background: 'linear-gradient(180deg, #060F1D 0%, #0B1F3A 40%, #060F1D 100%)' }}
+        className="relative min-h-screen"
+        style={{
+          background:
+            'linear-gradient(180deg, #060F1D 0%, #0B1F3A 40%, #060F1D 100%)',
+        }}
       >
         {/* Ambient glow */}
         <div
-          className="fixed pointer-events-none"
+          className="pointer-events-none fixed"
           style={{
-            width: 900, height: 900,
-            top: '10%', left: '50%',
+            width: 900,
+            height: 900,
+            top: '10%',
+            left: '50%',
             transform: 'translate(-50%, -50%)',
-            background: 'radial-gradient(circle, rgba(201,153,58,0.05) 0%, transparent 70%)',
+            background:
+              'radial-gradient(circle, rgba(201,153,58,0.05) 0%, transparent 70%)',
             zIndex: 0,
           }}
         />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-4 py-16">
-
+        <div className="relative z-10 mx-auto max-w-6xl px-4 py-16">
           {/* ── Header ──────────────────────────────────────────────── */}
-          <div className="text-center mb-10">
+          <div className="mb-10 text-center">
             <motion.p
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs font-bold tracking-widest uppercase mb-3"
+              className="mb-3 text-xs font-bold tracking-widest uppercase"
               style={{ color: '#C9993A' }}
             >
               Simple, honest pricing
@@ -274,7 +349,7 @@ export default function PricingPage() {
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="font-playfair text-5xl md:text-6xl font-bold text-white mb-4"
+              className="font-playfair mb-4 text-5xl font-bold text-white md:text-6xl"
             >
               Your Saathi. Your price.
             </motion.h1>
@@ -282,7 +357,7 @@ export default function PricingPage() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-base max-w-lg mx-auto"
+              className="mx-auto max-w-lg text-base"
               style={{ color: 'rgba(255,255,255,0.5)' }}
             >
               Start free. Upgrade when you&apos;re ready.{' '}
@@ -298,25 +373,45 @@ export default function PricingPage() {
           </div>
 
           {/* ── Billing Toggle ───────────────────────────────────────── */}
-          <div className="flex justify-center mb-10">
+          <div className="mb-10 flex justify-center">
             <BillingToggle value={billing} onChange={setBilling} />
           </div>
 
           {/* ── 4 Pricing Cards ─────────────────────────────────────── */}
           {/* Plus first on mobile via order class */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-20">
+          <div className="mb-20 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {/* Mobile order: Plus (0), Free (1), Pro (2), Unlimited (3) */}
             <div className="order-2 sm:order-1">
-              <PricingCard id="free" billing={billing} onUpgrade={handleUpgrade} index={0} />
+              <PricingCard
+                id="free"
+                billing={billing}
+                onUpgrade={handleUpgrade}
+                index={0}
+              />
             </div>
             <div className="order-1 sm:order-2">
-              <PricingCard id="plus" billing={billing} onUpgrade={handleUpgrade} index={1} />
+              <PricingCard
+                id="plus"
+                billing={billing}
+                onUpgrade={handleUpgrade}
+                index={1}
+              />
             </div>
             <div className="order-3 sm:order-3">
-              <PricingCard id="pro" billing={billing} onUpgrade={handleUpgrade} index={2} />
+              <PricingCard
+                id="pro"
+                billing={billing}
+                onUpgrade={handleUpgrade}
+                index={2}
+              />
             </div>
             <div className="order-4 sm:order-4">
-              <PricingCard id="unlimited" billing={billing} onUpgrade={handleUpgrade} index={3} />
+              <PricingCard
+                id="unlimited"
+                billing={billing}
+                onUpgrade={handleUpgrade}
+                index={3}
+              />
             </div>
           </div>
 
@@ -333,35 +428,56 @@ export default function PricingPage() {
             transition={{ duration: 0.5 }}
             className="mb-20"
           >
-            <div className="text-center mb-10">
-              <p className="text-xs font-bold tracking-widest uppercase mb-2" style={{ color: '#C9993A' }}>
+            <div className="mb-10 text-center">
+              <p
+                className="mb-2 text-xs font-bold tracking-widest uppercase"
+                style={{ color: '#C9993A' }}
+              >
                 Why not ChatGPT?
               </p>
-              <h2 className="font-playfair text-3xl md:text-4xl font-bold text-white">
+              <h2 className="font-playfair text-3xl font-bold text-white md:text-4xl">
                 8× cheaper. Built for you.
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
               {/* ChatGPT */}
               <div
                 className="rounded-2xl p-6"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                }}
               >
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-lg" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                <div className="mb-5 flex items-center gap-3">
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-lg"
+                    style={{ background: 'rgba(255,255,255,0.08)' }}
+                  >
                     🤖
                   </div>
                   <div>
-                    <p className="font-bold text-sm text-white">ChatGPT Plus</p>
-                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>₹1,650 / month</p>
+                    <p className="text-sm font-bold text-white">ChatGPT Plus</p>
+                    <p
+                      className="text-xs"
+                      style={{ color: 'rgba(255,255,255,0.4)' }}
+                    >
+                      ₹1,650 / month
+                    </p>
                   </div>
                 </div>
                 <ul className="space-y-2.5">
                   {CHATGPT_CONS.map((item, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
-                      <span className="shrink-0 mt-0.5 font-bold" style={{ color: 'rgba(239,68,68,0.7)' }}>✗</span>
-                      <span style={{ color: 'rgba(255,255,255,0.45)' }}>{item}</span>
+                      <span
+                        className="mt-0.5 shrink-0 font-bold"
+                        style={{ color: 'rgba(239,68,68,0.7)' }}
+                      >
+                        ✗
+                      </span>
+                      <span style={{ color: 'rgba(255,255,255,0.45)' }}>
+                        {item}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -369,36 +485,67 @@ export default function PricingPage() {
 
               {/* EdUsaathiAI */}
               <div
-                className="rounded-2xl p-6 relative overflow-hidden"
+                className="relative overflow-hidden rounded-2xl p-6"
                 style={{
                   background: 'rgba(201,153,58,0.06)',
                   border: '1.5px solid rgba(201,153,58,0.35)',
                   boxShadow: '0 0 40px rgba(201,153,58,0.08)',
                 }}
               >
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-lg" style={{ background: 'rgba(201,153,58,0.2)' }}>
+                <div className="mb-5 flex items-center gap-3">
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-lg"
+                    style={{ background: 'rgba(201,153,58,0.2)' }}
+                  >
                     🧠
                   </div>
                   <div>
-                    <p className="font-bold text-sm" style={{ color: '#E5B86A' }}>EdUsaathiAI Plus</p>
-                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>₹199 / month</p>
+                    <p
+                      className="text-sm font-bold"
+                      style={{ color: '#E5B86A' }}
+                    >
+                      EdUsaathiAI Plus
+                    </p>
+                    <p
+                      className="text-xs"
+                      style={{ color: 'rgba(255,255,255,0.4)' }}
+                    >
+                      ₹199 / month
+                    </p>
                   </div>
                 </div>
                 <ul className="space-y-2.5">
                   {EDUSAATHI_PROS.map((item, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
-                      <span className="shrink-0 mt-0.5 font-bold" style={{ color: '#4ADE80' }}>✓</span>
-                      <span style={{ color: 'rgba(255,255,255,0.75)' }}>{item}</span>
+                      <span
+                        className="mt-0.5 shrink-0 font-bold"
+                        style={{ color: '#4ADE80' }}
+                      >
+                        ✓
+                      </span>
+                      <span style={{ color: 'rgba(255,255,255,0.75)' }}>
+                        {item}
+                      </span>
                     </li>
                   ))}
                 </ul>
 
                 {/* Price badge */}
-                <div className="mt-5 pt-5" style={{ borderTop: '1px solid rgba(201,153,58,0.2)' }}>
+                <div
+                  className="mt-5 pt-5"
+                  style={{ borderTop: '1px solid rgba(201,153,58,0.2)' }}
+                >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>vs ChatGPT Plus at ₹1,650/mo</span>
-                    <span className="text-sm font-bold px-3 py-1 rounded-full" style={{ background: '#C9993A', color: '#060F1D' }}>
+                    <span
+                      className="text-xs"
+                      style={{ color: 'rgba(255,255,255,0.4)' }}
+                    >
+                      vs ChatGPT Plus at ₹1,650/mo
+                    </span>
+                    <span
+                      className="rounded-full px-3 py-1 text-sm font-bold"
+                      style={{ background: '#C9993A', color: '#060F1D' }}
+                    >
                       Save ₹1,451/mo
                     </span>
                   </div>
@@ -417,25 +564,33 @@ export default function PricingPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center py-16 rounded-3xl relative overflow-hidden"
+            className="relative overflow-hidden rounded-3xl py-16 text-center"
             style={{
-              background: 'linear-gradient(135deg, rgba(201,153,58,0.1) 0%, rgba(11,31,58,0.8) 50%, rgba(201,153,58,0.1) 100%)',
+              background:
+                'linear-gradient(135deg, rgba(201,153,58,0.1) 0%, rgba(11,31,58,0.8) 50%, rgba(201,153,58,0.1) 100%)',
               border: '1px solid rgba(201,153,58,0.2)',
             }}
           >
-            <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: '#C9993A' }}>
+            <p
+              className="mb-3 text-xs font-bold tracking-widest uppercase"
+              style={{ color: '#C9993A' }}
+            >
               Ready to begin?
             </p>
-            <h2 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-4">
+            <h2 className="font-playfair mb-4 text-4xl font-bold text-white md:text-5xl">
               Your Saathi is waiting.
             </h2>
-            <p className="text-base mb-8 max-w-md mx-auto" style={{ color: 'rgba(255,255,255,0.5)' }}>
-              Join 312 founding students getting full access free. No card. No catch.
+            <p
+              className="mx-auto mb-8 max-w-md text-base"
+              style={{ color: 'rgba(255,255,255,0.5)' }}
+            >
+              Join 312 founding students getting full access free. No card. No
+              catch.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <button
                 onClick={() => router.push('/login')}
-                className="px-8 py-3.5 rounded-xl font-bold text-sm transition-all hover:brightness-110 hover:-translate-y-0.5"
+                className="rounded-xl px-8 py-3.5 text-sm font-bold transition-all hover:-translate-y-0.5 hover:brightness-110"
                 style={{ background: '#C9993A', color: '#060F1D' }}
               >
                 Start free — no card required →
@@ -443,7 +598,7 @@ export default function PricingPage() {
               <button
                 onClick={() => handleUpgrade('plus')}
                 disabled={isLoading}
-                className="px-8 py-3.5 rounded-xl font-bold text-sm transition-all hover:brightness-110"
+                className="rounded-xl px-8 py-3.5 text-sm font-bold transition-all hover:brightness-110"
                 style={{
                   background: 'transparent',
                   border: '1.5px solid rgba(255,255,255,0.2)',
@@ -457,7 +612,7 @@ export default function PricingPage() {
               <motion.p
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-xs mt-4 px-4 py-2 rounded-lg mx-auto max-w-sm"
+                className="mx-auto mt-4 max-w-sm rounded-lg px-4 py-2 text-xs"
                 style={{
                   color: '#F87171',
                   background: 'rgba(239,68,68,0.1)',
@@ -468,7 +623,6 @@ export default function PricingPage() {
               </motion.p>
             )}
           </motion.section>
-
         </div>
 
         {/* ── Founding access modal ────────────────────────────────── */}
@@ -483,5 +637,5 @@ export default function PricingPage() {
         </AnimatePresence>
       </main>
     </>
-  );
+  )
 }

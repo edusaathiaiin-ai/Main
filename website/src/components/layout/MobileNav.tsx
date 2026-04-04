@@ -1,22 +1,22 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const NAV_ITEMS = [
-  { href: '/chat',      icon: '💬', label: 'Chat' },
-  { href: '/board',     icon: '🏛️', label: 'Board' },
-  { href: '/explore',   icon: '🗺️', label: 'Explore' },
-  { href: '/flashcards',icon: '🃏', label: 'Cards' },
-  { href: '/profile',   icon: '👤', label: 'Profile' },
-];
+  { href: '/chat', icon: '💬', label: 'Chat' },
+  { href: '/board', icon: '🏛️', label: 'Board' },
+  { href: '/explore', icon: '🗺️', label: 'Explore' },
+  { href: '/flashcards', icon: '🃏', label: 'Cards' },
+  { href: '/profile', icon: '👤', label: 'Profile' },
+]
 
 export function MobileNav() {
-  const pathname = usePathname();
+  const pathname = usePathname()
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around px-2 py-2"
+      className="fixed right-0 bottom-0 left-0 z-30 flex items-center justify-around px-2 py-2 md:hidden"
       style={{
         background: 'rgba(6,15,29,0.9)',
         borderTop: '0.5px solid rgba(255,255,255,0.07)',
@@ -24,12 +24,12 @@ export function MobileNav() {
       }}
     >
       {NAV_ITEMS.map((item) => {
-        const active = pathname === item.href;
+        const active = pathname === item.href
         return (
           <Link
             key={item.href}
             href={item.href}
-            className="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all duration-150"
+            className="flex flex-col items-center gap-1 rounded-xl px-3 py-1 transition-all duration-150"
             style={{
               color: active ? '#C9993A' : 'rgba(255,255,255,0.35)',
               pointerEvents: 'auto',
@@ -41,8 +41,8 @@ export function MobileNav() {
             <span className="text-xl leading-none">{item.icon}</span>
             <span className="text-[9px] font-medium">{item.label}</span>
           </Link>
-        );
+        )
       })}
     </nav>
-  );
+  )
 }

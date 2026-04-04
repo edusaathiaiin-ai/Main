@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'
 
 const STARTERS: Record<string, [string, string, string]> = {
   kanoonsaathi: [
@@ -23,40 +23,45 @@ const STARTERS: Record<string, [string, string, string]> = {
     'Explain the significance of the 1857 revolt',
     'How did partition shape modern India?',
   ],
-};
+}
 
 const DEFAULT_STARTERS: [string, string, string] = [
-  'Help me understand today\'s topic',
+  "Help me understand today's topic",
   'Create a study plan for me',
   'Quiz me on what I know',
-];
+]
 
 type Props = {
-  saathiId: string;
-  saathiEmoji: string;
-  botName: string;
-  onStarterClick: (text: string) => void;
-};
+  saathiId: string
+  saathiEmoji: string
+  botName: string
+  onStarterClick: (text: string) => void
+}
 
-export function EmptyState({ saathiId, saathiEmoji, botName, onStarterClick }: Props) {
-  const starters = STARTERS[saathiId] ?? DEFAULT_STARTERS;
+export function EmptyState({
+  saathiId,
+  saathiEmoji,
+  botName,
+  onStarterClick,
+}: Props) {
+  const starters = STARTERS[saathiId] ?? DEFAULT_STARTERS
 
   return (
-    <div className="flex flex-col items-center justify-center flex-1 px-6 py-16 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
         className="mb-6"
       >
-        <span className="text-[64px] leading-none block">{saathiEmoji}</span>
+        <span className="block text-[64px] leading-none">{saathiEmoji}</span>
       </motion.div>
 
       <motion.p
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.3 }}
-        className="font-playfair text-xl text-white/50 mb-8"
+        className="font-playfair mb-8 text-xl text-white/50"
       >
         Start a conversation with {botName}
       </motion.p>
@@ -65,7 +70,7 @@ export function EmptyState({ saathiId, saathiEmoji, botName, onStarterClick }: P
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.25, duration: 0.3 }}
-        className="flex flex-col gap-2.5 w-full max-w-sm"
+        className="flex w-full max-w-sm flex-col gap-2.5"
       >
         {starters.map((starter, i) => (
           <motion.button
@@ -74,21 +79,21 @@ export function EmptyState({ saathiId, saathiEmoji, botName, onStarterClick }: P
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 + i * 0.07 }}
             onClick={() => onStarterClick(starter)}
-            className="text-left px-4 py-3 rounded-xl text-sm transition-all duration-150"
+            className="rounded-xl px-4 py-3 text-left text-sm transition-all duration-150"
             style={{
               background: 'rgba(255,255,255,0.04)',
               border: '0.5px solid rgba(255,255,255,0.08)',
               color: 'rgba(255,255,255,0.55)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-              e.currentTarget.style.color = '#fff';
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.16)';
+              e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+              e.currentTarget.style.color = '#fff'
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.16)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-              e.currentTarget.style.color = 'rgba(255,255,255,0.55)';
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+              e.currentTarget.style.color = 'rgba(255,255,255,0.55)'
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
             }}
           >
             &quot;{starter}&quot;
@@ -96,5 +101,5 @@ export function EmptyState({ saathiId, saathiEmoji, botName, onStarterClick }: P
         ))}
       </motion.div>
     </div>
-  );
+  )
 }

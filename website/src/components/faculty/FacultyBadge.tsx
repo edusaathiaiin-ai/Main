@@ -1,12 +1,15 @@
-import type { BadgeType } from '@/lib/faculty-badge';
+import type { BadgeType } from '@/lib/faculty-badge'
 
-const BADGE_CONFIG: Record<BadgeType, {
-  label: string;
-  color: string;
-  bg: string;
-  border: string;
-  icon: string;
-}> = {
+const BADGE_CONFIG: Record<
+  BadgeType,
+  {
+    label: string
+    color: string
+    bg: string
+    border: string
+    icon: string
+  }
+> = {
   faculty_verified: {
     label: 'Faculty Verified',
     color: '#4ADE80',
@@ -35,17 +38,18 @@ const BADGE_CONFIG: Record<BadgeType, {
     border: 'rgba(255,255,255,0.12)',
     icon: '⏳',
   },
-};
+}
 
 type Props = {
-  type: BadgeType;
-  size?: 'sm' | 'md' | 'lg';
-};
+  type: BadgeType
+  size?: 'sm' | 'md' | 'lg'
+}
 
 export function FacultyBadge({ type, size = 'md' }: Props) {
-  const config = BADGE_CONFIG[type];
-  const fontSize = size === 'sm' ? '9px' : size === 'lg' ? '12px' : '10px';
-  const padding = size === 'sm' ? '2px 6px' : size === 'lg' ? '5px 14px' : '3px 9px';
+  const config = BADGE_CONFIG[type]
+  const fontSize = size === 'sm' ? '9px' : size === 'lg' ? '12px' : '10px'
+  const padding =
+    size === 'sm' ? '2px 6px' : size === 'lg' ? '5px 14px' : '3px 9px'
 
   return (
     <span
@@ -66,5 +70,5 @@ export function FacultyBadge({ type, size = 'md' }: Props) {
       <span>{config.icon}</span>
       {config.label}
     </span>
-  );
+  )
 }

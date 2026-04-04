@@ -1,7 +1,7 @@
-'use client';
+'use client'
 
-import { ActionModal } from '@/components/ui/ActionModal';
-import { liftSuspension, escalateSuspension, banUser } from './actions';
+import { ActionModal } from '@/components/ui/ActionModal'
+import { liftSuspension, escalateSuspension, banUser } from './actions'
 
 export function LiftButton({ userId, name }: { userId: string; name: string }) {
   return (
@@ -14,12 +14,14 @@ export function LiftButton({ userId, name }: { userId: string; name: string }) {
       title={`Lift suspension — ${name}`}
       confirmLabel="Confirm Lift"
       action={async (fd) => {
-        fd.set('user_id', userId);
-        await liftSuspension(fd);
+        fd.set('user_id', userId)
+        await liftSuspension(fd)
       }}
     >
       <div>
-        <label className="text-xs text-slate-400 mb-1 block">Admin note (optional)</label>
+        <label className="text-xs text-slate-400 mb-1 block">
+          Admin note (optional)
+        </label>
         <textarea
           name="note"
           rows={3}
@@ -28,10 +30,16 @@ export function LiftButton({ userId, name }: { userId: string; name: string }) {
         />
       </div>
     </ActionModal>
-  );
+  )
 }
 
-export function EscalateButton({ userId, name }: { userId: string; name: string }) {
+export function EscalateButton({
+  userId,
+  name,
+}: {
+  userId: string
+  name: string
+}) {
   return (
     <ActionModal
       trigger={
@@ -42,8 +50,8 @@ export function EscalateButton({ userId, name }: { userId: string; name: string 
       title={`Escalate suspension — ${name}`}
       confirmLabel="Confirm Escalation"
       action={async (fd) => {
-        fd.set('user_id', userId);
-        await escalateSuspension(fd);
+        fd.set('user_id', userId)
+        await escalateSuspension(fd)
       }}
     >
       <div className="space-y-3">
@@ -59,7 +67,9 @@ export function EscalateButton({ userId, name }: { userId: string; name: string 
           </select>
         </div>
         <div>
-          <label className="text-xs text-slate-400 mb-1 block">Reason <span className="text-red-400">*</span></label>
+          <label className="text-xs text-slate-400 mb-1 block">
+            Reason <span className="text-red-400">*</span>
+          </label>
           <textarea
             name="reason"
             required
@@ -70,7 +80,7 @@ export function EscalateButton({ userId, name }: { userId: string; name: string 
         </div>
       </div>
     </ActionModal>
-  );
+  )
 }
 
 export function BanButton({ userId, name }: { userId: string; name: string }) {
@@ -85,13 +95,15 @@ export function BanButton({ userId, name }: { userId: string; name: string }) {
       danger
       confirmLabel="Permanently Ban Account"
       action={async (fd) => {
-        fd.set('user_id', userId);
-        await banUser(fd);
+        fd.set('user_id', userId)
+        await banUser(fd)
       }}
     >
       <div className="space-y-3">
         <div>
-          <label className="text-xs text-slate-400 mb-1 block">Reason <span className="text-red-400">*</span></label>
+          <label className="text-xs text-slate-400 mb-1 block">
+            Reason <span className="text-red-400">*</span>
+          </label>
           <textarea
             name="reason"
             required
@@ -102,7 +114,8 @@ export function BanButton({ userId, name }: { userId: string; name: string }) {
         </div>
         <div>
           <label className="text-xs text-slate-400 mb-1 block">
-            Type <span className="font-mono text-red-400">CONFIRM</span> to proceed
+            Type <span className="font-mono text-red-400">CONFIRM</span> to
+            proceed
           </label>
           <input
             name="confirm"
@@ -114,5 +127,5 @@ export function BanButton({ userId, name }: { userId: string; name: string }) {
         </div>
       </div>
     </ActionModal>
-  );
+  )
 }

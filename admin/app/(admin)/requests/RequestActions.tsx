@@ -1,9 +1,15 @@
-'use client';
+'use client'
 
-import { ActionModal } from '@/components/ui/ActionModal';
-import { removeRequest } from './actions';
+import { ActionModal } from '@/components/ui/ActionModal'
+import { removeRequest } from './actions'
 
-export function RemoveButton({ requestId, subject }: { requestId: string; subject: string }) {
+export function RemoveButton({
+  requestId,
+  subject,
+}: {
+  requestId: string
+  subject: string
+}) {
   return (
     <ActionModal
       trigger={
@@ -16,9 +22,9 @@ export function RemoveButton({ requestId, subject }: { requestId: string; subjec
       danger
       confirmLabel="Remove Request"
       action={async (fd) => {
-        fd.set('request_id', requestId);
-        await removeRequest(fd);
+        fd.set('request_id', requestId)
+        await removeRequest(fd)
       }}
     />
-  );
+  )
 }

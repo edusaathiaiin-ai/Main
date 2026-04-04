@@ -6,10 +6,10 @@
  * This file provides display helpers and defaults for the UI.
  */
 
-import type { SoulProfile } from '@/types';
+import type { SoulProfile } from '@/types'
 
 export function getSoulDisplayName(soul: SoulProfile | null): string {
-  return soul?.displayName ?? 'Student';
+  return soul?.displayName ?? 'Student'
 }
 
 export function getSoulAmbitionEmoji(level: string): string {
@@ -17,19 +17,19 @@ export function getSoulAmbitionEmoji(level: string): string {
     case 'high':
     case 'phd':
     case 'upsc':
-      return '🔥';
+      return '🔥'
     case 'medium':
-      return '📚';
+      return '📚'
     case 'low':
-      return '🌱';
+      return '🌱'
     default:
-      return '✨';
+      return '✨'
   }
 }
 
 export function formatTopics(topics: string[] | undefined): string {
-  if (!topics || topics.length === 0) return '—';
-  return topics.slice(0, 3).join(', ');
+  if (!topics || topics.length === 0) return '—'
+  return topics.slice(0, 3).join(', ')
 }
 
 export const DEFAULT_SOUL: Partial<SoulProfile> = {
@@ -41,4 +41,4 @@ export const DEFAULT_SOUL: Partial<SoulProfile> = {
   struggleTopics: [],
   lastSessionSummary: null,
   sessionCount: 0,
-};
+}

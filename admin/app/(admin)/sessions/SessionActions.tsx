@@ -1,7 +1,7 @@
-'use client';
+'use client'
 
-import { ActionModal } from '@/components/ui/ActionModal';
-import { releaseToFaculty, refundStudent, addSessionNote } from './actions';
+import { ActionModal } from '@/components/ui/ActionModal'
+import { releaseToFaculty, refundStudent, addSessionNote } from './actions'
 
 export function ReleaseButton({ sessionId }: { sessionId: string }) {
   return (
@@ -15,12 +15,14 @@ export function ReleaseButton({ sessionId }: { sessionId: string }) {
       description="Confirms session happened — faculty payout will be released."
       confirmLabel="Release Payment"
       action={async (fd) => {
-        fd.set('session_id', sessionId);
-        await releaseToFaculty(fd);
+        fd.set('session_id', sessionId)
+        await releaseToFaculty(fd)
       }}
     >
       <div>
-        <label className="text-xs text-slate-400 mb-1 block">Admin note (optional)</label>
+        <label className="text-xs text-slate-400 mb-1 block">
+          Admin note (optional)
+        </label>
         <input
           name="note"
           placeholder="e.g. Both parties confirmed session occurred"
@@ -28,7 +30,7 @@ export function ReleaseButton({ sessionId }: { sessionId: string }) {
         />
       </div>
     </ActionModal>
-  );
+  )
 }
 
 export function RefundButton({ sessionId }: { sessionId: string }) {
@@ -44,8 +46,8 @@ export function RefundButton({ sessionId }: { sessionId: string }) {
       danger
       confirmLabel="Issue Refund"
       action={async (fd) => {
-        fd.set('session_id', sessionId);
-        await refundStudent(fd);
+        fd.set('session_id', sessionId)
+        await refundStudent(fd)
       }}
     >
       <div>
@@ -57,7 +59,7 @@ export function RefundButton({ sessionId }: { sessionId: string }) {
         />
       </div>
     </ActionModal>
-  );
+  )
 }
 
 export function NoteButton({ sessionId }: { sessionId: string }) {
@@ -71,12 +73,14 @@ export function NoteButton({ sessionId }: { sessionId: string }) {
       title="Add admin note"
       confirmLabel="Save Note"
       action={async (fd) => {
-        fd.set('session_id', sessionId);
-        await addSessionNote(fd);
+        fd.set('session_id', sessionId)
+        await addSessionNote(fd)
       }}
     >
       <div>
-        <label className="text-xs text-slate-400 mb-1 block">Note <span className="text-red-400">*</span></label>
+        <label className="text-xs text-slate-400 mb-1 block">
+          Note <span className="text-red-400">*</span>
+        </label>
         <textarea
           name="note"
           required
@@ -86,5 +90,5 @@ export function NoteButton({ sessionId }: { sessionId: string }) {
         />
       </div>
     </ActionModal>
-  );
+  )
 }

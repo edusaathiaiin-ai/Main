@@ -42,8 +42,8 @@ export function FloorPlanViewer({
     const padding = 60
     const scale = 60
 
-    const maxX = Math.max(...data.rooms.map(r => r.x + r.width))
-    const maxY = Math.max(...data.rooms.map(r => r.y + r.height))
+    const maxX = Math.max(...data.rooms.map((r) => r.x + r.width))
+    const maxY = Math.max(...data.rooms.map((r) => r.y + r.height))
 
     canvas.width = maxX * scale + padding * 2
     canvas.height = maxY * scale + padding * 2 + 30
@@ -59,7 +59,7 @@ export function FloorPlanViewer({
       ctx.fillText(data.title, canvas.width / 2, 22)
     }
 
-    data.rooms.forEach(room => {
+    data.rooms.forEach((room) => {
       const rx = padding + room.x * scale
       const ry = (data.title ? 30 : 0) + padding + room.y * scale
       const rw = room.width * scale
@@ -79,12 +79,16 @@ export function FloorPlanViewer({
 
       ctx.fillStyle = '#888'
       ctx.font = '9px DM Sans, sans-serif'
-      ctx.fillText(`${room.width}m × ${room.height}m`, rx + rw / 2, ry + rh / 2 + 8)
+      ctx.fillText(
+        `${room.width}m × ${room.height}m`,
+        rx + rw / 2,
+        ry + rh / 2 + 8
+      )
     })
 
     // North arrow
     const nx = canvas.width - 35
-    const ny = (data.title ? 50 : 30)
+    const ny = data.title ? 50 : 30
     ctx.beginPath()
     ctx.moveTo(nx, ny - 10)
     ctx.lineTo(nx, ny + 10)
@@ -113,21 +117,27 @@ export function FloorPlanViewer({
   }
 
   return (
-    <div style={{
-      margin: '12px 0',
-      borderRadius: '14px',
-      overflow: 'hidden',
-      border: `0.5px solid ${saathiColor}30`,
-    }}>
-      <div style={{
-        padding: '8px 14px',
-        background: 'rgba(255,255,255,0.03)',
-        borderBottom: `0.5px solid ${saathiColor}20`,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <span style={{ fontSize: '11px', fontWeight: '600', color: saathiColor }}>
+    <div
+      style={{
+        margin: '12px 0',
+        borderRadius: '14px',
+        overflow: 'hidden',
+        border: `0.5px solid ${saathiColor}30`,
+      }}
+    >
+      <div
+        style={{
+          padding: '8px 14px',
+          background: 'rgba(255,255,255,0.03)',
+          borderBottom: `0.5px solid ${saathiColor}20`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <span
+          style={{ fontSize: '11px', fontWeight: '600', color: saathiColor }}
+        >
           📐 Floor Plan
         </span>
         <button

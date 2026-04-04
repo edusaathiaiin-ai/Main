@@ -1,32 +1,41 @@
-import { requireAdmin } from '@/lib/auth';
-import { getAdminClient } from '@/lib/supabase-admin';
-import { StatCard } from '@/components/ui/StatCard';
-import { ApproveButton, RejectLiveButton, CancelSessionButton } from './LiveActions';
+import { requireAdmin } from '@/lib/auth'
+import { getAdminClient } from '@/lib/supabase-admin'
+import { StatCard } from '@/components/ui/StatCard'
+import {
+  ApproveButton,
+  RejectLiveButton,
+  CancelSessionButton,
+} from './LiveActions'
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
-type SearchParams = Promise<{ tab?: string }>;
+type SearchParams = Promise<{ tab?: string }>
 
 const FORMAT_LABELS: Record<string, string> = {
-  single:    'Single lecture',
-  series:    'Series',
-  workshop:  'Workshop',
+  single: 'Single lecture',
+  series: 'Series',
+  workshop: 'Workshop',
   recurring: 'Recurring',
-  qa:        'Q&A',
-};
-
-function fmtInr(paise: number) {
-  return `₹${(paise / 100).toLocaleString('en-IN')}`;
+  qa: 'Q&A',
 }
 
-export default async function LivePage({ searchParams }: { searchParams: SearchParams }) {
-  await requireAdmin();
-  const { tab = 'pending' } = await searchParams;
-  const admin = getAdminClient();
+function fmtInr(paise: number) {
+  return `₹${(paise / 100).toLocaleString('en-IN')}`
+}
+
+export default async function LivePage({
+  searchParams,
+}: {
+  searchParams: SearchParams
+}) {
+  await requireAdmin()
+  const { tab = 'pending' } = await searchParams
+  const admin = getAdminClient()
 
   const { data: sessions } = await admin
     .from('live_sessions')
-    .select(`
+    .select(
+      `
       id,
       title,
       description,
@@ -42,30 +51,48 @@ export default async function LivePage({ searchParams }: { searchParams: SearchP
       faculty_payout_paise,
       faculty:faculty_id ( full_name, email ),
       verticals ( name )
-    `)
-    .order('created_at', { ascending: false });
+    `
+    )
+    .order('created_at', { ascending: false })
 
-  const pending   = (sessions ?? []).filter((s) => (s.status as string) === 'pending_review');
-  const upcoming  = (sessions ?? []).filter((s) => (s.status as string) === 'published');
-  const completed = (sessions ?? []).filter((s) => (s.status as string) === 'completed');
-  const cancelled = (sessions ?? []).filter((s) => (s.status as string) === 'cancelled');
+  const pending = (sessions ?? []).filter(
+    (s) => (s.status as string) === 'pending_review'
+  )
+  const upcoming = (sessions ?? []).filter(
+    (s) => (s.status as string) === 'published'
+  )
+  const completed = (sessions ?? []).filter(
+    (s) => (s.status as string) === 'completed'
+  )
+  const cancelled = (sessions ?? []).filter(
+    (s) => (s.status as string) === 'cancelled'
+  )
 
   // Revenue breakdown
   const completedRevenue = completed.reduce(
-    (sum, s) => sum + ((s.price_per_seat_paise as number) ?? 0) * ((s.seats_booked as number) ?? 0),
+    (sum, s) =>
+      sum +
+      ((s.price_per_seat_paise as number) ?? 0) *
+        ((s.seats_booked as number) ?? 0),
     0
-  );
-  const platformCut = Math.round(completedRevenue * 0.2);
+  )
+  const platformCut = Math.round(completedRevenue * 0.2)
 
   const tabSessions =
-    tab === 'upcoming'  ? upcoming  :
-    tab === 'completed' ? completed :
-    tab === 'cancelled' ? cancelled :
-    pending;
+    tab === 'upcoming'
+      ? upcoming
+      : tab === 'completed'
+        ? completed
+        : tab === 'cancelled'
+          ? cancelled
+          : pending
 
   // For bookings count — simplified, use seats_booked from session
   function getRefundTotal(s: Record<string, unknown>) {
-    return ((s.price_per_seat_paise as number) ?? 0) * ((s.seats_booked as number) ?? 0);
+    return (
+      ((s.price_per_seat_paise as number) ?? 0) *
+      ((s.seats_booked as number) ?? 0)
+    )
   }
 
   return (
@@ -74,17 +101,21 @@ export default async function LivePage({ searchParams }: { searchParams: SearchP
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Pending approval" value={pending.length}  dot={pending.length > 0 ? 'amber' : undefined} />
-        <StatCard label="Upcoming"         value={upcoming.length} />
-        <StatCard label="Completed"        value={completed.length} />
+        <StatCard
+          label="Pending approval"
+          value={pending.length}
+          dot={pending.length > 0 ? 'amber' : undefined}
+        />
+        <StatCard label="Upcoming" value={upcoming.length} />
+        <StatCard label="Completed" value={completed.length} />
         <StatCard label="Platform revenue" value={fmtInr(platformCut)} accent />
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-slate-900 rounded-xl p-1 border border-slate-800 w-fit">
         {[
-          { key: 'pending',   label: `Pending (${pending.length})` },
-          { key: 'upcoming',  label: `Upcoming (${upcoming.length})` },
+          { key: 'pending', label: `Pending (${pending.length})` },
+          { key: 'upcoming', label: `Upcoming (${upcoming.length})` },
           { key: 'completed', label: 'Completed' },
           { key: 'cancelled', label: 'Cancelled' },
         ].map(({ key, label }) => (
@@ -111,20 +142,33 @@ export default async function LivePage({ searchParams }: { searchParams: SearchP
             </div>
           )}
           {pending.map((s) => {
-            const faculty  = s.faculty as unknown as Record<string, unknown>;
-            const vertical = s.verticals as unknown as Record<string, unknown>;
+            const faculty = s.faculty as unknown as Record<string, unknown>
+            const vertical = s.verticals as unknown as Record<string, unknown>
             return (
-              <div key={s.id as string} className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div
+                key={s.id as string}
+                className="bg-slate-900 border border-slate-800 rounded-2xl p-5"
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-1.5">
-                    <div className="text-white font-semibold">{s.title as string}</div>
-                    <div className="text-slate-400 text-sm line-clamp-2">{s.description as string}</div>
+                    <div className="text-white font-semibold">
+                      {s.title as string}
+                    </div>
+                    <div className="text-slate-400 text-sm line-clamp-2">
+                      {s.description as string}
+                    </div>
                     <div className="flex flex-wrap gap-4 mt-2 text-xs text-slate-500">
                       <span>👨‍🏫 {(faculty?.full_name as string) ?? '—'}</span>
                       <span>📚 {(vertical?.name as string) ?? '—'}</span>
-                      <span>🎬 {FORMAT_LABELS[s.session_format as string] ?? s.session_format as string}</span>
+                      <span>
+                        🎬{' '}
+                        {FORMAT_LABELS[s.session_format as string] ??
+                          (s.session_format as string)}
+                      </span>
                       <span>💺 {s.total_seats as number} seats</span>
-                      <span>💰 {fmtInr(s.price_per_seat_paise as number)} / seat</span>
+                      <span>
+                        💰 {fmtInr(s.price_per_seat_paise as number)} / seat
+                      </span>
                     </div>
                   </div>
                   <div className="flex gap-2 shrink-0">
@@ -133,7 +177,7 @@ export default async function LivePage({ searchParams }: { searchParams: SearchP
                   </div>
                 </div>
               </div>
-            );
+            )
           })}
         </div>
       )}
@@ -156,18 +200,29 @@ export default async function LivePage({ searchParams }: { searchParams: SearchP
               </thead>
               <tbody>
                 {tabSessions.map((s) => {
-                  const faculty  = s.faculty as unknown as Record<string, unknown>;
-                  const revenue  = ((s.price_per_seat_paise as number) ?? 0) * ((s.seats_booked as number) ?? 0);
+                  const faculty = s.faculty as unknown as Record<
+                    string,
+                    unknown
+                  >
+                  const revenue =
+                    ((s.price_per_seat_paise as number) ?? 0) *
+                    ((s.seats_booked as number) ?? 0)
                   return (
-                    <tr key={s.id as string} className="border-b border-slate-800/50 hover:bg-slate-800/20">
+                    <tr
+                      key={s.id as string}
+                      className="border-b border-slate-800/50 hover:bg-slate-800/20"
+                    >
                       <td className="px-5 py-3.5">
-                        <div className="text-sm text-white max-w-[200px] truncate">{s.title as string}</div>
+                        <div className="text-sm text-white max-w-[200px] truncate">
+                          {s.title as string}
+                        </div>
                       </td>
                       <td className="px-4 py-3.5 text-xs text-slate-400">
                         {(faculty?.full_name as string) ?? '—'}
                       </td>
                       <td className="px-4 py-3.5 text-xs text-slate-400 capitalize">
-                        {FORMAT_LABELS[s.session_format as string] ?? s.session_format as string}
+                        {FORMAT_LABELS[s.session_format as string] ??
+                          (s.session_format as string)}
                       </td>
                       <td className="px-4 py-3.5 text-xs text-slate-300">
                         {s.seats_booked as number} / {s.total_seats as number}
@@ -177,7 +232,10 @@ export default async function LivePage({ searchParams }: { searchParams: SearchP
                       </td>
                       <td className="px-4 py-3.5 text-xs text-slate-500">
                         {s.created_at
-                          ? new Date(s.created_at as string).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+                          ? new Date(s.created_at as string).toLocaleDateString(
+                              'en-IN',
+                              { day: '2-digit', month: 'short' }
+                            )
                           : '—'}
                       </td>
                       {tab === 'upcoming' && (
@@ -185,16 +243,21 @@ export default async function LivePage({ searchParams }: { searchParams: SearchP
                           <CancelSessionButton
                             sessionId={s.id as string}
                             studentCount={(s.seats_booked as number) ?? 0}
-                            refundTotal={getRefundTotal(s as Record<string, unknown>)}
+                            refundTotal={getRefundTotal(
+                              s as Record<string, unknown>
+                            )}
                           />
                         </td>
                       )}
                     </tr>
-                  );
+                  )
                 })}
                 {!tabSessions.length && (
                   <tr>
-                    <td colSpan={7} className="px-5 py-10 text-center text-slate-500 text-sm">
+                    <td
+                      colSpan={7}
+                      className="px-5 py-10 text-center text-slate-500 text-sm"
+                    >
                       No sessions
                     </td>
                   </tr>
@@ -208,11 +271,21 @@ export default async function LivePage({ searchParams }: { searchParams: SearchP
       {/* Revenue breakdown */}
       {tab === 'completed' && completed.length > 0 && (
         <div className="grid md:grid-cols-3 gap-4">
-          <StatCard label="Total from lectures"  value={fmtInr(completedRevenue)} />
-          <StatCard label="Platform cut (20%)"   value={fmtInr(platformCut)} accent />
-          <StatCard label="Faculty payouts (80%)" value={fmtInr(completedRevenue - platformCut)} />
+          <StatCard
+            label="Total from lectures"
+            value={fmtInr(completedRevenue)}
+          />
+          <StatCard
+            label="Platform cut (20%)"
+            value={fmtInr(platformCut)}
+            accent
+          />
+          <StatCard
+            label="Faculty payouts (80%)"
+            value={fmtInr(completedRevenue - platformCut)}
+          />
         </div>
       )}
     </div>
-  );
+  )
 }

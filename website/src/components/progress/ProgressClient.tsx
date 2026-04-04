@@ -8,7 +8,7 @@ type ProgressClientProps = {
 }
 
 export function ProgressClient({ saathiId }: ProgressClientProps) {
-  const saathi = SAATHIS.find(s => s.id === saathiId) ?? SAATHIS[0]
+  const saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
 
   return (
     <div

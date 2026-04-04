@@ -1,11 +1,11 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 type ThemeStore = {
-  mode: 'dark' | 'light';
-  toggleMode: () => void;
-  setMode: (mode: 'dark' | 'light') => void;
-};
+  mode: 'dark' | 'light'
+  toggleMode: () => void
+  setMode: (mode: 'dark' | 'light') => void
+}
 
 export const useThemeStore = create<ThemeStore>()(
   persist(
@@ -16,4 +16,4 @@ export const useThemeStore = create<ThemeStore>()(
     }),
     { name: 'edusaathiai-theme' }
   )
-);
+)

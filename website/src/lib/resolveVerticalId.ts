@@ -84,14 +84,14 @@
  * ╚══════════════════════════════════════════╝
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js'
 
 // In-memory cache so we don't hit DB
 // repeatedly for the same slug
-const slugCache = new Map<string, string>();
+const slugCache = new Map<string, string>()
 
 const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /**
  * Resolves a Saathi slug OR UUID to a
@@ -121,19 +121,18 @@ const UUID_REGEX =
  */
 export async function resolveVerticalId(
   slugOrId: string | null | undefined,
-  supabase: SupabaseClient,
+  supabase: SupabaseClient
 ): Promise<string | null> {
-
-  if (!slugOrId) return null;
+  if (!slugOrId) return null
 
   // Already a UUID — return immediately
   if (UUID_REGEX.test(slugOrId)) {
-    return slugOrId;
+    return slugOrId
   }
 
   // Check in-memory cache first
   if (slugCache.has(slugOrId)) {
-    return slugCache.get(slugOrId)!;
+    return slugCache.get(slugOrId)!
   }
 
   // Resolve slug → UUID from DB
@@ -141,19 +140,19 @@ export async function resolveVerticalId(
     .from('verticals')
     .select('id')
     .eq('slug', slugOrId)
-    .single();
+    .single()
 
   if (error || !data) {
     console.error(
       `[resolveVerticalId] Could not resolve slug: "${slugOrId}"`,
-      error?.message,
-    );
-    return null;
+      error?.message
+    )
+    return null
   }
 
   // Cache for this session
-  slugCache.set(slugOrId, data.id);
-  return data.id;
+  slugCache.set(slugOrId, data.id)
+  return data.id
 }
 
 /**
@@ -163,16 +162,16 @@ export async function resolveVerticalId(
  */
 export async function requireVerticalId(
   slugOrId: string | null | undefined,
-  supabase: SupabaseClient,
+  supabase: SupabaseClient
 ): Promise<string> {
-  const id = await resolveVerticalId(slugOrId, supabase);
+  const id = await resolveVerticalId(slugOrId, supabase)
   if (!id) {
     throw new Error(
       `[requireVerticalId] Could not resolve: "${slugOrId}". ` +
-      `Check that this Saathi slug exists in verticals table.`,
-    );
+        `Check that this Saathi slug exists in verticals table.`
+    )
   }
-  return id;
+  return id
 }
 
 /**
@@ -181,19 +180,19 @@ export async function requireVerticalId(
  */
 export async function resolveVerticalIds(
   slugsOrIds: string[],
-  supabase: SupabaseClient,
+  supabase: SupabaseClient
 ): Promise<Map<string, string>> {
-  const result = new Map<string, string>();
-  const toResolve: string[] = [];
+  const result = new Map<string, string>()
+  const toResolve: string[] = []
 
   for (const s of slugsOrIds) {
-    if (!s) continue;
+    if (!s) continue
     if (UUID_REGEX.test(s)) {
-      result.set(s, s);
+      result.set(s, s)
     } else if (slugCache.has(s)) {
-      result.set(s, slugCache.get(s)!);
+      result.set(s, slugCache.get(s)!)
     } else {
-      toResolve.push(s);
+      toResolve.push(s)
     }
   }
 
@@ -201,13 +200,13 @@ export async function resolveVerticalIds(
     const { data } = await supabase
       .from('verticals')
       .select('id, slug')
-      .in('slug', toResolve);
+      .in('slug', toResolve)
 
     data?.forEach((row: { id: string; slug: string }) => {
-      result.set(row.slug, row.id);
-      slugCache.set(row.slug, row.id);
-    });
+      result.set(row.slug, row.id)
+      slugCache.set(row.slug, row.id)
+    })
   }
 
-  return result;
+  return result
 }

@@ -1,66 +1,80 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { createClient } from '@/lib/supabase/client';
-import { useAuthStore } from '@/stores/authStore';
-import { getSubjectChips } from '@/constants/subjectChips';
-import Link from 'next/link';
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { createClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/stores/authStore'
+import { getSubjectChips } from '@/constants/subjectChips'
+import Link from 'next/link'
 
-const TOTAL_MARKS = [50, 75, 100];
-const DURATIONS = ['1 hour', '2 hours', '3 hours'];
-const DIFFICULTIES = ['Easy', 'Medium', 'Hard', 'Mixed'];
-const UNIVERSITY_STYLES = ['Gujarat University', 'Mumbai University', 'GTU', 'Delhi University', 'VTU', 'Anna University', 'Generic'];
+const TOTAL_MARKS = [50, 75, 100]
+const DURATIONS = ['1 hour', '2 hours', '3 hours']
+const DIFFICULTIES = ['Easy', 'Medium', 'Hard', 'Mixed']
+const UNIVERSITY_STYLES = [
+  'Gujarat University',
+  'Mumbai University',
+  'GTU',
+  'Delhi University',
+  'VTU',
+  'Anna University',
+  'Generic',
+]
 
 const Q_TYPES = [
   { id: 'mcq', label: 'MCQ (1 mark each)', defaultCount: 10 },
   { id: 'short', label: 'Short Answer (5 marks)', defaultCount: 5 },
   { id: 'long', label: 'Long Answer (10 marks)', defaultCount: 3 },
   { id: 'case', label: 'Case Study (15 marks)', defaultCount: 1 },
-];
+]
 
 export default function QuestionPaperPage() {
-  const { profile } = useAuthStore();
+  const { profile } = useAuthStore()
 
-  const saathiId = profile?.primary_saathi_id ?? '';
-  const subjectOptions = getSubjectChips(saathiId);
+  const saathiId = profile?.primary_saathi_id ?? ''
+  const subjectOptions = getSubjectChips(saathiId)
 
-  const [subject, setSubject] = useState('');
-  const [topics, setTopics] = useState<string[]>([]);
-  const [marks, setMarks] = useState(100);
-  const [duration, setDuration] = useState('3 hours');
-  const [difficulty, setDifficulty] = useState('Mixed');
-  const [style, setStyle] = useState('Generic');
-  const [qTypes, setQTypes] = useState<Record<string, { enabled: boolean; count: number }>>({
+  const [subject, setSubject] = useState('')
+  const [topics, setTopics] = useState<string[]>([])
+  const [marks, setMarks] = useState(100)
+  const [duration, setDuration] = useState('3 hours')
+  const [difficulty, setDifficulty] = useState('Mixed')
+  const [style, setStyle] = useState('Generic')
+  const [qTypes, setQTypes] = useState<
+    Record<string, { enabled: boolean; count: number }>
+  >({
     mcq: { enabled: true, count: 10 },
     short: { enabled: true, count: 5 },
     long: { enabled: true, count: 3 },
     case: { enabled: false, count: 1 },
-  });
-  const [generating, setGenerating] = useState(false);
-  const [paper, setPaper] = useState('');
+  })
+  const [generating, setGenerating] = useState(false)
+  const [paper, setPaper] = useState('')
 
   function toggleTopic(t: string) {
-    setTopics((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
+    setTopics((prev) =>
+      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
+    )
   }
 
   async function generate() {
-    if (!subject.trim() && topics.length === 0) return;
-    setGenerating(true);
-    setPaper('');
+    if (!subject.trim() && topics.length === 0) return
+    setGenerating(true)
+    setPaper('')
 
     const enabledTypes = Object.entries(qTypes)
       .filter(([, v]) => v.enabled)
       .map(([k, v]) => {
-        const label = Q_TYPES.find((q) => q.id === k)?.label ?? k;
-        return `${v.count} ${label}`;
+        const label = Q_TYPES.find((q) => q.id === k)?.label ?? k
+        return `${v.count} ${label}`
       })
-      .join(', ');
+      .join(', ')
 
-    const topicStr = topics.length > 0 ? topics.join(', ') : subject;
+    const topicStr = topics.length > 0 ? topics.join(', ') : subject
 
-    const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const supabase = createClient()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/board-draft`,
@@ -87,63 +101,106 @@ Include:
 - Mix of recall, application, and analysis questions`,
           saathiSlug: saathiId,
         }),
-      },
-    );
+      }
+    )
 
-    const data = await res.json();
-    setPaper(data.draft ?? 'Failed to generate. Please try again.');
-    setGenerating(false);
+    const data = await res.json()
+    setPaper(data.draft ?? 'Failed to generate. Please try again.')
+    setGenerating(false)
   }
 
   function copyToClipboard() {
-    navigator.clipboard.writeText(paper);
+    navigator.clipboard.writeText(paper)
   }
 
-  if (!profile) return null;
+  if (!profile) return null
 
   return (
-    <main className="min-h-screen" style={{ background: 'linear-gradient(180deg, #060F1D 0%, #0B1F3A 60%, #060F1D 100%)' }}>
-      <nav className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <Link href="/faculty" className="font-playfair text-xl font-bold" style={{ color: '#C9993A', textDecoration: 'none' }}>EdUsaathiAI</Link>
-        <Link href="/faculty" className="text-sm" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>&larr; Back to Dashboard</Link>
+    <main
+      className="min-h-screen"
+      style={{
+        background:
+          'linear-gradient(180deg, #060F1D 0%, #0B1F3A 60%, #060F1D 100%)',
+      }}
+    >
+      <nav
+        className="flex items-center justify-between border-b px-6 py-4"
+        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+      >
+        <Link
+          href="/faculty"
+          className="font-playfair text-xl font-bold"
+          style={{ color: '#C9993A', textDecoration: 'none' }}
+        >
+          EdUsaathiAI
+        </Link>
+        <Link
+          href="/faculty"
+          className="text-sm"
+          style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+        >
+          &larr; Back to Dashboard
+        </Link>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <h1 className="font-playfair text-3xl font-bold text-white mb-2">Question Paper Generator</h1>
-        <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.4)' }}>Generate professional exam papers in seconds</p>
+      <div className="mx-auto max-w-4xl px-6 py-8">
+        <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
+          Question Paper Generator
+        </h1>
+        <p className="mb-8 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Generate professional exam papers in seconds
+        </p>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid gap-8 md:grid-cols-2">
           {/* Form */}
           <div className="space-y-6">
             {/* Subject */}
             <div>
-              <label className="block text-xs font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.45)' }}>Subject</label>
+              <label
+                className="mb-2 block text-xs font-semibold"
+                style={{ color: 'rgba(255,255,255,0.45)' }}
+              >
+                Subject
+              </label>
               <input
-                value={subject} onChange={(e) => setSubject(e.target.value)}
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
                 placeholder="e.g. Constitutional Law, Thermodynamics"
                 className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}
               />
             </div>
 
             {/* Topics */}
             <div>
-              <label className="block text-xs font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.45)' }}>
+              <label
+                className="mb-2 block text-xs font-semibold"
+                style={{ color: 'rgba(255,255,255,0.45)' }}
+              >
                 Topics ({topics.length} selected)
               </label>
               <div className="flex flex-wrap gap-2">
                 {subjectOptions.map((t) => {
-                  const sel = topics.includes(t);
+                  const sel = topics.includes(t)
                   return (
-                    <button key={t} onClick={() => toggleTopic(t)}
-                      className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                    <button
+                      key={t}
+                      onClick={() => toggleTopic(t)}
+                      className="rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
                       style={{
-                        background: sel ? 'rgba(201,153,58,0.2)' : 'rgba(255,255,255,0.04)',
+                        background: sel
+                          ? 'rgba(201,153,58,0.2)'
+                          : 'rgba(255,255,255,0.04)',
                         border: `1px solid ${sel ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
                         color: sel ? '#C9993A' : 'rgba(255,255,255,0.5)',
                       }}
-                    >{t}</button>
-                  );
+                    >
+                      {t}
+                    </button>
+                  )
                 })}
               </div>
             </div>
@@ -151,27 +208,55 @@ Include:
             {/* Marks + Duration */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.45)' }}>Total marks</label>
+                <label
+                  className="mb-2 block text-xs font-semibold"
+                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                >
+                  Total marks
+                </label>
                 <div className="flex gap-2">
                   {TOTAL_MARKS.map((m) => (
-                    <button key={m} onClick={() => setMarks(m)}
-                      className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all"
+                    <button
+                      key={m}
+                      onClick={() => setMarks(m)}
+                      className="flex-1 rounded-lg py-2 text-sm font-semibold transition-all"
                       style={{
-                        background: marks === m ? 'rgba(201,153,58,0.2)' : 'rgba(255,255,255,0.04)',
+                        background:
+                          marks === m
+                            ? 'rgba(201,153,58,0.2)'
+                            : 'rgba(255,255,255,0.04)',
                         border: `1px solid ${marks === m ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
-                        color: marks === m ? '#C9993A' : 'rgba(255,255,255,0.5)',
+                        color:
+                          marks === m ? '#C9993A' : 'rgba(255,255,255,0.5)',
                       }}
-                    >{m}</button>
+                    >
+                      {m}
+                    </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.45)' }}>Duration</label>
-                <select value={duration} onChange={(e) => setDuration(e.target.value)}
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                <label
+                  className="mb-2 block text-xs font-semibold"
+                  style={{ color: 'rgba(255,255,255,0.45)' }}
                 >
-                  {DURATIONS.map((d) => <option key={d} value={d} style={{ background: '#0B1F3A' }}>{d}</option>)}
+                  Duration
+                </label>
+                <select
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                  }}
+                >
+                  {DURATIONS.map((d) => (
+                    <option key={d} value={d} style={{ background: '#0B1F3A' }}>
+                      {d}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -179,46 +264,108 @@ Include:
             {/* Difficulty + Style */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.45)' }}>Difficulty</label>
+                <label
+                  className="mb-2 block text-xs font-semibold"
+                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                >
+                  Difficulty
+                </label>
                 <div className="flex flex-wrap gap-2">
                   {DIFFICULTIES.map((d) => (
-                    <button key={d} onClick={() => setDifficulty(d)}
-                      className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                    <button
+                      key={d}
+                      onClick={() => setDifficulty(d)}
+                      className="rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
                       style={{
-                        background: difficulty === d ? 'rgba(201,153,58,0.2)' : 'rgba(255,255,255,0.04)',
+                        background:
+                          difficulty === d
+                            ? 'rgba(201,153,58,0.2)'
+                            : 'rgba(255,255,255,0.04)',
                         border: `1px solid ${difficulty === d ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
-                        color: difficulty === d ? '#C9993A' : 'rgba(255,255,255,0.5)',
+                        color:
+                          difficulty === d
+                            ? '#C9993A'
+                            : 'rgba(255,255,255,0.5)',
                       }}
-                    >{d}</button>
+                    >
+                      {d}
+                    </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.45)' }}>University style</label>
-                <select value={style} onChange={(e) => setStyle(e.target.value)}
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                <label
+                  className="mb-2 block text-xs font-semibold"
+                  style={{ color: 'rgba(255,255,255,0.45)' }}
                 >
-                  {UNIVERSITY_STYLES.map((s) => <option key={s} value={s} style={{ background: '#0B1F3A' }}>{s}</option>)}
+                  University style
+                </label>
+                <select
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value)}
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                  }}
+                >
+                  {UNIVERSITY_STYLES.map((s) => (
+                    <option key={s} value={s} style={{ background: '#0B1F3A' }}>
+                      {s}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
 
             {/* Question types */}
             <div>
-              <label className="block text-xs font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.45)' }}>Question types</label>
+              <label
+                className="mb-2 block text-xs font-semibold"
+                style={{ color: 'rgba(255,255,255,0.45)' }}
+              >
+                Question types
+              </label>
               <div className="space-y-2">
                 {Q_TYPES.map((qt) => (
                   <div key={qt.id} className="flex items-center gap-3">
-                    <input type="checkbox" checked={qTypes[qt.id].enabled}
-                      onChange={(e) => setQTypes((prev) => ({ ...prev, [qt.id]: { ...prev[qt.id], enabled: e.target.checked } }))}
+                    <input
+                      type="checkbox"
+                      checked={qTypes[qt.id].enabled}
+                      onChange={(e) =>
+                        setQTypes((prev) => ({
+                          ...prev,
+                          [qt.id]: {
+                            ...prev[qt.id],
+                            enabled: e.target.checked,
+                          },
+                        }))
+                      }
                       className="accent-[#C9993A]"
                     />
-                    <span className="text-xs text-white/60 flex-1">{qt.label}</span>
-                    <input type="number" min={1} max={30} value={qTypes[qt.id].count}
-                      onChange={(e) => setQTypes((prev) => ({ ...prev, [qt.id]: { ...prev[qt.id], count: parseInt(e.target.value) || 1 } }))}
-                      className="w-14 rounded-lg px-2 py-1 text-xs text-center text-white outline-none"
-                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+                    <span className="flex-1 text-xs text-white/60">
+                      {qt.label}
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={30}
+                      value={qTypes[qt.id].count}
+                      onChange={(e) =>
+                        setQTypes((prev) => ({
+                          ...prev,
+                          [qt.id]: {
+                            ...prev[qt.id],
+                            count: parseInt(e.target.value) || 1,
+                          },
+                        }))
+                      }
+                      className="w-14 rounded-lg px-2 py-1 text-center text-xs text-white outline-none"
+                      style={{
+                        background: 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                      }}
                     />
                   </div>
                 ))}
@@ -226,7 +373,9 @@ Include:
             </div>
 
             {/* Generate */}
-            <button onClick={generate} disabled={generating || (!subject.trim() && topics.length === 0)}
+            <button
+              onClick={generate}
+              disabled={generating || (!subject.trim() && topics.length === 0)}
               className="w-full rounded-xl py-4 text-sm font-bold transition-all disabled:opacity-40"
               style={{ background: '#C9993A', color: '#060F1D' }}
             >
@@ -238,33 +387,54 @@ Include:
           <div>
             {paper ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold text-white">Generated Paper</h2>
-                  <button onClick={copyToClipboard}
-                    className="text-xs px-3 py-1.5 rounded-lg font-semibold"
-                    style={{ background: 'rgba(201,153,58,0.15)', color: '#C9993A' }}
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-white">
+                    Generated Paper
+                  </h2>
+                  <button
+                    onClick={copyToClipboard}
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold"
+                    style={{
+                      background: 'rgba(201,153,58,0.15)',
+                      color: '#C9993A',
+                    }}
                   >
                     Copy
                   </button>
                 </div>
                 <div
-                  className="rounded-xl p-6 text-sm leading-relaxed overflow-y-auto"
+                  className="overflow-y-auto rounded-xl p-6 text-sm leading-relaxed"
                   style={{
-                    background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.7)', maxHeight: '70vh', whiteSpace: 'pre-wrap',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '0.5px solid rgba(255,255,255,0.08)',
+                    color: 'rgba(255,255,255,0.7)',
+                    maxHeight: '70vh',
+                    whiteSpace: 'pre-wrap',
                   }}
                 >
                   {paper}
                 </div>
               </motion.div>
             ) : (
-              <div className="flex items-center justify-center h-full rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.06)', minHeight: '300px' }}>
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.2)' }}>Paper preview will appear here</p>
+              <div
+                className="flex h-full items-center justify-center rounded-xl"
+                style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px dashed rgba(255,255,255,0.06)',
+                  minHeight: '300px',
+                }}
+              >
+                <p
+                  className="text-sm"
+                  style={{ color: 'rgba(255,255,255,0.2)' }}
+                >
+                  Paper preview will appear here
+                </p>
               </div>
             )}
           </div>
         </div>
       </div>
     </main>
-  );
+  )
 }

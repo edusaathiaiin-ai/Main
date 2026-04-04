@@ -11,13 +11,13 @@
  *   const id = await resolveVerticalId(slug, supabase)
  */
 
-import { createClient } from '@/lib/supabase/client';
-import { resolveVerticalId as _resolve } from '@/lib/resolveVerticalId';
+import { createClient } from '@/lib/supabase/client'
+import { resolveVerticalId as _resolve } from '@/lib/resolveVerticalId'
 
 /** One-arg shim — creates its own supabase client internally. */
 export async function resolveVerticalId(
-  slugOrId: string | null | undefined,
+  slugOrId: string | null | undefined
 ): Promise<string | null> {
-  const supabase = createClient();
-  return _resolve(slugOrId, supabase);
+  const supabase = createClient()
+  return _resolve(slugOrId, supabase)
 }

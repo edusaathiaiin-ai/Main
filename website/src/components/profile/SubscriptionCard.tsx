@@ -1,41 +1,47 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import type { Profile } from '@/types';
-import { getPlan, getPlanTier } from '@/constants/plans';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import type { Profile } from '@/types'
+import { getPlan, getPlanTier } from '@/constants/plans'
 
 const PLAN_COLORS: Record<string, string> = {
   free: 'rgba(255,255,255,0.3)',
   plus: '#C9993A',
   pro: '#7C3AED',
   unlimited: '#EF4444',
-};
+}
 
 interface SubscriptionCardProps {
-  profile: Profile;
+  profile: Profile
 }
 
 export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
-  const router = useRouter();
-  const tier = getPlanTier(profile.plan_id);
-  const plan = getPlan(profile.plan_id);
-  const planColor = PLAN_COLORS[tier] ?? '#C9993A';
+  const router = useRouter()
+  const tier = getPlanTier(profile.plan_id)
+  const plan = getPlan(profile.plan_id)
+  const planColor = PLAN_COLORS[tier] ?? '#C9993A'
 
-  const isActive = profile.subscription_status === 'active';
-  const isPaused = profile.subscription_status === 'paused';
+  const isActive = profile.subscription_status === 'active'
+  const isPaused = profile.subscription_status === 'paused'
   const expiresAt = profile.subscription_expires_at
-    ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
-    : null;
-  const isFree = tier === 'free';
+    ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : null
+  const isFree = tier === 'free'
 
   // Founding access: if active and within 60 day window from created_at
-  const [now] = useState(() => Date.now());
-  const createdAt = new Date(profile.created_at);
-  const daysSinceCreation = Math.floor((now - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-  const foundingDaysLeft = Math.max(0, 60 - daysSinceCreation);
-  const isFoundingStudent = foundingDaysLeft > 0;
+  const [now] = useState(() => Date.now())
+  const createdAt = new Date(profile.created_at)
+  const daysSinceCreation = Math.floor(
+    (now - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+  )
+  const foundingDaysLeft = Math.max(0, 60 - daysSinceCreation)
+  const isFoundingStudent = foundingDaysLeft > 0
 
   return (
     <motion.div
@@ -49,27 +55,42 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
         boxShadow: `0 0 30px ${planColor}10`,
       }}
     >
-      <div className="flex items-start justify-between gap-4 mb-5">
+      <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold tracking-widest uppercase mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <p
+            className="mb-1 text-xs font-semibold tracking-widest uppercase"
+            style={{ color: 'rgba(255,255,255,0.35)' }}
+          >
             Current plan
           </p>
           <div className="flex items-center gap-2">
-            <span className="font-playfair text-2xl font-bold text-white">{plan.name}</span>
+            <span className="font-playfair text-2xl font-bold text-white">
+              {plan.name}
+            </span>
             <span
-              className="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-              style={{ background: `${planColor}25`, color: planColor, border: `1px solid ${planColor}50` }}
+              className="rounded-full px-2.5 py-0.5 text-[11px] font-bold"
+              style={{
+                background: `${planColor}25`,
+                color: planColor,
+                border: `1px solid ${planColor}50`,
+              }}
             >
               {isActive ? 'Active' : isPaused ? 'Paused' : 'Free'}
             </span>
           </div>
         </div>
         <div className="text-right">
-          <p className="font-playfair text-xl font-bold" style={{ color: planColor }}>
+          <p
+            className="font-playfair text-xl font-bold"
+            style={{ color: planColor }}
+          >
             {isFree ? 'Free' : `₹${plan.priceMonthly}/mo`}
           </p>
           {expiresAt && (
-            <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <p
+              className="mt-0.5 text-xs"
+              style={{ color: 'rgba(255,255,255,0.35)' }}
+            >
               {isPaused ? 'Paused until' : 'Renews'} {expiresAt}
             </p>
           )}
@@ -78,12 +99,25 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
 
       {/* Founding student countdown */}
       {isFoundingStudent && (
-        <div className="rounded-xl p-3.5 mb-4" style={{ background: 'rgba(201,153,58,0.08)', border: '1px solid rgba(201,153,58,0.25)' }}>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold" style={{ color: '#E5B86A' }}>✦ Founding Student Access</p>
-            <p className="text-xs font-bold" style={{ color: '#C9993A' }}>{foundingDaysLeft} days remaining</p>
+        <div
+          className="mb-4 rounded-xl p-3.5"
+          style={{
+            background: 'rgba(201,153,58,0.08)',
+            border: '1px solid rgba(201,153,58,0.25)',
+          }}
+        >
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-semibold" style={{ color: '#E5B86A' }}>
+              ✦ Founding Student Access
+            </p>
+            <p className="text-xs font-bold" style={{ color: '#C9993A' }}>
+              {foundingDaysLeft} days remaining
+            </p>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+          <div
+            className="h-1.5 overflow-hidden rounded-full"
+            style={{ background: 'rgba(255,255,255,0.08)' }}
+          >
             <div
               className="h-full rounded-full transition-all"
               style={{
@@ -109,19 +143,27 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
           <button
             onClick={() => router.push('/pricing')}
             className="flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'rgba(255,255,255,0.6)',
+            }}
           >
             Manage subscription
           </button>
           <button
             onClick={() => router.push('/pricing')}
             className="flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'rgba(255,255,255,0.6)',
+            }}
           >
             View billing →
           </button>
         </div>
       )}
     </motion.div>
-  );
+  )
 }

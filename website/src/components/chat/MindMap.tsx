@@ -22,8 +22,12 @@ export function MindMap({ markdown, saathiColor = '#C9993A' }: MindMapProps) {
       const { root } = transformer.transform(markdown)
 
       if (mmRef.current) {
-        (mmRef.current as { setData: (r: unknown) => void; fit: () => void }).setData(root);
-        (mmRef.current as { setData: (r: unknown) => void; fit: () => void }).fit()
+        ;(
+          mmRef.current as { setData: (r: unknown) => void; fit: () => void }
+        ).setData(root)
+        ;(
+          mmRef.current as { setData: (r: unknown) => void; fit: () => void }
+        ).fit()
       } else {
         mmRef.current = Markmap.create(svgRef.current!, { duration: 500 }, root)
       }
@@ -33,21 +37,27 @@ export function MindMap({ markdown, saathiColor = '#C9993A' }: MindMapProps) {
   }, [markdown])
 
   return (
-    <div style={{
-      margin: '12px 0',
-      background: 'rgba(255,255,255,0.03)',
-      border: `0.5px solid ${saathiColor}25`,
-      borderRadius: '12px',
-      overflow: 'hidden',
-    }}>
-      <div style={{
-        padding: '8px 14px',
-        borderBottom: `0.5px solid ${saathiColor}20`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <span style={{ fontSize: '11px', fontWeight: '600', color: saathiColor }}>
+    <div
+      style={{
+        margin: '12px 0',
+        background: 'rgba(255,255,255,0.03)',
+        border: `0.5px solid ${saathiColor}25`,
+        borderRadius: '12px',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          padding: '8px 14px',
+          borderBottom: `0.5px solid ${saathiColor}20`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <span
+          style={{ fontSize: '11px', fontWeight: '600', color: saathiColor }}
+        >
           🗺️ Mind Map
         </span>
         <button
@@ -73,7 +83,10 @@ export function MindMap({ markdown, saathiColor = '#C9993A' }: MindMapProps) {
           ⬇ Export
         </button>
       </div>
-      <svg ref={svgRef} style={{ width: '100%', height: '350px', display: 'block' }} />
+      <svg
+        ref={svgRef}
+        style={{ width: '100%', height: '350px', display: 'block' }}
+      />
     </div>
   )
 }

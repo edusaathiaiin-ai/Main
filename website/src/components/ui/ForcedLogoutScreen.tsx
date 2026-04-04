@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'
 
 /**
  * ForcedLogoutScreen (web)
@@ -9,16 +9,16 @@ import { useRouter } from 'next/navigation';
  * accessed from another device (single-device enforcement).
  */
 export default function ForcedLogoutScreen() {
-  const router = useRouter();
+  const router = useRouter()
 
   return (
     <main
-      className="min-h-screen flex flex-col items-center justify-center px-6"
+      className="flex min-h-screen flex-col items-center justify-center px-6"
       style={{
         background: 'linear-gradient(180deg, #060F1D 0%, #0B1F3A 100%)',
       }}
     >
-      <div className="max-w-md w-full text-center flex flex-col items-center gap-6">
+      <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
         {/* Icon */}
         <span className="text-7xl select-none">🔐</span>
 
@@ -33,7 +33,10 @@ export default function ForcedLogoutScreen() {
         {/* Body */}
         <p
           className="text-base leading-relaxed"
-          style={{ color: 'rgba(250, 247, 242, 0.65)', fontFamily: 'var(--font-dm-sans)' }}
+          style={{
+            color: 'rgba(250, 247, 242, 0.65)',
+            fontFamily: 'var(--font-dm-sans)',
+          }}
         >
           Your account was accessed from another device and this session was
           ended automatically. This keeps your Saathi secure and your soul
@@ -42,7 +45,10 @@ export default function ForcedLogoutScreen() {
 
         <p
           className="text-sm leading-relaxed"
-          style={{ color: 'rgba(250, 247, 242, 0.40)', fontFamily: 'var(--font-dm-sans)' }}
+          style={{
+            color: 'rgba(250, 247, 242, 0.40)',
+            fontFamily: 'var(--font-dm-sans)',
+          }}
         >
           If this wasn&apos;t you — change your login email.
           <br />
@@ -52,7 +58,7 @@ export default function ForcedLogoutScreen() {
         {/* CTA */}
         <button
           onClick={() => router.push('/login')}
-          className="mt-2 px-8 py-4 rounded-xl text-base font-semibold transition-opacity hover:opacity-80 active:opacity-60"
+          className="mt-2 rounded-xl px-8 py-4 text-base font-semibold transition-opacity hover:opacity-80 active:opacity-60"
           style={{
             backgroundColor: '#C9993A',
             color: '#060F1D',
@@ -64,5 +70,5 @@ export default function ForcedLogoutScreen() {
         </button>
       </div>
     </main>
-  );
+  )
 }

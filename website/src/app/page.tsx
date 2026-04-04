@@ -1,9 +1,9 @@
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import Link from 'next/link';
-import { SaathiGrid } from '@/components/saathi/SaathiGrid';
-import { RichFeaturesSection } from '@/components/chat/RichFeaturesSection';
-import { FourJourneysSection } from '@/components/landing/FourJourneysSection';
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+import { SaathiGrid } from '@/components/saathi/SaathiGrid'
+import { RichFeaturesSection } from '@/components/chat/RichFeaturesSection'
+import { FourJourneysSection } from '@/components/landing/FourJourneysSection'
 
 /**
  * Root page — authenticated users go to /chat.
@@ -11,10 +11,12 @@ import { FourJourneysSection } from '@/components/landing/FourJourneysSection';
  */
 export default async function RootPage() {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     if (user) {
-      redirect('/chat');
+      redirect('/chat')
     }
   } catch {
     // Auth check failed (missing env vars, network error, etc.)
@@ -143,71 +145,238 @@ export default async function RootPage() {
 
       {/* ── Navigation ─────────────────────────────────────────────────── */}
       <nav className="land-nav">
-        <Link href="/" className="land-logo">EdU<span>saathi</span>AI</Link>
+        <Link href="/" className="land-logo">
+          EdU<span>saathi</span>AI
+        </Link>
         <ul className="land-nav-links">
-          <li><a href="#saathis">Saathis</a></li>
-          <li><a href="#how">How it works</a></li>
-          <li><a href="#for-everyone">For everyone</a></li>
-          <li><Link href="/login?role=student" className="land-nav-cta">Register →</Link></li>
+          <li>
+            <a href="#saathis">Saathis</a>
+          </li>
+          <li>
+            <a href="#how">How it works</a>
+          </li>
+          <li>
+            <a href="#for-everyone">For everyone</a>
+          </li>
+          <li>
+            <Link href="/login?role=student" className="land-nav-cta">
+              Register →
+            </Link>
+          </li>
         </ul>
       </nav>
 
       {/* ── Hero ───────────────────────────────────────────────────────── */}
       <div className="hero">
         <div className="hero-bg" />
-        <div className="orb orb-1" /><div className="orb orb-2" /><div className="orb orb-3" />
+        <div className="orb orb-1" />
+        <div className="orb orb-2" />
+        <div className="orb orb-3" />
         <div className="hero-beam" />
         <div className="hero-content">
-          <div className="hero-eyebrow">Education, You &amp; the Power of Modern AI</div>
+          <div className="hero-eyebrow">
+            Education, You &amp; the Power of Modern AI
+          </div>
           <h1 className="hero-title">Meet the AI that</h1>
           <h1 className="hero-title-line2">knows your name.</h1>
           <h1 className="hero-title-line3">Remembers your dream.</h1>
           <p className="hero-subtitle">
-            <strong>24 subject companions. Built for India.</strong><br />
-            For students who want to go deeper.<br />
-            For faculty who want to reach further.<br />
+            <strong>24 subject companions. Built for India.</strong>
+            <br />
+            For students who want to go deeper.
+            <br />
+            For faculty who want to reach further.
+            <br />
             For institutions that want to matter more.
           </p>
           {/* ── 4 Role Cards ── */}
           <div className="role-cards">
-            <a href="/login?role=student" className="role-card role-card-student">
-              <span style={{fontSize:'32px'}}>🎓</span>
-              <span style={{fontFamily:'Playfair Display',fontSize:'16px',fontWeight:'700',color:'#C9993A'}}>I am a Student</span>
-              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',textAlign:'center',lineHeight:'1.5'}}>Learn with a Saathi who knows your name, your semester, your dream</span>
-              <span style={{fontSize:'12px',color:'#C9993A',fontWeight:'600',marginTop:'4px'}}>Begin for free →</span>
+            <a
+              href="/login?role=student"
+              className="role-card role-card-student"
+            >
+              <span style={{ fontSize: '32px' }}>🎓</span>
+              <span
+                style={{
+                  fontFamily: 'Playfair Display',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#C9993A',
+                }}
+              >
+                I am a Student
+              </span>
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.5)',
+                  textAlign: 'center',
+                  lineHeight: '1.5',
+                }}
+              >
+                Learn with a Saathi who knows your name, your semester, your
+                dream
+              </span>
+              <span
+                style={{
+                  fontSize: '12px',
+                  color: '#C9993A',
+                  fontWeight: '600',
+                  marginTop: '4px',
+                }}
+              >
+                Begin for free →
+              </span>
             </a>
-            <a href="/login?role=faculty" className="role-card role-card-faculty">
-              <span style={{fontSize:'32px'}}>👨‍🏫</span>
-              <span style={{fontFamily:'Playfair Display',fontSize:'16px',fontWeight:'700',color:'#4ADE80'}}>I am Faculty</span>
-              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',textAlign:'center',lineHeight:'1.5'}}>Verify student answers, earn your faculty badge, reach learners</span>
-              <span style={{fontSize:'12px',color:'#4ADE80',fontWeight:'600',marginTop:'4px'}}>Join as Faculty →</span>
+            <a
+              href="/login?role=faculty"
+              className="role-card role-card-faculty"
+            >
+              <span style={{ fontSize: '32px' }}>👨‍🏫</span>
+              <span
+                style={{
+                  fontFamily: 'Playfair Display',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#4ADE80',
+                }}
+              >
+                I am Faculty
+              </span>
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.5)',
+                  textAlign: 'center',
+                  lineHeight: '1.5',
+                }}
+              >
+                Verify student answers, earn your faculty badge, reach learners
+              </span>
+              <span
+                style={{
+                  fontSize: '12px',
+                  color: '#4ADE80',
+                  fontWeight: '600',
+                  marginTop: '4px',
+                }}
+              >
+                Join as Faculty →
+              </span>
             </a>
             <a href="/login?role=public" className="role-card role-card-public">
-              <span style={{fontSize:'32px'}}>🌐</span>
-              <span style={{fontFamily:'Playfair Display',fontSize:'16px',fontWeight:'700',color:'#FB923C'}}>I am Curious</span>
-              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',textAlign:'center',lineHeight:'1.5'}}>Explore any subject, read today&apos;s research, ask freely</span>
-              <span style={{fontSize:'12px',color:'#FB923C',fontWeight:'600',marginTop:'4px'}}>Explore free →</span>
+              <span style={{ fontSize: '32px' }}>🌐</span>
+              <span
+                style={{
+                  fontFamily: 'Playfair Display',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#FB923C',
+                }}
+              >
+                I am Curious
+              </span>
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.5)',
+                  textAlign: 'center',
+                  lineHeight: '1.5',
+                }}
+              >
+                Explore any subject, read today&apos;s research, ask freely
+              </span>
+              <span
+                style={{
+                  fontSize: '12px',
+                  color: '#FB923C',
+                  fontWeight: '600',
+                  marginTop: '4px',
+                }}
+              >
+                Explore free →
+              </span>
             </a>
-            <a href="/login?role=institution" className="role-card role-card-institution">
-              <span style={{fontSize:'32px'}}>🏢</span>
-              <span style={{fontFamily:'Playfair Display',fontSize:'16px',fontWeight:'700',color:'#A78BFA'}}>We are an Institution</span>
-              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',textAlign:'center',lineHeight:'1.5'}}>Post internships, find talent, partner with EdUsaathiAI</span>
-              <span style={{fontSize:'12px',color:'#A78BFA',fontWeight:'600',marginTop:'4px'}}>Partner with us →</span>
+            <a
+              href="/login?role=institution"
+              className="role-card role-card-institution"
+            >
+              <span style={{ fontSize: '32px' }}>🏢</span>
+              <span
+                style={{
+                  fontFamily: 'Playfair Display',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#A78BFA',
+                }}
+              >
+                We are an Institution
+              </span>
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.5)',
+                  textAlign: 'center',
+                  lineHeight: '1.5',
+                }}
+              >
+                Post internships, find talent, partner with EdUsaathiAI
+              </span>
+              <span
+                style={{
+                  fontSize: '12px',
+                  color: '#A78BFA',
+                  fontWeight: '600',
+                  marginTop: '4px',
+                }}
+              >
+                Partner with us →
+              </span>
             </a>
           </div>
-          <a href="#saathis" className="btn-secondary">Meet the 24 Saathis ↓</a>
-          <p style={{textAlign:'center',marginTop:'16px',fontSize:'13px',color:'rgba(255,255,255,0.35)'}}>
+          <a href="#saathis" className="btn-secondary">
+            Meet the 24 Saathis ↓
+          </a>
+          <p
+            style={{
+              textAlign: 'center',
+              marginTop: '16px',
+              fontSize: '13px',
+              color: 'rgba(255,255,255,0.35)',
+            }}
+          >
             Already have an account?{' '}
-            <Link href="/login" style={{color:'rgba(255,255,255,0.6)',textDecoration:'underline',textUnderlineOffset:'3px'}}>Sign in here →</Link>
+            <Link
+              href="/login"
+              style={{
+                color: 'rgba(255,255,255,0.6)',
+                textDecoration: 'underline',
+                textUnderlineOffset: '3px',
+              }}
+            >
+              Sign in here →
+            </Link>
           </p>
           <div className="hero-stats">
-            <div className="stat"><div className="stat-num">24</div><div className="stat-label">Subject Saathis</div></div>
+            <div className="stat">
+              <div className="stat-num">24</div>
+              <div className="stat-label">Subject Saathis</div>
+            </div>
             <div className="stat-divider" />
-            <div className="stat"><div className="stat-num">₹199</div><div className="stat-label">Per month</div></div>
+            <div className="stat">
+              <div className="stat-num">₹199</div>
+              <div className="stat-label">Per month</div>
+            </div>
             <div className="stat-divider" />
-            <div className="stat"><div className="stat-num">8×</div><div className="stat-label">Cheaper than ChatGPT</div></div>
+            <div className="stat">
+              <div className="stat-num">8×</div>
+              <div className="stat-label">Cheaper than ChatGPT</div>
+            </div>
             <div className="stat-divider" />
-            <div className="stat"><div className="stat-num">∞</div><div className="stat-label">Soul memory</div></div>
+            <div className="stat">
+              <div className="stat-num">∞</div>
+              <div className="stat-label">Soul memory</div>
+            </div>
           </div>
         </div>
       </div>
@@ -215,20 +384,70 @@ export default async function RootPage() {
       {/* ── Founding Banner ────────────────────────────────────────────── */}
       <div className="founding-banner">
         <span className="founding-badge">Founding Student</span>
-        <span className="founding-text">First 500 students get <strong>60 days full access — completely free.</strong> No card. No catch. Just your Saathi.</span>
-        <Link href="/login?role=student" className="founding-cta">Claim your spot →</Link>
-        <Link href="/login" style={{fontSize:'13px',color:'rgba(255,255,255,0.4)',marginLeft:'8px'}}>Already a Founding Student? <span style={{color:'#C9993A'}}>Sign in →</span></Link>
+        <span className="founding-text">
+          First 500 students get{' '}
+          <strong>60 days full access — completely free.</strong> No card. No
+          catch. Just your Saathi.
+        </span>
+        <Link href="/login?role=student" className="founding-cta">
+          Claim your spot →
+        </Link>
+        <Link
+          href="/login"
+          style={{
+            fontSize: '13px',
+            color: 'rgba(255,255,255,0.4)',
+            marginLeft: '8px',
+          }}
+        >
+          Already a Founding Student?{' '}
+          <span style={{ color: '#C9993A' }}>Sign in →</span>
+        </Link>
       </div>
 
       {/* ── How it works ───────────────────────────────────────────────── */}
       <section id="how" className="land-section">
         <div className="section-eyebrow">How it works</div>
-        <h2 className="section-title">Three steps to your<br /><em>Unified Soul Partnership</em></h2>
-        <p className="section-subtitle">EdUsaathiAI doesn&apos;t just answer questions. It builds a relationship with your learning journey.</p>
+        <h2 className="section-title">
+          Three steps to your
+          <br />
+          <em>Unified Soul Partnership</em>
+        </h2>
+        <p className="section-subtitle">
+          EdUsaathiAI doesn&apos;t just answer questions. It builds a
+          relationship with your learning journey.
+        </p>
         <div className="steps-grid" style={{ marginTop: '48px' }}>
-          <div className="step"><div className="step-num">01 — CHOOSE</div><span className="step-icon">🎯</span><h3 className="step-title">Pick your Saathi</h3><p className="step-body">Choose from 24 subject companions — Law, Biology, Medicine, CS, UPSC, Finance, and more. Your Saathi knows your subject inside out and meets you where you are.</p></div>
-          <div className="step"><div className="step-num">02 — CONNECT</div><span className="step-icon">🧠</span><h3 className="step-title">Your soul is matched</h3><p className="step-body">Tell your Saathi your name, your exam target, your research dream. Every conversation is personal. Your Saathi remembers what you struggled with and bridges it to today.</p></div>
-          <div className="step"><div className="step-num">03 — GROW</div><span className="step-icon">🚀</span><h3 className="step-title">Learn. Check in. Rise.</h3><p className="step-body">Study with your bot. Take Saathi Check-ins to see how far you&apos;ve come. Read today&apos;s research headlines in your field. Your Saathi grows smarter about you with every session.</p></div>
+          <div className="step">
+            <div className="step-num">01 — CHOOSE</div>
+            <span className="step-icon">🎯</span>
+            <h3 className="step-title">Pick your Saathi</h3>
+            <p className="step-body">
+              Choose from 24 subject companions — Law, Biology, Medicine, CS,
+              UPSC, Finance, and more. Your Saathi knows your subject inside out
+              and meets you where you are.
+            </p>
+          </div>
+          <div className="step">
+            <div className="step-num">02 — CONNECT</div>
+            <span className="step-icon">🧠</span>
+            <h3 className="step-title">Your soul is matched</h3>
+            <p className="step-body">
+              Tell your Saathi your name, your exam target, your research dream.
+              Every conversation is personal. Your Saathi remembers what you
+              struggled with and bridges it to today.
+            </p>
+          </div>
+          <div className="step">
+            <div className="step-num">03 — GROW</div>
+            <span className="step-icon">🚀</span>
+            <h3 className="step-title">Learn. Check in. Rise.</h3>
+            <p className="step-body">
+              Study with your bot. Take Saathi Check-ins to see how far
+              you&apos;ve come. Read today&apos;s research headlines in your
+              field. Your Saathi grows smarter about you with every session.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -243,7 +462,11 @@ export default async function RootPage() {
         <div className="saathis-header">
           <div>
             <div className="section-eyebrow">The Saathis</div>
-            <h2 className="section-title">Every subject.<br /><em>One soul.</em></h2>
+            <h2 className="section-title">
+              Every subject.
+              <br />
+              <em>One soul.</em>
+            </h2>
           </div>
           <p className="section-subtitle" style={{ maxWidth: '360px' }}>
             24 companions. Each one a specialist. Hover any Saathi to meet them.
@@ -255,65 +478,246 @@ export default async function RootPage() {
 
       {/* ── ChatGPT comparison ─────────────────────────────────────────── */}
       <section id="compare" className="land-section">
-        <div style={{ textAlign:'center', marginBottom:'64px' }}>
-          <div className="section-eyebrow" style={{ justifyContent:'center' }}><span style={{ display:'block',width:'24px',height:'1px',background:'var(--gold)' }} />Why not ChatGPT?</div>
-          <h2 className="section-title">General intelligence<br />vs <em>your intelligence.</em></h2>
-          <p className="section-subtitle" style={{ margin:'0 auto' }}>ChatGPT is built for everyone. EdUsaathiAI is built for you.</p>
+        <div style={{ textAlign: 'center', marginBottom: '64px' }}>
+          <div className="section-eyebrow" style={{ justifyContent: 'center' }}>
+            <span
+              style={{
+                display: 'block',
+                width: '24px',
+                height: '1px',
+                background: 'var(--gold)',
+              }}
+            />
+            Why not ChatGPT?
+          </div>
+          <h2 className="section-title">
+            General intelligence
+            <br />
+            vs <em>your intelligence.</em>
+          </h2>
+          <p className="section-subtitle" style={{ margin: '0 auto' }}>
+            ChatGPT is built for everyone. EdUsaathiAI is built for you.
+          </p>
         </div>
         <div className="comparison-grid">
           <div className="comparison-col them">
-            <div className="comparison-col-header"><div className="comparison-brand" style={{ color:'rgba(255,255,255,0.5)' }}>ChatGPT Plus</div><div className="comparison-price">₹1,650/month</div></div>
-            {["Doesn't know your name or remember you between sessions","No subject specialisation — same bot for cooking and chemistry","No awareness of Indian exams — UPSC, NEET, CLAT, GATE","No soul matching — treats every user identically","No community board, no peer learning, no faculty verification","No daily research headlines filtered to your subject","₹1,650/month. 8× more expensive."].map((t,i)=>(
-              <div key={i} className="comparison-item"><div className="comparison-icon icon-no">✗</div><div className="comparison-text">{t}</div></div>
+            <div className="comparison-col-header">
+              <div
+                className="comparison-brand"
+                style={{ color: 'rgba(255,255,255,0.5)' }}
+              >
+                ChatGPT Plus
+              </div>
+              <div className="comparison-price">₹1,650/month</div>
+            </div>
+            {[
+              "Doesn't know your name or remember you between sessions",
+              'No subject specialisation — same bot for cooking and chemistry',
+              'No awareness of Indian exams — UPSC, NEET, CLAT, GATE',
+              'No soul matching — treats every user identically',
+              'No community board, no peer learning, no faculty verification',
+              'No daily research headlines filtered to your subject',
+              '₹1,650/month. 8× more expensive.',
+            ].map((t, i) => (
+              <div key={i} className="comparison-item">
+                <div className="comparison-icon icon-no">✗</div>
+                <div className="comparison-text">{t}</div>
+              </div>
             ))}
           </div>
           <div className="comparison-col us">
-            <div className="comparison-col-header"><div className="comparison-brand" style={{ color:'var(--gold)' }}>EdUsaathiAI Plus</div><div className="comparison-price" style={{ color:'var(--gold)' }}>₹199/month</div></div>
-            {["Knows your name. Remembers your last session, research dream, and struggle topics","24 specialist Saathis — each an expert with subject-specific guardrails","India-first. UPSC current affairs, NEET Biology, CLAT prep, GATE — all built in","Soul matching. Mirrors your tone, adapts to your ambition, bridges to your goals","Community Board with faculty-verified answers and AI auto-responses","Daily headlines from Nature, Cell, Bar & Bench, PRS India — filtered to your Saathi","₹199/month. Less than your weekly pizza. More than a semester of guidance."].map((t,i)=>(
-              <div key={i} className="comparison-item"><div className="comparison-icon icon-yes">✓</div><div className="comparison-text">{t}</div></div>
+            <div className="comparison-col-header">
+              <div
+                className="comparison-brand"
+                style={{ color: 'var(--gold)' }}
+              >
+                EdUsaathiAI Plus
+              </div>
+              <div
+                className="comparison-price"
+                style={{ color: 'var(--gold)' }}
+              >
+                ₹199/month
+              </div>
+            </div>
+            {[
+              'Knows your name. Remembers your last session, research dream, and struggle topics',
+              '24 specialist Saathis — each an expert with subject-specific guardrails',
+              'India-first. UPSC current affairs, NEET Biology, CLAT prep, GATE — all built in',
+              'Soul matching. Mirrors your tone, adapts to your ambition, bridges to your goals',
+              'Community Board with faculty-verified answers and AI auto-responses',
+              'Daily headlines from Nature, Cell, Bar & Bench, PRS India — filtered to your Saathi',
+              '₹199/month. Less than your weekly pizza. More than a semester of guidance.',
+            ].map((t, i) => (
+              <div key={i} className="comparison-item">
+                <div className="comparison-icon icon-yes">✓</div>
+                <div className="comparison-text">{t}</div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ── Bottom CTA ─────────────────────────────────────────────────── */}
-      <section style={{ textAlign:'center', padding:'80px 48px 100px' }}>
-        <div className="section-eyebrow" style={{ justifyContent:'center' }}><span style={{ display:'block',width:'24px',height:'1px',background:'var(--gold)' }} />Your journey starts here</div>
-        <h2 className="section-title" style={{ marginBottom:'16px' }}>You are not just a student.<br /><em>You are shaping a future.</em></h2>
-        <p style={{ fontSize:'18px', color:'rgba(255,255,255,0.5)', marginBottom:'48px', fontWeight:300 }}>Your Saathi is waiting. First 500 students get 60 days free.</p>
-        <Link href="/login?role=student" className="btn-primary" style={{ fontSize:'18px', padding:'20px 48px' }}>Student Registration →</Link>
-        <p style={{ marginTop:'20px', fontSize:'13px', color:'rgba(255,255,255,0.25)' }}>No credit card. No commitment. Just your Saathi.</p>
+      <section style={{ textAlign: 'center', padding: '80px 48px 100px' }}>
+        <div className="section-eyebrow" style={{ justifyContent: 'center' }}>
+          <span
+            style={{
+              display: 'block',
+              width: '24px',
+              height: '1px',
+              background: 'var(--gold)',
+            }}
+          />
+          Your journey starts here
+        </div>
+        <h2 className="section-title" style={{ marginBottom: '16px' }}>
+          You are not just a student.
+          <br />
+          <em>You are shaping a future.</em>
+        </h2>
+        <p
+          style={{
+            fontSize: '18px',
+            color: 'rgba(255,255,255,0.5)',
+            marginBottom: '48px',
+            fontWeight: 300,
+          }}
+        >
+          Your Saathi is waiting. First 500 students get 60 days free.
+        </p>
+        <Link
+          href="/login?role=student"
+          className="btn-primary"
+          style={{ fontSize: '18px', padding: '20px 48px' }}
+        >
+          Student Registration →
+        </Link>
+        <p
+          style={{
+            marginTop: '20px',
+            fontSize: '13px',
+            color: 'rgba(255,255,255,0.25)',
+          }}
+        >
+          No credit card. No commitment. Just your Saathi.
+        </p>
       </section>
 
       {/* ── Contact strip ───────────────────────────────────────────── */}
-      <div style={{ textAlign: 'center', padding: '40px 48px', borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
-        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginBottom: '8px' }}>Questions? We&apos;re real people.</p>
-        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
-          <a href="mailto:support@edusaathiai.in" className="hover:underline" style={{ color: '#C9993A', textDecoration: 'none', cursor: 'pointer' }}>support@edusaathiai.in</a>
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '40px 48px',
+          borderTop: '0.5px solid rgba(255,255,255,0.06)',
+        }}
+      >
+        <p
+          style={{
+            fontSize: '13px',
+            color: 'rgba(255,255,255,0.35)',
+            marginBottom: '8px',
+          }}
+        >
+          Questions? We&apos;re real people.
+        </p>
+        <p
+          style={{
+            fontSize: '14px',
+            color: 'rgba(255,255,255,0.5)',
+            margin: 0,
+          }}
+        >
+          <a
+            href="mailto:support@edusaathiai.in"
+            className="hover:underline"
+            style={{
+              color: '#C9993A',
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            support@edusaathiai.in
+          </a>
           <span style={{ margin: '0 16px', opacity: 0.3 }}>·</span>
-          <a href="mailto:info@edusaathiai.in" className="hover:underline" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none', cursor: 'pointer' }}>info@edusaathiai.in</a>
-          <span style={{ marginLeft: '8px', fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>(partnerships)</span>
+          <a
+            href="mailto:info@edusaathiai.in"
+            className="hover:underline"
+            style={{
+              color: 'rgba(255,255,255,0.4)',
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            info@edusaathiai.in
+          </a>
+          <span
+            style={{
+              marginLeft: '8px',
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.25)',
+            }}
+          >
+            (partnerships)
+          </span>
         </p>
       </div>
 
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
       <footer className="land-footer">
         <div>
-          <div className="footer-logo">EdU<span>saathi</span>AI</div>
-          <div className="footer-tagline">Unified Soul Partnership · Ahmedabad, India</div>
+          <div className="footer-logo">
+            EdU<span>saathi</span>AI
+          </div>
+          <div className="footer-tagline">
+            Unified Soul Partnership · Ahmedabad, India
+          </div>
         </div>
         <ul className="footer-links">
-          <li><Link href="/login?role=student">For Students</Link></li>
-          <li><Link href="/login?role=faculty">For Faculty</Link></li>
-          <li><Link href="/login?role=institution">For Institutions</Link></li>
-          <li><Link href="/privacy">Privacy Policy</Link></li>
-          <li><Link href="/terms">Terms of Use</Link></li>
-          <li><a href="mailto:support@edusaathiai.in">Contact</a></li>
-          <li><a href={process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.edusaathiai.in'} target="_blank" rel="noopener noreferrer">Admin Access</a></li>
-          <li><a href="https://x.com/EdUsaathiAI" target="_blank" rel="noopener noreferrer">@EdUsaathiAI</a></li>
+          <li>
+            <Link href="/login?role=student">For Students</Link>
+          </li>
+          <li>
+            <Link href="/login?role=faculty">For Faculty</Link>
+          </li>
+          <li>
+            <Link href="/login?role=institution">For Institutions</Link>
+          </li>
+          <li>
+            <Link href="/privacy">Privacy Policy</Link>
+          </li>
+          <li>
+            <Link href="/terms">Terms of Use</Link>
+          </li>
+          <li>
+            <a href="mailto:support@edusaathiai.in">Contact</a>
+          </li>
+          <li>
+            <a
+              href={
+                process.env.NEXT_PUBLIC_ADMIN_URL ||
+                'https://admin.edusaathiai.in'
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Admin Access
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://x.com/EdUsaathiAI"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              @EdUsaathiAI
+            </a>
+          </li>
         </ul>
-        <div className="footer-copy">© 2026 EdUsaathiAI, Ahmedabad. All rights reserved.</div>
+        <div className="footer-copy">
+          © 2026 EdUsaathiAI, Ahmedabad. All rights reserved.
+        </div>
       </footer>
     </>
-  );
+  )
 }

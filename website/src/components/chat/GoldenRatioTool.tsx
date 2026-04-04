@@ -6,20 +6,27 @@ const PHI = 1.618033988749895
 function analyseRatio(w: number, h: number) {
   if (w <= 0 || h <= 0) return null
   const ratio = Math.max(w, h) / Math.min(w, h)
-  const deviation = Math.abs(ratio - PHI) / PHI * 100
+  const deviation = (Math.abs(ratio - PHI) / PHI) * 100
   return {
     ratio: ratio.toFixed(3),
     deviation: deviation.toFixed(1),
     isGolden: deviation < 5,
     verdict:
-      deviation < 2 ? '✦ Perfect golden ratio' :
-      deviation < 5 ? 'Very close to φ (phi)' :
-      deviation < 15 ? 'Near golden proportion' :
-      'Not a golden proportion',
+      deviation < 2
+        ? '✦ Perfect golden ratio'
+        : deviation < 5
+          ? 'Very close to φ (phi)'
+          : deviation < 15
+            ? 'Near golden proportion'
+            : 'Not a golden proportion',
     color:
-      deviation < 2 ? '#4ADE80' :
-      deviation < 5 ? '#86EFAC' :
-      deviation < 15 ? '#FCD34D' : '#F87171',
+      deviation < 2
+        ? '#4ADE80'
+        : deviation < 5
+          ? '#86EFAC'
+          : deviation < 15
+            ? '#FCD34D'
+            : '#F87171',
   }
 }
 
@@ -87,7 +94,13 @@ export function GoldenRatioTool({
       const angle = (Math.PI / 2) * (i % 4)
       const startAngle = angle + Math.PI
       const endAngle = angle + Math.PI / 2
-      ctx.arc(cx, cy, a, startAngle > endAngle ? endAngle : startAngle, startAngle > endAngle ? startAngle : endAngle)
+      ctx.arc(
+        cx,
+        cy,
+        a,
+        startAngle > endAngle ? endAngle : startAngle,
+        startAngle > endAngle ? startAngle : endAngle
+      )
       a = b
     }
     ctx.stroke()
@@ -117,35 +130,65 @@ export function GoldenRatioTool({
   }, [width, height, saathiColor])
 
   return (
-    <div style={{
-      margin: '12px 0',
-      borderRadius: '14px',
-      overflow: 'hidden',
-      border: `0.5px solid ${saathiColor}30`,
-    }}>
-      <div style={{
-        padding: '8px 14px',
-        background: 'rgba(255,255,255,0.03)',
-        borderBottom: `0.5px solid ${saathiColor}20`,
-      }}>
-        <span style={{ fontSize: '11px', fontWeight: '600', color: saathiColor }}>
+    <div
+      style={{
+        margin: '12px 0',
+        borderRadius: '14px',
+        overflow: 'hidden',
+        border: `0.5px solid ${saathiColor}30`,
+      }}
+    >
+      <div
+        style={{
+          padding: '8px 14px',
+          background: 'rgba(255,255,255,0.03)',
+          borderBottom: `0.5px solid ${saathiColor}20`,
+        }}
+      >
+        <span
+          style={{ fontSize: '11px', fontWeight: '600', color: saathiColor }}
+        >
           ✦ Golden Ratio Analyser — φ = 1.618
         </span>
       </div>
 
       <div style={{ padding: '16px', background: '#060F1D' }}>
-        <canvas ref={canvasRef} style={{ width: '100%', maxWidth: '400px', display: 'block', margin: '0 auto 16px' }} />
+        <canvas
+          ref={canvasRef}
+          style={{
+            width: '100%',
+            maxWidth: '400px',
+            display: 'block',
+            margin: '0 auto 16px',
+          }}
+        />
 
         {/* Input row */}
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '12px',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <label
+            style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
             Width (m)
             <input
               type="number"
               value={width}
               step={0.1}
               min={0.1}
-              onChange={e => setWidth(parseFloat(e.target.value) || 1)}
+              onChange={(e) => setWidth(parseFloat(e.target.value) || 1)}
               style={{
                 width: '70px',
                 background: 'rgba(255,255,255,0.06)',
@@ -158,14 +201,22 @@ export function GoldenRatioTool({
               }}
             />
           </label>
-          <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <label
+            style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
             Height (m)
             <input
               type="number"
               value={height}
               step={0.1}
               min={0.1}
-              onChange={e => setHeight(parseFloat(e.target.value) || 1)}
+              onChange={(e) => setHeight(parseFloat(e.target.value) || 1)}
               style={{
                 width: '70px',
                 background: 'rgba(255,255,255,0.06)',
@@ -183,10 +234,24 @@ export function GoldenRatioTool({
         {/* Result */}
         {result && (
           <div style={{ textAlign: 'center', marginTop: '12px' }}>
-            <p style={{ margin: '0 0 4px', fontSize: '20px', fontFamily: 'Playfair Display', color: result.color, fontWeight: '700' }}>
+            <p
+              style={{
+                margin: '0 0 4px',
+                fontSize: '20px',
+                fontFamily: 'Playfair Display',
+                color: result.color,
+                fontWeight: '700',
+              }}
+            >
               {result.verdict}
             </p>
-            <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '12px',
+                color: 'rgba(255,255,255,0.4)',
+              }}
+            >
               Ratio: {result.ratio} · Deviation from φ: {result.deviation}%
             </p>
           </div>

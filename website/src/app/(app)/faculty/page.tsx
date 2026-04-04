@@ -1,156 +1,182 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { createClient } from '@/lib/supabase/client';
-import { useAuthStore } from '@/stores/authStore';
-import { SAATHIS } from '@/constants/saathis';
-import { toSlug } from '@/constants/verticalIds';
-import Link from 'next/link';
-import { VerificationBanner } from '@/components/faculty/VerificationBanner';
-import { FacultyBadge } from '@/components/faculty/FacultyBadge';
-import { getFacultyBadgeType } from '@/lib/faculty-badge';
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import { createClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/stores/authStore'
+import { SAATHIS } from '@/constants/saathis'
+import { toSlug } from '@/constants/verticalIds'
+import Link from 'next/link'
+import { VerificationBanner } from '@/components/faculty/VerificationBanner'
+import { FacultyBadge } from '@/components/faculty/FacultyBadge'
+import { getFacultyBadgeType } from '@/lib/faculty-badge'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type VerificationStatus = 'pending' | 'verified' | 'rejected';
+type VerificationStatus = 'pending' | 'verified' | 'rejected'
 
 type FacultyProfile = {
-  id: string;
-  user_id: string;
-  institution_name: string;
-  department: string;
-  designation: string | null;
-  subject_expertise: string[];
-  years_experience: number;
-  verification_status: VerificationStatus;
-  verified_at: string | null;
-  rejection_reason: string | null;
-  employment_status: 'active' | 'retired' | 'independent' | null;
-  is_emeritus: boolean;
-  verification_doc_url: string | null;
-  payout_upi_id: string | null;
-};
+  id: string
+  user_id: string
+  institution_name: string
+  department: string
+  designation: string | null
+  subject_expertise: string[]
+  years_experience: number
+  verification_status: VerificationStatus
+  verified_at: string | null
+  rejection_reason: string | null
+  employment_status: 'active' | 'retired' | 'independent' | null
+  is_emeritus: boolean
+  verification_doc_url: string | null
+  payout_upi_id: string | null
+}
 
 type BoardQuestion = {
-  id: string;
-  vertical_id: string;
-  body: string;
-  ai_answer: string | null;
-  faculty_verified: boolean;
-  created_at: string;
-  is_anonymous: boolean;
-};
+  id: string
+  vertical_id: string
+  body: string
+  ai_answer: string | null
+  faculty_verified: boolean
+  created_at: string
+  is_anonymous: boolean
+}
 
 type MyAnswer = {
-  id: string;
-  body: string;
-  created_at: string;
-  faculty_verified: boolean;
-  question_id: string;
-  question_body?: string;
-};
+  id: string
+  body: string
+  created_at: string
+  faculty_verified: boolean
+  question_id: string
+  question_body?: string
+}
 
-type FacultyTab = 'questions' | 'my_answers';
-type QuestionFilter = 'unanswered' | 'all' | 'my_answers_tab';
+type FacultyTab = 'questions' | 'my_answers'
+type QuestionFilter = 'unanswered' | 'all' | 'my_answers_tab'
 
 // ── Verification badge ────────────────────────────────────────────────────────
 
 function VerificationBadge({ status }: { status: VerificationStatus }) {
   if (status === 'verified') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full"
-        style={{ background: 'rgba(34,197,94,0.15)', border: '0.5px solid rgba(34,197,94,0.4)', color: '#4ADE80' }}>
+      <span
+        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold"
+        style={{
+          background: 'rgba(34,197,94,0.15)',
+          border: '0.5px solid rgba(34,197,94,0.4)',
+          color: '#4ADE80',
+        }}
+      >
         ✓ Faculty Verified
       </span>
-    );
+    )
   }
   if (status === 'rejected') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full"
-        style={{ background: 'rgba(239,68,68,0.15)', border: '0.5px solid rgba(239,68,68,0.4)', color: '#F87171' }}>
+      <span
+        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold"
+        style={{
+          background: 'rgba(239,68,68,0.15)',
+          border: '0.5px solid rgba(239,68,68,0.4)',
+          color: '#F87171',
+        }}
+      >
         ✕ Please resubmit
       </span>
-    );
+    )
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full"
-      style={{ background: 'rgba(234,179,8,0.15)', border: '0.5px solid rgba(234,179,8,0.4)', color: '#FACC15' }}>
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold"
+      style={{
+        background: 'rgba(234,179,8,0.15)',
+        border: '0.5px solid rgba(234,179,8,0.4)',
+        color: '#FACC15',
+      }}
+    >
       ⏳ Verification pending
     </span>
-  );
+  )
 }
 
 // ── Skill chip ────────────────────────────────────────────────────────────────
 
 function SubjectTag({ label }: { label: string }) {
   return (
-    <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-      style={{ background: 'rgba(201,153,58,0.12)', border: '0.5px solid rgba(201,153,58,0.3)', color: '#E5B86A' }}>
+    <span
+      className="rounded-full px-2.5 py-1 text-xs font-medium"
+      style={{
+        background: 'rgba(201,153,58,0.12)',
+        border: '0.5px solid rgba(201,153,58,0.3)',
+        color: '#E5B86A',
+      }}
+    >
       {label}
     </span>
-  );
+  )
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function FacultyPage() {
-  const router = useRouter();
-  const { profile } = useAuthStore();
+  const router = useRouter()
+  const { profile } = useAuthStore()
 
-  const [faculty, setFaculty] = useState<FacultyProfile | null>(null);
-  const [questions, setQuestions] = useState<BoardQuestion[]>([]);
-  const [myAnswers, setMyAnswers] = useState<MyAnswer[]>([]);
-  const [tab, setTab] = useState<FacultyTab>('questions');
-  const [qFilter, setQFilter] = useState<QuestionFilter>('unanswered');
-  const [loading, setLoading] = useState(true);
-  const [answerText, setAnswerText] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState<string | null>(null);
-  const [draftingAi, setDraftingAi] = useState<string | null>(null);
-  const [expandedAi, setExpandedAi] = useState<Set<string>>(new Set());
-  const [upiEdit, setUpiEdit] = useState<string | null>(null); // null = not editing
-  const [upiSaving, setUpiSaving] = useState(false);
-  const [upiToast, setUpiToast] = useState<string | null>(null);
+  const [faculty, setFaculty] = useState<FacultyProfile | null>(null)
+  const [questions, setQuestions] = useState<BoardQuestion[]>([])
+  const [myAnswers, setMyAnswers] = useState<MyAnswer[]>([])
+  const [tab, setTab] = useState<FacultyTab>('questions')
+  const [qFilter, setQFilter] = useState<QuestionFilter>('unanswered')
+  const [loading, setLoading] = useState(true)
+  const [answerText, setAnswerText] = useState<Record<string, string>>({})
+  const [submitting, setSubmitting] = useState<string | null>(null)
+  const [draftingAi, setDraftingAi] = useState<string | null>(null)
+  const [expandedAi, setExpandedAi] = useState<Set<string>>(new Set())
+  const [upiEdit, setUpiEdit] = useState<string | null>(null) // null = not editing
+  const [upiSaving, setUpiSaving] = useState(false)
+  const [upiToast, setUpiToast] = useState<string | null>(null)
 
   // Role guard — faculty only
   useEffect(() => {
     if (profile && profile.role !== 'faculty') {
-      router.replace('/chat');
+      router.replace('/chat')
     }
-  }, [profile, router]);
+  }, [profile, router])
 
   // Load faculty profile
   useEffect(() => {
-    if (!profile) return;
-    const supabase = createClient();
+    if (!profile) return
+    const supabase = createClient()
 
     async function load() {
-      setLoading(true);
+      setLoading(true)
       const { data } = await supabase
         .from('faculty_profiles')
         .select('*')
         .eq('user_id', profile!.id)
-        .maybeSingle();
-      setFaculty(data as FacultyProfile | null);
-      setLoading(false);
+        .maybeSingle()
+      setFaculty(data as FacultyProfile | null)
+      setLoading(false)
     }
 
-    load();
-  }, [profile]);
+    load()
+  }, [profile])
 
   // Load questions for faculty's subject area
   useEffect(() => {
-    if (!faculty) return;
-    const supabase = createClient();
+    if (!faculty) return
+    const supabase = createClient()
 
     async function loadQuestions() {
-      const saathi = SAATHIS.find((s) =>
-        faculty!.subject_expertise.some((e) =>
-          s.name.toLowerCase().includes(e.toLowerCase().split(' ')[0]) ||
-          e.toLowerCase().includes(s.name.toLowerCase().split(' ')[0])
-        )
-      ) ?? SAATHIS[0];
+      const saathi =
+        SAATHIS.find((s) =>
+          faculty!.subject_expertise.some(
+            (e) =>
+              s.name.toLowerCase().includes(e.toLowerCase().split(' ')[0]) ||
+              e.toLowerCase().includes(s.name.toLowerCase().split(' ')[0])
+          )
+        ) ?? SAATHIS[0]
 
       let q = supabase
         .from('board_questions')
@@ -158,21 +184,21 @@ export default function FacultyPage() {
         .eq('vertical_id', saathi.id)
         .eq('status', 'open')
         .order('created_at', { ascending: false })
-        .limit(30);
+        .limit(30)
 
-      if (qFilter === 'unanswered') q = q.is('ai_answer', null);
+      if (qFilter === 'unanswered') q = q.is('ai_answer', null)
 
-      const { data } = await q;
-      setQuestions((data ?? []) as BoardQuestion[]);
+      const { data } = await q
+      setQuestions((data ?? []) as BoardQuestion[])
     }
 
-    loadQuestions();
-  }, [faculty, qFilter]);
+    loadQuestions()
+  }, [faculty, qFilter])
 
   // Load my answers
   useEffect(() => {
-    if (!profile || tab !== 'my_answers') return;
-    const supabase = createClient();
+    if (!profile || tab !== 'my_answers') return
+    const supabase = createClient()
 
     async function loadMyAnswers() {
       const { data } = await supabase
@@ -181,34 +207,34 @@ export default function FacultyPage() {
         .eq('user_id', profile!.id)
         .eq('is_faculty_answer', true)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(50)
 
-      setMyAnswers((data ?? []) as MyAnswer[]);
+      setMyAnswers((data ?? []) as MyAnswer[])
     }
 
-    loadMyAnswers();
-  }, [profile, tab]);
+    loadMyAnswers()
+  }, [profile, tab])
 
   async function saveUpi() {
-    if (!profile || upiEdit === null) return;
-    setUpiSaving(true);
-    const supabase = createClient();
-    const value = upiEdit.trim() || null;
+    if (!profile || upiEdit === null) return
+    setUpiSaving(true)
+    const supabase = createClient()
+    const value = upiEdit.trim() || null
     await supabase
       .from('faculty_profiles')
       .update({ payout_upi_id: value })
-      .eq('user_id', profile.id);
-    setFaculty((prev) => prev ? { ...prev, payout_upi_id: value } : prev);
-    setUpiEdit(null);
-    setUpiSaving(false);
-    setUpiToast(value ? 'UPI ID saved!' : 'UPI ID removed');
-    setTimeout(() => setUpiToast(null), 3000);
+      .eq('user_id', profile.id)
+    setFaculty((prev) => (prev ? { ...prev, payout_upi_id: value } : prev))
+    setUpiEdit(null)
+    setUpiSaving(false)
+    setUpiToast(value ? 'UPI ID saved!' : 'UPI ID removed')
+    setTimeout(() => setUpiToast(null), 3000)
   }
 
   async function submitAnswer(questionId: string) {
-    if (!profile || !answerText[questionId]?.trim()) return;
-    setSubmitting(questionId);
-    const supabase = createClient();
+    if (!profile || !answerText[questionId]?.trim()) return
+    setSubmitting(questionId)
+    const supabase = createClient()
 
     await supabase.from('board_answers').insert({
       question_id: questionId,
@@ -216,18 +242,20 @@ export default function FacultyPage() {
       body: answerText[questionId].trim(),
       is_faculty_answer: true,
       faculty_verified: faculty?.verification_status === 'verified',
-    });
+    })
 
-    setAnswerText((prev) => ({ ...prev, [questionId]: '' }));
-    setSubmitting(null);
+    setAnswerText((prev) => ({ ...prev, [questionId]: '' }))
+    setSubmitting(null)
     // Remove answered question from list
-    setQuestions((prev) => prev.filter((q) => q.id !== questionId));
+    setQuestions((prev) => prev.filter((q) => q.id !== questionId))
   }
 
   async function fetchAiDraft(questionId: string, questionText: string) {
-    setDraftingAi(questionId);
-    const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    setDraftingAi(questionId)
+    const supabase = createClient()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/board-draft`,
@@ -238,61 +266,90 @@ export default function FacultyPage() {
             Authorization: `Bearer ${session?.access_token}`,
             apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
           },
-          body: JSON.stringify({ questionText, saathiSlug: toSlug(profile?.primary_saathi_id) ?? '' }),
-        },
-      );
-      const data = await res.json();
+          body: JSON.stringify({
+            questionText,
+            saathiSlug: toSlug(profile?.primary_saathi_id) ?? '',
+          }),
+        }
+      )
+      const data = await res.json()
       if (data.draft) {
-        setAnswerText((prev) => ({ ...prev, [questionId]: data.draft }));
+        setAnswerText((prev) => ({ ...prev, [questionId]: data.draft }))
       }
     } catch {
       // silent fail — faculty can still type manually
     }
-    setDraftingAi(null);
+    setDraftingAi(null)
   }
 
   function toggleAi(id: string) {
     setExpandedAi((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: '#060F1D' }}>
-        <div className="w-10 h-10 rounded-full border-2 border-white/10 animate-spin" style={{ borderTopColor: '#C9993A' }} />
+      <main
+        className="flex min-h-screen items-center justify-center"
+        style={{ background: '#060F1D' }}
+      >
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
+          style={{ borderTopColor: '#C9993A' }}
+        />
       </main>
-    );
+    )
   }
 
-  const displayName = profile?.full_name ?? 'Faculty';
-  const designation = faculty?.designation ?? 'Faculty';
+  const displayName = profile?.full_name ?? 'Faculty'
+  const designation = faculty?.designation ?? 'Faculty'
 
   return (
-    <main className="min-h-screen" style={{ background: 'linear-gradient(180deg, #060F1D 0%, #0B1F3A 60%, #060F1D 100%)' }}>
+    <main
+      className="min-h-screen"
+      style={{
+        background:
+          'linear-gradient(180deg, #060F1D 0%, #0B1F3A 60%, #060F1D 100%)',
+      }}
+    >
       {/* Top nav */}
-      <nav className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <span className="font-playfair text-xl font-bold" style={{ color: '#C9993A' }}>EdUsaathiAI</span>
+      <nav
+        className="flex items-center justify-between border-b px-6 py-4"
+        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+      >
+        <span
+          className="font-playfair text-xl font-bold"
+          style={{ color: '#C9993A' }}
+        >
+          EdUsaathiAI
+        </span>
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.push('/chat')}
             className="text-sm transition-colors"
             style={{ color: 'rgba(255,255,255,0.4)' }}
             onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')
+            }
           >
             Open Saathi →
           </button>
           <button
             onClick={async () => {
-              const supabase = createClient();
-              await supabase.auth.signOut();
-              router.push('/login');
+              const supabase = createClient()
+              await supabase.auth.signOut()
+              router.push('/login')
             }}
-            className="text-xs px-3 py-1.5 rounded-lg transition-colors"
-            style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}
+            className="rounded-lg px-3 py-1.5 text-xs transition-colors"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              color: 'rgba(255,255,255,0.4)',
+            }}
           >
             Sign out
           </button>
@@ -300,22 +357,38 @@ export default function FacultyPage() {
       </nav>
 
       {/* Faculty tools nav */}
-      <div className="max-w-4xl mx-auto px-6 pt-4">
+      <div className="mx-auto max-w-4xl px-6 pt-4">
         <div className="flex flex-wrap gap-2">
           {[
             { href: '/chat', icon: '\u{1F4AC}', label: 'My Saathi' },
             { href: '/faculty', icon: '\u{1F4CB}', label: 'Board' },
             { href: '/faculty/demand', icon: '🔥', label: 'Student Demand' },
-            { href: '/faculty/analytics', icon: '\u{1F4CA}', label: 'Analytics' },
-            { href: '/faculty/question-paper', icon: '\u{1F4DD}', label: 'Question Paper' },
-            { href: '/faculty/create-material', icon: '\u{1F4DA}', label: 'Study Material' },
-            { href: '/faculty/research', icon: '🔬', label: 'Research Interns' },
+            {
+              href: '/faculty/analytics',
+              icon: '\u{1F4CA}',
+              label: 'Analytics',
+            },
+            {
+              href: '/faculty/question-paper',
+              icon: '\u{1F4DD}',
+              label: 'Question Paper',
+            },
+            {
+              href: '/faculty/create-material',
+              icon: '\u{1F4DA}',
+              label: 'Study Material',
+            },
+            {
+              href: '/faculty/research',
+              icon: '🔬',
+              label: 'Research Interns',
+            },
             { href: '/profile', icon: '\u{1F464}', label: 'Profile' },
           ].map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all"
               style={{
                 background: 'rgba(255,255,255,0.04)',
                 border: '0.5px solid rgba(255,255,255,0.08)',
@@ -330,7 +403,7 @@ export default function FacultyPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="mx-auto max-w-4xl px-6 py-8">
         {/* Verification banner for retired faculty who haven't uploaded a doc */}
         {faculty && profile && (
           <VerificationBanner
@@ -345,25 +418,49 @@ export default function FacultyPage() {
         <motion.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl p-6 mb-6"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)' }}
+          className="mb-6 rounded-2xl p-6"
+          style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '0.5px solid rgba(255,255,255,0.08)',
+          }}
         >
-          <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <p
+                className="mb-1 text-xs font-semibold"
+                style={{ color: 'rgba(255,255,255,0.35)' }}
+              >
                 {designation} · {faculty?.institution_name ?? 'Institution'}
               </p>
-              <h1 className="font-playfair text-3xl font-bold text-white mb-2">
+              <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
                 Welcome, {displayName.split(' ')[0]}
               </h1>
               <div className="flex flex-wrap items-center gap-2">
-                {faculty && <FacultyBadge type={getFacultyBadgeType({ verification_status: faculty.verification_status, employment_status: faculty.employment_status ?? 'active', is_emeritus: faculty.is_emeritus })} size="md" />}
-                {faculty?.subject_expertise.map((s) => <SubjectTag key={s} label={s} />)}
+                {faculty && (
+                  <FacultyBadge
+                    type={getFacultyBadgeType({
+                      verification_status: faculty.verification_status,
+                      employment_status: faculty.employment_status ?? 'active',
+                      is_emeritus: faculty.is_emeritus,
+                    })}
+                    size="md"
+                  />
+                )}
+                {faculty?.subject_expertise.map((s) => (
+                  <SubjectTag key={s} label={s} />
+                ))}
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>{faculty?.years_experience ?? 0} yrs experience</p>
-              <p className="text-sm font-medium mt-1 text-white/60">{faculty?.department ?? 'Department'}</p>
+              <p
+                className="text-xs"
+                style={{ color: 'rgba(255,255,255,0.25)' }}
+              >
+                {faculty?.years_experience ?? 0} yrs experience
+              </p>
+              <p className="mt-1 text-sm font-medium text-white/60">
+                {faculty?.department ?? 'Department'}
+              </p>
             </div>
           </div>
 
@@ -373,36 +470,65 @@ export default function FacultyPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { delay: 0.2 } }}
               className="mt-4 rounded-xl p-4"
-              style={{ background: 'rgba(201,153,58,0.08)', border: '0.5px solid rgba(201,153,58,0.25)' }}
+              style={{
+                background: 'rgba(201,153,58,0.08)',
+                border: '0.5px solid rgba(201,153,58,0.25)',
+              }}
             >
               <p className="text-sm" style={{ color: '#E5B86A' }}>
-                📋 Your faculty application is under review. Our team verifies within 48 hours.
+                📋 Your faculty application is under review. Our team verifies
+                within 48 hours.
                 <br />
-                <span className="text-xs opacity-70 mt-1 block">You have full access while you wait. Answers will be marked as &ldquo;pending verification&rdquo;.</span>
+                <span className="mt-1 block text-xs opacity-70">
+                  You have full access while you wait. Answers will be marked as
+                  &ldquo;pending verification&rdquo;.
+                </span>
               </p>
             </motion.div>
           )}
-          {faculty?.verification_status === 'rejected' && faculty.rejection_reason && (
-            <div className="mt-4 rounded-xl p-4" style={{ background: 'rgba(239,68,68,0.08)', border: '0.5px solid rgba(239,68,68,0.25)' }}>
-              <p className="text-sm" style={{ color: '#F87171' }}>Reason: {faculty.rejection_reason}</p>
-            </div>
-          )}
+          {faculty?.verification_status === 'rejected' &&
+            faculty.rejection_reason && (
+              <div
+                className="mt-4 rounded-xl p-4"
+                style={{
+                  background: 'rgba(239,68,68,0.08)',
+                  border: '0.5px solid rgba(239,68,68,0.25)',
+                }}
+              >
+                <p className="text-sm" style={{ color: '#F87171' }}>
+                  Reason: {faculty.rejection_reason}
+                </p>
+              </div>
+            )}
         </motion.div>
 
         {/* Payout Settings card */}
-        <div className="rounded-2xl p-5 mb-6" style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)' }}>
-          <div className="flex items-center justify-between mb-3">
+        <div
+          className="mb-6 rounded-2xl p-5"
+          style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '0.5px solid rgba(255,255,255,0.08)',
+          }}
+        >
+          <div className="mb-3 flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-white">Payout UPI ID</p>
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <p
+                className="mt-0.5 text-xs"
+                style={{ color: 'rgba(255,255,255,0.35)' }}
+              >
                 Add this so we can transfer your session earnings directly
               </p>
             </div>
             {upiEdit === null && (
               <button
                 onClick={() => setUpiEdit(faculty?.payout_upi_id ?? '')}
-                className="text-xs px-3 py-1.5 rounded-lg transition-all"
-                style={{ background: 'rgba(201,153,58,0.12)', border: '0.5px solid rgba(201,153,58,0.3)', color: '#C9993A' }}
+                className="rounded-lg px-3 py-1.5 text-xs transition-all"
+                style={{
+                  background: 'rgba(201,153,58,0.12)',
+                  border: '0.5px solid rgba(201,153,58,0.3)',
+                  color: '#C9993A',
+                }}
               >
                 {faculty?.payout_upi_id ? '✏️ Edit' : '+ Add'}
               </button>
@@ -411,9 +537,16 @@ export default function FacultyPage() {
 
           {upiEdit === null ? (
             faculty?.payout_upi_id ? (
-              <p className="text-sm font-mono" style={{ color: '#E5B86A' }}>{faculty.payout_upi_id}</p>
+              <p className="font-mono text-sm" style={{ color: '#E5B86A' }}>
+                {faculty.payout_upi_id}
+              </p>
             ) : (
-              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.25)' }}>Not set — optional, but required before we can pay you</p>
+              <p
+                className="text-sm"
+                style={{ color: 'rgba(255,255,255,0.25)' }}
+              >
+                Not set — optional, but required before we can pay you
+              </p>
             )
           ) : (
             <div className="flex gap-2">
@@ -424,21 +557,30 @@ export default function FacultyPage() {
                 placeholder="e.g. yourname@upi"
                 autoFocus
                 className="flex-1 rounded-xl px-4 py-2.5 text-sm text-white outline-none"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(201,153,58,0.4)' }}
-                onKeyDown={(e) => { if (e.key === 'Enter') saveUpi(); if (e.key === 'Escape') setUpiEdit(null); }}
+                style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '0.5px solid rgba(201,153,58,0.4)',
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') saveUpi()
+                  if (e.key === 'Escape') setUpiEdit(null)
+                }}
               />
               <button
                 onClick={saveUpi}
                 disabled={upiSaving}
-                className="px-4 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all"
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50"
                 style={{ background: '#C9993A', color: '#060F1D' }}
               >
                 {upiSaving ? 'Saving…' : 'Save'}
               </button>
               <button
                 onClick={() => setUpiEdit(null)}
-                className="px-3 py-2.5 rounded-xl text-sm transition-all"
-                style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}
+                className="rounded-xl px-3 py-2.5 text-sm transition-all"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  color: 'rgba(255,255,255,0.4)',
+                }}
               >
                 Cancel
               </button>
@@ -462,12 +604,19 @@ export default function FacultyPage() {
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 mb-6 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.06)', width: 'fit-content' }}>
+        <div
+          className="mb-6 flex gap-1 rounded-xl p-1"
+          style={{
+            background: 'rgba(255,255,255,0.04)',
+            border: '0.5px solid rgba(255,255,255,0.06)',
+            width: 'fit-content',
+          }}
+        >
           {(['questions', 'my_answers'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+              className="rounded-lg px-5 py-2 text-sm font-medium transition-all duration-200"
               style={{
                 background: tab === t ? '#C9993A' : 'transparent',
                 color: tab === t ? '#060F1D' : 'rgba(255,255,255,0.45)',
@@ -482,14 +631,17 @@ export default function FacultyPage() {
         {tab === 'questions' && (
           <div>
             {/* Filter bar */}
-            <div className="flex gap-2 mb-5">
+            <div className="mb-5 flex gap-2">
               {(['unanswered', 'all'] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => setQFilter(f)}
-                  className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                  className="rounded-full px-4 py-2 text-sm font-medium transition-all"
                   style={{
-                    background: qFilter === f ? 'rgba(201,153,58,0.2)' : 'rgba(255,255,255,0.04)',
+                    background:
+                      qFilter === f
+                        ? 'rgba(201,153,58,0.2)'
+                        : 'rgba(255,255,255,0.04)',
                     border: `0.5px solid ${qFilter === f ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
                     color: qFilter === f ? '#E5B86A' : 'rgba(255,255,255,0.45)',
                   }}
@@ -500,9 +652,13 @@ export default function FacultyPage() {
             </div>
 
             {questions.length === 0 ? (
-              <div className="text-center py-20">
-                <p className="font-playfair text-xl text-white/30 mb-2">No questions right now</p>
-                <p className="text-sm text-white/20">Check back soon — students ask every day.</p>
+              <div className="py-20 text-center">
+                <p className="font-playfair mb-2 text-xl text-white/30">
+                  No questions right now
+                </p>
+                <p className="text-sm text-white/20">
+                  Check back soon — students ask every day.
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -512,22 +668,37 @@ export default function FacultyPage() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="rounded-2xl p-5"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)' }}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '0.5px solid rgba(255,255,255,0.08)',
+                    }}
                   >
                     {/* Question */}
-                    <p className="text-white text-sm leading-relaxed mb-3">{q.body}</p>
-                    <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                      {new Date(q.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    <p className="mb-3 text-sm leading-relaxed text-white">
+                      {q.body}
+                    </p>
+                    <p
+                      className="mb-3 text-xs"
+                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                    >
+                      {new Date(q.created_at).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </p>
 
                     {/* AI answer toggle */}
                     {q.ai_answer && (
                       <button
                         onClick={() => toggleAi(q.id)}
-                        className="text-xs mb-3 underline underline-offset-2"
+                        className="mb-3 text-xs underline underline-offset-2"
                         style={{ color: 'rgba(255,255,255,0.35)' }}
                       >
-                        {expandedAi.has(q.id) ? '▲ Hide AI answer' : '▼ See AI answer first'}
+                        {expandedAi.has(q.id)
+                          ? '▲ Hide AI answer'
+                          : '▼ See AI answer first'}
                       </button>
                     )}
                     <AnimatePresence>
@@ -536,8 +707,11 @@ export default function FacultyPage() {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="mb-3 p-3 rounded-xl text-xs leading-relaxed"
-                          style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.55)' }}
+                          className="mb-3 rounded-xl p-3 text-xs leading-relaxed"
+                          style={{
+                            background: 'rgba(255,255,255,0.04)',
+                            color: 'rgba(255,255,255,0.55)',
+                          }}
                         >
                           {q.ai_answer}
                         </motion.div>
@@ -548,8 +722,14 @@ export default function FacultyPage() {
                     <div className="mt-1">
                       {/* AI draft banner */}
                       {answerText[q.id] && draftingAi !== q.id && (
-                        <div className="mb-2 px-3 py-2 rounded-lg text-[10px] font-semibold"
-                          style={{ background: 'rgba(201,153,58,0.08)', border: '0.5px solid rgba(201,153,58,0.2)', color: '#E5B86A' }}>
+                        <div
+                          className="mb-2 rounded-lg px-3 py-2 text-[10px] font-semibold"
+                          style={{
+                            background: 'rgba(201,153,58,0.08)',
+                            border: '0.5px solid rgba(201,153,58,0.2)',
+                            color: '#E5B86A',
+                          }}
+                        >
                           {'\u2726'} AI draft — review and edit before posting
                         </div>
                       )}
@@ -558,30 +738,49 @@ export default function FacultyPage() {
                         <button
                           onClick={() => fetchAiDraft(q.id, q.body)}
                           disabled={draftingAi === q.id}
-                          className="mb-2 text-xs px-3 py-2 rounded-lg font-semibold transition-all disabled:opacity-50"
-                          style={{ background: 'rgba(201,153,58,0.12)', border: '0.5px solid rgba(201,153,58,0.3)', color: '#C9993A' }}
+                          className="mb-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all disabled:opacity-50"
+                          style={{
+                            background: 'rgba(201,153,58,0.12)',
+                            border: '0.5px solid rgba(201,153,58,0.3)',
+                            color: '#C9993A',
+                          }}
                         >
-                          {draftingAi === q.id ? 'Preparing AI draft...' : '{\u2726} Get AI Draft'}
+                          {draftingAi === q.id
+                            ? 'Preparing AI draft...'
+                            : '{\u2726} Get AI Draft'}
                         </button>
                       )}
                       <textarea
                         value={answerText[q.id] ?? ''}
-                        onChange={(e) => setAnswerText((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                        onChange={(e) =>
+                          setAnswerText((prev) => ({
+                            ...prev,
+                            [q.id]: e.target.value,
+                          }))
+                        }
                         placeholder="Add your expert answer…"
                         rows={3}
-                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none resize-none transition-all"
+                        className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
                         style={{
                           background: 'rgba(255,255,255,0.05)',
                           border: '0.5px solid rgba(255,255,255,0.1)',
                         }}
-                        onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.5)')}
-                        onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                        onFocus={(e) =>
+                          (e.currentTarget.style.borderColor =
+                            'rgba(201,153,58,0.5)')
+                        }
+                        onBlur={(e) =>
+                          (e.currentTarget.style.borderColor =
+                            'rgba(255,255,255,0.1)')
+                        }
                       />
-                      <div className="flex justify-end mt-2">
+                      <div className="mt-2 flex justify-end">
                         <button
                           onClick={() => submitAnswer(q.id)}
-                          disabled={!answerText[q.id]?.trim() || submitting === q.id}
-                          className="px-5 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                          disabled={
+                            !answerText[q.id]?.trim() || submitting === q.id
+                          }
+                          className="rounded-xl px-5 py-2 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
                           style={{ background: '#C9993A', color: '#060F1D' }}
                         >
                           {submitting === q.id ? 'Posting…' : 'Post Answer →'}
@@ -599,28 +798,54 @@ export default function FacultyPage() {
         {tab === 'my_answers' && (
           <div className="space-y-4">
             {myAnswers.length === 0 ? (
-              <div className="text-center py-20">
-                <p className="font-playfair text-xl text-white/30 mb-2">No answers yet</p>
-                <p className="text-sm text-white/20">Answer student questions in the Questions tab.</p>
+              <div className="py-20 text-center">
+                <p className="font-playfair mb-2 text-xl text-white/30">
+                  No answers yet
+                </p>
+                <p className="text-sm text-white/20">
+                  Answer student questions in the Questions tab.
+                </p>
               </div>
             ) : (
               myAnswers.map((a) => (
                 <div
                   key={a.id}
                   className="rounded-2xl p-5"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)' }}
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '0.5px solid rgba(255,255,255,0.08)',
+                  }}
                 >
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="mb-3 flex items-center gap-2">
                     {a.faculty_verified ? (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(34,197,94,0.15)', color: '#4ADE80' }}>✓ Verified</span>
+                      <span
+                        className="rounded-full px-2 py-0.5 text-xs font-bold"
+                        style={{
+                          background: 'rgba(34,197,94,0.15)',
+                          color: '#4ADE80',
+                        }}
+                      >
+                        ✓ Verified
+                      </span>
                     ) : (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(234,179,8,0.12)', color: '#FACC15' }}>Pending</span>
+                      <span
+                        className="rounded-full px-2 py-0.5 text-xs font-bold"
+                        style={{
+                          background: 'rgba(234,179,8,0.12)',
+                          color: '#FACC15',
+                        }}
+                      >
+                        Pending
+                      </span>
                     )}
-                    <span className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                    <span
+                      className="text-xs"
+                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                    >
                       {new Date(a.created_at).toLocaleDateString('en-IN')}
                     </span>
                   </div>
-                  <p className="text-sm text-white leading-relaxed">{a.body}</p>
+                  <p className="text-sm leading-relaxed text-white">{a.body}</p>
                 </div>
               ))
             )}
@@ -628,5 +853,5 @@ export default function FacultyPage() {
         )}
       </div>
     </main>
-  );
+  )
 }

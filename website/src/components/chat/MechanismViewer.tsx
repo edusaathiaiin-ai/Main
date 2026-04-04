@@ -12,12 +12,12 @@ export type MechanismType =
   | 'rack-pinion'
 
 const MECHANISM_LABELS: Record<MechanismType, string> = {
-  'gear-pair':    '⚙️ Gear Pair — Gear Ratio Visualised',
-  'piston':       '🔧 Crank-Piston Mechanism',
-  'flywheel':     '🔄 Flywheel — Rotational Inertia',
+  'gear-pair': '⚙️ Gear Pair — Gear Ratio Visualised',
+  piston: '🔧 Crank-Piston Mechanism',
+  flywheel: '🔄 Flywheel — Rotational Inertia',
   'cam-follower': '📐 Cam-Follower Motion',
-  'belt-pulley':  '⭕ Belt & Pulley System',
-  'rack-pinion':  '↔️ Rack & Pinion Drive',
+  'belt-pulley': '⭕ Belt & Pulley System',
+  'rack-pinion': '↔️ Rack & Pinion Drive',
 }
 
 export function MechanismViewer({
@@ -37,9 +37,8 @@ export function MechanismViewer({
 
     async function init() {
       const THREE = await import('three')
-      const { OrbitControls } = await import(
-        'three/examples/jsm/controls/OrbitControls.js'
-      )
+      const { OrbitControls } =
+        await import('three/examples/jsm/controls/OrbitControls.js')
 
       if (cancelled) return
 
@@ -47,8 +46,8 @@ export function MechanismViewer({
       const h = 320
 
       const scene = new THREE.Scene()
-      scene.background = new THREE.Color(0x060F1D)
-      scene.fog = new THREE.FogExp2(0x060F1D, 0.04)
+      scene.background = new THREE.Color(0x060f1d)
+      scene.fog = new THREE.FogExp2(0x060f1d, 0.04)
 
       const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100)
       camera.position.set(0, 4, 10)
@@ -88,11 +87,22 @@ export function MechanismViewer({
 
       // Shared materials
       const accentMat = new THREE.MeshPhongMaterial({
-        color: new THREE.Color(saathiColor), shininess: 90, specular: new THREE.Color(0xffffff),
+        color: new THREE.Color(saathiColor),
+        shininess: 90,
+        specular: new THREE.Color(0xffffff),
       })
-      const greyMat = new THREE.MeshPhongMaterial({ color: 0x556677, shininess: 60 })
-      const darkMat = new THREE.MeshPhongMaterial({ color: 0x2a3a4a, shininess: 30 })
-      const greenMat = new THREE.MeshPhongMaterial({ color: 0x4ADE80, shininess: 80 })
+      const greyMat = new THREE.MeshPhongMaterial({
+        color: 0x556677,
+        shininess: 60,
+      })
+      const darkMat = new THREE.MeshPhongMaterial({
+        color: 0x2a3a4a,
+        shininess: 30,
+      })
+      const greenMat = new THREE.MeshPhongMaterial({
+        color: 0x4ade80,
+        shininess: 80,
+      })
 
       type UpdateFn = (t: number) => void
       const updates: UpdateFn[] = []
@@ -159,19 +169,21 @@ export function MechanismViewer({
 
         updates.push((t) => {
           g1.rotation.z = t * 0.6
-          g2.rotation.z = -t * 0.6 * 2  // gear ratio 2:1
+          g2.rotation.z = -t * 0.6 * 2 // gear ratio 2:1
         })
 
         camera.position.set(0, 5, 13)
 
-      // ── PISTON ─────────────────────────────────────────────────────────────
+        // ── PISTON ─────────────────────────────────────────────────────────────
       } else if (mechanism === 'piston') {
         // Cylinder body (transparent)
         const cylBody = new THREE.Mesh(
           new THREE.CylinderGeometry(0.7, 0.7, 5, 32, 1, true),
           new THREE.MeshPhongMaterial({
-            color: 0x334455, side: THREE.BackSide,
-            transparent: true, opacity: 0.25,
+            color: 0x334455,
+            side: THREE.BackSide,
+            transparent: true,
+            opacity: 0.25,
           })
         )
         cylBody.position.y = 2.5
@@ -213,7 +225,7 @@ export function MechanismViewer({
         // Piston crown
         const piston = new THREE.Mesh(
           new THREE.CylinderGeometry(0.62, 0.62, 0.9, 32),
-          new THREE.MeshPhongMaterial({ color: 0xCCCCDD, shininess: 120 })
+          new THREE.MeshPhongMaterial({ color: 0xccccdd, shininess: 120 })
         )
         scene.add(piston)
 
@@ -234,7 +246,7 @@ export function MechanismViewer({
 
         camera.position.set(6, 2, 10)
 
-      // ── FLYWHEEL ───────────────────────────────────────────────────────────
+        // ── FLYWHEEL ───────────────────────────────────────────────────────────
       } else if (mechanism === 'flywheel') {
         // Shaft
         const shaft = new THREE.Mesh(
@@ -293,7 +305,7 @@ export function MechanismViewer({
 
         camera.position.set(0, 2, 9)
 
-      // ── CAM-FOLLOWER ───────────────────────────────────────────────────────
+        // ── CAM-FOLLOWER ───────────────────────────────────────────────────────
       } else if (mechanism === 'cam-follower') {
         // Cam (elliptical profile)
         const camGroup = new THREE.Group()
@@ -301,7 +313,7 @@ export function MechanismViewer({
           new THREE.CylinderGeometry(1.0, 1.0, 0.4, 48),
           accentMat
         )
-        camBody.scale.x = 1.7  // eccentric ellipse
+        camBody.scale.x = 1.7 // eccentric ellipse
         camBody.rotation.x = Math.PI / 2
         camGroup.add(camBody)
 
@@ -334,7 +346,10 @@ export function MechanismViewer({
         const guide = new THREE.Mesh(
           new THREE.CylinderGeometry(0.18, 0.18, 3.8, 16, 1, true),
           new THREE.MeshPhongMaterial({
-            color: 0x223344, transparent: true, opacity: 0.3, side: THREE.BackSide,
+            color: 0x223344,
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.BackSide,
           })
         )
         guide.position.x = 0
@@ -343,7 +358,8 @@ export function MechanismViewer({
         updates.push((t) => {
           camGroup.rotation.z = t
           // Follower height: cam ellipse projects onto y-axis
-          const followerY = Math.abs(Math.sin(t)) * 1.4 + Math.cos(t * 2) * 0.3 + 1.5
+          const followerY =
+            Math.abs(Math.sin(t)) * 1.4 + Math.cos(t * 2) * 0.3 + 1.5
           followerRod.position.y = followerY + 1.6
           tip.position.y = followerY
           guide.position.y = followerY + 1.6
@@ -351,12 +367,19 @@ export function MechanismViewer({
 
         camera.position.set(5, 2, 10)
 
-      // ── BELT-PULLEY ────────────────────────────────────────────────────────
+        // ── BELT-PULLEY ────────────────────────────────────────────────────────
       } else if (mechanism === 'belt-pulley') {
-        const makePulley = (r: number, x: number, mat: THREE_T.Material): THREE_T.Group => {
+        const makePulley = (
+          r: number,
+          x: number,
+          mat: THREE_T.Material
+        ): THREE_T.Group => {
           const g = new THREE.Group()
           // Rim
-          const rim2 = new THREE.Mesh(new THREE.TorusGeometry(r, 0.12, 12, 48), mat)
+          const rim2 = new THREE.Mesh(
+            new THREE.TorusGeometry(r, 0.12, 12, 48),
+            mat
+          )
           g.add(rim2)
           // Disc
           const disc2 = new THREE.Mesh(
@@ -383,26 +406,32 @@ export function MechanismViewer({
 
         // Belt (flat strip represented as thin tube + two caps)
         const beltGeom = new THREE.TubeGeometry(
-          new THREE.CatmullRomCurve3([
-            new THREE.Vector3(-3, 2, 0),
-            new THREE.Vector3(0, 2.15, 0),
-            new THREE.Vector3(3, 1.1, 0),
-            new THREE.Vector3(0, -0.9, 0),
-            new THREE.Vector3(-3, -2, 0),
-          ], true),
-          64, 0.06, 8, true
+          new THREE.CatmullRomCurve3(
+            [
+              new THREE.Vector3(-3, 2, 0),
+              new THREE.Vector3(0, 2.15, 0),
+              new THREE.Vector3(3, 1.1, 0),
+              new THREE.Vector3(0, -0.9, 0),
+              new THREE.Vector3(-3, -2, 0),
+            ],
+            true
+          ),
+          64,
+          0.06,
+          8,
+          true
         )
         const belt = new THREE.Mesh(beltGeom, darkMat)
         scene.add(belt)
 
         updates.push((t) => {
           p1.rotation.z = t * 0.5
-          p2.rotation.z = -t * 0.5 * (2.0 / 1.1)  // speed ratio
+          p2.rotation.z = -t * 0.5 * (2.0 / 1.1) // speed ratio
         })
 
         camera.position.set(0, 3, 12)
 
-      // ── RACK-PINION ────────────────────────────────────────────────────────
+        // ── RACK-PINION ────────────────────────────────────────────────────────
       } else if (mechanism === 'rack-pinion') {
         // Pinion gear
         const pinion = new THREE.Group()
@@ -416,7 +445,10 @@ export function MechanismViewer({
         pinion.add(pDisc)
         for (let i = 0; i < pTeeth; i++) {
           const a = (i / pTeeth) * Math.PI * 2
-          const t2 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.24, 0.3), accentMat)
+          const t2 = new THREE.Mesh(
+            new THREE.BoxGeometry(0.16, 0.24, 0.3),
+            accentMat
+          )
           t2.position.x = Math.cos(a) * (pR * 0.88 + 0.1)
           t2.position.y = Math.sin(a) * (pR * 0.88 + 0.1)
           t2.rotation.z = a
@@ -438,7 +470,7 @@ export function MechanismViewer({
             new THREE.BoxGeometry(0.16, 0.26, 0.35),
             greyMat
           )
-          tooth.position.x = i * 0.524  // pitch = 2πR / teeth
+          tooth.position.x = i * 0.524 // pitch = 2πR / teeth
           tooth.position.y = 0.35
           rack.add(tooth)
         }
@@ -456,7 +488,8 @@ export function MechanismViewer({
         updates.push((t) => {
           pinion.rotation.z = t
           // Linear travel = θ × R
-          rack.position.x = ((t % (Math.PI * 2)) / (Math.PI * 2)) * (0.524 * pTeeth) - 3
+          rack.position.x =
+            ((t % (Math.PI * 2)) / (Math.PI * 2)) * (0.524 * pTeeth) - 3
         })
 
         camera.position.set(2, 3, 11)
@@ -468,7 +501,7 @@ export function MechanismViewer({
         if (cancelled) return
         frameRef.current = requestAnimationFrame(animate)
         time += 0.018
-        updates.forEach(fn => fn(time))
+        updates.forEach((fn) => fn(time))
         controls.update()
         renderer.render(scene, camera)
       }
@@ -499,26 +532,32 @@ export function MechanismViewer({
     const cleanupPromise = init()
     return () => {
       cancelled = true
-      void cleanupPromise.then(fn => fn?.())
+      void cleanupPromise.then((fn) => fn?.())
     }
   }, [mechanism, saathiColor])
 
   return (
-    <div style={{
-      margin: '12px 0',
-      borderRadius: '14px',
-      overflow: 'hidden',
-      border: `0.5px solid ${saathiColor}30`,
-    }}>
-      <div style={{
-        padding: '8px 14px',
-        background: 'rgba(255,255,255,0.03)',
-        borderBottom: `0.5px solid ${saathiColor}20`,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <span style={{ fontSize: '11px', fontWeight: '600', color: saathiColor }}>
+    <div
+      style={{
+        margin: '12px 0',
+        borderRadius: '14px',
+        overflow: 'hidden',
+        border: `0.5px solid ${saathiColor}30`,
+      }}
+    >
+      <div
+        style={{
+          padding: '8px 14px',
+          background: 'rgba(255,255,255,0.03)',
+          borderBottom: `0.5px solid ${saathiColor}20`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <span
+          style={{ fontSize: '11px', fontWeight: '600', color: saathiColor }}
+        >
           {MECHANISM_LABELS[mechanism] ?? `⚙️ ${mechanism}`}
         </span>
         <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
@@ -526,12 +565,14 @@ export function MechanismViewer({
         </span>
       </div>
       <div ref={mountRef} style={{ width: '100%', height: '320px' }} />
-      <div style={{
-        padding: '5px 14px',
-        background: 'rgba(0,0,0,0.2)',
-        fontSize: '10px',
-        color: 'rgba(255,255,255,0.18)',
-      }}>
+      <div
+        style={{
+          padding: '5px 14px',
+          background: 'rgba(0,0,0,0.2)',
+          fontSize: '10px',
+          color: 'rgba(255,255,255,0.18)',
+        }}
+      >
         Powered by Three.js · Zero API cost
       </div>
     </div>

@@ -1,9 +1,9 @@
 export type BotDefinition = {
-  slot: 1 | 2 | 3 | 4 | 5;
-  name: string;
-  availableTo: Array<'student' | 'faculty' | 'public' | 'institution'>;
-  purpose: string;
-};
+  slot: 1 | 2 | 3 | 4 | 5
+  name: string
+  availableTo: Array<'student' | 'faculty' | 'public' | 'institution'>
+  purpose: string
+}
 
 export const BOTS: BotDefinition[] = [
   {
@@ -36,4 +36,4 @@ export const BOTS: BotDefinition[] = [
     availableTo: ['student', 'faculty', 'public', 'institution'],
     purpose: 'Plain-language explainer, jargon-free always',
   },
-];
+]

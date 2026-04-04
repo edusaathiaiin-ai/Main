@@ -1,59 +1,59 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { useAuthStore } from '@/stores/authStore';
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/stores/authStore'
 
 type Props = {
-  facultyId: string;
-  facultyName: string;
-  size?: 'sm' | 'md';
-};
+  facultyId: string
+  facultyName: string
+  size?: 'sm' | 'md'
+}
 
 export function BookmarkButton({ facultyId, facultyName, size = 'md' }: Props) {
-  const { profile } = useAuthStore();
-  const [bookmarked, setBookmarked] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const { profile } = useAuthStore()
+  const [bookmarked, setBookmarked] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!profile) return;
-    const supabase = createClient();
+    if (!profile) return
+    const supabase = createClient()
     supabase
       .from('faculty_bookmarks')
       .select('id')
       .eq('student_id', profile.id)
       .eq('faculty_id', facultyId)
       .maybeSingle()
-      .then(({ data }) => setBookmarked(!!data));
-  }, [profile, facultyId]);
+      .then(({ data }) => setBookmarked(!!data))
+  }, [profile, facultyId])
 
   async function toggle(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!profile || loading) return;
-    setLoading(true);
-    const supabase = createClient();
+    e.preventDefault()
+    e.stopPropagation()
+    if (!profile || loading) return
+    setLoading(true)
+    const supabase = createClient()
     if (bookmarked) {
       await supabase
         .from('faculty_bookmarks')
         .delete()
         .eq('student_id', profile.id)
-        .eq('faculty_id', facultyId);
-      setBookmarked(false);
-      setToast('Removed from saved');
+        .eq('faculty_id', facultyId)
+      setBookmarked(false)
+      setToast('Removed from saved')
     } else {
       await supabase
         .from('faculty_bookmarks')
-        .insert({ student_id: profile.id, faculty_id: facultyId });
-      setBookmarked(true);
-      setToast(`${facultyName.split(' ')[0]} saved!`);
+        .insert({ student_id: profile.id, faculty_id: facultyId })
+      setBookmarked(true)
+      setToast(`${facultyName.split(' ')[0]} saved!`)
     }
-    setLoading(false);
-    setTimeout(() => setToast(null), 2500);
+    setLoading(false)
+    setTimeout(() => setToast(null), 2500)
   }
 
-  const isSmall = size === 'sm';
+  const isSmall = size === 'sm'
 
   return (
     <div style={{ position: 'relative', display: 'inline-flex' }}>
@@ -68,7 +68,9 @@ export function BookmarkButton({ facultyId, facultyName, size = 'md' }: Props) {
           width: isSmall ? '32px' : '40px',
           height: isSmall ? '32px' : '40px',
           borderRadius: isSmall ? '8px' : '10px',
-          background: bookmarked ? 'rgba(201,153,58,0.15)' : 'rgba(255,255,255,0.06)',
+          background: bookmarked
+            ? 'rgba(201,153,58,0.15)'
+            : 'rgba(255,255,255,0.06)',
           border: bookmarked
             ? '0.5px solid rgba(201,153,58,0.5)'
             : '0.5px solid rgba(255,255,255,0.12)',
@@ -114,5 +116,5 @@ export function BookmarkButton({ facultyId, facultyName, size = 'md' }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

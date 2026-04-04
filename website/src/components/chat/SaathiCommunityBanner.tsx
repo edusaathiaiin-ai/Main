@@ -1,19 +1,23 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { createClient } from '@/lib/supabase/client';
+import { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { createClient } from '@/lib/supabase/client'
 
 type SaathiStats = {
-  total_students: number;
-  active_students: number;
-  community_label: string;
-  top_topics: string[];
-  avg_depth: number;
-  last_refreshed_at: string;
-};
+  total_students: number
+  active_students: number
+  community_label: string
+  top_topics: string[]
+  avg_depth: number
+  last_refreshed_at: string
+}
 
-type MessageFn = (stats: SaathiStats, saathiName: string, firstName: string) => string;
+type MessageFn = (
+  stats: SaathiStats,
+  saathiName: string,
+  firstName: string
+) => string
 
 const MESSAGES: MessageFn[] = [
   (stats, saathiName, firstName) =>
@@ -29,15 +33,15 @@ const MESSAGES: MessageFn[] = [
 
   (stats, saathiName, firstName) =>
     `Average learning depth in ${saathiName}: ${stats.avg_depth}/100. Keep going, ${firstName}.`,
-];
+]
 
 type Props = {
-  saathiId: string;
-  saathiName: string;
-  saathiColor: string;
-  saathiEmoji: string;
-  studentName: string;
-};
+  saathiId: string
+  saathiName: string
+  saathiColor: string
+  saathiEmoji: string
+  studentName: string
+}
 
 export function SaathiCommunityBanner({
   saathiId,
@@ -46,40 +50,42 @@ export function SaathiCommunityBanner({
   saathiEmoji,
   studentName,
 }: Props) {
-  const [stats, setStats] = useState<SaathiStats | null>(null);
-  const [msgIndex, setMsgIndex] = useState(0);
-  const [dismissed, setDismissed] = useState(false);
+  const [stats, setStats] = useState<SaathiStats | null>(null)
+  const [msgIndex, setMsgIndex] = useState(0)
+  const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
     function run() {
-      void fetchStats();
+      void fetchStats()
     }
-    run();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saathiId]);
+    run()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saathiId])
 
   useEffect(() => {
-    if (!stats) return;
+    if (!stats) return
     const id = setInterval(() => {
-      setMsgIndex((i) => (i + 1) % MESSAGES.length);
-    }, 5000);
-    return () => clearInterval(id);
-  }, [stats]);
+      setMsgIndex((i) => (i + 1) % MESSAGES.length)
+    }, 5000)
+    return () => clearInterval(id)
+  }, [stats])
 
   async function fetchStats() {
-    const supabase = createClient();
+    const supabase = createClient()
     const { data } = await supabase
       .from('saathi_stats_cache')
-      .select('total_students,active_students,community_label,top_topics,avg_depth,last_refreshed_at')
+      .select(
+        'total_students,active_students,community_label,top_topics,avg_depth,last_refreshed_at'
+      )
       .eq('vertical_id', saathiId)
-      .single();
-    if (data) setStats(data as SaathiStats);
+      .single()
+    if (data) setStats(data as SaathiStats)
   }
 
-  if (!stats || dismissed || stats.total_students === 0) return null;
+  if (!stats || dismissed || stats.total_students === 0) return null
 
-  const firstName = studentName.split(' ')[0] || studentName;
-  const message = MESSAGES[msgIndex](stats, saathiName, firstName);
+  const firstName = studentName.split(' ')[0] || studentName
+  const message = MESSAGES[msgIndex](stats, saathiName, firstName)
 
   return (
     <AnimatePresence>
@@ -134,7 +140,8 @@ export function SaathiCommunityBanner({
                 width: '4px',
                 height: '4px',
                 borderRadius: '50%',
-                background: i === msgIndex ? saathiColor : 'rgba(255,255,255,0.14)',
+                background:
+                  i === msgIndex ? saathiColor : 'rgba(255,255,255,0.14)',
                 transition: 'background 0.3s',
               }}
             />
@@ -174,5 +181,5 @@ export function SaathiCommunityBanner({
         </div>
       </motion.div>
     </AnimatePresence>
-  );
+  )
 }

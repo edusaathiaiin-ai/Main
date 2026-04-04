@@ -1,20 +1,20 @@
-'use client';
+'use client'
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react'
 
-let mermaidInitialized = false;
+let mermaidInitialized = false
 
 export function MermaidBlock({ chart }: { chart: string }) {
-  const [svg, setSvg] = useState<string>('');
-  const [error, setError] = useState<string>('');
-  const idRef = useRef(`mermaid-${Math.random().toString(36).slice(2)}`);
+  const [svg, setSvg] = useState<string>('')
+  const [error, setError] = useState<string>('')
+  const idRef = useRef(`mermaid-${Math.random().toString(36).slice(2)}`)
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
 
     async function render() {
       try {
-        const mermaid = (await import('mermaid')).default;
+        const mermaid = (await import('mermaid')).default
 
         if (!mermaidInitialized) {
           mermaid.initialize({
@@ -29,69 +29,85 @@ export function MermaidBlock({ chart }: { chart: string }) {
               tertiaryColor: '#060F1D',
               background: '#060F1D',
             },
-          });
-          mermaidInitialized = true;
+          })
+          mermaidInitialized = true
         }
 
-        const { svg: renderedSvg } = await mermaid.render(idRef.current, chart);
-        if (!cancelled) setSvg(renderedSvg);
+        const { svg: renderedSvg } = await mermaid.render(idRef.current, chart)
+        if (!cancelled) setSvg(renderedSvg)
       } catch (err) {
         if (!cancelled) {
-          setError('Could not render diagram');
-          console.error('[MermaidBlock] error:', err);
+          setError('Could not render diagram')
+          console.error('[MermaidBlock] error:', err)
         }
       }
     }
 
-    render();
-    return () => { cancelled = true; };
-  }, [chart]);
+    render()
+    return () => {
+      cancelled = true
+    }
+  }, [chart])
 
   if (error) {
     return (
-      <div style={{
-        padding: '12px',
-        background: 'rgba(239,68,68,0.1)',
-        borderRadius: '8px',
-        margin: '12px 0',
-      }}>
-        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+      <div
+        style={{
+          padding: '12px',
+          background: 'rgba(239,68,68,0.1)',
+          borderRadius: '8px',
+          margin: '12px 0',
+        }}
+      >
+        <p
+          style={{
+            fontSize: '12px',
+            color: 'rgba(255,255,255,0.5)',
+            margin: 0,
+          }}
+        >
           {error}
         </p>
-        <pre style={{
-          marginTop: '8px',
-          fontSize: '11px',
-          opacity: 0.4,
-          overflowX: 'auto',
-          color: 'rgba(255,255,255,0.6)',
-          whiteSpace: 'pre-wrap',
-        }}>
+        <pre
+          style={{
+            marginTop: '8px',
+            fontSize: '11px',
+            opacity: 0.4,
+            overflowX: 'auto',
+            color: 'rgba(255,255,255,0.6)',
+            whiteSpace: 'pre-wrap',
+          }}
+        >
           {chart}
         </pre>
       </div>
-    );
+    )
   }
 
   if (!svg) {
     return (
-      <div style={{
-        padding: '24px',
-        display: 'flex',
-        justifyContent: 'center',
-        background: 'rgba(255,255,255,0.03)',
-        borderRadius: '10px',
-        margin: '12px 0',
-      }}>
-        <div style={{
-          width: '20px',
-          height: '20px',
-          borderRadius: '50%',
-          border: '2px solid rgba(201,153,58,0.3)',
-          borderTopColor: '#C9993A',
-          animation: 'spin 1s linear infinite',
-        }} />
+      <div
+        style={{
+          padding: '24px',
+          display: 'flex',
+          justifyContent: 'center',
+          background: 'rgba(255,255,255,0.03)',
+          borderRadius: '10px',
+          margin: '12px 0',
+        }}
+      >
+        <div
+          style={{
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            border: '2px solid rgba(201,153,58,0.3)',
+            borderTopColor: '#C9993A',
+            animation: 'spin 1s linear infinite',
+          }}
+        />
       </div>
-    );
+    )
   }
 
   return (
@@ -106,5 +122,5 @@ export function MermaidBlock({ chart }: { chart: string }) {
       }}
       dangerouslySetInnerHTML={{ __html: svg }}
     />
-  );
+  )
 }

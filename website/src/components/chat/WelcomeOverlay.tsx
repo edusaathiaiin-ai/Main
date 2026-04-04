@@ -1,23 +1,28 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { createClient } from '@/lib/supabase/client';
-import { SAATHIS } from '@/constants/saathis';
-import type { SaathiWithDescription } from '@/constants/saathis';
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
+import { createClient } from '@/lib/supabase/client'
+import { SAATHIS } from '@/constants/saathis'
+import type { SaathiWithDescription } from '@/constants/saathis'
 
-const SPRING = { type: 'spring', stiffness: 280, damping: 24 } as const;
+const SPRING = { type: 'spring', stiffness: 280, damping: 24 } as const
 
 type WelcomeOverlayProps = {
-  saathi: SaathiWithDescription;
-  displayName: string;
-  academicLevel: string;
-  onBegin: () => void;
-};
+  saathi: SaathiWithDescription
+  displayName: string
+  academicLevel: string
+  onBegin: () => void
+}
 
-function WelcomeOverlay({ saathi, displayName, academicLevel, onBegin }: WelcomeOverlayProps) {
-  const firstName = displayName.split(' ')[0] ?? displayName;
+function WelcomeOverlay({
+  saathi,
+  displayName,
+  academicLevel,
+  onBegin,
+}: WelcomeOverlayProps) {
+  const firstName = displayName.split(' ')[0] ?? displayName
 
   const academicLabel: Record<string, string> = {
     bachelor: 'an undergraduate student',
@@ -29,7 +34,7 @@ function WelcomeOverlay({ saathi, displayName, academicLevel, onBegin }: Welcome
     postdoc: 'a postdoctoral researcher',
     professional_learner: 'a lifelong learner',
     exploring: 'exploring your path',
-  };
+  }
 
   return (
     <motion.div
@@ -42,7 +47,8 @@ function WelcomeOverlay({ saathi, displayName, academicLevel, onBegin }: Welcome
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: 'linear-gradient(180deg, #060F1D 0%, #0B1F3A 50%, #060F1D 100%)',
+        background:
+          'linear-gradient(180deg, #060F1D 0%, #0B1F3A 50%, #060F1D 100%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -52,12 +58,23 @@ function WelcomeOverlay({ saathi, displayName, academicLevel, onBegin }: Welcome
       }}
     >
       {/* Ambient glow */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: `radial-gradient(ellipse 60% 50% at 50% 30%, ${saathi.primary}20, transparent 70%)`,
-      }} />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          background: `radial-gradient(ellipse 60% 50% at 50% 30%, ${saathi.primary}20, transparent 70%)`,
+        }}
+      />
 
-      <div style={{ position: 'relative', zIndex: 10, maxWidth: '560px', width: '100%' }}>
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          maxWidth: '560px',
+          width: '100%',
+        }}
+      >
         {/* Emoji */}
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
@@ -100,35 +117,69 @@ function WelcomeOverlay({ saathi, displayName, academicLevel, onBegin }: Welcome
             textAlign: 'left',
           }}
         >
-          <p style={{
-            fontFamily: 'var(--font-playfair, "Playfair Display", serif)',
-            fontSize: '22px',
-            fontWeight: 700,
-            color: '#fff',
-            marginBottom: '20px',
-            lineHeight: 1.3,
-          }}>
+          <p
+            style={{
+              fontFamily: 'var(--font-playfair, "Playfair Display", serif)',
+              fontSize: '22px',
+              fontWeight: 700,
+              color: '#fff',
+              marginBottom: '20px',
+              lineHeight: 1.3,
+            }}
+          >
             Welcome, {firstName}. 🙏
           </p>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.75, marginBottom: '14px' }}>
+          <p
+            style={{
+              fontSize: '15px',
+              color: 'rgba(255,255,255,0.7)',
+              lineHeight: 1.75,
+              marginBottom: '14px',
+            }}
+          >
             I am <strong style={{ color: '#fff' }}>{saathi.name}</strong>, your{' '}
-            <strong style={{ color: saathi.accent }}>{saathi.tagline.toLowerCase()}</strong> companion.
+            <strong style={{ color: saathi.accent }}>
+              {saathi.tagline.toLowerCase()}
+            </strong>{' '}
+            companion.
           </p>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.75, marginBottom: '14px' }}>
-            I know you&apos;re {academicLabel[academicLevel] ?? 'on your learning journey'} — and I&apos;m here for exactly that path.
+          <p
+            style={{
+              fontSize: '15px',
+              color: 'rgba(255,255,255,0.7)',
+              lineHeight: 1.75,
+              marginBottom: '14px',
+            }}
+          >
+            I know you&apos;re{' '}
+            {academicLabel[academicLevel] ?? 'on your learning journey'} — and
+            I&apos;m here for exactly that path.
           </p>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.75, marginBottom: '14px' }}>
-            Every session we have together, I&apos;ll remember. Every concept we explore, every challenge you face, every question you ask — it all stays with me.
+          <p
+            style={{
+              fontSize: '15px',
+              color: 'rgba(255,255,255,0.7)',
+              lineHeight: 1.75,
+              marginBottom: '14px',
+            }}
+          >
+            Every session we have together, I&apos;ll remember. Every concept we
+            explore, every challenge you face, every question you ask — it all
+            stays with me.
           </p>
-          <p style={{
-            fontFamily: 'var(--font-playfair, "Playfair Display", serif)',
-            fontSize: '16px',
-            fontStyle: 'italic',
-            color: 'rgba(255,255,255,0.85)',
-            lineHeight: 1.6,
-          }}>
-            This isn&apos;t just a chat. This is the beginning of a Saathi relationship.
-            <br />Shall we begin?
+          <p
+            style={{
+              fontFamily: 'var(--font-playfair, "Playfair Display", serif)',
+              fontSize: '16px',
+              fontStyle: 'italic',
+              color: 'rgba(255,255,255,0.85)',
+              lineHeight: 1.6,
+            }}
+          >
+            This isn&apos;t just a chat. This is the beginning of a Saathi
+            relationship.
+            <br />
+            Shall we begin?
           </p>
         </motion.div>
 
@@ -137,7 +188,12 @@ function WelcomeOverlay({ saathi, displayName, academicLevel, onBegin }: Welcome
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.65, duration: 0.35 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            alignItems: 'center',
+          }}
         >
           <button
             onClick={onBegin}
@@ -154,8 +210,14 @@ function WelcomeOverlay({ saathi, displayName, academicLevel, onBegin }: Welcome
               cursor: 'pointer',
               transition: 'all 0.2s',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#E5B86A'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#C9993A'; }}
+            onMouseEnter={(e) => {
+              ;(e.currentTarget as HTMLButtonElement).style.background =
+                '#E5B86A'
+            }}
+            onMouseLeave={(e) => {
+              ;(e.currentTarget as HTMLButtonElement).style.background =
+                '#C9993A'
+            }}
           >
             Yes, let&apos;s begin →
           </button>
@@ -168,27 +230,33 @@ function WelcomeOverlay({ saathi, displayName, academicLevel, onBegin }: Welcome
               textDecoration: 'none',
               transition: 'color 0.2s',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.7)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.4)'; }}
+            onMouseEnter={(e) => {
+              ;(e.currentTarget as HTMLAnchorElement).style.color =
+                'rgba(255,255,255,0.7)'
+            }}
+            onMouseLeave={(e) => {
+              ;(e.currentTarget as HTMLAnchorElement).style.color =
+                'rgba(255,255,255,0.4)'
+            }}
           >
             Tell me more about you first
           </Link>
         </motion.div>
       </div>
     </motion.div>
-  );
+  )
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 type ChatWelcomeGateProps = {
-  userId: string;
-  profileName: string;
-  saathiId: string | null;
-  academicLevel: string;
-  sessionCount: number;
-  children: React.ReactNode;
-};
+  userId: string
+  profileName: string
+  saathiId: string | null
+  academicLevel: string
+  sessionCount: number
+  children: React.ReactNode
+}
 
 export function ChatWelcomeGate({
   userId,
@@ -198,47 +266,47 @@ export function ChatWelcomeGate({
   sessionCount,
   children,
 }: ChatWelcomeGateProps) {
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-  const [saathi, setSaathi] = useState<SaathiWithDescription | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
+  const [saathi, setSaathi] = useState<SaathiWithDescription | null>(null)
 
   useEffect(() => {
     function run() {
       // Only show for first-ever session (session_count === 0)
-      if (sessionCount > 0) return;
+      if (sessionCount > 0) return
 
       // Find saathi from constants
-      const found = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
-      setSaathi(found);
+      const found = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
+      setSaathi(found)
 
       // Check if welcome was already shown (client-side guard using localStorage as fallback)
-      const key = `edusaathiai.welcomed.${userId}`;
-      if (localStorage.getItem(key)) return;
+      const key = `edusaathiai.welcomed.${userId}`
+      if (localStorage.getItem(key)) return
 
-      setShowWelcome(true);
+      setShowWelcome(true)
     }
-    run();
-  }, [userId, saathiId, sessionCount]);
+    run()
+  }, [userId, saathiId, sessionCount])
 
   const handleBegin = async () => {
     // Mark as welcomed in localStorage immediately (fast path)
-    localStorage.setItem(`edusaathiai.welcomed.${userId}`, '1');
+    localStorage.setItem(`edusaathiai.welcomed.${userId}`, '1')
 
-    setDismissed(true);
-    setShowWelcome(false);
+    setDismissed(true)
+    setShowWelcome(false)
 
     // Fire-and-forget: mark soul as welcomed in DB
     try {
-      const supabase = createClient();
+      const supabase = createClient()
       await supabase
         .from('student_soul')
         .update({ first_session_welcomed: true })
         .eq('user_id', userId)
-        .eq('vertical_id', saathiId ?? '');
+        .eq('vertical_id', saathiId ?? '')
     } catch {
       // Non-critical — localStorage guard is sufficient
     }
-  };
+  }
 
   return (
     <>
@@ -262,5 +330,5 @@ export function ChatWelcomeGate({
         {children}
       </motion.div>
     </>
-  );
+  )
 }

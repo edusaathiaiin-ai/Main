@@ -1,7 +1,11 @@
-'use client';
+'use client'
 
-import { ActionModal } from '@/components/ui/ActionModal';
-import { approveLiveSession, rejectLiveSession, cancelLiveSession } from './actions';
+import { ActionModal } from '@/components/ui/ActionModal'
+import {
+  approveLiveSession,
+  rejectLiveSession,
+  cancelLiveSession,
+} from './actions'
 
 export function ApproveButton({ sessionId }: { sessionId: string }) {
   return (
@@ -15,11 +19,11 @@ export function ApproveButton({ sessionId }: { sessionId: string }) {
       description="Session will be published and visible to students."
       confirmLabel="Approve & Publish"
       action={async (fd) => {
-        fd.set('session_id', sessionId);
-        await approveLiveSession(fd);
+        fd.set('session_id', sessionId)
+        await approveLiveSession(fd)
       }}
     />
-  );
+  )
 }
 
 export function RejectLiveButton({ sessionId }: { sessionId: string }) {
@@ -34,12 +38,14 @@ export function RejectLiveButton({ sessionId }: { sessionId: string }) {
       danger
       confirmLabel="Reject Session"
       action={async (fd) => {
-        fd.set('session_id', sessionId);
-        await rejectLiveSession(fd);
+        fd.set('session_id', sessionId)
+        await rejectLiveSession(fd)
       }}
     >
       <div>
-        <label className="text-xs text-slate-400 mb-1 block">Reason <span className="text-red-400">*</span></label>
+        <label className="text-xs text-slate-400 mb-1 block">
+          Reason <span className="text-red-400">*</span>
+        </label>
         <textarea
           name="reason"
           required
@@ -49,7 +55,7 @@ export function RejectLiveButton({ sessionId }: { sessionId: string }) {
         />
       </div>
     </ActionModal>
-  );
+  )
 }
 
 export function CancelSessionButton({
@@ -57,9 +63,9 @@ export function CancelSessionButton({
   studentCount,
   refundTotal,
 }: {
-  sessionId: string;
-  studentCount: number;
-  refundTotal: number;
+  sessionId: string
+  studentCount: number
+  refundTotal: number
 }) {
   return (
     <ActionModal
@@ -73,12 +79,14 @@ export function CancelSessionButton({
       danger
       confirmLabel="Confirm Cancellation"
       action={async (fd) => {
-        fd.set('session_id', sessionId);
-        await cancelLiveSession(fd);
+        fd.set('session_id', sessionId)
+        await cancelLiveSession(fd)
       }}
     >
       <div>
-        <label className="text-xs text-slate-400 mb-1 block">Cancellation reason <span className="text-red-400">*</span></label>
+        <label className="text-xs text-slate-400 mb-1 block">
+          Cancellation reason <span className="text-red-400">*</span>
+        </label>
         <textarea
           name="reason"
           required
@@ -88,5 +96,5 @@ export function CancelSessionButton({
         />
       </div>
     </ActionModal>
-  );
+  )
 }

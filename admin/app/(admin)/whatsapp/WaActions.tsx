@@ -1,7 +1,7 @@
-'use client';
+'use client'
 
-import { ActionModal } from '@/components/ui/ActionModal';
-import { blockWaUser, sendBroadcast } from './actions';
+import { ActionModal } from '@/components/ui/ActionModal'
+import { blockWaUser, sendBroadcast } from './actions'
 
 export function BlockWaButton({ phone }: { phone: string }) {
   return (
@@ -16,11 +16,11 @@ export function BlockWaButton({ phone }: { phone: string }) {
       danger
       confirmLabel="Block Number"
       action={async (fd) => {
-        fd.set('phone', phone);
-        await blockWaUser(fd);
+        fd.set('phone', phone)
+        await blockWaUser(fd)
       }}
     />
-  );
+  )
 }
 
 export function BroadcastForm({ userCount }: { userCount: number }) {
@@ -38,7 +38,9 @@ export function BroadcastForm({ userCount }: { userCount: number }) {
     >
       <div className="space-y-3">
         <div>
-          <label className="text-xs text-slate-400 mb-1 block">Recipients</label>
+          <label className="text-xs text-slate-400 mb-1 block">
+            Recipients
+          </label>
           <select
             name="recipient"
             className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
@@ -59,5 +61,5 @@ export function BroadcastForm({ userCount }: { userCount: number }) {
         </div>
       </div>
     </ActionModal>
-  );
+  )
 }

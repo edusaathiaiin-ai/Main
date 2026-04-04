@@ -1,27 +1,27 @@
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'
 
 export type ExamAlert = {
-  id: string;
-  vertical_id: string;
-  exam_name: string;
-  exam_date: string;
-  source_url: string | null;
-  notes: string | null;
-};
+  id: string
+  vertical_id: string
+  exam_name: string
+  exam_date: string
+  source_url: string | null
+  notes: string | null
+}
 
 type Props = {
-  exam: ExamAlert;
-  index: number;
-};
+  exam: ExamAlert
+  index: number
+}
 
 function daysUntil(dateStr: string): number {
-  const target = new Date(dateStr);
-  const now = new Date();
-  target.setHours(0, 0, 0, 0);
-  now.setHours(0, 0, 0, 0);
-  return Math.ceil((target.getTime() - now.getTime()) / 86400000);
+  const target = new Date(dateStr)
+  const now = new Date()
+  target.setHours(0, 0, 0, 0)
+  now.setHours(0, 0, 0, 0)
+  return Math.ceil((target.getTime() - now.getTime()) / 86400000)
 }
 
 function formatDate(dateStr: string): string {
@@ -29,23 +29,28 @@ function formatDate(dateStr: string): string {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  });
+  })
 }
 
 export function ExamAlertCard({ exam, index }: Props) {
-  const days = daysUntil(exam.exam_date);
-  const isUrgent = days <= 7;
-  const isWarning = days <= 30 && !isUrgent;
+  const days = daysUntil(exam.exam_date)
+  const isUrgent = days <= 7
+  const isWarning = days <= 30 && !isUrgent
 
-  const countdownColor = isUrgent ? '#EF4444' : isWarning ? '#F59E0B' : '#6B7280';
-  const countdownText = days === 0 ? 'Today!' : days === 1 ? 'Tomorrow!' : `in ${days} days`;
+  const countdownColor = isUrgent
+    ? '#EF4444'
+    : isWarning
+      ? '#F59E0B'
+      : '#6B7280'
+  const countdownText =
+    days === 0 ? 'Today!' : days === 1 ? 'Tomorrow!' : `in ${days} days`
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.3 }}
-      className="rounded-2xl p-5 flex items-start gap-4"
+      className="flex items-start gap-4 rounded-2xl p-5"
       style={{
         background: isUrgent ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
         border: `0.5px solid ${isUrgent ? 'rgba(239,68,68,0.35)' : 'rgba(245,158,11,0.4)'}`,
@@ -53,24 +58,29 @@ export function ExamAlertCard({ exam, index }: Props) {
     >
       {/* Calendar icon */}
       <div
-        className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl shrink-0"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-2xl"
         style={{
-          background: isUrgent ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
+          background: isUrgent
+            ? 'rgba(239,68,68,0.15)'
+            : 'rgba(245,158,11,0.15)',
         }}
       >
         📅
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-bold text-white mb-1 leading-tight">
+      <div className="min-w-0 flex-1">
+        <h3 className="mb-1 text-sm leading-tight font-bold text-white">
           {exam.exam_name}
         </h3>
-        <p className="text-xs mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+        <p className="mb-2 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
           {formatDate(exam.exam_date)}
         </p>
         {exam.notes && (
-          <p className="text-[11px] mb-2 line-clamp-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p
+            className="mb-2 line-clamp-2 text-[11px]"
+            style={{ color: 'rgba(255,255,255,0.4)' }}
+          >
             {exam.notes}
           </p>
         )}
@@ -87,7 +97,9 @@ export function ExamAlertCard({ exam, index }: Props) {
               className="text-[10px] font-semibold transition-colors"
               style={{ color: 'rgba(255,255,255,0.35)' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')
+              }
             >
               Official site ↗
             </a>
@@ -95,5 +107,5 @@ export function ExamAlertCard({ exam, index }: Props) {
         </div>
       </div>
     </motion.article>
-  );
+  )
 }

@@ -1,16 +1,16 @@
-'use client';
+'use client'
 
-import { useState, useTransition, type ReactNode } from 'react';
+import { useState, useTransition, type ReactNode } from 'react'
 
 interface ActionModalProps {
-  trigger: ReactNode;
-  title: string;
-  description?: string;
-  danger?: boolean;
-  confirmLabel?: string;
+  trigger: ReactNode
+  title: string
+  description?: string
+  danger?: boolean
+  confirmLabel?: string
   /** Server action to call. Receives FormData. */
-  action: (formData: FormData) => Promise<void>;
-  children?: ReactNode; // extra form fields
+  action: (formData: FormData) => Promise<void>
+  children?: ReactNode // extra form fields
 }
 
 export function ActionModal({
@@ -22,16 +22,16 @@ export function ActionModal({
   action,
   children,
 }: ActionModalProps) {
-  const [open, setOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
+    e.preventDefault()
+    const fd = new FormData(e.currentTarget)
     startTransition(async () => {
-      await action(fd);
-      setOpen(false);
-    });
+      await action(fd)
+      setOpen(false)
+    })
   }
 
   return (
@@ -41,7 +41,9 @@ export function ActionModal({
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-          onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setOpen(false)
+          }}
         >
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
             <h3
@@ -87,5 +89,5 @@ export function ActionModal({
         </div>
       )}
     </>
-  );
+  )
 }

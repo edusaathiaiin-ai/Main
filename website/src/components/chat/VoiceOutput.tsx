@@ -7,25 +7,33 @@ type VoiceOutputProps = {
   saathiColor?: string
 }
 
-export function VoiceOutput({ text, saathiColor = '#C9993A' }: VoiceOutputProps) {
+export function VoiceOutput({
+  text,
+  saathiColor = '#C9993A',
+}: VoiceOutputProps) {
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [speed, setSpeed] = useState(0.95)
-  const [supported] = useState(() => typeof window !== 'undefined' && 'speechSynthesis' in window)
+  const [supported] = useState(
+    () => typeof window !== 'undefined' && 'speechSynthesis' in window
+  )
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
 
   useEffect(() => {
-    return () => { window.speechSynthesis?.cancel() }
+    return () => {
+      window.speechSynthesis?.cancel()
+    }
   }, [])
 
   function getIndianVoice(): SpeechSynthesisVoice | null {
     const voices = window.speechSynthesis.getVoices()
-    const indian = voices.find(v =>
-      v.lang === 'en-IN' ||
-      v.name.includes('India') ||
-      v.name.includes('Ravi') ||
-      v.name.includes('Veena')
+    const indian = voices.find(
+      (v) =>
+        v.lang === 'en-IN' ||
+        v.name.includes('India') ||
+        v.name.includes('Ravi') ||
+        v.name.includes('Veena')
     )
-    return indian ?? voices.find(v => v.lang.startsWith('en')) ?? null
+    return indian ?? voices.find((v) => v.lang.startsWith('en')) ?? null
   }
 
   function speak() {
@@ -114,10 +122,18 @@ export function VoiceOutput({ text, saathiColor = '#C9993A' }: VoiceOutputProps)
             outline: 'none',
           }}
         >
-          <option value="0.75" style={{ background: '#0B1F3A' }}>0.75×</option>
-          <option value="0.95" style={{ background: '#0B1F3A' }}>1×</option>
-          <option value="1.25" style={{ background: '#0B1F3A' }}>1.25×</option>
-          <option value="1.5" style={{ background: '#0B1F3A' }}>1.5×</option>
+          <option value="0.75" style={{ background: '#0B1F3A' }}>
+            0.75×
+          </option>
+          <option value="0.95" style={{ background: '#0B1F3A' }}>
+            1×
+          </option>
+          <option value="1.25" style={{ background: '#0B1F3A' }}>
+            1.25×
+          </option>
+          <option value="1.5" style={{ background: '#0B1F3A' }}>
+            1.5×
+          </option>
         </select>
       )}
     </div>

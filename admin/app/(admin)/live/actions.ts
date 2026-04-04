@@ -1,33 +1,33 @@
-'use server';
+'use server'
 
-import { revalidatePath } from 'next/cache';
-import { requireAdmin } from '@/lib/auth';
-import { getAdminClient } from '@/lib/supabase-admin';
+import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/auth'
+import { getAdminClient } from '@/lib/supabase-admin'
 
 export async function approveLiveSession(formData: FormData) {
-  await requireAdmin();
-  const sessionId = formData.get('session_id') as string;
-  if (!sessionId) return;
+  await requireAdmin()
+  const sessionId = formData.get('session_id') as string
+  if (!sessionId) return
 
-  const admin = getAdminClient();
+  const admin = getAdminClient()
   await admin
     .from('live_sessions')
     .update({
       status: 'published',
       reviewed_at: new Date().toISOString(),
     })
-    .eq('id', sessionId);
+    .eq('id', sessionId)
 
-  revalidatePath('/live');
+  revalidatePath('/live')
 }
 
 export async function rejectLiveSession(formData: FormData) {
-  await requireAdmin();
-  const sessionId = formData.get('session_id') as string;
-  const reason = formData.get('reason') as string;
-  if (!sessionId || !reason) return;
+  await requireAdmin()
+  const sessionId = formData.get('session_id') as string
+  const reason = formData.get('reason') as string
+  if (!sessionId || !reason) return
 
-  const admin = getAdminClient();
+  const admin = getAdminClient()
   await admin
     .from('live_sessions')
     .update({
@@ -35,18 +35,18 @@ export async function rejectLiveSession(formData: FormData) {
       admin_note: reason,
       reviewed_at: new Date().toISOString(),
     })
-    .eq('id', sessionId);
+    .eq('id', sessionId)
 
-  revalidatePath('/live');
+  revalidatePath('/live')
 }
 
 export async function cancelLiveSession(formData: FormData) {
-  await requireAdmin();
-  const sessionId = formData.get('session_id') as string;
-  const reason = formData.get('reason') as string;
-  if (!sessionId || !reason) return;
+  await requireAdmin()
+  const sessionId = formData.get('session_id') as string
+  const reason = formData.get('reason') as string
+  if (!sessionId || !reason) return
 
-  const admin = getAdminClient();
+  const admin = getAdminClient()
 
   // Cancel the session
   await admin
@@ -57,13 +57,13 @@ export async function cancelLiveSession(formData: FormData) {
       cancelled_by: 'admin',
       cancellation_reason: reason,
     })
-    .eq('id', sessionId);
+    .eq('id', sessionId)
 
   // Mark all bookings as refunded
   await admin
     .from('live_bookings')
     .update({ refund_status: 'refunded' })
-    .eq('session_id', sessionId);
+    .eq('session_id', sessionId)
 
-  revalidatePath('/live');
+  revalidatePath('/live')
 }

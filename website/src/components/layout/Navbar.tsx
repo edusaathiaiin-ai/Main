@@ -1,28 +1,28 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 type Props = {
-  title?: string;
-  showBack?: boolean;
-};
+  title?: string
+  showBack?: boolean
+}
 
 export function Navbar({ title, showBack }: Props) {
-  const pathname = usePathname();
+  const pathname = usePathname()
 
   const PAGE_TITLES: Record<string, string> = {
     '/board': 'Community Board',
     '/news': 'Latest News',
     '/profile': 'Your Profile',
     '/pricing': 'Plans & Pricing',
-  };
+  }
 
-  const displayTitle = title ?? PAGE_TITLES[pathname] ?? '';
+  const displayTitle = title ?? PAGE_TITLES[pathname] ?? ''
 
   return (
     <header
-      className="md:hidden flex items-center justify-between px-4 h-14 shrink-0 z-20"
+      className="z-20 flex h-14 shrink-0 items-center justify-between px-4 md:hidden"
       style={{
         background: 'rgba(6,15,29,0.85)',
         borderBottom: '0.5px solid rgba(255,255,255,0.07)',
@@ -30,7 +30,11 @@ export function Navbar({ title, showBack }: Props) {
       }}
     >
       {showBack ? (
-        <Link href="/chat" className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+        <Link
+          href="/chat"
+          className="text-sm"
+          style={{ color: 'rgba(255,255,255,0.5)' }}
+        >
           ← Chat
         </Link>
       ) : (
@@ -39,9 +43,11 @@ export function Navbar({ title, showBack }: Props) {
         </span>
       )}
       {displayTitle && (
-        <span className="font-playfair text-base font-semibold text-white">{displayTitle}</span>
+        <span className="font-playfair text-base font-semibold text-white">
+          {displayTitle}
+        </span>
       )}
       <div className="w-12" />
     </header>
-  );
+  )
 }
