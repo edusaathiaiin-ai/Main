@@ -474,8 +474,9 @@ export function SoulProfileForm({
   };
 
   // ── Parse education on blur ─────────────────────────────────────────────────
-  const parseEducation = useCallback(async () => {
-    if (educationRaw.trim().length < 5 || parseConfirmed === true) return;
+  // Returns the parsed result so callers can use it immediately (React state update is async).
+  const parseEducation = useCallback(async (): Promise<ParsedEducation | null> => {
+    if (educationRaw.trim().length < 5 || parseConfirmed === true) return null;
     setParseLoading(true);
     setParseError('');
     setEducationParsed(null);
@@ -506,7 +507,7 @@ export function SoulProfileForm({
         confidence: number;
       };
 
-      setEducationParsed({
+      const parsed: ParsedEducation = {
         year: json.parsed.year,
         degree: json.parsed.degree,
         institution: json.parsed.institution,
@@ -514,9 +515,12 @@ export function SoulProfileForm({
         university: json.college?.university ?? null,
         city: json.parsed.city,
         confidence: json.confidence,
-      });
+      };
+      setEducationParsed(parsed);
+      return parsed;
     } catch {
       setParseError('Could not parse — please fill in your details manually below');
+      return null;
     } finally {
       setParseLoading(false);
     }
@@ -524,7 +528,14 @@ export function SoulProfileForm({
 
   // ── Submit ────────────────────────────────────────────────────────────────
   async function handleSubmit() {
-    await onContinue(formData);
+    // If user never blurred the education field (common on mobile),
+    // run the parser now and use the returned result directly — React state
+    // update from setEducationParsed won't be visible until next render.
+    let resolvedParsed = educationParsed;
+    if (!educationParsed && educationRaw.trim().length >= 5) {
+      resolvedParsed = await parseEducation();
+    }
+    await onContinue({ ...formData, educationParsed: resolvedParsed });
   }
 
   const canSubmit = fullName.trim().length > 0 && city.length > 0;
