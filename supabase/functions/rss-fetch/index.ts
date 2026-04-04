@@ -33,11 +33,10 @@ const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 const PROFESSOR_NOTES_PER_SAATHI = 1; // Reduced from 3 to fit in 150s Edge Function limit
 
-// Startup env check
+// Startup env check — never log key values or prefixes
 console.log('[rss-fetch] ENV check:', {
   hasUrl: !!SUPABASE_URL,
   hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY,
-  servicekeyPrefix: SUPABASE_SERVICE_ROLE_KEY.slice(0, 10) || 'MISSING',
   hasCronSecret: !!CRON_SECRET,
 });
 

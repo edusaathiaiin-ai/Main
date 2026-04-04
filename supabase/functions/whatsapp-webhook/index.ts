@@ -20,11 +20,41 @@ const VERIFY_TOKEN = Deno.env.get('WHATSAPP_VERIFY_TOKEN')!;
 const WA_TOKEN = Deno.env.get('WHATSAPP_TOKEN')!;
 const PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID')!;
 const ANTHROPIC_KEY = Deno.env.get('ANTHROPIC_API_KEY')!;
+const WA_APP_SECRET = Deno.env.get('WHATSAPP_APP_SECRET') ?? '';
 
 const admin = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 );
+
+// ── Meta signature verification ────────────────────────────────────────────────
+// Every POST from Meta includes x-hub-signature-256: sha256=<hmac>
+// Computed as HMAC-SHA256(rawBody, appSecret). Reject without it.
+
+async function verifyMetaSignature(req: Request, rawBody: string): Promise<boolean> {
+  const signature = req.headers.get('x-hub-signature-256');
+  if (!signature) return false;
+  if (!WA_APP_SECRET) {
+    console.error('[whatsapp-webhook] WHATSAPP_APP_SECRET not set — rejecting all POSTs');
+    return false;
+  }
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(WA_APP_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(rawBody));
+
+  const expected = 'sha256=' + Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  return signature === expected;
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -40,6 +70,8 @@ type ProfileRow = {
   city: string | null;
   current_subjects: string[] | null;
   learning_style: string | null;
+  is_banned: boolean | null;
+  suspension_status: string | null;
 };
 
 type SoulRow = {
@@ -100,7 +132,22 @@ serve(async (req) => {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  const body = await req.json();
+  // Read raw body BEFORE parsing — needed for HMAC verification
+  const rawBody = await req.text();
+
+  // Verify Meta HMAC signature — reject anything not from Meta's servers
+  const signatureValid = await verifyMetaSignature(req, rawBody);
+  if (!signatureValid) {
+    console.warn('[whatsapp-webhook] Invalid or missing Meta signature — rejected');
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    body = JSON.parse(rawBody) as Record<string, unknown>;
+  } catch {
+    return new Response('Bad Request', { status: 400 });
+  }
 
   // Extract message from Meta payload
   const entry = body?.entry?.[0];
@@ -187,10 +234,27 @@ async function handleMessage(from: string, waPhone: string, text: string) {
       wa_saathi_id, wa_state,
       primary_saathi_id,
       academic_level, city,
-      current_subjects, learning_style
+      current_subjects, learning_style,
+      is_banned, suspension_status
     `)
     .eq('wa_phone', waPhone)
     .single();
+
+  // ── A3: Ban / suspension early gate ──────────────────
+  // Check before any processing — banned users get silence,
+  // suspended users get a one-line message then we stop.
+  if (profile?.is_banned) {
+    console.log('[whatsapp-webhook] Banned user ignored:', waPhone);
+    return; // Silently ignore — no response to banned users
+  }
+
+  if (profile?.suspension_status === 'suspended') {
+    await sendWhatsAppMessage(
+      from,
+      'Your account is temporarily suspended. Contact support@edusaathiai.in for help.',
+    );
+    return;
+  }
 
   // ── Commands ─────────────────────────────────────────
   const cmd = text.toUpperCase().trim();

@@ -11,7 +11,10 @@ build/
 
 # Credentials and key files — never commit
 *.csv
-rzp-key*.csv
-*payment*.csv
-*secret*.csv
-*credentials*.csv
+rzp-key*
+*payment*key*
+*secret*
+*.pem
+*.p12
+*.p8
+*.pfx
