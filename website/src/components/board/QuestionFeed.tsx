@@ -56,6 +56,12 @@ type QWithMeta = BoardQuestion & {
   facultyVerified?: boolean
 }
 
+type BoardQuota = {
+  allowed: boolean
+  used: number
+  limit: number
+}
+
 const PAGE_SIZE = 20
 const DEFAULT_QUOTA: QuotaState = {
   limit: 5,
@@ -93,6 +99,9 @@ export function QuestionFeed() {
       typeof window !== 'undefined' &&
       !!sessionStorage.getItem('board_nudge_dismissed')
   )
+  const [boardQuota, setBoardQuota] = useState<BoardQuota | null>(null)
+  const [quotaBannerDismissed, setQuotaBannerDismissed] = useState(false)
+  const [showQuotaTooltip, setShowQuotaTooltip] = useState(false)
   const newQuestionRef = useRef<HTMLDivElement>(null)
 
   const canPost = !profile?.is_geo_limited
@@ -102,6 +111,36 @@ export function QuestionFeed() {
     if (!profile) return
     resolveVerticalId(saathiSlug).then(setVerticalUuid)
   }, [saathiSlug, profile])
+
+  // Board post quota (free plan: 5/day, resets midnight IST)
+  async function fetchBoardQuota() {
+    if (!profile) return
+    const planTier = getPlanTier(profile.plan_id)
+    if (planTier !== 'free') {
+      setBoardQuota({ allowed: true, used: 0, limit: 999 })
+      return
+    }
+    const limit = 5
+    const IST_OFFSET = 5.5 * 60 * 60 * 1000
+    const nowIST = new Date(Date.now() + IST_OFFSET)
+    const midnightUTC = new Date(
+      new Date(nowIST.toISOString().slice(0, 10) + 'T00:00:00.000Z').getTime() -
+        IST_OFFSET
+    )
+    const supabase = createClient()
+    const { count } = await supabase
+      .from('board_questions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', profile.id)
+      .gte('created_at', midnightUTC.toISOString())
+    const used = count ?? 0
+    setBoardQuota({ allowed: used < limit, used, limit })
+  }
+
+  useEffect(() => {
+    if (profile) fetchBoardQuota()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile])
 
   // Fetch questions
   async function fetchQuestions(
@@ -210,6 +249,7 @@ export function QuestionFeed() {
   function handlePosted(newId: string) {
     setPage(0)
     fetchQuestions(filter, 0, false)
+    fetchBoardQuota()
     setNewBanner(newId)
     setTimeout(() => setNewBanner(null), 5000)
   }
@@ -294,15 +334,150 @@ export function QuestionFeed() {
                   {totalCount > 0 ? `${totalCount} questions` : 'Ask anything'}
                 </p>
               </div>
-              {/* Mobile ask button */}
-              <button
-                onClick={() => canPost && setModalOpen(true)}
-                className="rounded-xl px-4 py-2 text-sm font-bold transition-all lg:hidden"
-                style={{ background: '#C9993A', color: '#060F1D' }}
-              >
-                + Ask
-              </button>
+
+              {/* Mobile ask button — Place C */}
+              <div className="relative lg:hidden">
+                <button
+                  onClick={() => {
+                    if (!canPost) return
+                    if (boardQuota && !boardQuota.allowed) {
+                      setShowQuotaTooltip(true)
+                      setTimeout(() => setShowQuotaTooltip(false), 3000)
+                      return
+                    }
+                    setModalOpen(true)
+                  }}
+                  className="rounded-xl px-4 py-2 text-sm font-bold transition-all"
+                  style={{
+                    background:
+                      boardQuota && !boardQuota.allowed
+                        ? 'rgba(201,153,58,0.25)'
+                        : '#C9993A',
+                    color:
+                      boardQuota && !boardQuota.allowed ? '#C9993A' : '#060F1D',
+                    opacity: boardQuota && !boardQuota.allowed ? 0.6 : 1,
+                  }}
+                >
+                  + Ask
+                </button>
+
+                <AnimatePresence>
+                  {showQuotaTooltip && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 8px)',
+                        right: 0,
+                        background: '#0B1F3A',
+                        border: '0.5px solid rgba(201,153,58,0.3)',
+                        borderRadius: '10px',
+                        padding: '10px 14px',
+                        fontSize: '12px',
+                        color: 'rgba(255,255,255,0.7)',
+                        whiteSpace: 'nowrap',
+                        zIndex: 50,
+                      }}
+                    >
+                      Limit reached ·{' '}
+                      <Link
+                        href="/pricing"
+                        style={{ color: '#C9993A', fontWeight: '700' }}
+                      >
+                        Upgrade →
+                      </Link>{' '}
+                      or wait till midnight
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
+
+            {/* Place A — quota banner */}
+            {boardQuota &&
+              !boardQuota.allowed &&
+              !quotaBannerDismissed &&
+              canPost && (
+                <div
+                  style={{
+                    margin: '0 0 16px',
+                    padding: '16px',
+                    background: 'rgba(201,153,58,0.06)',
+                    border: '0.5px solid rgba(201,153,58,0.25)',
+                    borderRadius: '14px',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      color: '#C9993A',
+                      margin: '0 0 4px',
+                    }}
+                  >
+                    You&apos;ve asked {boardQuota.used} questions today
+                  </p>
+                  <p
+                    style={{
+                      fontSize: '12px',
+                      color: 'rgba(255,255,255,0.45)',
+                      margin: '0 0 14px',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Free plan allows {boardQuota.limit} questions/day. Upgrade
+                    for more — or come back tomorrow.
+                  </p>
+
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <Link
+                      href="/pricing"
+                      style={{
+                        flex: 1,
+                        display: 'block',
+                        padding: '10px',
+                        background: '#C9993A',
+                        color: '#0B1F3A',
+                        borderRadius: '10px',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        textDecoration: 'none',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Upgrade to Plus →
+                    </Link>
+                    <button
+                      onClick={() => setQuotaBannerDismissed(true)}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        background: 'transparent',
+                        border: '0.5px solid rgba(255,255,255,0.12)',
+                        borderRadius: '10px',
+                        color: 'rgba(255,255,255,0.35)',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Maybe later
+                    </button>
+                  </div>
+
+                  <p
+                    style={{
+                      fontSize: '10px',
+                      color: 'rgba(255,255,255,0.2)',
+                      textAlign: 'center',
+                      margin: '10px 0 0',
+                    }}
+                  >
+                    Resets at midnight IST
+                  </p>
+                </div>
+              )}
 
             {/* Filter bar */}
             <div className="mb-5">
@@ -533,8 +708,12 @@ export function QuestionFeed() {
           {/* Right sidebar */}
           <BoardSidebar
             activeSaathi={activeSaathi}
-            onAskQuestion={() => setModalOpen(true)}
+            onAskQuestion={() => {
+              if (boardQuota && !boardQuota.allowed) return
+              setModalOpen(true)
+            }}
             canPost={canPost}
+            quotaReached={boardQuota?.allowed === false}
           />
         </div>
       </main>
@@ -553,6 +732,7 @@ export function QuestionFeed() {
           primaryColor={activeSaathi.primary}
           profile={profile}
           onPosted={handlePosted}
+          boardQuota={boardQuota}
         />
       )}
     </div>

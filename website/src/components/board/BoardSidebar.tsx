@@ -1,11 +1,13 @@
 'use client'
 
+import Link from 'next/link'
 import type { Saathi } from '@/types'
 
 type Props = {
   activeSaathi: Saathi
   onAskQuestion: () => void
   canPost: boolean
+  quotaReached?: boolean
 }
 
 // Top contributors: placeholder until we have real aggregation query
@@ -15,12 +17,17 @@ const TOP_FACULTY = [
   { name: 'Mr. Aditya Shah', badge: '👨‍🎓', verified: false },
 ]
 
-export function BoardSidebar({ activeSaathi, onAskQuestion, canPost }: Props) {
+export function BoardSidebar({
+  activeSaathi,
+  onAskQuestion,
+  canPost,
+  quotaReached = false,
+}: Props) {
   return (
     <aside className="hidden w-[300px] shrink-0 flex-col gap-4 lg:flex">
       {/* Ask button */}
       <div>
-        {canPost ? (
+        {canPost && !quotaReached ? (
           <button
             onClick={onAskQuestion}
             className="w-full rounded-2xl py-3.5 text-base font-bold transition-all duration-200"
@@ -30,6 +37,36 @@ export function BoardSidebar({ activeSaathi, onAskQuestion, canPost }: Props) {
           >
             ✦ Ask a Question
           </button>
+        ) : quotaReached ? (
+          <div>
+            <button
+              className="w-full cursor-not-allowed rounded-2xl py-3.5 text-base font-bold opacity-50"
+              style={{ background: '#C9993A', color: '#060F1D' }}
+            >
+              ✦ Ask a Question
+            </button>
+            <div
+              style={{
+                marginTop: '10px',
+                padding: '10px 14px',
+                background: 'rgba(201,153,58,0.06)',
+                border: '0.5px solid rgba(201,153,58,0.2)',
+                borderRadius: '10px',
+                fontSize: '11px',
+                color: 'rgba(255,255,255,0.45)',
+                textAlign: 'center',
+                lineHeight: 1.5,
+              }}
+            >
+              Daily limit reached ·{' '}
+              <Link
+                href="/pricing"
+                style={{ color: '#C9993A', fontWeight: '600' }}
+              >
+                Upgrade →
+              </Link>
+            </div>
+          </div>
         ) : (
           <div className="group relative w-full">
             <button

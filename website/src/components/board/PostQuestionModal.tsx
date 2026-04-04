@@ -92,6 +92,7 @@ type Props = {
   primaryColor: string
   profile: Profile
   onPosted: (newId: string) => void
+  boardQuota?: { allowed: boolean; used: number; limit: number } | null
 }
 
 export function PostQuestionModal({
@@ -103,12 +104,14 @@ export function PostQuestionModal({
   primaryColor,
   profile,
   onPosted,
+  boardQuota,
 }: Props) {
   const [title, setTitle] = useState('')
   const [tag, setTag] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [quotaError, setQuotaError] = useState(false)
   const [postedId, setPostedId] = useState<string | null>(null)
 
   const tags = SAATHI_TAGS[saathiSlug] ?? DEFAULT_TAGS
@@ -120,6 +123,7 @@ export function PostQuestionModal({
     setTag('')
     setIsAnonymous(false)
     setError(null)
+    setQuotaError(false)
     setPostedId(null)
     onClose()
   }
@@ -128,6 +132,14 @@ export function PostQuestionModal({
     if (!title.trim() || submitting) return
     setSubmitting(true)
     setError(null)
+    setQuotaError(false)
+
+    // Safety-net: catch quota exceeded even if modal was somehow opened
+    if (boardQuota && !boardQuota.allowed) {
+      setQuotaError(true)
+      setSubmitting(false)
+      return
+    }
 
     // 24-hour new account restriction
     const registeredAt = new Date(profile.registered_at)
@@ -462,29 +474,109 @@ export function PostQuestionModal({
                   </button>
                 </div>
 
-                {/* Error */}
-                {error && (
-                  <p className="mb-4 text-xs" style={{ color: '#FCA5A5' }}>
-                    ⚠️ {error}
-                  </p>
-                )}
+                {/* Place B — quota error */}
+                {quotaError ? (
+                  <div
+                    style={{
+                      padding: '16px',
+                      background: 'rgba(201,153,58,0.06)',
+                      border: '0.5px solid rgba(201,153,58,0.25)',
+                      borderRadius: '12px',
+                      marginBottom: '16px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <p style={{ fontSize: '20px', margin: '0 0 8px' }}>⚡</p>
+                    <p
+                      style={{
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        color: '#C9993A',
+                        margin: '0 0 4px',
+                      }}
+                    >
+                      Daily limit reached
+                    </p>
+                    <p
+                      style={{
+                        fontSize: '12px',
+                        color: 'rgba(255,255,255,0.45)',
+                        margin: '0 0 16px',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      You&apos;ve used all {boardQuota?.limit} questions for
+                      today. Upgrade for more.
+                    </p>
 
-                {/* Submit */}
-                <button
-                  onClick={handleSubmit}
-                  disabled={!title.trim() || submitting}
-                  className="w-full rounded-xl py-3.5 text-base font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
-                  style={{ background: primaryColor, color: '#060F1D' }}
-                >
-                  {submitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D]" />
-                      Posting...
-                    </span>
-                  ) : (
-                    'Post Question →'
-                  )}
-                </button>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                      }}
+                    >
+                      <Link
+                        href="/pricing"
+                        onClick={handleClose}
+                        style={{
+                          display: 'block',
+                          padding: '12px',
+                          background: '#C9993A',
+                          color: '#0B1F3A',
+                          borderRadius: '10px',
+                          fontSize: '13px',
+                          fontWeight: '700',
+                          textDecoration: 'none',
+                          textAlign: 'center',
+                        }}
+                      >
+                        Upgrade to Plus — ₹199/month →
+                      </Link>
+
+                      <button
+                        onClick={handleClose}
+                        style={{
+                          padding: '11px',
+                          background: 'transparent',
+                          border: '0.5px solid rgba(255,255,255,0.12)',
+                          borderRadius: '10px',
+                          color: 'rgba(255,255,255,0.4)',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Close — come back tomorrow
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Regular error */}
+                    {error && (
+                      <p className="mb-4 text-xs" style={{ color: '#FCA5A5' }}>
+                        ⚠️ {error}
+                      </p>
+                    )}
+
+                    {/* Submit */}
+                    <button
+                      onClick={handleSubmit}
+                      disabled={!title.trim() || submitting}
+                      className="w-full rounded-xl py-3.5 text-base font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                      style={{ background: primaryColor, color: '#060F1D' }}
+                    >
+                      {submitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D]" />
+                          Posting...
+                        </span>
+                      ) : (
+                        'Post Question →'
+                      )}
+                    </button>
+                  </>
+                )}
               </>
             )}
           </motion.div>
