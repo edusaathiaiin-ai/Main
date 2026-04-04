@@ -60,6 +60,8 @@ type BoardQuota = {
   allowed: boolean
   used: number
   limit: number
+  remaining: number
+  resets_at: string
 }
 
 const PAGE_SIZE = 20
@@ -112,29 +114,17 @@ export function QuestionFeed() {
     resolveVerticalId(saathiSlug).then(setVerticalUuid)
   }, [saathiSlug, profile])
 
-  // Board post quota (free plan: 5/day, resets midnight IST)
+  // Board post quota — fetched server-side via RPC (enforced at DB level too)
   async function fetchBoardQuota() {
     if (!profile) return
-    const planTier = getPlanTier(profile.plan_id)
-    if (planTier !== 'free') {
-      setBoardQuota({ allowed: true, used: 0, limit: 999 })
-      return
+    try {
+      const res = await fetch('/api/board/quota')
+      if (!res.ok) return
+      const data = await res.json()
+      setBoardQuota(data)
+    } catch {
+      // Non-fatal — quota UI degrades gracefully
     }
-    const limit = 5
-    const IST_OFFSET = 5.5 * 60 * 60 * 1000
-    const nowIST = new Date(Date.now() + IST_OFFSET)
-    const midnightUTC = new Date(
-      new Date(nowIST.toISOString().slice(0, 10) + 'T00:00:00.000Z').getTime() -
-        IST_OFFSET
-    )
-    const supabase = createClient()
-    const { count } = await supabase
-      .from('board_questions')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', profile.id)
-      .gte('created_at', midnightUTC.toISOString())
-    const used = count ?? 0
-    setBoardQuota({ allowed: used < limit, used, limit })
   }
 
   useEffect(() => {
@@ -356,9 +346,15 @@ export function QuestionFeed() {
                     color:
                       boardQuota && !boardQuota.allowed ? '#C9993A' : '#060F1D',
                     opacity: boardQuota && !boardQuota.allowed ? 0.6 : 1,
+                    cursor:
+                      boardQuota && !boardQuota.allowed
+                        ? 'not-allowed'
+                        : 'pointer',
                   }}
                 >
-                  + Ask
+                  {boardQuota && !boardQuota.allowed
+                    ? `${boardQuota.used}/${boardQuota.limit} used`
+                    : '+ Ask'}
                 </button>
 
                 <AnimatePresence>
@@ -714,6 +710,7 @@ export function QuestionFeed() {
             }}
             canPost={canPost}
             quotaReached={boardQuota?.allowed === false}
+            boardQuota={boardQuota}
           />
         </div>
       </main>

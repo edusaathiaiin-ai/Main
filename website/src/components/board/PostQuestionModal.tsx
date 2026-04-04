@@ -134,11 +134,19 @@ export function PostQuestionModal({
     setError(null)
     setQuotaError(false)
 
-    // Safety-net: catch quota exceeded even if modal was somehow opened
-    if (boardQuota && !boardQuota.allowed) {
-      setQuotaError(true)
-      setSubmitting(false)
-      return
+    // Re-check quota server-side (RLS is the last gate, this is the UI gate)
+    try {
+      const quotaRes = await fetch('/api/board/quota')
+      if (quotaRes.ok) {
+        const quota = await quotaRes.json()
+        if (!quota.allowed) {
+          setQuotaError(true)
+          setSubmitting(false)
+          return
+        }
+      }
+    } catch {
+      // Network error — let the insert proceed; RLS enforces at DB level
     }
 
     // 24-hour new account restriction
@@ -177,7 +185,12 @@ export function PostQuestionModal({
       .single()
 
     if (err || !q) {
-      setError(err?.message ?? 'Failed to post. Try again.')
+      // RLS quota block (42501 = insufficient_privilege)
+      if (err?.code === '42501') {
+        setQuotaError(true)
+      } else {
+        setError(err?.message ?? 'Failed to post. Try again.')
+      }
       setSubmitting(false)
       return
     }

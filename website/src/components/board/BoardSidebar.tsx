@@ -8,6 +8,12 @@ type Props = {
   onAskQuestion: () => void
   canPost: boolean
   quotaReached?: boolean
+  boardQuota?: {
+    allowed: boolean
+    used: number
+    limit: number
+    remaining: number
+  } | null
 }
 
 // Top contributors: placeholder until we have real aggregation query
@@ -22,6 +28,7 @@ export function BoardSidebar({
   onAskQuestion,
   canPost,
   quotaReached = false,
+  boardQuota,
 }: Props) {
   return (
     <aside className="hidden w-[300px] shrink-0 flex-col gap-4 lg:flex">
@@ -85,6 +92,31 @@ export function BoardSidebar({
             >
               Board posting available for Indian students
             </div>
+          </div>
+        )}
+
+        {/* Quota indicator */}
+        {boardQuota && canPost && (
+          <div
+            style={{
+              fontSize: '11px',
+              color: 'rgba(255,255,255,0.35)',
+              textAlign: 'center',
+              marginTop: '8px',
+            }}
+          >
+            {boardQuota.allowed ? (
+              boardQuota.limit < 999 && (
+                <span>
+                  {boardQuota.remaining} question
+                  {boardQuota.remaining === 1 ? '' : 's'} left today
+                </span>
+              )
+            ) : (
+              <span style={{ color: '#FB923C' }}>
+                Daily limit reached · Resets at midnight IST
+              </span>
+            )}
           </div>
         )}
       </div>
