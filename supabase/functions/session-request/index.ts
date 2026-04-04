@@ -83,8 +83,10 @@ Deno.serve(async (req) => {
       const { data: student } = await admin.from('profiles').select('email, full_name').eq('id', session.student_id).single();
       const { data: faculty } = await admin.from('profiles').select('full_name').eq('id', session.faculty_id).single();
       if (student?.email && RESEND_API_KEY) {
-        await sendEmail(student.email, `${faculty?.full_name ?? 'Faculty'} accepted your session request`,
-          `Your session with ${faculty?.full_name} has been accepted${slot ? ` for ${new Date(slot).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST` : ''}. You'll receive payment details shortly.`);
+        const safeFacultyName = sanitize(faculty?.full_name ?? 'Faculty');
+        const slotStr = slot ? ` for ${new Date(slot).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST` : '';
+        await sendEmail(student.email, `${safeFacultyName} accepted your session request`,
+          `Your session with ${safeFacultyName} has been accepted${slotStr}. You'll receive payment details shortly.`);
       }
 
       return new Response(JSON.stringify({ success: true }), { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
@@ -133,9 +135,39 @@ Deno.serve(async (req) => {
           status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
         });
       }
+
+      // Load session first — verify user is a participant, and status is disputable
+      const { data: dispSession } = await admin
+        .from('faculty_sessions')
+        .select('student_id, faculty_id, status')
+        .eq('id', sessionId)
+        .single();
+
+      if (!dispSession) {
+        return new Response(JSON.stringify({ error: 'Session not found' }), {
+          status: 404, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const isParticipant = dispSession.student_id === user.id || dispSession.faculty_id === user.id;
+      if (!isParticipant) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const disputableStatuses = ['confirmed', 'completed', 'accepted'];
+      if (!disputableStatuses.includes(dispSession.status)) {
+        return new Response(JSON.stringify({ error: 'Cannot dispute session in this state' }), {
+          status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const disputedBy = dispSession.student_id === user.id ? 'student' : 'faculty';
       const safeReason = reason ? sanitize(reason) : 'Session did not happen as expected';
+
       await admin.from('faculty_sessions').update({
-        disputed_by: user.id === (await admin.from('faculty_sessions').select('student_id').eq('id', sessionId).single()).data?.student_id ? 'student' : 'faculty',
+        disputed_by: disputedBy,
         dispute_reason: safeReason,
         status: 'disputed',
         updated_at: new Date().toISOString(),
@@ -156,6 +188,20 @@ Deno.serve(async (req) => {
       const sessionTitle = typeof body.title === 'string' ? body.title.slice(0, 200) : '';
       if (!verticalId || !isUUID(verticalId)) {
         return new Response(JSON.stringify({ error: 'verticalId required and must be a UUID' }), { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
+      }
+
+      // Verify user is the faculty owner of this live session
+      if (liveSessionId && isUUID(liveSessionId)) {
+        const { data: liveCheck } = await admin
+          .from('live_sessions')
+          .select('faculty_id')
+          .eq('id', liveSessionId)
+          .single();
+        if (!liveCheck || liveCheck.faculty_id !== user.id) {
+          return new Response(JSON.stringify({ error: 'Forbidden' }), {
+            status: 403, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+          });
+        }
       }
 
       // Get faculty name
@@ -223,14 +269,17 @@ Deno.serve(async (req) => {
         .eq('vertical_id', liveSess?.vertical_id ?? '')
         .maybeSingle();
 
-      const studentName = student?.full_name ?? 'A student';
-      const level = soul?.academic_level ?? 'student';
-      const institution = student?.institution_name ?? '';
-      const city = student?.city ?? '';
-      const subjects = Array.isArray(soul?.enrolled_subjects) ? (soul.enrolled_subjects as string[]).slice(0, 3).join(', ') : '';
-      const flame = soul?.flame_stage ?? 'spark';
+      const studentName = sanitize(student?.full_name ?? 'A student');
+      const level = sanitize(soul?.academic_level ?? 'student');
+      const institution = sanitize(student?.institution_name ?? '');
+      const city = sanitize(student?.city ?? '');
+      const subjects = Array.isArray(soul?.enrolled_subjects)
+        ? (soul.enrolled_subjects as string[]).slice(0, 3).map(s => sanitize(String(s))).join(', ')
+        : '';
+      const flame = sanitize(soul?.flame_stage ?? 'spark');
+      const sessionTitle = sanitize(liveSess?.title ?? 'your live session');
 
-      const body = `<strong>${studentName}</strong> just booked a seat for <strong>${liveSess?.title ?? 'your live session'}</strong>!<br><br>` +
+      const emailBody = `<strong>${studentName}</strong> just booked a seat for <strong>${sessionTitle}</strong>!<br><br>` +
         `They are a <strong>${level}</strong>${institution ? ` at ${institution}` : ''}${city ? `, ${city}` : ''}.<br>` +
         `${subjects ? `Studying: ${subjects}<br>` : ''}` +
         `Flame stage: ${flame}<br><br>` +
@@ -239,7 +288,7 @@ Deno.serve(async (req) => {
       // Send email to faculty
       const { data: facProfile } = await admin.from('profiles').select('email, full_name').eq('id', facultyId ?? '').single();
       if (facProfile?.email && RESEND_API_KEY) {
-        await sendEmail(facProfile.email, `New booking: ${studentName} joined your live session`, body);
+        await sendEmail(facProfile.email, `New booking: ${studentName} joined your live session`, emailBody);
       }
 
       return new Response(JSON.stringify({ success: true }), { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });

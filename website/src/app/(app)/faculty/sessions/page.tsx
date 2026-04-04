@@ -56,22 +56,27 @@ export default function FacultySessionsPage() {
   async function handleAction(sessionId: string, action: 'accept' | 'decline', slot?: string) {
     setActionLoading(sessionId);
     const supabase = createClient();
-    if (action === 'accept') {
-      await supabase.from('faculty_sessions').update({
-        status: 'accepted',
-        confirmed_slot: slot ?? null,
-        updated_at: new Date().toISOString(),
-      }).eq('id', sessionId);
-    } else {
-      await supabase.from('faculty_sessions').update({
-        status: 'declined',
-        faculty_declined_reason: 'Faculty declined',
-        updated_at: new Date().toISOString(),
-      }).eq('id', sessionId);
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token ?? '';
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/session-request`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action, sessionId, slot: slot ?? null }),
+      }
+    );
+
+    if (res.ok) {
+      setSessions((prev) => prev.map((s) =>
+        s.id === sessionId ? { ...s, status: action === 'accept' ? 'accepted' : 'declined', confirmed_slot: slot ?? null } : s
+      ));
     }
-    setSessions((prev) => prev.map((s) =>
-      s.id === sessionId ? { ...s, status: action === 'accept' ? 'accepted' : 'declined', confirmed_slot: slot ?? null } : s
-    ));
     setActionLoading(null);
   }
 

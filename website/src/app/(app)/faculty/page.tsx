@@ -113,6 +113,13 @@ export default function FacultyPage() {
   const [upiSaving, setUpiSaving] = useState(false);
   const [upiToast, setUpiToast] = useState<string | null>(null);
 
+  // Role guard — faculty only
+  useEffect(() => {
+    if (profile && profile.role !== 'faculty') {
+      router.replace('/chat');
+    }
+  }, [profile, router]);
+
   // Load faculty profile
   useEffect(() => {
     if (!profile) return;

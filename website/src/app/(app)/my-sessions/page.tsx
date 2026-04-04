@@ -135,7 +135,7 @@ export default function MySessionsPage() {
     setConfirming(sessionId);
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
-    await fetch(
+    const res = await fetch(
       `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/session-request`,
       {
         method: 'POST',
@@ -147,9 +147,11 @@ export default function MySessionsPage() {
         body: JSON.stringify({ action: 'confirm', sessionId }),
       }
     );
-    setSessions((prev) => prev.map((s) =>
-      s.id === sessionId ? { ...s, status: 'completed', student_confirmed_at: new Date().toISOString() } : s
-    ));
+    if (res.ok) {
+      setSessions((prev) => prev.map((s) =>
+        s.id === sessionId ? { ...s, status: 'completed', student_confirmed_at: new Date().toISOString() } : s
+      ));
+    }
     setConfirming(null);
   }
 

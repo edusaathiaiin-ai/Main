@@ -199,6 +199,13 @@ export default function InstitutionPage() {
   const totalApplicants = listings.reduce((s, l) => s + l.total_applicants, 0);
   const activeListings = listings.filter((l) => l.status === 'active').length;
 
+  // Role guard — institution only
+  useEffect(() => {
+    if (profile && profile.role !== 'institution') {
+      router.replace('/chat');
+    }
+  }, [profile, router]);
+
   useEffect(() => {
     if (!profile) return;
     const supabase = createClient();

@@ -9,6 +9,7 @@
  */
 
 import { SUSPENSION_THRESHOLDS } from './violations.ts';
+import { sanitize } from './validate.ts';
 
 // deno-lint-ignore no-explicit-any
 type AdminClient = any;
@@ -123,7 +124,7 @@ export async function recordViolationAndCheck(
     .from('moderation_flags')
     .select('*', { count: 'exact', head: true })
     .eq('reporter_user_id', userId)
-    .eq('target_type', violationType)
+    .eq('violation_type', violationType)
     .gte('created_at', since.toISOString());
 
   const violationCount = (count ?? 0) + 1; // +1 for the one we just inserted
@@ -212,7 +213,8 @@ async function sendSuspensionEmail(
   const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
   if (!RESEND_API_KEY) return;
 
-  const firstName = name.split(' ')[0];
+  const firstName = sanitize(name.split(' ')[0]);
+  const safeReason = sanitize(reason);
   const untilFormatted = until.toLocaleString('en-IN', {
     timeZone: 'Asia/Kolkata',
     dateStyle: 'medium',
@@ -235,7 +237,7 @@ async function sendSuspensionEmail(
   <p style="color:rgba(255,255,255,0.7);line-height:1.7;margin:0 0 16px">Your EdUsaathiAI account has been temporarily suspended due to a violation of our <a href="https://www.edusaathiai.in/terms" style="color:#C9993A">Terms of Service</a>.</p>
   <div style="background:rgba(239,68,68,0.1);border:0.5px solid rgba(239,68,68,0.3);border-radius:10px;padding:16px;margin:0 0 20px">
     <p style="color:#F87171;font-size:13px;margin:0 0 6px;font-weight:600">Reason:</p>
-    <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0">${reason}</p>
+    <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0">${safeReason}</p>
     <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:8px 0 0">Suspended until: <strong style="color:#fff">${untilFormatted} IST</strong></p>
   </div>
   <p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.7;margin:0 0 20px">Your account will be automatically restored after the suspension period. During this time, you can still access your profile, news, and board.</p>
@@ -259,6 +261,9 @@ async function notifyAdmin(
   const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
   if (!RESEND_API_KEY) return;
 
+  const safeName = sanitize(name);
+  const safeEmail = sanitize(email);
+
   await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -268,10 +273,10 @@ async function notifyAdmin(
     body: JSON.stringify({
       from: 'EdUsaathiAI System <support@edusaathiai.in>',
       to: ['jaydeep@edusaathiai.in'],
-      subject: `\u{26A0}\u{FE0F} User auto-suspended: ${name}`,
+      subject: `\u{26A0}\u{FE0F} User auto-suspended: ${safeName}`,
       html: `<div style="font-family:monospace;padding:20px;background:#1a1a2e;color:#e0e0e0">
   <h3 style="color:#F87171;margin:0 0 16px">Auto-suspension triggered</h3>
-  <p>User: <strong>${name}</strong> (${email})</p>
+  <p>User: <strong>${safeName}</strong> (${safeEmail})</p>
   <p>User ID: <code>${userId}</code></p>
   <p>Violation: <strong>${violationType}</strong> (severity: ${severity})</p>
   <p>Count in 24h: <strong>${count}</strong></p>

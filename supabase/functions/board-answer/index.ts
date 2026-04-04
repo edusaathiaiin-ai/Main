@@ -11,7 +11,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { captureError } from '../_shared/sentry.ts';
 import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
-import { isUUID, isSaathiSlug } from '../_shared/validate.ts';
+import { isUUID, isSaathiSlug, sanitize } from '../_shared/validate.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -92,6 +92,9 @@ async function sendAnswerEmail(
   actionUrl: string,
   color: string,
 ) {
+  const safeFirstName = sanitize(firstName);
+  const safeName = sanitize(name);
+  const safeQuestion = sanitize(questionText.slice(0, 120)) + (questionText.length > 120 ? '...' : '');
   await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -101,17 +104,17 @@ async function sendAnswerEmail(
     body: JSON.stringify({
       from: 'EdUsaathiAI <noreply@edusaathiai.in>',
       to: [email],
-      subject: `Your question was answered — ${name}`,
+      subject: `Your question was answered — ${safeName}`,
       html: `
 <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#0B1F3A;color:#fff;padding:36px;border-radius:16px">
-  <p style="font-size:13px;color:rgba(255,255,255,0.5);margin:0 0 20px">Hello ${firstName},</p>
+  <p style="font-size:13px;color:rgba(255,255,255,0.5);margin:0 0 20px">Hello ${safeFirstName},</p>
   <h2 style="font-family:Georgia,serif;font-size:22px;color:#fff;margin:0 0 6px">Your question was answered ✓</h2>
   <p style="font-size:13px;color:rgba(255,255,255,0.5);margin:0 0 20px">
-    ${name} has responded to your Community Board question.
+    ${safeName} has responded to your Community Board question.
   </p>
   <div style="background:rgba(255,255,255,0.05);border-left:3px solid ${color};border-radius:8px;padding:14px 16px;margin:0 0 24px">
     <p style="font-size:13px;color:rgba(255,255,255,0.7);margin:0;font-style:italic;line-height:1.6">
-      "${questionText.slice(0, 120)}${questionText.length > 120 ? '...' : ''}"
+      "${safeQuestion}"
     </p>
   </div>
   <a href="${APP_URL}${actionUrl}"

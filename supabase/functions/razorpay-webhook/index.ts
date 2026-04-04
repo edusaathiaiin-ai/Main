@@ -17,6 +17,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { captureError, captureEvent } from '../_shared/sentry.ts';
+import { sanitize } from '../_shared/validate.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -101,9 +102,10 @@ async function sendUpgradeEmail(
   const renewalDate = new Date(expiresAt).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'long', year: 'numeric',
   });
+  const safeEmail = sanitize(email);
 
   try {
-    console.log(`razorpay-webhook: sending upgrade email to ${email}, from=${RESEND_FROM_EMAIL}, key_len=${RESEND_API_KEY.length}`);
+    console.log(`razorpay-webhook: sending upgrade email, key_len=${RESEND_API_KEY.length}`);
     const emailRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -131,7 +133,7 @@ async function sendUpgradeEmail(
               Start learning →
             </a>
             <p style="font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:24px;line-height:1.6">
-              This email was sent to ${email}<br>
+              This email was sent to ${safeEmail}<br>
               because you made a purchase on EdUsaathiAI.<br>
               <strong style="color:rgba(255,255,255,0.5)">If this is in spam — please mark "Not spam" to receive future emails.</strong>
             </p>
@@ -374,8 +376,12 @@ async function handleSubscriptionCancelled(
     raw_webhook: rawPayload,
   }).eq('id', sub.id);
 
+  // Downgrade to free immediately — soul data is preserved
   await admin.from('profiles').update({
     subscription_status: 'cancelled',
+    plan_id: 'free',
+    subscription_expires_at: null,
+    razorpay_subscription_id: null,
   }).eq('id', sub.user_id);
 }
 

@@ -1417,7 +1417,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: profile, error: profileError } = await admin
       .from('profiles')
-      .select('role, is_geo_limited, plan_id, subscription_status, created_at, primary_saathi_id')
+      .select('role, is_geo_limited, plan_id, subscription_status, subscription_expires_at, created_at, primary_saathi_id')
       .eq('id', userId)
       .maybeSingle();
 
@@ -1431,9 +1431,11 @@ Deno.serve(async (req: Request) => {
     const role = typeof profile?.role === 'string' ? profile.role : null;
     const isGeoLimited = Boolean(profile?.is_geo_limited);
     const rawPlanId = typeof profile?.plan_id === 'string' ? profile.plan_id : 'free';
-    // Paused users get free-tier limits
+    // Paused users or users with an expired subscription get free-tier limits
     const isPaused = profile?.subscription_status === 'paused';
-    const effectivePlanId = isPaused ? 'free' : rawPlanId;
+    const expiresAt = typeof profile?.subscription_expires_at === 'string' ? new Date(profile.subscription_expires_at) : null;
+    const isExpired = expiresAt !== null && expiresAt < new Date();
+    const effectivePlanId = (isPaused || isExpired) ? 'free' : rawPlanId;
     const profileCreatedAt = typeof profile?.created_at === 'string' ? profile.created_at : null;
     const planQuota = getPlanQuota(effectivePlanId, profileCreatedAt);
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
@@ -24,6 +25,7 @@ type LectureInput = { title: string; date: string; duration: number };
 
 export default function CreateLiveSessionPage() {
   const { profile } = useAuthStore();
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Intent pre-fill from demand dashboard
@@ -35,6 +37,13 @@ export default function CreateLiveSessionPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [prepNotes, setPrepNotes] = useState('');
+
+  // Role guard — faculty only
+  useEffect(() => {
+    if (profile && profile.role !== 'faculty') {
+      router.replace('/chat');
+    }
+  }, [profile, router]);
 
   // Pre-fill title from intent topic on mount
   useEffect(() => {
