@@ -12,6 +12,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
 import { isUUID, isOneOf } from '../_shared/validate.ts';
+import { corsHeaders } from '../_shared/cors.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -47,10 +48,6 @@ if (RAZORPAY_KEY_ID && RAZORPAY_KEY_ID.startsWith(KEY_PREFIX_FORBIDDEN)) {
   );
 }
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 // Plan definitions (INR, in paise for Razorpay)
 const PLAN_AMOUNTS: Record<string, { amountInr: number; label: string }> = {
@@ -104,6 +101,7 @@ async function createRazorpayOrder(params: {
 }
 
 Deno.serve(async (req: Request) => {
+  const CORS_HEADERS = corsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS_HEADERS });
   }

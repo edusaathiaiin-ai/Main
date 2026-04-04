@@ -9,6 +9,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { corsHeaders } from '../_shared/cors.ts';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -16,17 +17,6 @@ const RAZORPAY_KEY_ID           = Deno.env.get('RAZORPAY_KEY_ID') ?? '';
 const RAZORPAY_KEY_SECRET       = Deno.env.get('RAZORPAY_KEY_SECRET') ?? '';
 const CRON_SECRET               = Deno.env.get('CRON_SECRET') ?? '';
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-cron-secret, content-type, apikey',
-};
-
-function json(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...CORS },
-  });
-}
 
 type ProfileRow = {
   id: string;
@@ -75,6 +65,13 @@ async function resumeUser(admin: ReturnType<typeof createClient>, userId: string
 }
 
 Deno.serve(async (req: Request) => {
+  const CORS = corsHeaders(req);
+  function json(data: unknown, status = 200): Response {
+    return new Response(JSON.stringify(data), {
+      status,
+      headers: { 'Content-Type': 'application/json', ...CORS },
+    });
+  }
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: CORS });
   }

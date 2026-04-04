@@ -12,23 +12,13 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { corsHeaders } from '../_shared/cors.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-  });
-}
 
 function getTodayIST(): string {
   const now = new Date();
@@ -123,6 +113,13 @@ correct_option is the 0-based index of the correct option (0=A, 1=B, 2=C, 3=D).`
 }
 
 Deno.serve(async (req: Request) => {
+  const CORS_HEADERS = corsHeaders(req);
+  function json(data: unknown, status = 200) {
+    return new Response(JSON.stringify(data), {
+      status,
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    });
+  }
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
 
   // Auth

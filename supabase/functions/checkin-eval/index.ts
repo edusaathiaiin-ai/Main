@@ -14,15 +14,12 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { corsHeaders } from '../_shared/cors.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 const MAX_ANSWER_LENGTH = 2000;
 const MAX_QUESTION_LENGTH = 500;
@@ -118,6 +115,7 @@ async function callClaude(systemPrompt: string, userPrompt: string): Promise<Eva
 }
 
 Deno.serve(async (req: Request) => {
+  const CORS_HEADERS = corsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS_HEADERS });
   }

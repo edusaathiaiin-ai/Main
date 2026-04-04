@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
 import { isOneOf } from '../_shared/validate.ts';
+import { corsHeaders } from '../_shared/cors.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -18,10 +19,6 @@ const BLOCKED_DOMAINS = [
   'trashmail.com',
 ];
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 type RequestBody = {
   action?: 'precheck' | 'register_profile';
@@ -92,6 +89,7 @@ async function deviceExists(admin: ReturnType<typeof createClient>, deviceId: st
 }
 
 Deno.serve(async (req: Request) => {
+  const CORS_HEADERS = corsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS_HEADERS });
   }

@@ -17,6 +17,7 @@ import {
 import { detectViolation as detectViolationNew } from '../_shared/violations.ts';
 import { checkSuspension, recordViolationAndCheck } from '../_shared/suspensions.ts';
 import { captureError, captureEvent } from '../_shared/sentry.ts';
+import { corsHeaders } from '../_shared/cors.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -115,10 +116,6 @@ const GROQ_MODEL   = 'llama-3.3-70b-versatile';   // Groq primary
 const GROK_MODEL   = 'grok-3-fast';                // xAI fallback
 // ─────────────────────────────────────────────────────────────────────────────
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 // ---------------------------------------------------------------------------
 // IST date helper
@@ -1364,6 +1361,7 @@ async function streamGeminiWithFallback(
 // ---------------------------------------------------------------------------
 
 Deno.serve(async (req: Request) => {
+  const CORS_HEADERS = corsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS_HEADERS });
   }

@@ -12,6 +12,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { captureError } from '../_shared/sentry.ts';
 import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
 import { isUUID, isSaathiSlug } from '../_shared/validate.ts';
+import { corsHeaders } from '../_shared/cors.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -19,11 +20,6 @@ const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
 const APP_URL = 'https://www.edusaathiai.in';
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
 
 // Human-readable Saathi name from slug
 function saathiName(slug: string): string {
@@ -132,6 +128,7 @@ async function sendAnswerEmail(
 }
 
 Deno.serve(async (req) => {
+  const CORS_HEADERS = corsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS });
   }
