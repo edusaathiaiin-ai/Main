@@ -66,7 +66,7 @@ function LoginForm() {
       },
     });
     if (oauthError) {
-      setError(oauthError.message);
+      setError('Google sign-in failed. Please try again.');
       setGoogleLoading(false);
     }
     // On success browser redirects — no code needed
