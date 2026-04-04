@@ -19,6 +19,7 @@ type Props = {
   onLockedTap: (botName: string) => void;
   onSignOut: () => void;
   sessionCount?: number;
+  isLegalTheme?: boolean;
 };
 
 const UPGRADE_MESSAGES = [
@@ -82,7 +83,14 @@ export function Sidebar({
   onLockedTap,
   onSignOut,
   sessionCount = 0,
+  isLegalTheme = false,
 }: Props) {
+  // Legal theme colour helpers
+  const lBg      = '#FAFAFA';
+  const lBorder  = '1px solid #E8E8E8';
+  const lText    = '#1A1A1A';
+  const lMuted   = '#888888';
+  const lHover   = '#F0F0F0';
   const pathname = usePathname();
   const [bookmarkCount, setBookmarkCount] = useState(0);
 
@@ -100,29 +108,33 @@ export function Sidebar({
     <aside
       className="hidden md:flex flex-col w-[280px] shrink-0 h-full overflow-hidden"
       style={{
-        background: '#060F1D',
-        borderRight: '0.5px solid rgba(255,255,255,0.07)',
+        background: isLegalTheme ? lBg : '#060F1D',
+        borderRight: isLegalTheme ? lBorder : '0.5px solid rgba(255,255,255,0.07)',
+        transition: 'background 0.4s ease',
       }}
     >
       {/* Logo */}
-      <div className="px-5 pt-5 pb-4" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
+      <div className="px-5 pt-5 pb-4" style={{ borderBottom: isLegalTheme ? '0.5px solid #E8E8E8' : '0.5px solid rgba(255,255,255,0.06)' }}>
         <Link href="/chat">
-          <h1 className="font-playfair text-xl font-bold text-white">
+          <h1 className="font-playfair text-xl font-bold" style={{ color: isLegalTheme ? lText : '#ffffff' }}>
             EdU<span style={{ color: '#C9993A' }}>saathi</span>AI
           </h1>
         </Link>
       </div>
 
       {/* Active Saathi card */}
-      <div className="px-3 py-3" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
+      <div className="px-3 py-3" style={{ borderBottom: isLegalTheme ? '0.5px solid #E8E8E8' : '0.5px solid rgba(255,255,255,0.06)' }}>
         <div
           className="rounded-xl px-4 py-3 flex items-center gap-3"
-          style={{ background: `${activeSaathi.primary}18`, border: `0.5px solid ${activeSaathi.primary}33` }}
+          style={{
+            background: isLegalTheme ? '#F0F0F0' : `${activeSaathi.primary}18`,
+            border: isLegalTheme ? '0.5px solid #D8D8D8' : `0.5px solid ${activeSaathi.primary}33`,
+          }}
         >
           <span className="text-2xl">{activeSaathi.emoji}</span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-white truncate">{activeSaathi.name}</p>
-            <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-sm font-semibold truncate" style={{ color: isLegalTheme ? lText : '#ffffff' }}>{activeSaathi.name}</p>
+            <p className="text-[10px] truncate" style={{ color: isLegalTheme ? lMuted : 'rgba(255,255,255,0.4)' }}>
               {activeSaathi.tagline}
             </p>
           </div>
@@ -130,7 +142,7 @@ export function Sidebar({
       </div>
 
       {/* Bot selector */}
-      <div className="py-3" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
+      <div className="py-3" style={{ borderBottom: isLegalTheme ? '0.5px solid #E8E8E8' : '0.5px solid rgba(255,255,255,0.06)' }}>
         <BotSelector
           activeSlot={activeSlot}
           userRole={profile.role}
@@ -143,7 +155,7 @@ export function Sidebar({
       </div>
 
       {/* Quota indicator */}
-      <div className="px-5 py-3" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
+      <div className="px-5 py-3" style={{ borderBottom: isLegalTheme ? '0.5px solid #E8E8E8' : '0.5px solid rgba(255,255,255,0.06)' }}>
         {quota.isCooling ? (
           <p className="text-xs font-medium" style={{ color: '#F59E0B' }}>
             ☕ Cooling — chats resume soon
@@ -151,18 +163,18 @@ export function Sidebar({
         ) : (
           <>
             <div className="flex justify-between items-center mb-1.5">
-              <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: isLegalTheme ? lMuted : 'rgba(255,255,255,0.3)' }}>
                 Daily quota
               </span>
-              <span className="text-xs font-semibold" style={{ color: quota.remaining <= 3 ? '#FD8C4E' : 'rgba(255,255,255,0.5)' }}>
+              <span className="text-xs font-semibold" style={{ color: quota.remaining <= 3 ? '#FD8C4E' : (isLegalTheme ? '#555555' : 'rgba(255,255,255,0.5)') }}>
                 {quota.remaining} / {quota.limit}
               </span>
             </div>
-            <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: isLegalTheme ? '#E0E0E0' : 'rgba(255,255,255,0.08)' }}>
               <motion.div
                 className="h-full rounded-full"
                 animate={{ width: `${(quota.remaining / quota.limit) * 100}%` }}
-                style={{ background: quota.remaining <= 3 ? '#F59E0B' : activeSaathi.primary }}
+                style={{ background: quota.remaining <= 3 ? '#F59E0B' : (isLegalTheme ? '#1A1A1A' : activeSaathi.primary) }}
                 transition={{ duration: 0.5 }}
               />
             </div>
@@ -180,13 +192,19 @@ export function Sidebar({
               href={link.href}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-0.5 text-sm transition-all duration-150"
               style={{
-                background: active ? `${activeSaathi.primary}18` : 'transparent',
-                color: active ? '#fff' : 'rgba(255,255,255,0.45)',
+                background: active
+                  ? (isLegalTheme ? '#1A1A1A' : `${activeSaathi.primary}18`)
+                  : 'transparent',
+                color: active
+                  ? (isLegalTheme ? '#FFFFFF' : '#fff')
+                  : (isLegalTheme ? '#444444' : 'rgba(255,255,255,0.45)'),
                 pointerEvents: 'auto',
                 position: 'relative',
                 zIndex: 10,
                 cursor: 'pointer',
               }}
+              onMouseEnter={(e) => { if (!active && isLegalTheme) e.currentTarget.style.background = lHover; }}
+              onMouseLeave={(e) => { if (!active && isLegalTheme) e.currentTarget.style.background = 'transparent'; }}
             >
               <span className="text-base w-5 text-center">{link.icon}</span>
               {link.label}
@@ -440,19 +458,19 @@ export function Sidebar({
 
 
       {/* User footer */}
-      <div className="px-4 py-4" style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
+      <div className="px-4 py-4" style={{ borderTop: isLegalTheme ? '0.5px solid #E8E8E8' : '0.5px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-3 mb-3">
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-            style={{ background: activeSaathi.primary, color: '#060F1D' }}
+            style={{ background: isLegalTheme ? '#1A1A1A' : activeSaathi.primary, color: isLegalTheme ? '#FFFFFF' : '#060F1D' }}
           >
             {(profile.full_name ?? profile.email ?? 'U')[0].toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-white truncate">
+            <p className="text-xs font-semibold truncate" style={{ color: isLegalTheme ? lText : '#ffffff' }}>
               {profile.full_name ?? 'User'}
             </p>
-            <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            <p className="text-[10px] truncate" style={{ color: isLegalTheme ? lMuted : 'rgba(255,255,255,0.3)' }}>
               {profile.plan_id} plan
               {sessionCount >= 3 && (
                 <span style={{ marginLeft: '6px' }}>
@@ -465,9 +483,12 @@ export function Sidebar({
         <button
           onClick={onSignOut}
           className="w-full text-xs py-2 rounded-lg text-center transition-colors duration-150"
-          style={{ color: 'rgba(255,255,255,0.25)', border: '0.5px solid rgba(255,255,255,0.07)' }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.25)')}
+          style={{
+            color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.25)',
+            border: isLegalTheme ? '0.5px solid #D0D0D0' : '0.5px solid rgba(255,255,255,0.07)',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = isLegalTheme ? '#555555' : 'rgba(255,255,255,0.5)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.25)')}
         >
           Sign out
         </button>

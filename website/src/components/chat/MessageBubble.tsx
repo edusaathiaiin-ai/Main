@@ -506,6 +506,7 @@ type Props = {
   showBotLabel?: boolean;
   onFlag?: (messageId: string) => void;
   primaryColor?: string;
+  isLegalTheme?: boolean;
 };
 
 function formatTime(iso: string): string {
@@ -551,6 +552,7 @@ export function MessageBubble({
   showBotLabel,
   onFlag,
   primaryColor = '#C9993A',
+  isLegalTheme = false,
 }: Props) {
   const [hovered, setHovered] = useState(false);
   const [showSave, setShowSave] = useState(false);
@@ -568,7 +570,7 @@ export function MessageBubble({
     <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} gap-1 mb-3`}>
       {/* Bot label */}
       {!isUser && showBotLabel && botName && (
-        <span className="text-[11px] font-medium ml-1 mb-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+        <span className="text-[11px] font-medium ml-1 mb-0.5" style={{ color: 'var(--text-muted, rgba(255,255,255,0.35))' }}>
           {botName}
         </span>
       )}
@@ -596,10 +598,14 @@ export function MessageBubble({
               : {
                   background: 'var(--bg-message, #0F2847)',
                   color: 'var(--text-primary, #fff)',
-                  borderRadius: '4px 18px 18px 18px',
-                  fontFamily: 'var(--font-dm-sans)',
+                  borderRadius: isLegalTheme ? '12px' : '4px 18px 18px 18px',
+                  fontFamily: isLegalTheme ? '"Georgia", "Times New Roman", serif' : 'var(--font-dm-sans)',
+                  fontSize: isLegalTheme ? '14px' : undefined,
+                  lineHeight: isLegalTheme ? 1.8 : undefined,
                   maxWidth: '75%',
-                  border: '0.5px solid var(--border, rgba(255,255,255,0.07))',
+                  border: isLegalTheme
+                    ? '0.5px solid #E0E0E0'
+                    : '0.5px solid var(--border, rgba(255,255,255,0.07))',
                   transition: 'background 0.4s ease, border-color 0.3s ease',
                 }
           }

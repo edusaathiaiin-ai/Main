@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { resolveVerticalId } from '@/lib/resolveVertical';
 import { useAuthStore } from '@/stores/authStore';
 import { useChatStore } from '@/stores/chatStore';
+import { useThemeStore } from '@/stores/themeStore';
 import { SAATHIS } from '@/constants/saathis';
 import { toSlug } from '@/constants/verticalIds';
 import { getPlanTier } from '@/constants/plans';
@@ -55,10 +56,12 @@ const DEFAULT_QUOTA: QuotaState = { limit: 5, used: 0, remaining: 5, coolingUnti
 export function QuestionFeed() {
   const { profile } = useAuthStore();
   const { activeSaathiId, activeBotSlot, setActiveBotSlot } = useChatStore();
+  const { mode } = useThemeStore();
   const searchParams = useSearchParams();
 
   const saathiSlug = toSlug(activeSaathiId) ?? toSlug(profile?.primary_saathi_id) ?? SAATHIS[0].id;
   const activeSaathi: Saathi = SAATHIS.find((s) => s.id === saathiSlug) ?? SAATHIS[0];
+  const isLegalTheme = activeSaathi.theme === 'legal' && mode === 'light';
 
   const [verticalUuid, setVerticalUuid] = useState<string | null>(null);
   const [questions, setQuestions] = useState<QWithMeta[]>([]);
@@ -182,7 +185,7 @@ export function QuestionFeed() {
   const hasMore = questions.length < totalCount;
 
   return (
-    <div className="flex h-screen overflow-hidden w-full" style={{ background: '#060F1D' }}>
+    <div className="flex h-screen overflow-hidden w-full" style={{ background: isLegalTheme ? '#FFFFFF' : '#060F1D' }}>
       {/* App Sidebar */}
       <Sidebar
         profile={profile!}
@@ -191,6 +194,7 @@ export function QuestionFeed() {
         quota={DEFAULT_QUOTA}
         onSlotChange={(slot) => setActiveBotSlot(slot)}
         onLockedTap={() => {}}
+        isLegalTheme={isLegalTheme}
         onSignOut={async () => {
           const supabase = createClient();
           await supabase.auth.signOut();
@@ -223,10 +227,10 @@ export function QuestionFeed() {
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h1 className="font-playfair text-2xl font-bold text-white mb-1">
+                <h1 className="font-playfair text-2xl font-bold mb-1" style={{ color: isLegalTheme ? '#1A1A1A' : '#ffffff' }}>
                   {activeSaathi.name} Community
                 </h1>
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <p className="text-sm" style={{ color: isLegalTheme ? '#888888' : 'rgba(255,255,255,0.4)' }}>
                   {totalCount > 0 ? `${totalCount} questions` : 'Ask anything'}
                 </p>
               </div>
@@ -255,7 +259,7 @@ export function QuestionFeed() {
                 <span className="text-5xl mb-4">{activeSaathi.emoji}</span>
                 {filter === 'mine' ? (
                   <>
-                    <p className="font-playfair text-lg text-white/50 mb-4">
+                    <p className="font-playfair text-lg mb-4" style={{ color: isLegalTheme ? '#888888' : 'rgba(255,255,255,0.5)' }}>
                       You haven&apos;t asked any questions yet.
                     </p>
                     {canPost && (
@@ -270,7 +274,7 @@ export function QuestionFeed() {
                   </>
                 ) : filter === 'all' ? (
                   <>
-                    <p className="font-playfair text-lg text-white/50 mb-4">
+                    <p className="font-playfair text-lg mb-4" style={{ color: isLegalTheme ? '#888888' : 'rgba(255,255,255,0.5)' }}>
                       Be the first to ask a question in {activeSaathi.name}!
                     </p>
                     {canPost && (
@@ -285,7 +289,7 @@ export function QuestionFeed() {
                   </>
                 ) : (
                   <>
-                    <p className="font-playfair text-lg text-white/50 mb-2">
+                    <p className="font-playfair text-lg mb-2" style={{ color: isLegalTheme ? '#888888' : 'rgba(255,255,255,0.5)' }}>
                       No questions match this filter
                     </p>
                     <button
@@ -306,6 +310,7 @@ export function QuestionFeed() {
                       question={q}
                       currentUserId={profile?.id}
                       primaryColor={activeSaathi.primary}
+                      isLegalTheme={isLegalTheme}
                     />
                     {/* Upgrade nudge after 3rd question — free plan only */}
                     {idx === 2 && getPlanTier(profile?.plan_id) === 'free' && !boardNudgeDismissed && (
@@ -350,7 +355,7 @@ export function QuestionFeed() {
 
                 {/* Pagination */}
                 <div className="flex flex-col items-center gap-2 py-6">
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  <p className="text-xs" style={{ color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)' }}>
                     Showing {questions.length} of {totalCount} questions
                   </p>
                   {hasMore && (
@@ -359,9 +364,9 @@ export function QuestionFeed() {
                       disabled={loadingMore}
                       className="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
                       style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '0.5px solid rgba(255,255,255,0.1)',
-                        color: 'rgba(255,255,255,0.6)',
+                        background: isLegalTheme ? '#F5F5F5' : 'rgba(255,255,255,0.05)',
+                        border: isLegalTheme ? '0.5px solid #D0D0D0' : '0.5px solid rgba(255,255,255,0.1)',
+                        color: isLegalTheme ? '#1A1A1A' : 'rgba(255,255,255,0.6)',
                       }}
                     >
                       {loadingMore ? 'Loading...' : 'Load more questions'}

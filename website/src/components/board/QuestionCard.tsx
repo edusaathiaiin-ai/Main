@@ -43,9 +43,10 @@ type Props = {
   question: QuestionWithMeta;
   currentUserId?: string;
   primaryColor: string;
+  isLegalTheme?: boolean;
 };
 
-export function QuestionCard({ question, currentUserId, primaryColor }: Props) {
+export function QuestionCard({ question, currentUserId, primaryColor, isLegalTheme = false }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [flagged, setFlagged] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -84,8 +85,10 @@ export function QuestionCard({ question, currentUserId, primaryColor }: Props) {
       transition={{ duration: 0.15 }}
       className="relative rounded-2xl p-5 mb-3 transition-all duration-200"
       style={{
-        background: '#0A1929',
-        border: `0.5px solid ${hovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
+        background: isLegalTheme ? '#FFFFFF' : '#0A1929',
+        border: isLegalTheme
+          ? `1px solid ${hovered ? '#BBBBBB' : '#E0E0E0'}`
+          : `0.5px solid ${hovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
       }}
     >
       {/* Author row */}
@@ -99,14 +102,28 @@ export function QuestionCard({ question, currentUserId, primaryColor }: Props) {
           </div>
           <div>
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs font-semibold text-white">
+              <span className="text-xs font-semibold" style={{ color: isLegalTheme ? '#1A1A1A' : '#ffffff' }}>
                 {question.is_anonymous ? 'Anonymous Student' : (question.authorName ?? 'Student')}
               </span>
-              {isOwn && <Badge variant="mine">Your question</Badge>}
+              {isOwn && (
+                <span
+                  className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full"
+                  style={isLegalTheme
+                    ? { background: '#F0F0F0', border: '0.5px solid #D0D0D0', color: '#555555' }
+                    : { background: 'rgba(201,153,58,0.12)', border: '0.5px solid rgba(201,153,58,0.3)', color: '#C9993A' }
+                  }
+                >
+                  Your question
+                </span>
+              )}
               {question.authorRole === 'faculty' && <Badge variant="green">✓ Faculty</Badge>}
-              {question.facultyVerified && <Badge variant="green">✓ Verified</Badge>}
+              {question.facultyVerified && (
+                isLegalTheme
+                  ? <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#1A1A1A', color: '#FFFFFF', border: '0.5px solid #1A1A1A' }}>Faculty Verified ✓</span>
+                  : <Badge variant="green">✓ Verified</Badge>
+              )}
             </div>
-            <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            <p className="text-[10px]" style={{ color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)' }}>
               {timeAgo(question.created_at)}
             </p>
           </div>
@@ -116,7 +133,10 @@ export function QuestionCard({ question, currentUserId, primaryColor }: Props) {
         {question.tags?.[0] && (
           <span
             className="text-[10px] font-semibold px-2.5 py-1 rounded-full"
-            style={{ background: `${primaryColor}1a`, color: primaryColor }}
+            style={isLegalTheme
+              ? { background: '#F0F0F0', color: '#555555', border: '0.5px solid #D0D0D0' }
+              : { background: `${primaryColor}1a`, color: primaryColor }
+            }
           >
             {question.tags[0]}
           </span>
@@ -124,7 +144,7 @@ export function QuestionCard({ question, currentUserId, primaryColor }: Props) {
       </div>
 
       {/* Question title */}
-      <h3 className="font-playfair text-[17px] font-medium text-white mb-3 leading-snug">
+      <h3 className="font-playfair text-[17px] font-medium mb-3 leading-snug" style={{ color: isLegalTheme ? '#1A1A1A' : '#ffffff' }}>
         {question.title}
       </h3>
 
@@ -132,20 +152,20 @@ export function QuestionCard({ question, currentUserId, primaryColor }: Props) {
       {question.aiAnswer && (
         <div
           className="mb-3 pl-3 py-2 rounded-r-xl"
-          style={{
-            borderLeft: `2px solid ${primaryColor}66`,
-            background: `${primaryColor}09`,
-          }}
+          style={isLegalTheme
+            ? { borderLeft: '3px solid #1A1A1A', background: '#FFFEF5' }
+            : { borderLeft: `2px solid ${primaryColor}66`, background: `${primaryColor}09` }
+          }
         >
-          <p className="text-[11px] font-semibold mb-1" style={{ color: primaryColor }}>
+          <p className="text-[11px] font-semibold mb-1" style={{ color: isLegalTheme ? '#1A1A1A' : primaryColor }}>
             AI Answer ✦
           </p>
           <AnimatePresence initial={false}>
             <motion.p
-              className="text-xs text-white/60 leading-relaxed overflow-hidden"
+              className="text-xs leading-relaxed overflow-hidden"
+              style={{ color: isLegalTheme ? '#444444' : 'rgba(255,255,255,0.6)', maxHeight: expanded ? 500 : 60, overflow: 'hidden' }}
               animate={{ maxHeight: expanded ? 500 : 60 }}
               transition={{ duration: 0.3 }}
-              style={{ maxHeight: expanded ? 500 : 60, overflow: 'hidden' }}
             >
               {question.aiAnswer}
             </motion.p>
@@ -154,7 +174,7 @@ export function QuestionCard({ question, currentUserId, primaryColor }: Props) {
             <button
               onClick={() => setExpanded(!expanded)}
               className="text-[10px] font-semibold mt-1 transition-colors"
-              style={{ color: primaryColor }}
+              style={{ color: isLegalTheme ? '#1A1A1A' : primaryColor }}
             >
               {expanded ? 'Show less ↑' : 'Read more →'}
             </button>
@@ -166,7 +186,7 @@ export function QuestionCard({ question, currentUserId, primaryColor }: Props) {
       {isOwn && !hasAnswer && (
         <div className="mb-3 flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-          <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <span className="text-[10px]" style={{ color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.35)' }}>
             Awaiting AI answer…
           </span>
         </div>
@@ -175,7 +195,7 @@ export function QuestionCard({ question, currentUserId, primaryColor }: Props) {
       {/* Footer */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <span className="text-[11px]" style={{ color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)' }}>
             {question.answer_count ?? 0} {question.answer_count === 1 ? 'answer' : 'answers'}
           </span>
           {isOwn && hasAnswer && (
@@ -195,7 +215,7 @@ export function QuestionCard({ question, currentUserId, primaryColor }: Props) {
               onClick={handleFlag}
               className="text-xs px-2 py-1 rounded-lg transition-colors"
               style={{
-                color: flagged ? '#FCA5A5' : 'rgba(255,255,255,0.2)',
+                color: flagged ? '#FCA5A5' : (isLegalTheme ? '#BBBBBB' : 'rgba(255,255,255,0.2)'),
                 background: flagged ? 'rgba(239,68,68,0.1)' : 'transparent',
               }}
               title={flagged ? 'Flagged' : 'Flag this question'}

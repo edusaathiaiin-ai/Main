@@ -63,7 +63,7 @@ const RICH_FEATURE_SAATHIS: Record<string, { features: string[]; example: string
   econsaathi:         { features: ['📊 Economic processes become diagrams'], example: 'Try: "Show supply and demand flow"' },
 };
 
-function RichFeatureBanner({ saathiSlug }: { saathiSlug: string }) {
+function RichFeatureBanner({ saathiSlug, isLegalTheme }: { saathiSlug: string; isLegalTheme: boolean }) {
   const [dismissed, setDismissed] = useState(() => {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem('feature_banner_dismissed') === 'true';
@@ -81,8 +81,8 @@ function RichFeatureBanner({ saathiSlug }: { saathiSlug: string }) {
         margin: '0 16px 12px',
         padding: '12px 16px',
         borderRadius: '12px',
-        background: 'rgba(201,153,58,0.08)',
-        border: '0.5px solid rgba(201,153,58,0.25)',
+        background: isLegalTheme ? '#FFFEF5' : 'rgba(201,153,58,0.08)',
+        border: isLegalTheme ? '0.5px solid #E8E0C0' : '0.5px solid rgba(201,153,58,0.25)',
         display: 'flex',
         alignItems: 'flex-start',
         gap: '12px',
@@ -94,15 +94,15 @@ function RichFeatureBanner({ saathiSlug }: { saathiSlug: string }) {
           This Saathi has rich features
         </p>
         {features.features.map((f, i) => (
-          <p key={i} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', margin: '2px 0', fontFamily: 'var(--font-dm-sans)' }}>{f}</p>
+          <p key={i} style={{ fontSize: '12px', color: isLegalTheme ? '#555555' : 'rgba(255,255,255,0.6)', margin: '2px 0', fontFamily: 'var(--font-dm-sans)' }}>{f}</p>
         ))}
-        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '6px 0 0', fontStyle: 'italic', fontFamily: 'var(--font-dm-sans)' }}>
+        <p style={{ fontSize: '11px', color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.35)', margin: '6px 0 0', fontStyle: 'italic', fontFamily: 'var(--font-dm-sans)' }}>
           {features.example}
         </p>
       </div>
       <button
         onClick={() => { localStorage.setItem('feature_banner_dismissed', 'true'); setDismissed(true); }}
-        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', fontSize: '16px', padding: 0, flexShrink: 0 }}
+        style={{ background: 'none', border: 'none', color: isLegalTheme ? '#CCCCCC' : 'rgba(255,255,255,0.25)', cursor: 'pointer', fontSize: '16px', padding: 0, flexShrink: 0 }}
         aria-label="Dismiss"
       >
         ✕
@@ -128,7 +128,7 @@ export function ChatWindow() {
     commitStreamedMessage,
   } = useChatStore();
 
-  const { mode } = useThemeStore();
+  const { mode, setMode } = useThemeStore();
   const searchParams = useSearchParams();
 
   const [quota, setQuota] = useState<QuotaState>(DEFAULT_QUOTA);
@@ -154,6 +154,9 @@ export function ChatWindow() {
   const activeSaathi: Saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
   const activeBot = BOTS.find((b) => b.slot === activeBotSlot) ?? BOTS[0];
   const theme = getSaathiTheme(saathiId, mode);
+
+  // Legal theme = KanoonSaathi in day (light) mode
+  const isLegalTheme = activeSaathi.theme === 'legal' && mode === 'light';
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -238,17 +241,40 @@ export function ChatWindow() {
     }
   }, [quota, soulData, bannerDismissed, profile?.plan_id]);
 
-  // Init: set saathi + fetch quota + soul banner
+  // Init: set saathi + fetch quota + soul banner + apply per-saathi theme default
   useEffect(() => {
     if (!profile) return;
     const sid = profile.primary_saathi_id ?? '';       // UUID for DB queries
     const sidSlug = toSlug(sid) ?? SAATHIS[0].id;     // slug for chatStore / SAATHIS lookup
     setActiveSaathi(sidSlug);
 
+    // Per-saathi theme preference (stored in localStorage)
+    // Key: 'edusaathiai_saathi_themes' → JSON map of { slug: 'day' | 'night' }
+    // KanoonSaathi defaults to 'day'; all others default to 'night'
+    try {
+      const stored = JSON.parse(localStorage.getItem('edusaathiai_saathi_themes') ?? '{}') as Record<string, string>;
+      const saathi = SAATHIS.find((s) => s.id === sidSlug);
+      const defaultMode = saathi?.theme === 'legal' ? 'light' : 'dark';
+      const savedPref = stored[sidSlug];
+      if (savedPref === 'day') setMode('light');
+      else if (savedPref === 'night') setMode('dark');
+      else setMode(defaultMode);
+    } catch { /* localStorage unavailable — leave mode unchanged */ }
+
     fetchQuota(profile.id);
     fetchSoulBanner(profile.id, sid);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, setActiveSaathi]);
+
+  // Save per-saathi theme preference whenever mode changes
+  useEffect(() => {
+    if (!saathiId) return;
+    try {
+      const stored = JSON.parse(localStorage.getItem('edusaathiai_saathi_themes') ?? '{}') as Record<string, string>;
+      stored[saathiId] = mode === 'light' ? 'day' : 'night';
+      localStorage.setItem('edusaathiai_saathi_themes', JSON.stringify(stored));
+    } catch { /* localStorage unavailable */ }
+  }, [mode, saathiId]);
 
   async function fetchQuota(userId: string) {
     const supabase = createClient();
@@ -455,7 +481,7 @@ export function ChatWindow() {
         <Sidebar
           profile={profile} activeSaathi={activeSaathi} activeSlot={activeBotSlot}
           quota={quota} onSlotChange={(slot) => setActiveBotSlot(slot)}
-          onLockedTap={() => {}} onSignOut={async () => {
+          onLockedTap={() => {}} isLegalTheme={false} onSignOut={async () => {
             const s = createClient(); await s.auth.signOut();
             useAuthStore.getState().setProfile(null); sessionStorage.clear(); router.push('/login');
           }}
@@ -491,6 +517,7 @@ export function ChatWindow() {
         onLockedTap={handleLockedTap}
         onSignOut={handleSignOut}
         sessionCount={soulData?.sessionCount ?? 0}
+        isLegalTheme={isLegalTheme}
       />
 
       {/* Main chat area */}
@@ -500,6 +527,7 @@ export function ChatWindow() {
           saathi={activeSaathi}
           botName={activeBot.name}
           sessionCount={0}
+          isLegalTheme={isLegalTheme}
         />
 
         {/* Quota banner */}
@@ -514,18 +542,20 @@ export function ChatWindow() {
               exit={{ opacity: 0, height: 0 }}
               className="flex items-start justify-between px-5 py-3 text-sm"
               style={{
-                background: `${activeSaathi.primary}18`,
-                borderBottom: `0.5px solid ${activeSaathi.primary}22`,
+                background: isLegalTheme ? '#F5F5F5' : `${activeSaathi.primary}18`,
+                borderBottom: isLegalTheme ? '0.5px solid #E0E0E0' : `0.5px solid ${activeSaathi.primary}22`,
               }}
             >
-              <p style={{ color: 'rgba(255,255,255,0.6)' }}>
-                <span className="font-semibold text-white">Welcome back, {soulBanner.name}.</span>{' '}
+              <p style={{ color: isLegalTheme ? '#555555' : 'rgba(255,255,255,0.6)' }}>
+                <span style={{ fontWeight: 600, color: isLegalTheme ? '#1A1A1A' : '#ffffff' }}>
+                  Welcome back, {soulBanner.name}.
+                </span>{' '}
                 Last time we covered: {soulBanner.summary}
               </p>
               <button
                 onClick={() => setShowSoulBanner(false)}
                 className="ml-4 text-xs shrink-0"
-                style={{ color: 'rgba(255,255,255,0.3)' }}
+                style={{ color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)' }}
               >
                 ✕
               </button>
@@ -582,6 +612,7 @@ export function ChatWindow() {
                       botName={activeBot.name}
                       onFlag={handleFlag}
                       primaryColor={activeSaathi.primary}
+                      isLegalTheme={isLegalTheme}
                     />
                   );
                 })}
@@ -596,6 +627,7 @@ export function ChatWindow() {
                     showBotLabel={messages[messages.length - 1]?.role !== 'assistant'}
                     botName={activeBot.name}
                     primaryColor={activeSaathi.primary}
+                    isLegalTheme={isLegalTheme}
                   />
                 )}
                 <div ref={messagesEndRef} />
@@ -606,7 +638,7 @@ export function ChatWindow() {
 
         {/* Rich feature discovery banner — shown once on first session */}
         <AnimatePresence>
-          <RichFeatureBanner saathiSlug={saathiId} />
+          <RichFeatureBanner saathiSlug={saathiId} isLegalTheme={isLegalTheme} />
         </AnimatePresence>
 
         {/* Cooling banner or input */}
@@ -620,6 +652,7 @@ export function ChatWindow() {
             onSend={handleSend}
             inputValue={inputValue}
             setInputValue={setInputValue}
+            isLegalTheme={isLegalTheme}
           />
         )}
       </main>

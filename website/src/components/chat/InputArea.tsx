@@ -12,6 +12,7 @@ type Props = {
   onSend: (text: string) => Promise<void>;
   inputValue: string;
   setInputValue: (val: string) => void;
+  isLegalTheme?: boolean;
 };
 
 const MAX_CHARS = 2000;
@@ -24,6 +25,7 @@ export function InputArea({
   onSend,
   inputValue,
   setInputValue,
+  isLegalTheme = false,
 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isCooling = quota.isCooling;
@@ -72,9 +74,9 @@ export function InputArea({
     <div
       className="shrink-0"
       style={{
-        borderTop: '0.5px solid rgba(255,255,255,0.07)',
-        background: 'var(--bg-tertiary, rgba(11,31,58,0.6))',
-        backdropFilter: 'blur(12px)',
+        borderTop: isLegalTheme ? '1px solid #D0D0D0' : '0.5px solid rgba(255,255,255,0.07)',
+        background: isLegalTheme ? '#F8F8F8' : 'var(--bg-tertiary, rgba(11,31,58,0.6))',
+        backdropFilter: isLegalTheme ? 'none' : 'blur(12px)',
       }}
     >
       {/* Main input row */}
@@ -87,17 +89,18 @@ export function InputArea({
           placeholder={placeholder}
           disabled={disabled}
           rows={1}
-          className="flex-1 resize-none rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+          className="flex-1 resize-none rounded-xl px-4 py-3 text-sm outline-none transition-all"
           style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: '0.5px solid rgba(255,255,255,0.1)',
+            background: isLegalTheme ? '#FFFFFF' : 'rgba(255,255,255,0.05)',
+            border: isLegalTheme ? `1px solid #D0D0D0` : '0.5px solid rgba(255,255,255,0.1)',
+            color: isLegalTheme ? '#1A1A1A' : '#ffffff',
             fontFamily: 'var(--font-dm-sans)',
             lineHeight: '1.5',
             maxHeight: 120,
             opacity: disabled ? 0.5 : 1,
           }}
-          onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.5)')}
-          onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+          onFocus={(e) => (e.currentTarget.style.borderColor = isLegalTheme ? '#1A1A1A' : 'rgba(201,153,58,0.5)')}
+          onBlur={(e) => (e.currentTarget.style.borderColor = isLegalTheme ? '#D0D0D0' : 'rgba(255,255,255,0.1)')}
         />
 
         {/* Voice input */}
@@ -130,20 +133,20 @@ export function InputArea({
 
       {/* Status row */}
       <div className="flex items-center justify-between px-5 pb-3 gap-4">
-        <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+        <p className="text-[10px]" style={{ color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.2)' }}>
           Enter to send · Shift+Enter for new line
         </p>
         <div className="flex items-center gap-3">
           {inputValue.length > SHOW_COUNT_THRESHOLD && (
             <span
               className="text-[10px] tabular-nums"
-              style={{ color: inputValue.length > MAX_CHARS - 100 ? '#FCA5A5' : 'rgba(255,255,255,0.25)' }}
+              style={{ color: inputValue.length > MAX_CHARS - 100 ? '#FCA5A5' : (isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.25)') }}
             >
               {inputValue.length.toLocaleString()} / {MAX_CHARS.toLocaleString()}
             </span>
           )}
           {!isCooling && quota.remaining <= 14 && quota.remaining > 0 && (
-            <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            <span className="text-[10px]" style={{ color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.25)' }}>
               {quota.remaining} chats remaining today
             </span>
           )}

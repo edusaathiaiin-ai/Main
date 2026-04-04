@@ -9,6 +9,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     emoji: '⚖️',
     tagline: 'Where law meets intelligence',
     primary: '#1E3A5F', accent: '#3B82F6', bg: '#E8F0FE',
+    theme: 'legal',
     isLive: true,
     description: `I know the Indian legal system inside out — from constitutional law to criminal procedure, from CLAT preparation to LLM research. I speak the language of Indian courts, connect today's judgements to your syllabus, and never give legal advice — only legal education.`,
   },

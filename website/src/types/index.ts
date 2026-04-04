@@ -96,6 +96,7 @@ export type Saathi = {
   accent: string;
   bg: string;
   has3D?: boolean;
+  theme?: string;  // 'legal' = KanoonSaathi courtroom theme
 };
 
 export type BotSlot = {

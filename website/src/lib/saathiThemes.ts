@@ -8,6 +8,12 @@ export type SaathiThemeVariant = {
   textPrimary: string;
   textSecondary: string;
   border: string;
+  // Optional overrides — only set on themes that diverge from the base
+  bgMessage?: string;
+  bgTertiary?: string;
+  textMuted?: string;
+  userBubbleBg?: string;
+  userBubbleText?: string;
 };
 
 export type SaathiTheme = {
@@ -27,7 +33,19 @@ export const SAATHI_THEMES: Record<string, SaathiTheme> = {
     accent:'#C9993A', accentText:'#1a1008', border:'oklch(28% 0.025 65)',
     userBubbleBg:'#8B6914', userBubbleText:'#FFF8E8', watermarkOpacity:0.04,
     dark:{ bgPrimary:'oklch(12% 0.025 60)', bgSecondary:'oklch(10% 0.025 60)', textPrimary:'oklch(92% 0.03 80)', textSecondary:'oklch(65% 0.025 75)', border:'oklch(22% 0.025 65)' },
-    light:{ bgPrimary:'oklch(94% 0.015 80)', bgSecondary:'oklch(90% 0.02 78)', textPrimary:'oklch(18% 0.02 60)', textSecondary:'oklch(35% 0.025 65)', border:'oklch(80% 0.02 75)' },
+    // Legal / courtroom theme — white background, near-black text
+    light:{
+      bgPrimary: '#FFFFFF',
+      bgSecondary: '#FAFAFA',
+      textPrimary: '#1A1A1A',
+      textSecondary: '#555555',
+      border: '#E0E0E0',
+      bgMessage: '#F5F5F5',
+      bgTertiary: '#F8F8F8',
+      textMuted: '#999999',
+      userBubbleBg: '#1A1A1A',
+      userBubbleText: '#FFFFFF',
+    },
   },
   maathsaathi: {
     bgPrimary:'oklch(18% 0.015 253)', bgSecondary:'oklch(15% 0.015 253)', bgTertiary:'oklch(20% 0.015 253)', bgMessage:'oklch(22% 0.018 253)',
@@ -196,18 +214,18 @@ export function getSaathiTheme(slug: string, mode: 'dark' | 'light'): Record<str
   const base = SAATHI_THEMES[slug] ?? SAATHI_THEMES.default;
   const v = mode === 'light' ? base.light : base.dark;
   return {
-    '--bg-primary':       v.bgPrimary   ?? base.bgPrimary,
-    '--bg-secondary':     v.bgSecondary ?? base.bgSecondary,
-    '--bg-tertiary':      base.bgTertiary,
-    '--bg-message':       base.bgMessage,
-    '--text-primary':     v.textPrimary   ?? base.textPrimary,
-    '--text-secondary':   v.textSecondary ?? base.textSecondary,
-    '--text-muted':       base.textMuted,
-    '--accent':           base.accent,
-    '--accent-text':      base.accentText,
-    '--border':           v.border ?? base.border,
-    '--user-bubble-bg':   base.userBubbleBg,
-    '--user-bubble-text': base.userBubbleText,
-    '--watermark-opacity':String(base.watermarkOpacity),
+    '--bg-primary':        v.bgPrimary        ?? base.bgPrimary,
+    '--bg-secondary':      v.bgSecondary      ?? base.bgSecondary,
+    '--bg-tertiary':       v.bgTertiary       ?? base.bgTertiary,
+    '--bg-message':        v.bgMessage        ?? base.bgMessage,
+    '--text-primary':      v.textPrimary      ?? base.textPrimary,
+    '--text-secondary':    v.textSecondary    ?? base.textSecondary,
+    '--text-muted':        v.textMuted        ?? base.textMuted,
+    '--accent':            base.accent,
+    '--accent-text':       base.accentText,
+    '--border':            v.border           ?? base.border,
+    '--user-bubble-bg':    v.userBubbleBg     ?? base.userBubbleBg,
+    '--user-bubble-text':  v.userBubbleText   ?? base.userBubbleText,
+    '--watermark-opacity': String(base.watermarkOpacity),
   };
 }

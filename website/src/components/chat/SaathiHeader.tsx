@@ -9,17 +9,18 @@ type Props = {
   botName: string;
   sessionCount: number;
   onCheckin?: () => void;
+  isLegalTheme?: boolean;
 };
 
-export function SaathiHeader({ saathi, botName, sessionCount, onCheckin }: Props) {
+export function SaathiHeader({ saathi, botName, sessionCount, onCheckin, isLegalTheme = false }: Props) {
   const { mode, toggleMode } = useThemeStore();
 
   return (
     <div
       className="h-16 flex items-center justify-between px-5 shrink-0"
       style={{
-        background: `${saathi.bg ?? saathi.primary}26`,
-        borderBottom: `0.5px solid ${saathi.primary}33`,
+        background: isLegalTheme ? '#FFFFFF' : `${saathi.bg ?? saathi.primary}26`,
+        borderBottom: isLegalTheme ? '1px solid #E0E0E0' : `0.5px solid ${saathi.primary}33`,
         transition: 'background 0.4s ease, border-color 0.4s ease',
       }}
     >
@@ -27,11 +28,14 @@ export function SaathiHeader({ saathi, botName, sessionCount, onCheckin }: Props
       <div className="flex items-center gap-3">
         <span className="text-3xl leading-none">{saathi.emoji}</span>
         <div>
-          <h2 className="font-playfair font-bold text-white text-base leading-tight">
+          <h2
+            className="font-playfair font-bold text-base leading-tight"
+            style={{ color: isLegalTheme ? '#1A1A1A' : '#ffffff' }}
+          >
             {saathi.name}
           </h2>
-          <p className="text-[11px] leading-none mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
-            {botName}  ·  <span style={{ color: 'rgba(255,255,255,0.3)' }}>{saathi.tagline}</span>
+          <p className="text-[11px] leading-none mt-0.5" style={{ color: isLegalTheme ? '#888888' : 'rgba(255,255,255,0.45)' }}>
+            {botName}  ·  <span style={{ color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)' }}>{saathi.tagline}</span>
           </p>
         </div>
       </div>
@@ -46,13 +50,13 @@ export function SaathiHeader({ saathi, botName, sessionCount, onCheckin }: Props
           title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-200"
           style={{
-            background: 'rgba(255,255,255,0.07)',
-            border: '0.5px solid rgba(255,255,255,0.15)',
-            color: 'rgba(255,255,255,0.55)',
+            background: isLegalTheme ? '#F0F0F0' : 'rgba(255,255,255,0.07)',
+            border: isLegalTheme ? '0.5px solid #D0D0D0' : '0.5px solid rgba(255,255,255,0.15)',
+            color: isLegalTheme ? '#555555' : 'rgba(255,255,255,0.55)',
             cursor: 'pointer',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = isLegalTheme ? '#E4E4E4' : 'rgba(255,255,255,0.12)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = isLegalTheme ? '#F0F0F0' : 'rgba(255,255,255,0.07)'; }}
         >
           {mode === 'dark' ? '☀️ Day' : '🌙 Night'}
         </button>
