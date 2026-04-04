@@ -33,8 +33,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
       // Skip if page (onboard/chat) already loaded the profile
+      // EXCEPT on ?upgraded=true — always re-fetch so the new plan_id is fresh
       const already = useAuthStore.getState().profile
-      if (already) {
+      const isPostPayment =
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('upgraded') === 'true'
+      if (already && !isPostPayment) {
         setLoading(false)
         return
       }
