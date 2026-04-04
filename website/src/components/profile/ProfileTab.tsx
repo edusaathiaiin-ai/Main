@@ -1066,6 +1066,33 @@ export default function ProfileTab({
         </button>
 
         <button
+          onClick={() => {
+            if (profile?.id) {
+              localStorage.removeItem(`edusaathiai_tour_v1_${profile.id}`)
+              window.location.reload()
+            }
+          }}
+          type="button"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            width: '100%',
+            padding: '12px 16px',
+            background: 'rgba(255,255,255,0.03)',
+            border: '0.5px solid rgba(255,255,255,0.08)',
+            borderRadius: '10px',
+            color: 'rgba(255,255,255,0.55)',
+            fontSize: '13px',
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          <span>🎯</span>
+          <span>Replay platform walkthrough</span>
+        </button>
+
+        <button
           onClick={async () => {
             const supabase = createClient()
             await supabase.auth.signOut()

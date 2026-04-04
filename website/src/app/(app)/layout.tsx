@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { TourManager } from '@/components/tour/TourManager'
 
 // Force all protected routes to be server-rendered on demand (never statically collected)
 export const dynamic = 'force-dynamic'
@@ -25,6 +26,7 @@ export default async function AppLayout({
     <div className="flex min-h-screen">
       {/* Sidebar and Navbar — Step W3 */}
       <main className="flex-1">{children}</main>
+      <TourManager />
     </div>
   )
 }

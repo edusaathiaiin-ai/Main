@@ -149,7 +149,7 @@ export function Sidebar({
             : '0.5px solid rgba(255,255,255,0.06)',
         }}
       >
-        <Link href="/chat">
+        <Link href="/chat" data-tour="nav-chat">
           <h1
             className="font-playfair text-xl font-bold"
             style={{ color: isLegalTheme ? lText : '#ffffff' }}
@@ -688,6 +688,7 @@ export function Sidebar({
       {/* ── Explore Beyond CTA ─────────────────────────────────────── */}
       <Link
         href="/explore"
+        data-tour="nav-explore"
         style={{
           display: 'flex',
           alignItems: 'center',

@@ -46,6 +46,7 @@ export function MobileNav() {
             return (
               <button
                 key="more"
+                data-tour="nav-more"
                 onClick={() => setShowMore(true)}
                 className="flex flex-col items-center gap-1 rounded-xl px-3 py-1"
                 style={{
@@ -62,10 +63,21 @@ export function MobileNav() {
           }
 
           const active = pathname === item.href
+          const tourAttr =
+            item.href === '/chat'
+              ? 'nav-chat'
+              : item.href === '/board'
+                ? 'nav-board'
+                : item.href === '/explore'
+                  ? 'nav-explore'
+                  : item.href === '/profile'
+                    ? 'nav-profile'
+                    : undefined
           return (
             <Link
               key={item.href}
               href={item.href!}
+              data-tour={tourAttr}
               className="flex flex-col items-center gap-1 rounded-xl px-3 py-1 transition-all duration-150"
               style={{
                 color: active ? '#C9993A' : 'rgba(255,255,255,0.35)',
