@@ -8,6 +8,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { captureError } from '../_shared/sentry.ts';
+import { isUUID, isNonEmptyString, isISODate, isOneOf, sanitize } from '../_shared/validate.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -37,10 +38,39 @@ Deno.serve(async (req) => {
     }
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const { action, sessionId, slot, reason } = await req.json();
+
+    // Parse body ONCE — body stream can only be consumed once
+    type RequestBody = {
+      action?: unknown;
+      sessionId?: unknown;
+      slot?: unknown;
+      reason?: unknown;
+      liveSessionId?: unknown;
+      verticalId?: unknown;
+      title?: unknown;
+      facultyId?: unknown;
+    };
+    const body = (await req.json()) as RequestBody;
+
+    const VALID_ACTIONS = ['accept', 'decline', 'confirm', 'dispute', 'notify-live-published', 'notify-live-booking'] as const;
+    if (!isOneOf(body.action, VALID_ACTIONS)) {
+      return new Response(JSON.stringify({ error: 'Invalid action' }), {
+        status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const action = body.action;
+    const sessionId = typeof body.sessionId === 'string' ? body.sessionId : null;
+    const slot = typeof body.slot === 'string' ? body.slot : null;
+    const reason = typeof body.reason === 'string' ? body.reason.slice(0, 500) : null;
 
     // ── ACCEPT ────────────────────────────────────────────
     if (action === 'accept' && sessionId) {
+      if (!isUUID(sessionId)) {
+        return new Response(JSON.stringify({ error: 'Invalid sessionId' }), {
+          status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
       const { data: session } = await admin.from('faculty_sessions').select('*').eq('id', sessionId).single();
       if (!session || session.faculty_id !== user.id) {
         return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
@@ -48,7 +78,7 @@ Deno.serve(async (req) => {
 
       await admin.from('faculty_sessions').update({
         status: 'accepted',
-        confirmed_slot: slot ?? null,
+        confirmed_slot: (slot && isISODate(slot)) ? slot : null,
         updated_at: new Date().toISOString(),
       }).eq('id', sessionId);
 
@@ -65,9 +95,14 @@ Deno.serve(async (req) => {
 
     // ── DECLINE ───────────────────────────────────────────
     if (action === 'decline' && sessionId) {
+      if (!isUUID(sessionId)) {
+        return new Response(JSON.stringify({ error: 'Invalid sessionId' }), {
+          status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
       await admin.from('faculty_sessions').update({
         status: 'declined',
-        faculty_declined_reason: reason ?? 'Faculty declined',
+        faculty_declined_reason: reason ? sanitize(reason) : 'Faculty declined',
         updated_at: new Date().toISOString(),
       }).eq('id', sessionId).eq('faculty_id', user.id);
 
@@ -79,6 +114,11 @@ Deno.serve(async (req) => {
     // Earnings are NOT updated here — admin does that via releaseToFaculty
     // (which calculates TDS, creates the payout record, and emails the faculty).
     if (action === 'confirm' && sessionId) {
+      if (!isUUID(sessionId)) {
+        return new Response(JSON.stringify({ error: 'Invalid sessionId' }), {
+          status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
       await admin.from('faculty_sessions').update({
         student_confirmed_at: new Date().toISOString(),
         status:               'completed',
@@ -91,16 +131,22 @@ Deno.serve(async (req) => {
 
     // ── DISPUTE ───────────────────────────────────────────
     if (action === 'dispute' && sessionId) {
+      if (!isUUID(sessionId)) {
+        return new Response(JSON.stringify({ error: 'Invalid sessionId' }), {
+          status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+      const safeReason = reason ? sanitize(reason) : 'Session did not happen as expected';
       await admin.from('faculty_sessions').update({
         disputed_by: user.id === (await admin.from('faculty_sessions').select('student_id').eq('id', sessionId).single()).data?.student_id ? 'student' : 'faculty',
-        dispute_reason: reason ?? 'Session did not happen as expected',
+        dispute_reason: safeReason,
         status: 'disputed',
         updated_at: new Date().toISOString(),
       }).eq('id', sessionId);
 
       // Alert admin
       if (RESEND_API_KEY) {
-        await sendEmail('jaydeep@edusaathiai.in', `Session dispute: ${sessionId}`, `A session has been disputed. Reason: ${reason ?? 'Not specified'}`);
+        await sendEmail('jaydeep@edusaathiai.in', `Session dispute: ${sessionId}`, `A session has been disputed. Reason: ${safeReason}`);
       }
 
       return new Response(JSON.stringify({ success: true }), { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
@@ -108,9 +154,11 @@ Deno.serve(async (req) => {
 
     // ── NOTIFY-LIVE-PUBLISHED (Saathi-filtered) ────────
     if (action === 'notify-live-published') {
-      const { liveSessionId, verticalId, title: sessionTitle } = await req.json().catch(() => ({ liveSessionId: sessionId, verticalId: null, title: '' }));
-      if (!verticalId) {
-        return new Response(JSON.stringify({ error: 'verticalId required' }), { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
+      const liveSessionId = typeof body.liveSessionId === 'string' ? body.liveSessionId : sessionId;
+      const verticalId = typeof body.verticalId === 'string' ? body.verticalId : null;
+      const sessionTitle = typeof body.title === 'string' ? body.title.slice(0, 200) : '';
+      if (!verticalId || !isUUID(verticalId)) {
+        return new Response(JSON.stringify({ error: 'verticalId required and must be a UUID' }), { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
       }
 
       // Get faculty name
@@ -166,7 +214,8 @@ Deno.serve(async (req) => {
 
     // ── NOTIFY-LIVE-BOOKING ─────────────────────────────
     if (action === 'notify-live-booking') {
-      const { sessionId: liveSessionId, facultyId } = await req.json().catch(() => ({ sessionId, facultyId: null }));
+      const liveSessionId = typeof body.sessionId === 'string' ? body.sessionId : sessionId;
+      const facultyId = typeof body.facultyId === 'string' ? body.facultyId : null;
 
       // Get student details + soul
       const { data: student } = await admin.from('profiles').select('full_name, city, institution_name').eq('id', user.id).single();

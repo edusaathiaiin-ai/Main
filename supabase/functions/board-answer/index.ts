@@ -11,6 +11,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { captureError } from '../_shared/sentry.ts';
 import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
+import { isUUID, isSaathiSlug } from '../_shared/validate.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -152,6 +153,16 @@ Deno.serve(async (req) => {
 
     if (!questionId || !saathiId) {
       return new Response(JSON.stringify({ error: 'questionId and saathiId required' }), {
+        status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!isUUID(questionId)) {
+      return new Response(JSON.stringify({ error: 'Invalid questionId' }), {
+        status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!isSaathiSlug(saathiId)) {
+      return new Response(JSON.stringify({ error: 'Invalid saathiId' }), {
         status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }

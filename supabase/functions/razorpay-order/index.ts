@@ -11,6 +11,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
+import { isUUID, isOneOf } from '../_shared/validate.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -145,9 +146,18 @@ Deno.serve(async (req: Request) => {
     if (!allowed) return rateLimitResponse(CORS_HEADERS);
 
     // Parse request
-    type RequestBody = { planId?: string; billing?: string; sessionId?: string };
+    type RequestBody = { planId?: unknown; billing?: unknown; sessionId?: unknown };
     const body = (await req.json()) as RequestBody;
-    const { planId: rawPlanId, billing = 'monthly', sessionId } = body;
+    const rawPlanId = typeof body.planId === 'string' ? body.planId : null;
+    const billingRaw = body.billing;
+    const billing = isOneOf(billingRaw, ['monthly', 'annual'] as const) ? billingRaw : 'monthly';
+    const sessionId = typeof body.sessionId === 'string' ? body.sessionId : null;
+
+    if (sessionId !== null && !isUUID(sessionId)) {
+      return new Response(JSON.stringify({ error: 'Invalid sessionId' }), {
+        status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
       return new Response(JSON.stringify({ error: 'Payment gateway not configured' }), {

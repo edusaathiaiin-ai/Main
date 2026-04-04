@@ -15,6 +15,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { isUUID } from '../_shared/validate.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -245,6 +246,13 @@ Deno.serve(async (req: Request) => {
 
     if (!saathiId || !Array.isArray(sessionMessages) || sessionMessages.length === 0) {
       return new Response(JSON.stringify({ error: 'Missing saathiId or sessionMessages' }), {
+        status: 400,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+    // saathiId is stored as vertical_id (UUID FK) — reject slugs here
+    if (!isUUID(saathiId)) {
+      return new Response(JSON.stringify({ error: 'saathiId must be a UUID' }), {
         status: 400,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });

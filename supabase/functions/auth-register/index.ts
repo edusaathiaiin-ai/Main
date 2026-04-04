@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
+import { isOneOf } from '../_shared/validate.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -107,7 +108,13 @@ Deno.serve(async (req: Request) => {
   try {
     const body = (await req.json()) as RequestBody;
     const action = body.action ?? 'precheck';
-    const deviceId = body.deviceId?.trim() ?? '';
+    if (!isOneOf(action, ['precheck', 'register_profile'] as const)) {
+      return new Response(JSON.stringify({ error: 'Invalid action' }), {
+        status: 400,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+    const deviceId = (body.deviceId?.trim() ?? '').slice(0, 128);
 
     if (action === 'precheck') {
       // Rate limit precheck by IP — 20 per minute (unauthenticated endpoint)

@@ -8,6 +8,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { captureError } from '../_shared/sentry.ts';
+import { isSaathiSlug } from '../_shared/validate.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -56,16 +57,25 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { questionText, saathiSlug } = await req.json();
-    if (!questionText || typeof questionText !== 'string') {
+    type RequestBody = { questionText?: unknown; saathiSlug?: unknown };
+    const { questionText, saathiSlug } = (await req.json()) as RequestBody;
+
+    if (typeof questionText !== 'string' || questionText.trim().length === 0) {
       return new Response(JSON.stringify({ error: 'questionText required' }), {
         status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
+    if (questionText.length > 2000) {
+      return new Response(JSON.stringify({ error: 'questionText exceeds 2000 characters' }), {
+        status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+    // saathiSlug must be a known slug or we default to 'the subject'
+    const safeSlug = isSaathiSlug(saathiSlug) ? saathiSlug : null;
 
     // Get Saathi name for context
-    const saathiName = saathiSlug
-      ? saathiSlug.replace('saathi', ' Saathi').replace(/^\w/, (c: string) => c.toUpperCase())
+    const saathiName = safeSlug
+      ? safeSlug.replace('saathi', ' Saathi').replace(/^\w/, (c: string) => c.toUpperCase())
       : 'the subject';
 
     // Call Claude to generate draft
