@@ -24,7 +24,7 @@ const APP_URL = 'https://www.edusaathiai.in';
 // Human-readable Saathi name from slug
 function saathiName(slug: string): string {
   const map: Record<string, string> = {
-    kanoonsaathi: 'KanoonSaathi', mathsaathi: 'MathSaathi',
+    kanoonsaathi: 'KanoonSaathi', maathsaathi: 'MaathSaathi',
     chemsaathi: 'ChemSaathi', biosaathi: 'BioSaathi',
     pharmasaathi: 'PharmaSaathi', medicosaathi: 'MedicoSaathi',
     nursingsaathi: 'NursingSaathi', psychsaathi: 'PsychSaathi',
@@ -41,7 +41,7 @@ function saathiName(slug: string): string {
 // Saathi primary colour (approximate — for email CTA)
 function saathiColor(slug: string): string {
   const map: Record<string, string> = {
-    kanoonsaathi: '#1E3A5F', mathsaathi: '#0F4C2A', chemsaathi: '#5C1A6B',
+    kanoonsaathi: '#1E3A5F', maathsaathi: '#0F4C2A', chemsaathi: '#5C1A6B',
     biosaathi: '#1A5C2E', pharmasaathi: '#7A1C1C', medicosaathi: '#1A4A5C',
     nursingsaathi: '#5C001A', psychsaathi: '#3A1C5C', mechsaathi: '#1A3A5C',
     civilsaathi: '#3A2800', elecsaathi: '#003A5C', compsaathi: '#1C1C5C',

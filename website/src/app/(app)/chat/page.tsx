@@ -35,7 +35,7 @@ export default async function ChatPage() {
     .from('student_soul')
     .select('session_count, academic_level')
     .eq('user_id', user.id)
-    .eq('saathi_id', profile.primary_saathi_id ?? '')
+    .eq('vertical_id', profile.primary_saathi_id ?? '')
     .maybeSingle();
 
   return (

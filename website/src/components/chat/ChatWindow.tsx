@@ -367,15 +367,18 @@ export function ChatWindow() {
         .slice(-20)
         .map((m) => ({ role: m.role, content: m.content }));
 
+      // soul-update expects vertical_id as UUID — use primary_saathi_id (UUID FK), not saathiId (slug)
+      const verticalUuid = profile.primary_saathi_id ?? activeSaathiId;
       fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/soul-update`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ saathiId, sessionMessages: sessionMsgs }),
+        body: JSON.stringify({ saathiId: verticalUuid, sessionMessages: sessionMsgs }),
       })
-        .then((r) => r.json())
+        .then((r) => r.ok ? r.json() : Promise.reject(new Error(`soul-update ${r.status}`)))
         .then((result: { flameStageChanged?: boolean; newFlameStage?: string }) => {
           if (result.flameStageChanged && result.newFlameStage) {
             const FLAME_EMOJI: Record<string, string> = {

@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useChatStore } from '@/stores/chatStore';
 import { SAATHIS } from '@/constants/saathis';
-import { toSlug } from '@/constants/verticalIds';
+import { toSlug, toVerticalUuid } from '@/constants/verticalIds';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { CoolingBanner } from '@/components/chat/CoolingBanner';
@@ -56,6 +56,8 @@ export function NewsFeed() {
   const { activeSaathiId, activeBotSlot, setActiveBotSlot } = useChatStore();
 
   const saathiId = toSlug(activeSaathiId) ?? toSlug(profile?.primary_saathi_id) ?? SAATHIS[0].id;
+  // verticalUuid is the UUID FK required for all DB queries — never insert slugs into vertical_id
+  const verticalUuid = profile?.primary_saathi_id ?? toVerticalUuid(activeSaathiId) ?? toVerticalUuid(saathiId) ?? '';
   const activeSaathi: Saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0];
 
   const [newsItems, setNewsItems] = useState<ExtNewsItem[]>([]);
@@ -104,7 +106,7 @@ export function NewsFeed() {
         .from('student_soul')
         .select('future_research_area')
         .eq('user_id', profile.id)
-        .eq('vertical_id', saathiId)
+        .eq('vertical_id', verticalUuid)
         .single();
       if (data?.future_research_area) setFutureResearchArea(data.future_research_area.toLowerCase());
     })();
@@ -123,7 +125,7 @@ export function NewsFeed() {
       supabase
         .from('news_items')
         .select('*')
-        .eq('vertical_id', saathiId)
+        .eq('vertical_id', verticalUuid)
         .eq('is_active', true)
         .gte('fetched_at', cutoff24h)
         .order('fetched_at', { ascending: false })

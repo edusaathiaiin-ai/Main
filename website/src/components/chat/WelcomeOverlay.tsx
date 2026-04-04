@@ -234,7 +234,7 @@ export function ChatWelcomeGate({
         .from('student_soul')
         .update({ first_session_welcomed: true })
         .eq('user_id', userId)
-        .eq('saathi_id', saathiId ?? '');
+        .eq('vertical_id', saathiId ?? '');
     } catch {
       // Non-critical — localStorage guard is sufficient
     }
