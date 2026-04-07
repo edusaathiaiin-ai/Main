@@ -3,10 +3,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { BotSelector } from '@/components/chat/BotSelector'
+import { SaathiPointsBar } from '@/components/chat/SaathiPointsBar'
+import { CompanionshipCard } from '@/components/chat/CompanionshipCard'
 import { getPlanTier } from '@/constants/plans'
+import { toVerticalUuid } from '@/constants/verticalIds'
 import { createClient } from '@/lib/supabase/client'
+import { WorldEducationExplorerCTA } from '@/components/explore/WorldEducationExplorer'
 import type { Saathi, Profile, QuotaState } from '@/types'
 
 type Props = {
@@ -43,7 +46,13 @@ const UPGRADE_MESSAGES = [
   },
 ]
 
-function UpgradePill({ sessionCount }: { sessionCount: number }) {
+function UpgradePill({
+  sessionCount,
+  isLegalTheme = false,
+}: {
+  sessionCount: number
+  isLegalTheme?: boolean
+}) {
   const msg =
     UPGRADE_MESSAGES.find(
       (m) => sessionCount >= m.min && sessionCount <= m.max
@@ -63,8 +72,9 @@ function UpgradePill({ sessionCount }: { sessionCount: number }) {
         margin: '8px 12px',
         padding: '10px 14px',
         borderRadius: '12px',
-        background:
-          'linear-gradient(135deg, rgba(201,153,58,0.15), rgba(201,153,58,0.05))',
+        background: isLegalTheme
+          ? 'rgba(201,153,58,0.08)'
+          : 'linear-gradient(135deg, rgba(201,153,58,0.15), rgba(201,153,58,0.05))',
         border: '0.5px solid rgba(201,153,58,0.35)',
         textDecoration: 'none',
         transition: 'all 0.2s ease',
@@ -81,7 +91,11 @@ function UpgradePill({ sessionCount }: { sessionCount: number }) {
         {msg.text}
       </p>
       <p
-        style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: 0 }}
+        style={{
+          fontSize: '10px',
+          color: isLegalTheme ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)',
+          margin: 0,
+        }}
       >
         {msg.sub}
       </p>
@@ -90,13 +104,13 @@ function UpgradePill({ sessionCount }: { sessionCount: number }) {
 }
 
 const NAV_LINKS = [
-  { href: '/chat', icon: '💬', label: 'Chat' },
-  { href: '/board', icon: '🏛️', label: 'Board' },
-  { href: '/news', icon: '📰', label: 'News' },
-  { href: '/progress', icon: '📈', label: 'My Progress' },
-  { href: '/flashcards', icon: '🃏', label: 'Flashcards' },
-  { href: '/explore', icon: '🗺️', label: 'Explore Beyond' },
-  { href: '/profile', icon: '👤', label: 'Profile' },
+  { href: '/chat',      icon: '💬', label: 'Chat',          color: '#C9993A' },
+  { href: '/board',     icon: '🏛️', label: 'Board',         color: '#818CF8' },
+  { href: '/news',      icon: '📡', label: 'News',           color: '#38BDF8' },
+  { href: '/progress',  icon: '📊', label: 'My Progress',   color: '#34D399' },
+  { href: '/flashcards',icon: '🃏', label: 'Flashcards',    color: '#FBBF24' },
+  { href: '/explore',   icon: '🔭', label: 'Explore Beyond',color: '#A78BFA' },
+  { href: '/profile',   icon: '⚙️', label: 'Profile',       color: '#FB923C' },
 ]
 
 export function Sidebar({
@@ -115,7 +129,12 @@ export function Sidebar({
   const lBorder = '1px solid #E8E8E8'
   const lText = '#1A1A1A'
   const lMuted = '#888888'
-  const lHover = '#F0F0F0'
+
+  // Subtitle colour — key fix: was always white, now adapts
+  const lSub = 'rgba(0,0,0,0.45)'
+  const dSub = 'rgba(255,255,255,0.3)'
+  const subColor = isLegalTheme ? lSub : dSub
+
   const pathname = usePathname()
   const [bookmarkCount, setBookmarkCount] = useState(0)
 
@@ -212,109 +231,107 @@ export function Sidebar({
           primaryColor={activeSaathi.primary}
           onSelect={onSlotChange}
           onLockedTap={onLockedTap}
+          isLegalTheme={isLegalTheme}
         />
       </div>
 
-      {/* Quota indicator */}
-      <div
-        className="px-5 py-3"
-        style={{
-          borderBottom: isLegalTheme
-            ? '0.5px solid #E8E8E8'
-            : '0.5px solid rgba(255,255,255,0.06)',
-        }}
-      >
-        {quota.isCooling ? (
-          <p className="text-xs font-medium" style={{ color: '#F59E0B' }}>
-            ☕ Cooling — chats resume soon
-          </p>
-        ) : (
-          <>
-            <div className="mb-1.5 flex items-center justify-between">
-              <span
-                className="text-[10px] font-semibold tracking-wider uppercase"
-                style={{
-                  color: isLegalTheme ? lMuted : 'rgba(255,255,255,0.3)',
-                }}
-              >
-                Daily quota
-              </span>
-              <span
-                className="text-xs font-semibold"
-                style={{
-                  color:
-                    quota.remaining <= 3
-                      ? '#FD8C4E'
-                      : isLegalTheme
-                        ? '#555555'
-                        : 'rgba(255,255,255,0.5)',
-                }}
-              >
-                {quota.remaining} / {quota.limit}
-              </span>
-            </div>
-            <div
-              className="h-1 w-full overflow-hidden rounded-full"
-              style={{
-                background: isLegalTheme ? '#E0E0E0' : 'rgba(255,255,255,0.08)',
-              }}
-            >
-              <motion.div
-                className="h-full rounded-full"
-                animate={{ width: `${(quota.remaining / quota.limit) * 100}%` }}
-                style={{
-                  background:
-                    quota.remaining <= 3
-                      ? '#F59E0B'
-                      : isLegalTheme
-                        ? '#1A1A1A'
-                        : activeSaathi.primary,
-                }}
-                transition={{ duration: 0.5 }}
-              />
-            </div>
-          </>
-        )}
-      </div>
+      {/* Saathi Points bar — prominent position */}
+      <SaathiPointsBar
+        profile={profile}
+        isLegalTheme={isLegalTheme}
+        primaryColor={activeSaathi.primary}
+      />
+
+      {/* Companionship card — students only, shown when milestone reached */}
+      {profile.role === 'student' && toVerticalUuid(activeSaathi.id) && (
+        <CompanionshipCard
+          profile={profile}
+          verticalId={toVerticalUuid(activeSaathi.id)!}
+          location="sidebar"
+          isLegalTheme={isLegalTheme}
+          primaryColor={activeSaathi.primary}
+        />
+      )}
+
+      {/* Scrollable zone: nav links + all CTAs */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
 
       {/* Nav links */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3">
+      <nav className="px-3 py-3">
         {NAV_LINKS.map((link) => {
           const active = pathname === link.href
+          const accent = link.color
           return (
             <Link
               key={link.href}
               href={link.href}
-              className="mb-0.5 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-150"
+              className="mb-0.5 flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-150"
               style={{
                 background: active
                   ? isLegalTheme
-                    ? '#1A1A1A'
-                    : `${activeSaathi.primary}18`
+                    ? `${accent}14`
+                    : `${accent}1A`
                   : 'transparent',
                 color: active
-                  ? isLegalTheme
-                    ? '#FFFFFF'
-                    : '#fff'
-                  : isLegalTheme
-                    ? '#444444'
-                    : 'rgba(255,255,255,0.45)',
+                  ? isLegalTheme ? '#1A1A1A' : '#fff'
+                  : isLegalTheme ? '#444444' : 'rgba(255,255,255,0.5)',
+                border: `0.5px solid ${active ? `${accent}40` : 'transparent'}`,
                 pointerEvents: 'auto',
                 position: 'relative',
                 zIndex: 10,
                 cursor: 'pointer',
               }}
               onMouseEnter={(e) => {
-                if (!active && isLegalTheme)
-                  e.currentTarget.style.background = lHover
+                if (!active) {
+                  e.currentTarget.style.background = isLegalTheme
+                    ? `${accent}0D`
+                    : `${accent}12`
+                  e.currentTarget.style.borderColor = `${accent}25`
+                }
               }}
               onMouseLeave={(e) => {
-                if (!active && isLegalTheme)
+                if (!active) {
                   e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.borderColor = 'transparent'
+                }
               }}
             >
-              <span className="w-5 text-center text-base">{link.icon}</span>
-              {link.label}
+              {/* Icon pill */}
+              <span
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  flexShrink: 0,
+                  background: active
+                    ? `${accent}25`
+                    : isLegalTheme
+                      ? `${accent}12`
+                      : `${accent}10`,
+                  border: `0.5px solid ${active ? `${accent}55` : `${accent}28`}`,
+                }}
+              >
+                {link.icon}
+              </span>
+              <span style={{ fontWeight: active ? 600 : 400 }}>{link.label}</span>
+              {/* Active indicator */}
+              {active && (
+                <span
+                  style={{
+                    marginLeft: 'auto',
+                    width: '5px',
+                    height: '5px',
+                    borderRadius: '50%',
+                    background: accent,
+                    flexShrink: 0,
+                    boxShadow: `0 0 5px ${accent}99`,
+                  }}
+                />
+              )}
             </Link>
           )
         })}
@@ -329,10 +346,12 @@ export function Sidebar({
             alignItems: 'center',
             gap: '10px',
             margin: '4px 12px',
-            padding: '11px 14px',
+            padding: '10px 14px',
+            minHeight: '48px',
             borderRadius: '12px',
-            background:
-              'linear-gradient(135deg, rgba(74,222,128,0.1), rgba(74,222,128,0.03))',
+            background: isLegalTheme
+              ? 'rgba(74,222,128,0.06)'
+              : 'linear-gradient(135deg, rgba(74,222,128,0.1), rgba(74,222,128,0.03))',
             border: '0.5px solid rgba(74,222,128,0.28)',
             textDecoration: 'none',
             transition: 'all 0.2s ease',
@@ -350,13 +369,7 @@ export function Sidebar({
             >
               Declare What You Want
             </p>
-            <p
-              style={{
-                fontSize: '9px',
-                color: 'rgba(255,255,255,0.32)',
-                margin: 0,
-              }}
-            >
+            <p style={{ fontSize: '9px', color: subColor, margin: 0 }}>
               Professors find you → sessions happen
             </p>
           </div>
@@ -374,12 +387,14 @@ export function Sidebar({
             margin: '4px 12px',
             padding: '10px 14px',
             borderRadius: '12px',
-            background: 'rgba(99,102,241,0.06)',
+            background: isLegalTheme
+              ? 'rgba(99,102,241,0.04)'
+              : 'rgba(99,102,241,0.06)',
             border: '0.5px solid rgba(99,102,241,0.25)',
             textDecoration: 'none',
           }}
         >
-          <span style={{ fontSize: '18px' }}>🎯</span>
+          <span style={{ fontSize: '18px' }}>🎓</span>
           <div>
             <p
               style={{
@@ -391,13 +406,7 @@ export function Sidebar({
             >
               Internships & Research
             </p>
-            <p
-              style={{
-                fontSize: '10px',
-                color: 'rgba(255,255,255,0.3)',
-                margin: 0,
-              }}
-            >
+            <p style={{ fontSize: '10px', color: subColor, margin: 0 }}>
               Soul-matched opportunities
             </p>
           </div>
@@ -415,7 +424,9 @@ export function Sidebar({
             margin: '4px 12px',
             padding: '10px 14px',
             borderRadius: '12px',
-            background: 'rgba(168,85,247,0.06)',
+            background: isLegalTheme
+              ? 'rgba(168,85,247,0.04)'
+              : 'rgba(168,85,247,0.06)',
             border: '0.5px solid rgba(168,85,247,0.25)',
             textDecoration: 'none',
           }}
@@ -432,13 +443,7 @@ export function Sidebar({
             >
               Research Interns
             </p>
-            <p
-              style={{
-                fontSize: '10px',
-                color: 'rgba(255,255,255,0.3)',
-                margin: 0,
-              }}
-            >
+            <p style={{ fontSize: '10px', color: subColor, margin: 0 }}>
               Post projects · find co-authors
             </p>
           </div>
@@ -453,10 +458,12 @@ export function Sidebar({
           alignItems: 'center',
           gap: '10px',
           margin: '4px 12px',
-          padding: '11px 14px',
+          padding: '10px 14px',
+          minHeight: '48px',
           borderRadius: '12px',
-          background:
-            'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(99,102,241,0.04))',
+          background: isLegalTheme
+            ? 'rgba(99,102,241,0.04)'
+            : 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(99,102,241,0.04))',
           border: '0.5px solid rgba(99,102,241,0.3)',
           textDecoration: 'none',
           transition: 'all 0.2s',
@@ -474,13 +481,7 @@ export function Sidebar({
           >
             Faculty Finder
           </p>
-          <p
-            style={{
-              fontSize: '10px',
-              color: 'rgba(255,255,255,0.3)',
-              margin: 0,
-            }}
-          >
+          <p style={{ fontSize: '10px', color: subColor, margin: 0 }}>
             Book 1:1 expert sessions
           </p>
         </div>
@@ -515,13 +516,7 @@ export function Sidebar({
             >
               Saved Faculty
             </p>
-            <p
-              style={{
-                fontSize: '9px',
-                color: 'rgba(255,255,255,0.3)',
-                margin: 0,
-              }}
-            >
+            <p style={{ fontSize: '9px', color: subColor, margin: 0 }}>
               Revisit and book when ready
             </p>
           </div>
@@ -554,10 +549,12 @@ export function Sidebar({
           alignItems: 'center',
           gap: '10px',
           margin: '4px 12px',
-          padding: '11px 14px',
+          padding: '10px 14px',
+          minHeight: '48px',
           borderRadius: '12px',
-          background:
-            'linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.04))',
+          background: isLegalTheme
+            ? 'rgba(239,68,68,0.05)'
+            : 'linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.04))',
           border: '0.5px solid rgba(239,68,68,0.3)',
           textDecoration: 'none',
           transition: 'all 0.2s',
@@ -589,20 +586,14 @@ export function Sidebar({
           >
             Live Sessions
           </p>
-          <p
-            style={{
-              fontSize: '10px',
-              color: 'rgba(255,255,255,0.3)',
-              margin: 0,
-            }}
-          >
+          <p style={{ fontSize: '10px', color: subColor, margin: 0 }}>
             Learn live from experts
           </p>
         </div>
       </Link>
 
       {/* Lecture Requests */}
-      <a
+      <Link
         href="/requests"
         style={{
           display: 'flex',
@@ -611,8 +602,12 @@ export function Sidebar({
           margin: '4px 12px',
           padding: '10px 14px',
           borderRadius: '12px',
-          background: 'rgba(255,255,255,0.02)',
-          border: '0.5px solid rgba(255,255,255,0.08)',
+          background: isLegalTheme
+            ? 'rgba(0,0,0,0.02)'
+            : 'rgba(255,255,255,0.02)',
+          border: isLegalTheme
+            ? '0.5px solid rgba(0,0,0,0.08)'
+            : '0.5px solid rgba(255,255,255,0.08)',
           textDecoration: 'none',
           transition: 'all 0.2s',
         }}
@@ -623,23 +618,17 @@ export function Sidebar({
             style={{
               fontSize: '11px',
               fontWeight: '600',
-              color: 'rgba(255,255,255,0.6)',
+              color: isLegalTheme ? '#555555' : 'rgba(255,255,255,0.6)',
               margin: '0 0 1px',
             }}
           >
             Request a Lecture
           </p>
-          <p
-            style={{
-              fontSize: '10px',
-              color: 'rgba(255,255,255,0.25)',
-              margin: 0,
-            }}
-          >
+          <p style={{ fontSize: '10px', color: subColor, margin: 0 }}>
             Ask your favourite faculty
           </p>
         </div>
-      </a>
+      </Link>
 
       {/* WhatsApp Saathi link */}
       <a
@@ -673,19 +662,13 @@ export function Sidebar({
           >
             WhatsApp Saathi
           </p>
-          <p
-            style={{
-              fontSize: '9px',
-              color: 'rgba(255,255,255,0.3)',
-              margin: 0,
-            }}
-          >
+          <p style={{ fontSize: '9px', color: subColor, margin: 0 }}>
             Study via chat — save this number
           </p>
         </div>
       </a>
 
-      {/* ── Explore Beyond CTA ─────────────────────────────────────── */}
+      {/* Explore Beyond CTA */}
       <Link
         href="/explore"
         data-tour="nav-explore"
@@ -694,10 +677,12 @@ export function Sidebar({
           alignItems: 'center',
           gap: '10px',
           margin: '4px 12px 8px',
-          padding: '11px 14px',
+          padding: '10px 14px',
+          minHeight: '48px',
           borderRadius: '12px',
-          background:
-            'linear-gradient(135deg, rgba(201,153,58,0.12), rgba(201,153,58,0.04))',
+          background: isLegalTheme
+            ? 'rgba(201,153,58,0.06)'
+            : 'linear-gradient(135deg, rgba(201,153,58,0.12), rgba(201,153,58,0.04))',
           border: '0.5px solid rgba(201,153,58,0.28)',
           textDecoration: 'none',
           position: 'relative',
@@ -705,13 +690,15 @@ export function Sidebar({
           transition: 'all 0.2s ease',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background =
-            'linear-gradient(135deg, rgba(201,153,58,0.2), rgba(201,153,58,0.08))'
+          e.currentTarget.style.background = isLegalTheme
+            ? 'rgba(201,153,58,0.12)'
+            : 'linear-gradient(135deg, rgba(201,153,58,0.2), rgba(201,153,58,0.08))'
           e.currentTarget.style.borderColor = 'rgba(201,153,58,0.5)'
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background =
-            'linear-gradient(135deg, rgba(201,153,58,0.12), rgba(201,153,58,0.04))'
+          e.currentTarget.style.background = isLegalTheme
+            ? 'rgba(201,153,58,0.06)'
+            : 'linear-gradient(135deg, rgba(201,153,58,0.12), rgba(201,153,58,0.04))'
           e.currentTarget.style.borderColor = 'rgba(201,153,58,0.28)'
         }}
       >
@@ -741,13 +728,7 @@ export function Sidebar({
           >
             Explore Beyond
           </p>
-          <p
-            style={{
-              fontSize: '9px',
-              color: 'rgba(255,255,255,0.32)',
-              margin: 0,
-            }}
-          >
+          <p style={{ fontSize: '9px', color: subColor, margin: 0 }}>
             Books · Journals · Tools · Channels
           </p>
         </div>
@@ -762,10 +743,71 @@ export function Sidebar({
         </span>
       </Link>
 
+      {/* World Education Explorer */}
+      <div style={{ margin: '4px 12px 8px' }}>
+        <WorldEducationExplorerCTA
+          isLegalTheme={isLegalTheme}
+          primaryColor={activeSaathi.primary}
+        />
+      </div>
+
       {/* Upgrade pill — free plan only */}
       {getPlanTier(profile.plan_id) === 'free' && (
-        <UpgradePill sessionCount={sessionCount} />
+        <UpgradePill sessionCount={sessionCount} isLegalTheme={isLegalTheme} />
       )}
+
+      </div>{/* end scrollable zone */}
+
+      {/* Daily quota — compact strip */}
+      <div style={{
+        padding:   '8px 16px',
+        borderTop: isLegalTheme
+          ? '0.5px solid #E8E8E8'
+          : '0.5px solid rgba(255,255,255,0.06)',
+      }}>
+        {quota.isCooling ? (
+          <p style={{ fontSize: '11px', fontWeight: 500, color: '#F59E0B', margin: 0 }}>
+            ☕ Cooling — chats resume soon
+          </p>
+        ) : (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+              <span style={{
+                fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: isLegalTheme ? lMuted : 'rgba(255,255,255,0.25)',
+              }}>
+                Daily chats
+              </span>
+              <span style={{
+                fontSize: '11px', fontWeight: 700,
+                color: quota.remaining === 0
+                  ? '#F87171'
+                  : quota.remaining <= 3
+                    ? '#FBBF24'
+                    : isLegalTheme ? '#555555' : 'rgba(255,255,255,0.5)',
+              }}>
+                {quota.remaining} / {quota.limit} left
+              </span>
+            </div>
+            <div style={{
+              height: '3px', borderRadius: '100px', overflow: 'hidden',
+              background: isLegalTheme ? '#E0E0E0' : 'rgba(255,255,255,0.06)',
+            }}>
+              <div style={{
+                height: '100%', borderRadius: '100px',
+                width: `${(quota.remaining / quota.limit) * 100}%`,
+                background: quota.remaining === 0
+                  ? '#F87171'
+                  : quota.remaining <= 3
+                    ? '#FBBF24'
+                    : isLegalTheme ? '#1A1A1A' : activeSaathi.primary,
+                transition: 'width 0.4s ease',
+              }} />
+            </div>
+          </>
+        )}
+      </div>
 
       {/* User footer */}
       <div
@@ -814,23 +856,33 @@ export function Sidebar({
         </div>
         <button
           onClick={onSignOut}
-          className="w-full rounded-lg py-2 text-center text-xs transition-colors duration-150"
+          className="w-full rounded-lg py-2 text-center text-xs font-medium transition-all duration-150"
           style={{
-            color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.25)',
+            color: isLegalTheme ? '#1E3A5F' : activeSaathi.accent,
             border: isLegalTheme
-              ? '0.5px solid #D0D0D0'
-              : '0.5px solid rgba(255,255,255,0.07)',
+              ? `0.5px solid #1E3A5F`
+              : `0.5px solid ${activeSaathi.accent}55`,
+            background: isLegalTheme
+              ? 'rgba(30,58,95,0.05)'
+              : `${activeSaathi.accent}0D`,
           }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.color = isLegalTheme
-              ? '#555555'
-              : 'rgba(255,255,255,0.5)')
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.color = isLegalTheme
-              ? '#AAAAAA'
-              : 'rgba(255,255,255,0.25)')
-          }
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = isLegalTheme
+              ? 'rgba(30,58,95,0.12)'
+              : `${activeSaathi.accent}22`
+            e.currentTarget.style.borderColor = isLegalTheme
+              ? '#1E3A5F'
+              : activeSaathi.accent
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = isLegalTheme
+              ? 'rgba(30,58,95,0.05)'
+              : `${activeSaathi.accent}0D`
+            e.currentTarget.style.borderColor = isLegalTheme
+              ? '#1E3A5F'
+              : `${activeSaathi.accent}55`
+          }}
+          aria-label="Sign out of EdUsaathiAI"
         >
           Sign out
         </button>

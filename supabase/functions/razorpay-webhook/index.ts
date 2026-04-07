@@ -53,7 +53,10 @@ async function sendRefundEmail(
   amountInr: number,
   refundId: string,
 ): Promise<void> {
-  if (!RESEND_API_KEY || !email) return;
+  if (!RESEND_API_KEY || !email) {
+    console.warn(`razorpay-webhook: sendRefundEmail skipped — key_set=${!!RESEND_API_KEY}, email_set=${!!email}`);
+    return;
+  }
   const planLabel = PLAN_LABELS[planId] ?? planId;
   const amountStr = `₹${(amountInr).toLocaleString('en-IN')}`;
 
@@ -97,13 +100,27 @@ async function sendUpgradeEmail(
   email: string,
   planId: string,
   expiresAt: string,
+  studentName?: string,
 ): Promise<void> {
-  if (!RESEND_API_KEY || !email) return;
-  const planLabel = PLAN_LABELS[planId] ?? planId;
+  if (!RESEND_API_KEY || !email) {
+    console.warn(`razorpay-webhook: sendUpgradeEmail skipped — key_set=${!!RESEND_API_KEY}, email_set=${!!email}, from=${RESEND_FROM_EMAIL || 'NOT_SET'}`);
+    return;
+  }
+  const planLabel   = PLAN_LABELS[planId] ?? planId;
   const renewalDate = new Date(expiresAt).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'long', year: 'numeric',
   });
-  const safeEmail = sanitize(email);
+  const safeEmail   = sanitize(email);
+  const name        = studentName ?? 'Student';
+
+  const featureRow = (emoji: string, title: string, body: string) =>
+    `<tr>
+      <td style="padding:10px 0;vertical-align:top;width:28px;font-size:18px">${emoji}</td>
+      <td style="padding:10px 0 10px 10px;vertical-align:top">
+        <strong style="color:#FFFFFF;font-size:13px">${title}</strong><br>
+        <span style="color:rgba(255,255,255,0.6);font-size:12px;line-height:1.55">${body}</span>
+      </td>
+    </tr>`;
 
   try {
     console.log(`razorpay-webhook: sending upgrade email, key_len=${RESEND_API_KEY.length}`);
@@ -117,29 +134,68 @@ async function sendUpgradeEmail(
         from: RESEND_FROM_EMAIL,
         to: [email],
         reply_to: 'support@edusaathiai.in',
-        subject: `Welcome to ${planLabel} - Your upgrade is confirmed`,
+        subject: `Welcome to EdUsaathiAI Plus, ${name}! 🎉`,
         html: `
-          <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
-            <h1 style="color:#C9993A;font-size:28px;margin-bottom:8px">You are now ${planLabel}</h1>
-            <p style="color:rgba(255,255,255,0.7);line-height:1.7">
-              Your upgrade is confirmed. All 5 bot slots are now unlocked.
-              Your Saathi remembers you — pick up right where you left off.
-            </p>
-            <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:16px">
-              Plan: ${planLabel}<br>
-              Next renewal: ${renewalDate}<br>
-              Questions: support@edusaathiai.in
-            </p>
-            <a href="https://www.edusaathiai.in/chat"
-               style="display:inline-block;background:#C9993A;color:#0B1F3A;padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;margin-top:20px">
-              Start learning →
-            </a>
-            <p style="font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:24px;line-height:1.6">
-              This email was sent to ${safeEmail}<br>
-              because you made a purchase on EdUsaathiAI.<br>
-              <strong style="color:rgba(255,255,255,0.5)">If this is in spam — please mark "Not spam" to receive future emails.</strong>
-            </p>
-          </div>
+<div style="font-family:'DM Sans',Arial,sans-serif;max-width:540px;margin:0 auto;background:#0B1F3A;color:#fff;border-radius:16px;overflow:hidden">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#0B1F3A,#1A3A5C);padding:36px 36px 28px;border-bottom:1px solid rgba(201,153,58,0.2)">
+    <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#C9993A">EdUsaathiAI Plus</p>
+    <h1 style="margin:0;font-size:26px;font-weight:700;color:#FFFFFF;line-height:1.2">Welcome to EdUsaathiAI Plus, ${name}! 🎉</h1>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:28px 36px">
+
+    <p style="color:rgba(255,255,255,0.75);font-size:14px;line-height:1.7;margin:0 0 6px">
+      Your Saathi remembers you. Every session builds on the last — your Saathi tracks what you covered,
+      how deep you went, and where you left off, so you never have to repeat yourself.
+    </p>
+
+    <p style="color:rgba(255,255,255,0.75);font-size:14px;line-height:1.7;margin:0 0 20px">
+      Here is everything waiting for you:
+    </p>
+
+    <table style="width:100%;border-collapse:collapse">
+      ${featureRow('🔊', 'Listen to every answer', 'Tap the speaker icon below any bot reply to hear it read aloud — great for learning on the go.')}
+      ${featureRow('🎤', 'Speak in your own language', 'Use the mic button to speak instead of type — Hindi, Gujarati, Marathi, Tamil, Telugu, Kannada, Bengali, and English all supported.')}
+      ${featureRow('🧑‍🏫', 'Find a real subject expert', 'Faculty Finder connects you with verified faculty who teach your exact subject. Book a private 1:1 session from ₹500.')}
+      ${featureRow('✉️', 'Request a lecture from your dream faculty', 'Raise a Lecture Request — faculty who match your need will see it and offer a session directly to you.')}
+      ${featureRow('🔖', 'Bookmark faculty for later', 'Found a great faculty profile but not ready to book? Bookmark them and return when you are ready.')}
+      ${featureRow('🎙️', 'Learn live alongside other students', 'Live Sessions are group lectures by expert faculty in real time — ask questions, hear different perspectives, learn more in less time.')}
+      ${featureRow('🎯', 'Let faculty find you', 'Declare What You Want — tell us what topic or skill you need and matching faculty will create sessions just for you.')}
+      ${featureRow('🃏', 'Save any answer as a flashcard', 'Tap the 🃏 icon on any bot reply to save it. Review it later in your Flashcards dashboard.')}
+      ${featureRow('Aa', 'Make reading comfortable for you', 'Tap the Aa button in the header to change font size, style, and text colour. Colorblind-safe palettes, high contrast, and reduce motion are all available.')}
+      ${featureRow('🌐', 'Your Saathi can answer in your language', 'Ask in Hindi, Gujarati, or any Indian language — your Saathi will respond in the same language. Just type or speak naturally.')}
+      ${featureRow('🎓', 'Find internships matched to your soul', 'Internship and research opportunities matched to your Saathi subject and academic interests — not random listings.')}
+    </table>
+
+    <p style="margin:24px 0 4px;color:rgba(255,255,255,0.75);font-size:14px;line-height:1.7">
+      Your learning journey just got unlimited. We are honoured to be your Saathi. ✦
+    </p>
+    <p style="margin:0 0 28px;color:rgba(255,255,255,0.5);font-size:13px">— The EdUsaathiAI Team</p>
+
+    <a href="https://www.edusaathiai.in/chat"
+       style="display:inline-block;background:#C9993A;color:#0B1F3A;padding:13px 32px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none">
+      Start learning →
+    </a>
+
+    <!-- Plan details -->
+    <p style="color:rgba(255,255,255,0.35);font-size:12px;margin-top:24px;line-height:1.7">
+      Plan: ${planLabel} &nbsp;·&nbsp; Next renewal: ${renewalDate}<br>
+      Questions? <a href="mailto:support@edusaathiai.in" style="color:#C9993A">support@edusaathiai.in</a>
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background:rgba(0,0,0,0.2);padding:16px 36px;border-top:1px solid rgba(255,255,255,0.07)">
+    <p style="font-size:11px;color:rgba(255,255,255,0.25);margin:0;line-height:1.6;text-align:center">
+      This email was sent to ${safeEmail} because you made a purchase on EdUsaathiAI.<br>
+      <strong style="color:rgba(255,255,255,0.4)">If this landed in spam — please mark "Not spam" to receive future emails.</strong>
+    </p>
+  </div>
+
+</div>
         `,
       }),
     });
@@ -321,21 +377,32 @@ async function handlePaymentCaptured(
   }).eq('id', sub.id);
 
   // Activate user's profile
-  await admin.from('profiles').update({
+  const { error: profileUpdateError } = await admin.from('profiles').update({
     plan_id: sub.plan_id,
     subscription_status: 'active',
     subscription_expires_at: expiresAt,
   }).eq('id', sub.user_id);
 
+  if (profileUpdateError) {
+    // This is fatal — the payment is recorded but the user didn't get access.
+    // Throw so the outer catch logs it to Sentry and Razorpay retries.
+    throw new Error(`profiles.update failed for user ${sub.user_id}: ${profileUpdateError.message}`);
+  }
+
   // Send confirmation email (fire-and-forget)
   const { data: userProfile } = await admin
     .from('profiles')
-    .select('email')
+    .select('email, display_name')
     .eq('id', sub.user_id)
     .maybeSingle();
 
   if (userProfile?.email) {
-    await sendUpgradeEmail(userProfile.email as string, sub.plan_id, expiresAt);
+    await sendUpgradeEmail(
+      userProfile.email as string,
+      sub.plan_id,
+      expiresAt,
+      (userProfile.display_name as string | null) ?? undefined,
+    );
   }
 }
 

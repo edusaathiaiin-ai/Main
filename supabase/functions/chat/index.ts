@@ -18,6 +18,8 @@ import { detectViolation as detectViolationNew } from '../_shared/violations.ts'
 import { checkSuspension, recordViolationAndCheck } from '../_shared/suspensions.ts';
 import { captureError, captureEvent } from '../_shared/sentry.ts';
 import { corsHeaders } from '../_shared/cors.ts';
+import { SAATHI_PHILOSOPHY } from '../_shared/saathiPhilosophy.ts';
+import { getHorizonNudge } from '../_shared/horizonNudge.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -111,10 +113,46 @@ function msUntilMidnightIST(): number {
 }
 
 // ── Model versions — update here when new models release ────────────────────
-const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
-const GROQ_MODEL   = 'llama-3.3-70b-versatile';   // Groq primary
-const GROK_MODEL   = 'grok-3-fast';                // xAI fallback
+const CLAUDE_MODEL        = 'claude-sonnet-4-20250514';
+const CLAUDE_VISION_MODEL = 'claude-sonnet-4-6';   // vision-capable, used when imageBase64 present
+const GROQ_MODEL          = 'llama-3.3-70b-versatile';   // Groq primary
+const GROK_MODEL          = 'grok-3-fast';                // xAI fallback
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ── Sketch system prompts — injected when student uploads a sketch image ─────
+// 10 Saathis with structured [SKETCH] output; others get plain vision description.
+const SKETCH_SYSTEM_PROMPTS: Record<string, string> = {
+  mechsaathi: `The student has uploaded a mechanical sketch. Identify all components (gears, pulleys, levers, cranks, cams, belts, bearings, shafts). Explain the mechanism in plain language. Then output exactly one JSON block in this format:
+[SKETCH]{"saathi":"mechsaathi","mechanism_type":"gear-pair","components":[{"type":"gear","teeth":20,"label":"Driver"},{"type":"gear","teeth":40,"label":"Driven"}],"equations":["Gear ratio = T2/T1 = 40/20 = 2","Output torque = 2 × Input torque"],"description":"A simple gear pair reducing speed by half and doubling torque."}[/SKETCH]
+Use mechanism_type from: gear-pair, piston, flywheel, cam-follower, belt-pulley, rack-pinion.`,
+
+  archsaathi: `The student has uploaded a floor plan or architectural sketch. Read all room labels and visible dimensions. Explain the layout. Then output exactly one JSON block:
+[SKETCH]{"saathi":"archsaathi","drawing_type":"floor-plan","rooms":[{"name":"Living Room","x":0,"y":0,"width":5,"height":4},{"name":"Bedroom","x":5,"y":0,"width":3,"height":4}],"structural_elements":["load-bearing wall between living and bedroom"],"description":"2BHK layout, approx 35 sq m.","scale":"1 unit = 1 metre"}[/SKETCH]`,
+
+  elecsaathi: `The student has uploaded an electrical circuit sketch. Identify every component (resistors, capacitors, inductors, voltage sources, switches, lamps). Explain the circuit. Then output exactly one JSON block:
+[SKETCH]{"saathi":"elecsaathi","circuit_type":"RC","components":[{"type":"resistor","value":"1kΩ","label":"R1"},{"type":"capacitor","value":"100µF","label":"C1"}],"connections":["R1 in series with C1","across 5V supply"],"equations":["τ = RC = 1000 × 0.0001 = 0.1s","Vc(t) = 5(1 - e^(-t/0.1))"],"description":"RC charging circuit with 0.1s time constant."}[/SKETCH]`,
+
+  electronicssaathi: `The student has uploaded an electronics circuit sketch. Identify components (transistors, op-amps, diodes, ICs, logic gates). Explain the circuit function. Then output exactly one JSON block:
+[SKETCH]{"saathi":"electronicssaathi","circuit_type":"amplifier","components":[{"type":"transistor","value":"BC547","label":"Q1"},{"type":"resistor","value":"10kΩ","label":"Rb"}],"connections":["Base resistor Rb from Vcc to base of Q1"],"equations":["Ib = (Vcc - Vbe) / Rb","Ic = hFE × Ib"],"description":"Common emitter amplifier stage."}[/SKETCH]`,
+
+  civilsaathi: `The student has uploaded a structural sketch (beam, truss, column, or foundation). Identify support types (fixed, pinned, roller), loads, and spans. Then output exactly one JSON block:
+[SKETCH]{"saathi":"civilsaathi","description":"Simply supported beam, 6m span, 10kN central point load.","equations":["Ra = Rb = 5 kN","Max BM = PL/4 = 10×6/4 = 15 kN·m","Max SF = 5 kN"],"mermaid":"graph LR\n  A[Pin Support]-->|5 kN|B[10 kN Load @ 3m]\n  B-->|5 kN|C[Roller Support]"}[/SKETCH]`,
+
+  compsaathi: `The student has uploaded a flowchart, pseudocode sketch, or system diagram. Read the logic flow, decision boxes, and arrows. Explain the algorithm. Then output exactly one JSON block:
+[SKETCH]{"saathi":"compsaathi","description":"Bubble sort algorithm flowchart.","mermaid":"flowchart TD\n  A[Start] --> B[i=0]\n  B --> C{i < n-1?}\n  C -->|Yes| D[j=0]\n  D --> E{arr[j]>arr[j+1]?}\n  E -->|Yes| F[Swap]\n  F --> G[j++]\n  E -->|No| G\n  G --> H{j < n-i-1?}\n  H -->|Yes| E\n  H -->|No| I[i++]\n  I --> C\n  C -->|No| J[End]"}[/SKETCH]`,
+
+  physicsaathi: `The student has uploaded a physics diagram (free body, ray diagram, wave, or circuit). Identify all forces, vectors, or optical elements. Explain the physics. Then output exactly one JSON block:
+[SKETCH]{"saathi":"physicsaathi","description":"Free body diagram of a block on an inclined plane at 30°.","equations":["N = mg cos30° = 0.866mg","f = μN = 0.3 × 0.866mg","Net force = mg sin30° - f = 0.5mg - 0.26mg = 0.24mg"],"mermaid":"graph TD\n  A[Weight mg↓] --> B[Normal N⊥plane]\n  A --> C[Friction f up-plane]\n  A --> D[Component mg·sin30° down-plane]"}[/SKETCH]`,
+
+  statssaathi: `The student has uploaded a statistics sketch (graph, distribution curve, data table, or probability tree). Read all labels and values. Explain the statistical concept. Then output exactly one JSON block:
+[SKETCH]{"saathi":"statssaathi","description":"Normal distribution curve marked with mean=70, SD=10.","equations":["68% data within μ±σ = 60 to 80","95% data within μ±2σ = 50 to 90","Z = (X - μ)/σ"],"mermaid":"graph LR\n  A[μ-2σ=50]-->B[μ-σ=60]-->C[μ=70]-->D[μ+σ=80]-->E[μ+2σ=90]"}[/SKETCH]`,
+
+  geosaathi: `The student has uploaded a map, topographic sketch, or geographic diagram. Identify all labeled features, contour lines, or spatial relationships. Explain the geography. Then output exactly one JSON block:
+[SKETCH]{"saathi":"geosaathi","description":"Contour map showing a hill with summit at 200m, gentle eastern slope, steep western slope.","equations":["Contour interval = 20m","Gradient west = rise/run = 100/200 = 0.5 (steep)","Gradient east = 100/500 = 0.2 (gentle)"],"mermaid":"graph TD\n  A[Western Cliff face]-->B[200m Summit]-->C[Eastern Gentle Slope]-->D[Valley Floor 100m]"}[/SKETCH]`,
+
+  agrisaathi: `The student has uploaded an agricultural diagram (field layout, irrigation plan, crop cycle, or soil profile). Identify all labeled sections and annotations. Explain the agricultural concept. Then output exactly one JSON block:
+[SKETCH]{"saathi":"agrisaathi","description":"Drip irrigation layout for a 1-acre field with 4 rows of lateral pipes.","equations":["Water requirement = ET × area = 5mm × 4047m² = 20,235 L/day","Emitter spacing = 0.5m, flow = 2 L/hr","Laterals needed = field width / row spacing = 20/5 = 4"],"mermaid":"graph LR\n  A[Main Header Pipe]-->B[Lateral 1]\n  A-->C[Lateral 2]\n  A-->D[Lateral 3]\n  A-->E[Lateral 4]"}[/SKETCH]`,
+};
 
 
 // ---------------------------------------------------------------------------
@@ -544,7 +582,15 @@ async function buildSystemPrompt(
   const specialities = Array.isArray(p?.specialities) ? (p.specialities as string[]).join(', ') : '';
   const neverDo = Array.isArray(p?.never_do) ? (p.never_do as string[]).join(', ') : '';
 
-  const displayName = typeof s?.display_name === 'string' ? s.display_name : 'Student';
+  const displayName: string = (() => {
+    if (typeof s?.display_name === 'string' && s.display_name.trim()) {
+      return s.display_name.trim();
+    }
+    if (typeof prof?.full_name === 'string' && prof.full_name.trim()) {
+      return prof.full_name.trim().split(' ')[0];
+    }
+    return 'there'; // neutral fallback — bot says "Hello there" not "Hello Student"
+  })();
   const ambition = typeof s?.ambition_level === 'string' ? s.ambition_level : 'medium';
   const enrolled = Array.isArray(s?.enrolled_subjects) ? (s.enrolled_subjects as string[]).join(', ') : 'not specified';
   const future = Array.isArray(s?.future_subjects) ? (s.future_subjects as string[]).join(', ') : 'not specified';
@@ -645,23 +691,28 @@ async function buildSystemPrompt(
 
   const saathiGuardrail = SAATHI_GUARDRAILS[saathiSlug] ?? '';
 
-  return `# ═════════════════════════════════════
+  return `${SAATHI_PHILOSOPHY}
+
+# ═════════════════════════════════════
 # MULTILINGUAL RESPONSE RULES
 # ═════════════════════════════════════
 LANGUAGE DETECTION — MANDATORY:
-- Detect the language of the student's message automatically.
-- If the student writes in Hindi (हिंदी), respond entirely in Hindi.
-- If the student writes in Gujarati (ગુજરાતી), respond entirely in Gujarati.
-- If the student writes in Marathi (मराठी), respond entirely in Marathi.
-- If the student writes in Tamil (தமிழ்), respond entirely in Tamil.
-- If the student writes in Telugu (తెలుగు), respond entirely in Telugu.
-- If the student writes in Kannada (ಕನ್ನಡ), respond entirely in Kannada.
-- If the student writes in Bengali (বাংলা), respond entirely in Bengali.
-- If the student writes in English, respond in English.
-- If the student mixes languages (Hinglish etc.), mirror their blend naturally.
+Detect the script and language of the student's CURRENT MESSAGE. Mirror it exactly.
+- Student writes in English → respond in English.
+- Student writes in Hindi script → respond in Hindi.
+- Student writes in Gujarati script → respond in Gujarati.
+- Student writes in Marathi → respond in Marathi.
+- Student writes in Tamil → respond in Tamil.
+- Student writes in Telugu → respond in Telugu.
+- Student writes in Kannada → respond in Kannada.
+- Student writes in Bengali → respond in Bengali.
+- Student mixes languages (Hinglish, Gujarlish, etc.) → mirror their exact blend.
+RULES:
+- Base language detection on the CURRENT message only — not the previous session, not their name, not their city.
+- NEVER default to Hindi. NEVER assume any language. Read the message. Match it.
 - NEVER ask the student which language they prefer — detect and mirror silently.
-- Technical terms, proper nouns, and equations remain in their standard form regardless of language.
-- The warmth and soul of the response must translate fully — not just the words.
+- Technical terms, equations, and proper nouns stay in their standard form regardless of language.
+- The warmth of the response must translate fully — not just the words.
 
 # ═════════════════════════════════════
 # IDENTITY AND BOUNDARIES — READ FIRST
@@ -994,6 +1045,7 @@ Every building → show it. Every style → timeline. Every proportion → tool.
 })()}
 # ${UNIVERSAL_GUARDRAILS}
 
+${getHorizonNudge(saathiSlug)}
 # FINAL RULE — never changes
 You are not just answering questions. You are shaping a future.`.trim();
 }
@@ -1021,7 +1073,7 @@ async function streamClaude(
     },
     body: JSON.stringify({
       model: CLAUDE_MODEL,
-      max_tokens: 1024,
+      max_tokens: 4096,
       stream: true,
       system: systemPrompt,
       messages,
@@ -1065,6 +1117,84 @@ async function streamClaude(
   return fullText;
 }
 
+async function streamClaudeVision(
+  systemPrompt: string,
+  messages: MessageParam[],
+  imageBase64: string,   // data URL — "data:image/jpeg;base64,..."
+  controller: ReadableStreamDefaultController<Uint8Array>
+): Promise<string> {
+  const encoder = new TextEncoder();
+  let fullText = '';
+
+  // Strip the data URL prefix to get raw base64 + media type
+  const match = imageBase64.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+  if (!match) throw new Error('Invalid image data URL');
+  const mediaType = match[1] as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+  const base64Data = match[2];
+
+  // Replace the last user message content with a vision content block
+  const lastUserIdx = [...messages].map(m => m.role).lastIndexOf('user');
+  const visionMessages = messages.map((m, i) => {
+    if (i !== lastUserIdx) return m;
+    return {
+      role: 'user' as const,
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } },
+        { type: 'text', text: m.content || 'Please analyse this sketch.' },
+      ],
+    };
+  });
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: CLAUDE_VISION_MODEL,
+      max_tokens: 4096,
+      stream: true,
+      system: systemPrompt,
+      messages: visionMessages,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Claude Vision API ${res.status}: ${text}`);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error('No response body from Claude Vision');
+
+  const decoder = new TextDecoder();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    for (const line of chunk.split('\n')) {
+      if (!line.startsWith('data: ')) continue;
+      const data = line.slice(6).trim();
+      if (data === '[DONE]') continue;
+      try {
+        const parsed = JSON.parse(data) as {
+          type?: string;
+          delta?: { type?: string; text?: string };
+        };
+        if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+          const delta = parsed.delta.text;
+          fullText += delta;
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));
+        }
+      } catch { /* skip malformed chunks */ }
+    }
+  }
+
+  return fullText;
+}
+
 async function streamGroq(
   systemPrompt: string,
   messages: MessageParam[],
@@ -1082,7 +1212,7 @@ async function streamGroq(
     body: JSON.stringify({
       model: GROQ_MODEL,
       stream: true,
-      max_tokens: 1024,
+      max_tokens: 4096,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
     }),
   });
@@ -1145,7 +1275,7 @@ async function streamXaiGrok(
     body: JSON.stringify({
       model: GROK_MODEL,
       stream: true,
-      max_tokens: 1024,
+      max_tokens: 4096,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
     }),
   });
@@ -1460,9 +1590,10 @@ Deno.serve(async (req: Request) => {
       botSlot: number;
       message: string;
       history: MessageParam[];
+      imageBase64?: string;   // data URL — present when student uploads a sketch
     };
     const body = (await req.json()) as RequestBody;
-    const { saathiId, botSlot, message, history } = body;
+    const { saathiId, botSlot, message, history, imageBase64 } = body;
 
     if (!saathiId || !botSlot || !message) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -1687,7 +1818,14 @@ Deno.serve(async (req: Request) => {
     const slug = verticalSlug.toLowerCase();
     const isSpeedSlot  = SPEED_SLOTS.has(botSlot);
     const isGeminiFirst = !isSpeedSlot && GEMINI_SAATHIS.has(slug);
-    const isClaudeFirst = !isSpeedSlot && !isGeminiFirst;
+
+    // When a sketch image is uploaded, always use Claude Vision regardless of Saathi routing.
+    // Prepend the Saathi-specific sketch prompt if one exists; otherwise plain vision description.
+    const sketchSystemPrompt = imageBase64
+      ? (SKETCH_SYSTEM_PROMPTS[slug]
+          ? `${systemPrompt}\n\n${SKETCH_SYSTEM_PROMPTS[slug]}`
+          : `${systemPrompt}\n\nThe student has uploaded an image. Describe what you see clearly and helpfully in the context of ${slug}.`)
+      : null;
 
     const encoder = new TextEncoder();
     let assistantText = '';
@@ -1695,12 +1833,6 @@ Deno.serve(async (req: Request) => {
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         try {
-          const streamFn = isSpeedSlot
-            ? streamGroqWithFallback
-            : isGeminiFirst
-              ? streamGeminiWithFallback
-              : streamClaudeWithStemFallback;
-
           // Wrap streaming to capture TTFB on first token
           let firstToken = true;
           const wrappedController: ReadableStreamDefaultController<Uint8Array> = {
@@ -1714,7 +1846,17 @@ Deno.serve(async (req: Request) => {
             },
           };
 
-          assistantText = await streamFn(systemPrompt, messages, wrappedController as ReadableStreamDefaultController<Uint8Array>);
+          if (imageBase64 && sketchSystemPrompt) {
+            // Vision path — always Claude, ignores speed/Gemini routing
+            assistantText = await streamClaudeVision(sketchSystemPrompt, messages, imageBase64, wrappedController as ReadableStreamDefaultController<Uint8Array>);
+          } else {
+            const streamFn = isSpeedSlot
+              ? streamGroqWithFallback
+              : isGeminiFirst
+                ? streamGeminiWithFallback
+                : streamClaudeWithStemFallback;
+            assistantText = await streamFn(systemPrompt, messages, wrappedController as ReadableStreamDefaultController<Uint8Array>);
+          }
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'Stream error';
           lastError = { code: 'STREAM_ERROR', message: msg.slice(0, 500) };
@@ -1737,6 +1879,40 @@ Deno.serve(async (req: Request) => {
             });
             await incrementQuota(admin, userId, verticalId, botSlot, dateIst, quotaRow.message_count, dailyQuota, effectiveCoolingHours);
           }
+
+          // ── Award Saathi Points for first chat of the day (fire-and-forget)
+          if (assistantText) {
+            const today = new Date().toISOString().slice(0, 10);
+            admin
+              .from('point_transactions')
+              .select('id', { count: 'exact', head: true })
+              .eq('user_id', userId)
+              .eq('action_type', 'chat_session')
+              .gte('created_at', `${today}T00:00:00Z`)
+              .then(({ count: todayCount }: { count: number | null }) => {
+                if ((todayCount ?? 0) === 0) {
+                  admin.rpc('award_saathi_points', {
+                    p_user_id:     userId,
+                    p_action_type: 'chat_session',
+                    p_base_points: 10,
+                    p_plan_id:     rawPlanId,
+                    p_metadata:    { saathi_id: saathiId },
+                  }).then(() => {}).catch(() => {});
+                }
+              })
+              .catch(() => {});
+          }
+          // ── Award sketch_upload points when image was analysed (fire-and-forget)
+          if (assistantText && imageBase64) {
+            admin.rpc('award_saathi_points', {
+              p_user_id:     userId,
+              p_action_type: 'sketch_upload',
+              p_base_points: 10,
+              p_plan_id:     rawPlanId,
+              p_metadata:    { saathi_id: saathiId },
+            }).then(() => {}).catch(() => {});
+          }
+          // ─────────────────────────────────────────────────────────────────
 
           // ── Write observability trace (fire-and-forget) ─────────────────
           // Estimate token counts for cost monitoring (input = system+history+msg, output = response)

@@ -22,6 +22,7 @@ import { computeProfileCompleteness } from '@/lib/profileCompleteness'
 import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete'
 import { validateFacultyEmail } from '@/lib/faculty-email-validation'
 import type { Saathi, Profile } from '@/types'
+import { FacultyOnboardFlow } from '@/components/onboard/FacultyOnboardFlow'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -34,6 +35,7 @@ type MinProfile = {
   primary_saathi_id: string | null
   full_name: string | null
   academic_level: string | null
+  is_active: boolean | null
 }
 
 type ProfileForm = {
@@ -436,15 +438,24 @@ function SaathiStep({
         animate={{ opacity: 1, y: 0 }}
         className="mb-6 text-center"
       >
-        <h2 className="font-playfair mb-3 text-4xl font-bold text-white md:text-5xl">
-          Pick your Saathi
-        </h2>
-        <p className="text-base text-white/50">
-          Your subject companion &mdash; this choice is permanent.
+        <p
+          className="mb-4 text-xs font-bold tracking-widest uppercase"
+          style={{ color: '#C9993A' }}
+        >
+          Choose your companion
         </p>
-        <p className="mt-1 text-xs text-white/25">
-          One student. One soul. One Saathi. Choose the subject you are
-          studying.
+        <h2 className="font-playfair mb-3 text-3xl font-bold text-white md:text-4xl leading-snug">
+          Your Saathi is not here to teach you.
+        </h2>
+        <h2
+          className="font-playfair mb-5 text-3xl font-bold md:text-4xl leading-snug"
+          style={{ color: '#C9993A', fontStyle: 'italic' }}
+        >
+          Your Saathi is here to show you who you&apos;re becoming.
+        </h2>
+        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          Choose the subject you are studying. One student. One soul. One
+          Saathi.
         </p>
       </motion.div>
 
@@ -1097,7 +1108,7 @@ function OnboardInner() {
         // maybeSingle() returns null (not error) when row is missing
         const { data: row, error } = await supabase
           .from('profiles')
-          .select('id, role, primary_saathi_id, full_name, academic_level')
+          .select('id, role, primary_saathi_id, full_name, academic_level, is_active')
           .eq('id', user.id)
           .maybeSingle()
 
@@ -1129,10 +1140,11 @@ function OnboardInner() {
         effectiveRole === 'faculty' || effectiveRole === 'institution'
 
       // Resume at the right step
-      // If user already completed onboarding (is_active + full_name), go straight to chat
-      // even if primary_saathi_id is null (they can pick from chat sidebar)
-      if (p.full_name && (data as { is_active?: boolean }).is_active) {
-        router.replace('/chat')
+      // If user already completed onboarding (is_active + full_name), route by role
+      if (p.full_name && p.is_active) {
+        if (effectiveRole === 'faculty') router.replace('/faculty')
+        else if (effectiveRole === 'institution') router.replace('/institution')
+        else router.replace('/chat')
       } else if (!p.primary_saathi_id) {
         setStep(
           skipAcademic ? 'saathi' : p.academic_level ? 'saathi' : 'academic'
@@ -1140,7 +1152,9 @@ function OnboardInner() {
       } else if (!p.full_name) {
         setStep('profile')
       } else {
-        router.replace('/chat')
+        if (effectiveRole === 'faculty') router.replace('/faculty')
+        else if (effectiveRole === 'institution') router.replace('/institution')
+        else router.replace('/chat')
       }
     }
 
@@ -1238,6 +1252,32 @@ function OnboardInner() {
 
   // ── Step 2: Soul profile form ─────────────────────────────────────────────
   async function handleProfile(data: SoulProfileData) {
+    // ── Faculty validation gate — runs BEFORE any DB write ──────────────
+    if (urlRole === 'faculty') {
+      if (!facultyDesignation) {
+        setFacultyEmailError('Please select your designation before continuing')
+        return
+      }
+      if (!facultyDepartment.trim()) {
+        setFacultyEmailError('Please enter your department or subject area')
+        return
+      }
+      if (facultyEmployment === 'active' && !facultyInstitution.trim()) {
+        setFacultyEmailError('Please enter your institution name')
+        return
+      }
+      if (facultyEmployment === 'retired' && !facultyFormerInstitution.trim()) {
+        setFacultyEmailError('Please enter your former institution')
+        return
+      }
+      if (
+        facultyEmployment === 'independent' &&
+        !facultyIndependentCredential.trim()
+      ) {
+        setFacultyEmailError('Please describe your credentials')
+        return
+      }
+    }
     setSaving(true)
     const supabase = createClient()
     const userId = profile!.id
@@ -1442,13 +1482,27 @@ function OnboardInner() {
   }
 
   function goBack() {
-    if (step === 'saathi') {
+    if (step === 'profile') {
+      setStep('saathi')
+    } else if (step === 'saathi') {
       const skipAcademic = urlRole === 'faculty' || urlRole === 'institution'
-      setStep(skipAcademic ? 'saathi' : 'academic')
-    } else if (step === 'profile') setStep('saathi')
+      if (!skipAcademic) setStep('academic')
+      // faculty/institution: saathi is first step, back does nothing
+    }
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
+
+  // Faculty gets their own dedicated flow — not the student form
+  if (urlRole === 'faculty' && step !== 'loading') {
+    return (
+      <FacultyOnboardFlow
+        profile={profile ?? { id: '', role: null }}
+        onComplete={() => router.push('/faculty')}
+      />
+    )
+  }
+
   if (step === 'loading') {
     return (
       <main

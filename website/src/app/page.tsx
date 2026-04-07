@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { SaathiGrid } from '@/components/saathi/SaathiGrid'
+import { SaathiExplorer } from '@/components/saathi/SaathiExplorer'
 import { RichFeaturesSection } from '@/components/chat/RichFeaturesSection'
 import { FourJourneysSection } from '@/components/landing/FourJourneysSection'
 
@@ -175,19 +175,19 @@ export default async function RootPage() {
         <div className="hero-beam" />
         <div className="hero-content">
           <div className="hero-eyebrow">
-            Education, You &amp; the Power of Modern AI
+            Built for India &middot; 30 Subject Companions
           </div>
-          <h1 className="hero-title">Meet the AI that</h1>
-          <h1 className="hero-title-line2">knows your name.</h1>
-          <h1 className="hero-title-line3">Remembers your dream.</h1>
+          <h1 className="hero-title">The AI companion</h1>
+          <h1 className="hero-title-line2">that shows you</h1>
+          <h1 className="hero-title-line3">who you&apos;re becoming.</h1>
           <p className="hero-subtitle">
-            <strong>24 subject companions. Built for India.</strong>
+            <strong>Your Saathi. Your Vishwaroop.</strong>
             <br />
-            For students who want to go deeper.
+            For students who sense there is more to them than their syllabus.
             <br />
-            For faculty who want to reach further.
+            For faculty whose knowledge deserves to outlast the classroom.
             <br />
-            For institutions that want to matter more.
+            For institutions that want to shape futures, not just transcripts.
           </p>
           {/* ── 4 Role Cards ── */}
           <div className="role-cards">
@@ -335,7 +335,7 @@ export default async function RootPage() {
             </a>
           </div>
           <a href="#saathis" className="btn-secondary">
-            Meet the 24 Saathis ↓
+            Meet the 30 Saathis ↓
           </a>
           <p
             style={{
@@ -359,7 +359,7 @@ export default async function RootPage() {
           </p>
           <div className="hero-stats">
             <div className="stat">
-              <div className="stat-num">24</div>
+              <div className="stat-num">30</div>
               <div className="stat-label">Subject Saathis</div>
             </div>
             <div className="stat-divider" />
@@ -423,7 +423,7 @@ export default async function RootPage() {
             <span className="step-icon">🎯</span>
             <h3 className="step-title">Pick your Saathi</h3>
             <p className="step-body">
-              Choose from 24 subject companions — Law, Biology, Medicine, CS,
+              Choose from 30 subject companions — Law, Biology, Medicine, CS,
               UPSC, Finance, and more. Your Saathi knows your subject inside out
               and meets you where you are.
             </p>
@@ -459,21 +459,7 @@ export default async function RootPage() {
 
       {/* ── Saathis grid ───────────────────────────────────────────────── */}
       <section id="saathis" className="land-section">
-        <div className="saathis-header">
-          <div>
-            <div className="section-eyebrow">The Saathis</div>
-            <h2 className="section-title">
-              Every subject.
-              <br />
-              <em>One soul.</em>
-            </h2>
-          </div>
-          <p className="section-subtitle" style={{ maxWidth: '360px' }}>
-            24 companions. Each one a specialist. Hover any Saathi to meet them.
-          </p>
-        </div>
-        {/* Interactive grid — client component with Framer Motion */}
-        <SaathiGrid />
+        <SaathiExplorer />
       </section>
 
       {/* ── ChatGPT comparison ─────────────────────────────────────────── */}
@@ -542,7 +528,7 @@ export default async function RootPage() {
             </div>
             {[
               'Knows your name. Remembers your last session, research dream, and struggle topics',
-              '24 specialist Saathis — each an expert with subject-specific guardrails',
+              '30 specialist Saathis — each an expert with subject-specific guardrails',
               'India-first. UPSC current affairs, NEET Biology, CLAT prep, GATE — all built in',
               'Soul matching. Mirrors your tone, adapts to your ambition, bridges to your goals',
               'Community Board with faculty-verified answers and AI auto-responses',
