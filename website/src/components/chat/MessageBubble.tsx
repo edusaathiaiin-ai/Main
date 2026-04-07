@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useFontStore, getChatFontStyle } from '@/stores/fontStore'
 import 'katex/dist/katex.min.css'
 import { createClient } from '@/lib/supabase/client'
 import { useChatStore } from '@/stores/chatStore'
@@ -20,6 +21,8 @@ import { ArchModel3D } from './ArchModel3D'
 import { ArchTimeline } from './ArchTimeline'
 import { GoldenRatioTool } from './GoldenRatioTool'
 import { FloorPlanViewer, type FloorPlanData } from './FloorPlanViewer'
+import { Scene360Viewer } from './Scene360Viewer'
+import { SketchResult } from './SketchResult'
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -39,6 +42,8 @@ type Segment =
   | { type: 'floorplan'; content: string }
   | { type: 'arch_timeline' }
   | { type: 'golden_ratio'; width: number; height: number }
+  | { type: 'scene360'; name: string }
+  | { type: 'sketch'; content: string }
 
 // ─── Sequential segment parser ────────────────────────────────────────────────
 
@@ -180,6 +185,26 @@ function parseMessageContent(text: string): Segment[] {
       }
     }
 
+    // 4l. Sketch tag [SKETCH]...[/SKETCH]
+    const sketch = /\[SKETCH\]([\s\S]+?)\[\/SKETCH\]/i.exec(remaining)
+    if (sketch && sketch.index < currentIndex()) {
+      earliest = {
+        index: sketch.index,
+        length: sketch[0].length,
+        segment: { type: 'sketch' as const, content: sketch[1].trim() },
+      }
+    }
+
+    // 4k. Scene360 tag [SCENE360: name]
+    const scene360 = /\[SCENE360:\s*([^\]]+)\]/i.exec(remaining)
+    if (scene360 && scene360.index < currentIndex()) {
+      earliest = {
+        index: scene360.index,
+        length: scene360[0].length,
+        segment: { type: 'scene360' as const, name: scene360[1].trim() },
+      }
+    }
+
     // 4j. Golden Ratio tag [GOLDEN_RATIO: width=N height=N]
     const goldenRatio =
       /\[GOLDEN_RATIO:\s*width=(\d+(?:\.\d+)?)\s+height=(\d+(?:\.\d+)?)\]/i.exec(
@@ -228,6 +253,26 @@ function parseMessageContent(text: string): Segment[] {
 }
 
 // ─── Segment renderer ─────────────────────────────────────────────────────────
+
+function SketchResultWrapper({ content, saathiColor }: { content: string; saathiColor: string }) {
+  const saathiId = useChatStore((s) => s.activeSaathiId) ?? ''
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const data = JSON.parse(content)
+    // Inject saathiId if not present
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (!data.saathi) data.saathi = saathiId
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    return <SketchResult data={data} saathiColor={saathiColor} />
+  } catch {
+    return null
+  }
+}
+
+function Scene360ViewerWrapper({ scene, saathiColor }: { scene: string; saathiColor: string }) {
+  const saathiId = useChatStore((s) => s.activeSaathiId) ?? undefined
+  return <Scene360Viewer scene={scene} saathiId={saathiId} saathiColor={saathiColor} />
+}
 
 function RenderSegments({
   segments,
@@ -361,6 +406,12 @@ function RenderSegments({
               />
             )
 
+          case 'sketch':
+            return <SketchResultWrapper key={i} content={seg.content} saathiColor={primaryColor} />
+
+          case 'scene360':
+            return <Scene360ViewerWrapper key={i} scene={seg.name} saathiColor={primaryColor} />
+
           case 'arch_timeline':
             return <ArchTimeline key={i} saathiColor={primaryColor} />
 
@@ -460,6 +511,17 @@ function SaveFlashcardMini({
         front: front.trim(),
         back: back.trim(),
       })
+
+      // Award flashcard points (fire-and-forget)
+      const profile = useAuthStore.getState().profile
+      void supabase.rpc('award_saathi_points', {
+        p_user_id:     userId,
+        p_action_type: 'flashcard_saved',
+        p_base_points: 5,
+        p_plan_id:     profile?.plan_id ?? 'free',
+        p_metadata:    { saathi_id: saathiId },
+      })
+
       setSaved(true)
       setTimeout(onClose, 1200)
     } finally {
@@ -673,6 +735,7 @@ export function MessageBubble({
   primaryColor = '#C9993A',
   isLegalTheme = false,
 }: Props) {
+  const { fontSize, fontType, fontColor, highContrast, reduceMotion } = useFontStore()
   const [hovered, setHovered] = useState(false)
   const [showSave, setShowSave] = useState(false)
   const isUser = message.role === 'user'
@@ -707,8 +770,8 @@ export function MessageBubble({
         <motion.div
           initial={{ opacity: 0, y: 6, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.2 }}
-          className="px-4 py-3 text-[15px] leading-relaxed break-words"
+          transition={reduceMotion ? { duration: 0 } : { duration: 0.2 }}
+          className="px-4 py-3 leading-relaxed break-words"
           style={
             isUser
               ? {
@@ -718,21 +781,17 @@ export function MessageBubble({
                   fontFamily: 'var(--font-dm-sans)',
                   fontWeight: 500,
                   maxWidth: '70%',
+                  fontSize: '15px',
                 }
               : {
                   background: 'var(--bg-message, #0F2847)',
-                  color: 'var(--text-primary, #fff)',
-                  borderRadius: isLegalTheme ? '12px' : '4px 18px 18px 18px',
-                  fontFamily: isLegalTheme
-                    ? '"Georgia", "Times New Roman", serif'
-                    : 'var(--font-dm-sans)',
-                  fontSize: isLegalTheme ? '14px' : undefined,
-                  lineHeight: isLegalTheme ? 1.8 : undefined,
                   maxWidth: '75%',
+                  borderRadius: isLegalTheme ? '12px' : '4px 18px 18px 18px',
                   border: isLegalTheme
                     ? '0.5px solid #E0E0E0'
                     : '0.5px solid var(--border, rgba(255,255,255,0.07))',
                   transition: 'background 0.4s ease, border-color 0.3s ease',
+                  ...getChatFontStyle(fontSize, fontType, fontColor, isLegalTheme, highContrast),
                 }
           }
         >
@@ -765,7 +824,7 @@ export function MessageBubble({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               onClick={() => setShowSave((v) => !v)}
-              className="flex h-6 w-6 items-center justify-center rounded-full text-xs"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-xs message-action-btn"
               style={{
                 background: showSave
                   ? `${primaryColor}30`
@@ -773,6 +832,7 @@ export function MessageBubble({
                 border: `0.5px solid ${primaryColor}50`,
               }}
               title="Save as flashcard"
+              aria-label="Save as flashcard"
             >
               🃏
             </motion.button>
@@ -781,12 +841,13 @@ export function MessageBubble({
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 onClick={() => onFlag(message.id)}
-                className="flex h-6 w-6 items-center justify-center rounded-full text-xs"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-xs message-action-btn"
                 style={{
                   background: 'rgba(239,68,68,0.15)',
                   border: '0.5px solid rgba(239,68,68,0.3)',
                 }}
                 title="Flag this message"
+                aria-label="Flag this message"
               >
                 🚩
               </motion.button>

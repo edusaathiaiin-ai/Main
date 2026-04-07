@@ -15,9 +15,149 @@ type LiveSessionRow = {
   price_per_seat_paise: number
   status: string
   created_at: string
+  meeting_link: string | null
+  meeting_link_shared_at: string | null
+  // enriched
+  next_scheduled_at: string | null
+  student_name: string | null
 }
 
 type TabId = 'active' | 'upcoming' | 'completed' | 'drafts'
+
+// ─── Inline meeting-link editor per session card ──────────────────────────────
+
+function MeetingLinkEditor({
+  session,
+  onSaved,
+}: {
+  session: LiveSessionRow
+  onSaved: (sessionId: string, link: string) => void
+}) {
+  const { profile } = useAuthStore()
+  const [open,    setOpen]    = useState(false)
+  const [link,    setLink]    = useState(session.meeting_link ?? '')
+  const [saving,  setSaving]  = useState(false)
+  const [result,  setResult]  = useState<{ notified: number } | null>(null)
+  const [error,   setError]   = useState('')
+
+  async function handleShare() {
+    if (!link.trim()) { setError('Paste a meeting link first.'); return }
+    try { new URL(link.trim()) } catch { setError('Invalid URL — paste a full link starting with https://'); return }
+
+    setSaving(true)
+    setError('')
+    setResult(null)
+
+    try {
+      const supabase = createClient()
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      if (!authSession?.access_token) throw new Error('Session expired')
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notify-meeting-link`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+            Authorization: `Bearer ${authSession.access_token}`,
+          },
+          body: JSON.stringify({ sessionId: session.id, meetingLink: link.trim() }),
+        }
+      )
+      const json = await res.json() as { success?: boolean; notified?: number; error?: string }
+      if (!res.ok) throw new Error(json.error ?? 'Failed to share link')
+
+      setResult({ notified: json.notified ?? 0 })
+      onSaved(session.id, link.trim())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          fontSize: '11px', fontWeight: 600,
+          color: session.meeting_link ? '#4ADE80' : '#C9993A',
+          background: session.meeting_link ? 'rgba(74,222,128,0.08)' : 'rgba(201,153,58,0.1)',
+          border: `0.5px solid ${session.meeting_link ? 'rgba(74,222,128,0.25)' : 'rgba(201,153,58,0.3)'}`,
+          borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
+        }}
+      >
+        {session.meeting_link ? '🔗 Update meeting link' : '+ Add meeting link'}
+      </button>
+    )
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{
+        marginTop: '12px', padding: '14px 16px', borderRadius: '12px',
+        background: 'rgba(255,255,255,0.03)',
+        border: '0.5px solid rgba(255,255,255,0.1)',
+      }}
+    >
+      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>
+        🔗 Meeting link — shared instantly with all enrolled students via email + WhatsApp
+      </p>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <input
+          value={link}
+          onChange={(e) => { setLink(e.target.value); setError('') }}
+          placeholder="https://meet.google.com/xxx or Zoom link"
+          style={{
+            flex: 1, background: 'rgba(255,255,255,0.05)',
+            border: error ? '1px solid rgba(239,68,68,0.5)' : '0.5px solid rgba(255,255,255,0.1)',
+            color: '#fff', borderRadius: '8px', padding: '8px 12px',
+            fontSize: '12px', outline: 'none', fontFamily: 'DM Mono, monospace',
+          }}
+        />
+        <button
+          onClick={handleShare}
+          disabled={saving}
+          style={{
+            padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
+            background: saving ? 'rgba(201,153,58,0.4)' : '#C9993A',
+            color: '#060F1D', border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {saving ? 'Sharing…' : 'Share now'}
+        </button>
+        <button
+          onClick={() => { setOpen(false); setError(''); setResult(null) }}
+          style={{
+            padding: '8px 10px', borderRadius: '8px', fontSize: '11px',
+            background: 'rgba(255,255,255,0.04)',
+            border: '0.5px solid rgba(255,255,255,0.08)',
+            color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
+          }}
+        >
+          ✕
+        </button>
+      </div>
+      {error && (
+        <p style={{ fontSize: '11px', color: '#FCA5A5', marginTop: '6px' }}>⚠️ {error}</p>
+      )}
+      {result && (
+        <motion.p
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          style={{ fontSize: '11px', color: '#4ADE80', marginTop: '6px' }}
+        >
+          ✓ Link shared with {result.notified} student{result.notified !== 1 ? 's' : ''} via email + WhatsApp
+        </motion.p>
+      )}
+    </motion.div>
+  )
+}
 
 export default function FacultyLiveDashboard() {
   const { profile } = useAuthStore()
@@ -27,18 +167,82 @@ export default function FacultyLiveDashboard() {
 
   useEffect(() => {
     if (!profile) return
-    createClient()
+    void load()
+  }, [profile])
+
+  async function load() {
+    const supabase = createClient()
+
+    const { data: raw } = await supabase
       .from('live_sessions')
       .select(
-        'id, title, session_format, total_seats, seats_booked, price_per_seat_paise, status, created_at'
+        'id, title, session_format, total_seats, seats_booked, price_per_seat_paise, status, created_at, meeting_link, meeting_link_shared_at'
       )
-      .eq('faculty_id', profile.id)
+      .eq('faculty_id', profile!.id)
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        setSessions((data ?? []) as LiveSessionRow[])
-        setLoading(false)
+
+    const rows = (raw ?? []) as (LiveSessionRow)[]
+
+    if (rows.length > 0) {
+      const ids = rows.map((r) => r.id)
+
+      // Enrichment 1 — next scheduled lecture per session
+      const { data: lectures } = await supabase
+        .from('live_lectures')
+        .select('session_id, scheduled_at')
+        .in('session_id', ids)
+        .eq('status', 'scheduled')
+        .gte('scheduled_at', new Date().toISOString())
+        .order('scheduled_at', { ascending: true })
+
+      const nextLecture: Record<string, string> = {}
+      ;(lectures ?? []).forEach((l: { session_id: string; scheduled_at: string }) => {
+        if (!nextLecture[l.session_id]) nextLecture[l.session_id] = l.scheduled_at
       })
-  }, [profile])
+
+      // Enrichment 2 — paid student name (for 1:1 sessions)
+      const { data: bookings } = await supabase
+        .from('live_bookings')
+        .select('session_id, student_id')
+        .in('session_id', ids)
+        .eq('payment_status', 'paid')
+
+      const studentIds = [...new Set((bookings ?? []).map((b: { student_id: string }) => b.student_id))]
+      const studentName: Record<string, string> = {}
+
+      if (studentIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', studentIds)
+        const profileMap: Record<string, string> = {}
+        ;(profiles ?? []).forEach((p: { id: string; full_name: string | null }) => {
+          if (p.full_name) profileMap[p.id] = p.full_name
+        })
+        ;(bookings ?? []).forEach((b: { session_id: string; student_id: string }) => {
+          if (profileMap[b.student_id]) studentName[b.session_id] = profileMap[b.student_id]
+        })
+      }
+
+      rows.forEach((r) => {
+        r.next_scheduled_at = nextLecture[r.id] ?? null
+        r.student_name      = studentName[r.id] ?? null
+      })
+    }
+
+    setSessions(rows)
+    setLoading(false)
+  }
+
+  function handleMeetingLinkSaved(sessionId: string, link: string) {
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === sessionId
+          ? { ...s, meeting_link: link, meeting_link_shared_at: new Date().toISOString() }
+          : s
+      )
+    )
+  }
 
   const active = sessions.filter((s) => s.status === 'published')
   const completed = sessions.filter((s) => s.status === 'completed')
@@ -220,6 +424,21 @@ export default function FacultyLiveDashboard() {
                         {s.session_format} &middot;{' '}
                         {new Date(s.created_at).toLocaleDateString('en-IN')}
                       </p>
+                      {s.next_scheduled_at && (
+                        <p className="text-[10px] mt-0.5" style={{ color: '#C9993A' }}>
+                          📅{' '}
+                          {new Date(s.next_scheduled_at).toLocaleString('en-IN', {
+                            timeZone: 'Asia/Kolkata', weekday: 'short',
+                            day: 'numeric', month: 'short',
+                            hour: '2-digit', minute: '2-digit', hour12: true,
+                          })} IST
+                        </p>
+                      )}
+                      {s.student_name && s.session_format === 'single' && (
+                        <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                          👤 {s.student_name}
+                        </p>
+                      )}
                     </div>
                     <span
                       className="rounded-full px-2 py-0.5 text-[10px] font-bold"
@@ -270,30 +489,45 @@ export default function FacultyLiveDashboard() {
                     </div>
                   </div>
                   {s.status === 'published' && (
-                    <div className="flex items-center justify-between">
-                      <p
-                        className="text-xs"
-                        style={{ color: 'rgba(255,255,255,0.5)' }}
-                      >
-                        {'\u20B9'}
-                        {(revenue / 100).toLocaleString('en-IN')} collected
-                        &middot; {'\u20B9'}
-                        {(payout / 100).toLocaleString('en-IN')} your payout
-                      </p>
-                      {s.seats_booked > 0 && (
-                        <Link
-                          href={`/faculty/live/${s.id}/audience`}
-                          className="rounded-lg px-3 py-1.5 text-[10px] font-semibold"
-                          style={{
-                            background: 'rgba(201,153,58,0.12)',
-                            border: '0.5px solid rgba(201,153,58,0.25)',
-                            color: '#C9993A',
-                            textDecoration: 'none',
-                          }}
-                          onClick={(e) => e.stopPropagation()}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <p
+                          className="text-xs"
+                          style={{ color: 'rgba(255,255,255,0.5)' }}
                         >
-                          {'\u{1F465}'} View Audience ({s.seats_booked})
-                        </Link>
+                          {'\u20B9'}
+                          {(revenue / 100).toLocaleString('en-IN')} collected
+                          &middot; {'\u20B9'}
+                          {(payout / 100).toLocaleString('en-IN')} your payout
+                        </p>
+                        {s.seats_booked > 0 && (
+                          <Link
+                            href={`/faculty/live/${s.id}/audience`}
+                            className="rounded-lg px-3 py-1.5 text-[10px] font-semibold"
+                            style={{
+                              background: 'rgba(201,153,58,0.12)',
+                              border: '0.5px solid rgba(201,153,58,0.25)',
+                              color: '#C9993A',
+                              textDecoration: 'none',
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {'\u{1F465}'} View Audience ({s.seats_booked})
+                          </Link>
+                        )}
+                      </div>
+                      <MeetingLinkEditor
+                        session={s}
+                        onSaved={handleMeetingLinkSaved}
+                      />
+                      {s.meeting_link_shared_at && (
+                        <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginTop: '6px' }}>
+                          Last shared{' '}
+                          {new Date(s.meeting_link_shared_at).toLocaleString('en-IN', {
+                            timeZone: 'Asia/Kolkata', day: 'numeric',
+                            month: 'short', hour: '2-digit', minute: '2-digit', hour12: true,
+                          })} IST
+                        </p>
                       )}
                     </div>
                   )}

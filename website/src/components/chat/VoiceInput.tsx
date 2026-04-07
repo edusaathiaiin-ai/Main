@@ -30,12 +30,14 @@ type VoiceInputProps = {
   onTranscript: (text: string) => void
   disabled?: boolean
   saathiColor?: string
+  isLegalTheme?: boolean
 }
 
 export function VoiceInput({
   onTranscript,
   disabled,
   saathiColor = '#C9993A',
+  isLegalTheme = false,
 }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
@@ -48,15 +50,30 @@ export function VoiceInput({
   const recognitionRef = useRef<ISpeechRecognition | null>(null)
 
   const LANGUAGES = [
-    { code: 'hi-IN', label: 'हिंदी' },
-    { code: 'en-IN', label: 'English' },
-    { code: 'gu-IN', label: 'ગુજરાતી' },
-    { code: 'mr-IN', label: 'मराठी' },
-    { code: 'ta-IN', label: 'தமிழ்' },
-    { code: 'te-IN', label: 'తెలుగు' },
-    { code: 'kn-IN', label: 'ಕನ್ನಡ' },
-    { code: 'bn-IN', label: 'বাংলা' },
+    { code: 'hi-IN', label: 'हिं' },
+    { code: 'en-IN', label: 'EN' },
+    { code: 'gu-IN', label: 'ગુ' },
+    { code: 'mr-IN', label: 'म' },
+    { code: 'ta-IN', label: 'த' },
+    { code: 'te-IN', label: 'తె' },
+    { code: 'kn-IN', label: 'ಕ' },
+    { code: 'bn-IN', label: 'বাং' },
   ]
+
+  // Theme tokens
+  const selectBg     = isLegalTheme ? '#FFFFFF'                    : 'rgba(255,255,255,0.06)'
+  const selectBorder = isLegalTheme ? '0.5px solid #C8C8C8'        : '0.5px solid rgba(255,255,255,0.1)'
+  const selectColor  = isLegalTheme ? '#444444'                    : 'rgba(255,255,255,0.5)'
+  const optionBg     = isLegalTheme ? '#FFFFFF'                    : '#0B1F3A'
+  const micIdleBg    = isLegalTheme ? 'rgba(0,0,0,0.06)'           : `${saathiColor}18`
+  const micIdleBorder= isLegalTheme ? `1.5px solid #AAAAAA`        : `1.5px solid ${saathiColor}55`
+  const micIdleColor = isLegalTheme ? 'rgba(0,0,0,0.6)'            : `${saathiColor}CC`
+  const popupBg      = isLegalTheme ? '#FFFFFF'                    : '#0B1F3A'
+  const popupBorder  = isLegalTheme ? `1px solid ${saathiColor}40` : `1px solid ${saathiColor}50`
+  const popupColor   = isLegalTheme ? '#1A1A1A'                    : '#ffffff'
+  const popupShadow  = isLegalTheme
+    ? '0 4px 20px rgba(0,0,0,0.12)'
+    : '0 8px 32px rgba(0,0,0,0.4)'
 
   function startListening() {
     const w = window as typeof window & {
@@ -132,27 +149,35 @@ export function VoiceInput({
         position: 'relative',
       }}
     >
+      {/* Language selector */}
       <select
         value={language}
         onChange={(e) => setLanguage(e.target.value)}
+        aria-label="Speech recognition language"
         style={{
-          background: 'rgba(255,255,255,0.06)',
-          border: '0.5px solid rgba(255,255,255,0.1)',
-          color: 'rgba(255,255,255,0.5)',
+          background: selectBg,
+          border: selectBorder,
+          color: selectColor,
           borderRadius: '8px',
-          padding: '4px 8px',
+          padding: '4px 6px',
           fontSize: '11px',
           cursor: 'pointer',
           outline: 'none',
+          fontFamily: 'var(--font-dm-sans)',
         }}
       >
         {LANGUAGES.map((l) => (
-          <option key={l.code} value={l.code} style={{ background: '#0B1F3A' }}>
+          <option
+            key={l.code}
+            value={l.code}
+            style={{ background: optionBg }}
+          >
             {l.label}
           </option>
         ))}
       </select>
 
+      {/* Mic button */}
       <motion.button
         onMouseDown={startListening}
         onMouseUp={stopListening}
@@ -162,7 +187,7 @@ export function VoiceInput({
         disabled={disabled}
         animate={{
           scale: isListening ? [1, 1.1, 1] : 1,
-          background: isListening ? saathiColor : 'rgba(255,255,255,0.06)',
+          background: isListening ? saathiColor : micIdleBg,
         }}
         transition={{
           scale: isListening
@@ -173,12 +198,14 @@ export function VoiceInput({
           width: '40px',
           height: '40px',
           borderRadius: '50%',
-          border: `1.5px solid ${isListening ? saathiColor : 'rgba(255,255,255,0.1)'}`,
+          border: isListening
+            ? `1.5px solid ${saathiColor}`
+            : micIdleBorder,
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: isListening ? '#fff' : 'rgba(255,255,255,0.4)',
+          color: isListening ? '#fff' : micIdleColor,
           fontSize: '16px',
           position: 'relative',
           boxShadow: isListening ? `0 0 20px ${saathiColor}40` : 'none',
@@ -201,6 +228,7 @@ export function VoiceInput({
         )}
       </motion.button>
 
+      {/* Live transcript popup */}
       <AnimatePresence>
         {transcript && (
           <motion.div
@@ -211,17 +239,17 @@ export function VoiceInput({
               position: 'absolute',
               bottom: '52px',
               right: 0,
-              background: '#0B1F3A',
-              border: `1px solid ${saathiColor}50`,
+              background: popupBg,
+              border: popupBorder,
               borderRadius: '12px',
               padding: '10px 14px',
               fontSize: '13px',
-              color: '#fff',
+              color: popupColor,
               maxWidth: '280px',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              boxShadow: popupShadow,
               zIndex: 10,
             }}
           >

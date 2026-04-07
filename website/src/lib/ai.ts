@@ -19,6 +19,8 @@ export type StreamChatParams = {
   history: Pick<ChatMessage, 'role' | 'content'>[]
   /** Supabase session access_token from supabase.auth.getSession() */
   accessToken: string
+  /** Base64 data URL of an uploaded sketch/image (optional) */
+  imageBase64?: string
 }
 
 const EDGE_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`
@@ -41,6 +43,7 @@ export async function* streamChat(
         role: m.role,
         content: m.content,
       })),
+      ...(params.imageBase64 ? { imageBase64: params.imageBase64 } : {}),
     }),
   })
 

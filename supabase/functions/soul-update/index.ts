@@ -54,6 +54,9 @@ type RawSoulRow = {
   session_count: unknown;
   last_session_summary: unknown;
   flame_stage: unknown;
+  session_depth_avg: unknown;
+  question_sophistication_score: unknown;
+  passion_peak_topic: unknown;
 };
 
 // Flame stage advances with session count — passion ignites over time
@@ -278,7 +281,7 @@ Deno.serve(async (req: Request) => {
     // Fetch current soul record
     const { data: soulData } = await admin
       .from('student_soul')
-      .select('display_name, preferred_tone, top_topics, struggle_topics, session_count, last_session_summary, flame_stage')
+      .select('display_name, preferred_tone, top_topics, struggle_topics, session_count, last_session_summary, flame_stage, session_depth_avg, question_sophistication_score')
       .eq('user_id', user.id)
       .eq('vertical_id', saathiId)
       .maybeSingle();
@@ -305,6 +308,28 @@ Deno.serve(async (req: Request) => {
     const mergedTopics = [...new Set([...existingTopics, ...sessionTopics])].slice(0, MAX_TOPICS);
     const mergedStruggles = [...new Set([...existingStruggles, ...newStruggles])].slice(0, MAX_STRUGGLES);
 
+    // ── 1. session_depth_avg ─────────────────────────────────────────────────
+    const userMessages = messages.filter((m) => m.role === 'user');
+    const avgUserLength = userMessages.length > 0
+      ? userMessages.reduce((sum, m) => sum + m.content.length, 0) / userMessages.length
+      : 0;
+    const sessionDepth = Math.min(100, Math.round(
+      (avgUserLength / 200) * 50 +           // message depth  (max 50)
+      Math.min(userMessages.length, 10) * 5  // engagement count (max 50)
+    ));
+    // ── 2. question_sophistication_score ────────────────────────────────────
+    const sophisticationMarkers = [
+      /why|how|explain|compare|difference|relationship|cause|effect|analyse|evaluate/i,
+      /\?.*\?/,
+      /however|although|whereas|despite|contrary/i,
+    ];
+    const sessionSophistication = Math.min(100, userMessages.reduce((score, m) => {
+      return score + sophisticationMarkers.filter((rx) => rx.test(m.content)).length * 12;
+    }, 0));
+
+    // ── 3. passion_peak_topic ────────────────────────────────────────────────
+    const passionPeakTopic = sessionTopics[0] ?? null;
+
     // Upsert updated soul
     const { error: upsertError } = await admin.from('student_soul').upsert(
       {
@@ -317,12 +342,33 @@ Deno.serve(async (req: Request) => {
         last_session_summary: summary || (typeof row?.last_session_summary === 'string' ? row.last_session_summary : null),
         session_count: sessionCount + 1,
         flame_stage: newFlameStage,
+        session_depth_avg:             sessionDepth,
+        question_sophistication_score: sessionSophistication,
+        passion_peak_topic:            passionPeakTopic ??
+                                       (typeof row?.passion_peak_topic === 'string'
+                                         ? row.passion_peak_topic : null),
       },
       { onConflict: 'user_id,vertical_id' }
     );
 
     if (upsertError) {
       throw new Error(`soul upsert: ${upsertError.message}`);
+    }
+
+    // Award shell_broken points when flame stage advances (fire-and-forget)
+    if (flameStageChanged) {
+      const { data: profile } = await admin
+        .from('profiles')
+        .select('plan_id')
+        .eq('id', user.id)
+        .maybeSingle();
+      admin.rpc('award_saathi_points', {
+        p_user_id:     user.id,
+        p_action_type: 'shell_broken',
+        p_base_points: 100,
+        p_plan_id:     (profile as { plan_id?: string } | null)?.plan_id ?? 'free',
+        p_metadata:    { from: existingFlameStage, to: newFlameStage },
+      }).then(() => {}).catch(() => {});
     }
 
     return new Response(
@@ -336,6 +382,9 @@ Deno.serve(async (req: Request) => {
         flameStageChanged,
         newFlameStage,
         previousFlameStage: existingFlameStage,
+        sessionDepth,
+        sessionSophistication,
+        passionPeakTopic,
       }),
       {
         status: 200,

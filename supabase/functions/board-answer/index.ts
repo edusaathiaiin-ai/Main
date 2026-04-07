@@ -208,7 +208,21 @@ Deno.serve(async (req) => {
       })
       .eq('id', questionId);
 
-    // 4. Notify question author
+    // 4. Award board_question points to the question author (fire-and-forget)
+    const { data: authorProfile } = await admin
+      .from('profiles')
+      .select('plan_id')
+      .eq('id', question.user_id)
+      .maybeSingle();
+    admin.rpc('award_saathi_points', {
+      p_user_id:     question.user_id,
+      p_action_type: 'board_question',
+      p_base_points: 15,
+      p_plan_id:     (authorProfile as { plan_id?: string } | null)?.plan_id ?? 'free',
+      p_metadata:    { question_id: questionId },
+    }).then(() => {}).catch(() => {});
+
+    // 5. Notify question author
     const actionUrl = `/board?question=${questionId}`;
     const name = saathiName(saathiId);
 
@@ -220,7 +234,7 @@ Deno.serve(async (req) => {
       action_url: actionUrl,
     });
 
-    // 5. Send email (non-blocking — best effort)
+    // 6. Send email (non-blocking — best effort)
     if (RESEND_API_KEY) {
       const { data: profile } = await admin
         .from('profiles')

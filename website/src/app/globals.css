@@ -21,11 +21,139 @@ body {
   color: #fff;
 }
 
-/* Font utilities */
+/* ─── Font utilities ───────────────────────────────────────────────────────── */
+
 .font-playfair {
   font-family: var(--font-playfair), serif;
 }
 
 .font-sans {
   font-family: var(--font-dm-sans), sans-serif;
+}
+
+/* ─── Focus indicators — gold ring, on-brand, WCAG AA ─────────────────────── */
+/* Uses :focus-visible so mouse users never see the ring — only keyboard users */
+
+*:focus-visible {
+  outline: 2px solid #C9993A;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Tighter radius on round elements */
+button:focus-visible,
+[role="button"]:focus-visible {
+  border-radius: 8px;
+}
+
+/* Input and textarea get a border glow instead of outline */
+textarea:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #C9993A;
+  border-radius: 8px;
+}
+
+/* Remove default focus ring only where we've provided our own */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── Skip to content — screen reader + keyboard shortcut ─────────────────── */
+
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: #C9993A;
+  color: #060F1D;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 0 0 8px 8px;
+  text-decoration: none;
+  transition: top 0.15s;
+}
+
+.skip-to-content:focus {
+  top: 0;
+  outline: 2px solid #060F1D;
+  outline-offset: 2px;
+}
+
+/* ─── High contrast mode overrides ────────────────────────────────────────── */
+/* Applied when highContrast is true in fontStore — done via inline styles     */
+/* but this provides the global baseline for any elements we may have missed   */
+
+[data-high-contrast="true"] {
+  --text-muted: rgba(255,255,255,0.7);
+  --border: rgba(255,255,255,0.25);
+}
+
+[data-high-contrast="true"] [data-theme="legal"] {
+  --text-muted: rgba(0,0,0,0.7);
+  --border: rgba(0,0,0,0.25);
+}
+
+/* ─── Reduce motion — respects OS preference automatically ────────────────── */
+/* The fontStore toggle adds a second layer on top of this OS-level rule       */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Keyboard navigation — visible tab indicators on interactive elements ── */
+
+/* Sidebar nav links */
+a:focus-visible {
+  outline: 2px solid #C9993A;
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* Bot mode selector buttons */
+.bot-selector-btn:focus-visible {
+  outline: 2px solid #C9993A;
+  outline-offset: 2px;
+}
+
+/* Chat input area — override outline with box-shadow for textarea */
+.chat-input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #C9993A;
+}
+
+/* Message action buttons (flashcard, flag, speaker) */
+.message-action-btn:focus-visible {
+  outline: 2px solid #C9993A;
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+/* ─── Scrollbar styling — subtle, on-brand ─────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 153, 58, 0.2);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 153, 58, 0.4);
 }

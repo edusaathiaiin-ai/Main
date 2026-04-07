@@ -13,11 +13,13 @@ import { BOTS } from '@/constants/bots'
 import { getPlanTier } from '@/constants/plans'
 import { getSaathiTheme } from '@/lib/saathiThemes'
 import { useThemeStore } from '@/stores/themeStore'
+import { useFontStore, getChatFontStyle } from '@/stores/fontStore'
 import { ChatWatermark } from './ChatWatermark'
 import { SaathiHeader } from './SaathiHeader'
 import { MessageBubble } from './MessageBubble'
 import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
+import { DidYouKnow } from './DidYouKnow'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
 import { ConversionModal } from './ConversionModal'
@@ -255,6 +257,7 @@ export function ChatWindow() {
   } = useChatStore()
 
   const { mode, setMode } = useThemeStore()
+  const { fontSize, fontType, fontColor, highContrast, reduceMotion } = useFontStore()
   const searchParams = useSearchParams()
 
   const [quota, setQuota] = useState<QuotaState>(DEFAULT_QUOTA)
@@ -419,11 +422,15 @@ export function ChatWindow() {
         localStorage.getItem('edusaathiai_saathi_themes') ?? '{}'
       ) as Record<string, string>
       const saathi = SAATHIS.find((s) => s.id === sidSlug)
-      const defaultMode = saathi?.theme === 'legal' ? 'light' : 'dark'
-      const savedPref = stored[sidSlug]
-      if (savedPref === 'day') setMode('light')
-      else if (savedPref === 'night') setMode('dark')
-      else setMode(defaultMode)
+      // Legal Saathis (KanoonSaathi) always use light mode — never honour a saved 'night' pref
+      if (saathi?.theme === 'legal') {
+        setMode('light')
+      } else {
+        const savedPref = stored[sidSlug]
+        if (savedPref === 'day') setMode('light')
+        else if (savedPref === 'night') setMode('dark')
+        else setMode('dark')
+      }
     } catch {
       /* localStorage unavailable — leave mode unchanged */
     }
@@ -447,6 +454,14 @@ export function ChatWindow() {
     }
   }, [mode, saathiId])
 
+  function getPlanLimit(planId: string | null | undefined): number {
+    if (!planId || planId === 'free') return 5
+    if (planId.startsWith('plus')) return 20
+    if (planId.startsWith('pro')) return 50
+    if (planId.startsWith('unlimited') || planId === 'institution') return 9999
+    return 5
+  }
+
   async function fetchQuota(userId: string, overridePlanId?: string) {
     const supabase = createClient()
     const { data } = await supabase
@@ -457,16 +472,14 @@ export function ChatWindow() {
       .eq('quota_date_ist', new Date().toISOString().slice(0, 10))
       .maybeSingle()
 
-    if (!data) return
-
-    const planLimits: Record<string, number> = {
-      free: 5,
-      plus: 20,
-      pro: 50,
-      unlimited: 9999,
-    }
     const planId = overridePlanId ?? profile?.plan_id ?? 'free'
-    const limit = planLimits[planId] ?? 5
+    const limit = getPlanLimit(planId)
+
+    if (!data) {
+      // No sessions today — show correct limit with full remaining
+      setQuota({ limit, used: 0, remaining: limit, coolingUntil: null, isCooling: false })
+      return
+    }
     const used = data.message_count ?? 0
     const coolingUntil = data.cooling_until
       ? new Date(data.cooling_until)
@@ -530,7 +543,7 @@ export function ChatWindow() {
 
   // Send message
   const handleSend = useCallback(
-    async (text: string) => {
+    async (text: string, imageBase64?: string) => {
       if (!profile || isStreaming || quota.isCooling || quota.remaining === 0)
         return
 
@@ -574,6 +587,7 @@ export function ChatWindow() {
           message: text,
           history,
           accessToken: session.access_token,
+          ...(imageBase64 ? { imageBase64 } : {}),
         })) {
           appendStreamChunk(delta)
         }
@@ -758,17 +772,11 @@ export function ChatWindow() {
       className="flex h-screen w-full overflow-hidden"
       style={{
         ...theme,
-        // Hex fallback first — oklch not supported in older Chrome/Edge on Windows
-        background: '#0B1F3A',
-        color: '#ffffff',
-        // CSS var overrides the fallback when oklch is supported
-        ...(typeof CSS !== 'undefined' && CSS.supports('color', 'oklch(50% 0 0)')
-          ? {
-              background: 'var(--bg-primary)',
-              color: 'var(--text-primary)',
-            }
-          : {}),
-        transition: 'background 0.4s ease, color 0.3s ease',
+        background: isLegalTheme
+          ? '#FFFFFF'
+          : `radial-gradient(ellipse at 60% 0%, ${activeSaathi.accent}12 0%, #0B1F3A 58%)`,
+        color: isLegalTheme ? '#1A1A1A' : '#ffffff',
+        transition: 'background 0.6s ease, color 0.3s ease',
       }}
     >
       {/* Sidebar (desktop) */}
@@ -790,8 +798,14 @@ export function ChatWindow() {
         <SaathiHeader
           saathi={activeSaathi}
           botName={activeBot.name}
-          sessionCount={0}
+          sessionCount={soulData?.sessionCount ?? 0}
           isLegalTheme={isLegalTheme}
+          activeSlot={activeBotSlot}
+          planId={profile.plan_id}
+          userRole={profile.role}
+          createdAt={profile.created_at}
+          onSlotChange={handleSlotChange}
+          onLockedTap={handleLockedTap}
         />
 
         {/* Quota banner */}
@@ -878,18 +892,29 @@ export function ChatWindow() {
 
         {/* Messages */}
         <div
+          id="chat-main"
+          aria-live="polite"
+          aria-label="Chat messages"
           className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6"
-          style={{ position: 'relative' }}
+          style={{ position: 'relative', ...getChatFontStyle(fontSize, fontType, fontColor, isLegalTheme, highContrast) }}
         >
           <ChatWatermark saathiSlug={saathiId} />
           <div style={{ position: 'relative', zIndex: 1 }}>
             {messages.length === 0 && !isStreaming ? (
-              <EmptyState
-                saathiId={saathiId}
-                saathiEmoji={activeSaathi.emoji}
-                botName={activeBot.name}
-                onStarterClick={handleStarterClick}
-              />
+              <>
+                <DidYouKnow
+                  isLegalTheme={isLegalTheme}
+                  primaryColor={activeSaathi.primary}
+                  reduceMotion={reduceMotion}
+                />
+                <EmptyState
+                  saathiId={saathiId}
+                  saathiEmoji={activeSaathi.emoji}
+                  botName={activeBot.name}
+                  onStarterClick={handleStarterClick}
+                  isLegalTheme={isLegalTheme}
+                />
+              </>
             ) : (
               <div>
                 {messages.map((msg, i) => {

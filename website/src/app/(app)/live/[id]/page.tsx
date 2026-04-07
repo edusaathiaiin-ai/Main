@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
@@ -26,6 +26,8 @@ type SessionDetail = {
   min_seats: number
   status: string
   meeting_platform: string | null
+  meeting_link: string | null
+  meeting_link_shared_at: string | null
 }
 
 type LectureRow = {
@@ -65,6 +67,8 @@ export default function LiveSessionDetailPage() {
     new Set()
   )
   const [bookingMode, setBookingMode] = useState<'full' | 'single'>('full')
+  const [countdown, setCountdown] = useState('')
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -157,6 +161,33 @@ export default function LiveSessionDetailPage() {
       supabase.removeChannel(channel)
     }
   }, [sessionId, profile])
+
+  // ── Countdown to next lecture ───────────────��────────────────────────────────
+  useEffect(() => {
+    if (!lectures.length) return
+
+    const nextLecture = lectures
+      .filter((l) => new Date(l.scheduled_at) > new Date())
+      .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0]
+
+    if (!nextLecture) { setCountdown(''); return }
+
+    function tick() {
+      const diff = new Date(nextLecture.scheduled_at).getTime() - Date.now()
+      if (diff <= 0) { setCountdown('Starting now'); return }
+      const d = Math.floor(diff / 86400000)
+      const h = Math.floor((diff % 86400000) / 3600000)
+      const m = Math.floor((diff % 3600000) / 60000)
+      const s = Math.floor((diff % 60000) / 1000)
+      if (d > 0) setCountdown(`${d}d ${h}h ${m}m`)
+      else if (h > 0) setCountdown(`${h}h ${m}m ${s}s`)
+      else setCountdown(`${m}m ${s}s`)
+    }
+
+    tick()
+    countdownRef.current = setInterval(tick, 1000)
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current) }
+  }, [lectures])
 
   async function handleBook() {
     if (!profile || !session) return
@@ -361,6 +392,87 @@ export default function LiveSessionDetailPage() {
                       {faculty.designation} &middot; {faculty.institution_name}
                     </p>
                   </div>
+                </div>
+              )}
+
+              {/* ── Meeting link card — shown only to enrolled students ── */}
+              {booked && session.meeting_link && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="mb-6 rounded-2xl p-5"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(74,222,128,0.08), rgba(74,222,128,0.03))',
+                    border: '1px solid rgba(74,222,128,0.3)',
+                  }}
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🔗</span>
+                      <p className="text-sm font-bold text-white">Your meeting link</p>
+                    </div>
+                    {countdown && (
+                      <div
+                        className="rounded-full px-3 py-1 text-xs font-bold"
+                        style={{
+                          background: 'rgba(201,153,58,0.15)',
+                          border: '0.5px solid rgba(201,153,58,0.4)',
+                          color: '#C9993A',
+                          fontFamily: 'DM Mono, monospace',
+                        }}
+                      >
+                        ⏱ {countdown}
+                      </div>
+                    )}
+                  </div>
+                  <a
+                    href={session.meeting_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mb-3 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-opacity hover:opacity-90"
+                    style={{ background: '#4ADE80', color: '#060F1D', textDecoration: 'none' }}
+                  >
+                    <span>Join Session →</span>
+                  </a>
+                  <p
+                    className="truncate text-[10px]"
+                    style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Mono, monospace' }}
+                  >
+                    {session.meeting_link}
+                  </p>
+                  {session.meeting_link_shared_at && (
+                    <p className="mt-1 text-[9px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                      Shared by faculty on{' '}
+                      {new Date(session.meeting_link_shared_at).toLocaleString('en-IN', {
+                        timeZone: 'Asia/Kolkata', day: 'numeric',
+                        month: 'short', hour: '2-digit', minute: '2-digit', hour12: true,
+                      })} IST
+                    </p>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Link pending — enrolled but no link yet */}
+              {booked && !session.meeting_link && (
+                <div
+                  className="mb-6 rounded-2xl p-4"
+                  style={{
+                    background: 'rgba(201,153,58,0.06)',
+                    border: '0.5px solid rgba(201,153,58,0.2)',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>⏳</span>
+                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      Your meeting link will appear here once faculty shares it.
+                      You&apos;ll also receive it via email and WhatsApp.
+                    </p>
+                  </div>
+                  {countdown && (
+                    <p className="mt-2 text-xs font-semibold" style={{ color: '#C9993A' }}>
+                      Session starts in {countdown}
+                    </p>
+                  )}
                 </div>
               )}
 

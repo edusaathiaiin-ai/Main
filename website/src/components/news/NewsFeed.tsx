@@ -121,13 +121,14 @@ export function NewsFeed() {
         .eq('quota_date_ist', new Date().toISOString().slice(0, 10))
         .single()
       if (data) {
-        const planLimits: Record<string, number> = {
-          free: 5,
-          plus: 20,
-          pro: 50,
-          unlimited: 9999,
+        function getPlanLimit(planId: string | null | undefined): number {
+          if (!planId || planId === 'free') return 5
+          if (planId.startsWith('plus')) return 20
+          if (planId.startsWith('pro')) return 50
+          if (planId.startsWith('unlimited') || planId === 'institution') return 9999
+          return 5
         }
-        const limit = planLimits[profile.plan_id ?? 'free'] ?? 5
+        const limit = getPlanLimit(profile.plan_id)
         const coolingUntil = data.cooling_until
           ? new Date(data.cooling_until)
           : null

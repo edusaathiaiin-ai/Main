@@ -432,7 +432,38 @@ Key sources per category:
 
 ---
 
-## 17. Security Rules — Non-Negotiable
+## 17. Points Economy Principle
+
+This is not a feature decision. It is the economic philosophy of the platform.
+
+```
+Free users:   points → Saathi access (unlock mechanic)
+Plus users:   points → real-world value (faculty, sessions, priority)
+
+Subscription buys: speed, chat volume, points multiplier
+Points buy:        access, depth, human connection
+```
+
+**The hard rule — never break this:**
+- Core AI learning (all 5 bot slots, all Saathis, all Check-ins) must NEVER be locked behind a paywall.
+  A student with zero rupees must be able to learn. The AI layer is always accessible.
+- The human layer (faculty sessions, live lectures, priority matching, mentor access) is locked behind
+  either payment OR points — never freely available, never fully inaccessible.
+
+**What this means in code:**
+- Free plan restriction = chat volume (20/day) + points multiplier (1×). Never topic or bot restriction.
+- Plus plan = 1.5× points multiplier + higher chat volume + human layer unlocks.
+- A free student who earns enough points can access the same human connections as a Plus student.
+- Points are the dignity escape hatch — no student is permanently locked out by poverty.
+
+**When building any gated feature, ask:**
+1. Is this the AI learning layer? → Never gate it. Open it.
+2. Is this the human connection layer? → Gate it behind payment OR points. Both paths must work.
+3. Does this decision honour a student who has time but no money? → If no, redesign.
+
+---
+
+## 18. Security Rules — Non-Negotiable
 
 - TypeScript strict mode always. No `any`. No `ts-ignore`.
 - RLS on every Supabase table. Test policies before shipping each feature.
@@ -452,7 +483,7 @@ Key sources per category:
 
 ---
 
-## 18. Bot Guardrails — All Saathis
+## 19. Bot Guardrails — All Saathis
 
 These rules are hardcoded into every bot's system prompt:
 
@@ -465,7 +496,7 @@ These rules are hardcoded into every bot's system prompt:
 
 ---
 
-## 19. Design Language
+## 20. Design Language
 
 **Fonts:** Playfair Display (headings, warmth, serif personality) + DM Sans (body, clean) + DM Mono (code, labels)
 
@@ -486,7 +517,7 @@ The hero page HTML (edusaathiai_hero.html) is the definitive design reference.
 
 ---
 
-## 20. Build Sequence
+## 21. Build Sequence
 
 Build in this exact order. Do not skip steps.
 
@@ -567,7 +598,7 @@ Map these tasks into Step 4, Step 8 fixes, and Step 11 before public launch.
 
 ---
 
-## 21. Git Rules
+## 22. Git Rules
 
 - One feature per branch. Name: `feature/chat-quota-system`
 - Never commit directly to main.
@@ -578,7 +609,7 @@ Map these tasks into Step 4, Step 8 fixes, and Step 11 before public launch.
 
 ---
 
-## 22. DPDP Act 2023 Compliance
+## 23. DPDP Act 2023 Compliance
 
 - Consent checkboxes at registration — logged in consent_log table.
 - "What does my Saathi know about me?" screen — shows full soul profile.
@@ -591,7 +622,7 @@ Map these tasks into Step 4, Step 8 fixes, and Step 11 before public launch.
 
 ---
 
-## 23. The Soul Philosophy — Read Before Writing Any Bot Code
+## 24. The Soul Philosophy — Read Before Writing Any Bot Code
 
 > "The student and their Saathi bot are not user and tool.
 > They are two identities sharing one learning soul."

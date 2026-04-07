@@ -6,6 +6,25 @@ import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Session } from '@supabase/supabase-js'
 
+// ── Welcome email (fire-and-forget for brand-new users only) ────────────────
+
+async function callWelcomeEmail(accessToken: string): Promise<void> {
+  const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-welcome-email`
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({}),
+    })
+  } catch {
+    // fire-and-forget — never blocks auth flow
+  }
+}
+
 // ── Session register (fire-and-forget after every successful login) ─────────
 
 async function callSessionRegister(accessToken: string): Promise<void> {
@@ -33,7 +52,8 @@ async function ensureProfile(
   supabase: ReturnType<typeof createClient>,
   userId: string,
   email: string,
-  roleParam: DbUserRole | null
+  roleParam: DbUserRole | null,
+  accessToken: string,
 ): Promise<{ isActive: boolean; role: DbUserRole }> {
   const { data: profile, error } = await supabase
     .from('profiles')
@@ -59,6 +79,14 @@ async function ensureProfile(
         throw new Error(`Profile creation failed: ${insertError.message}`)
       }
     }
+
+    // New user — send welcome email fire-and-forget
+    // Faculty skip here: their name is unknown until FacultyOnboardFlow completes.
+    // The welcome email is sent from FacultyOnboardFlow.handleSubmit instead.
+    if (resolvedRole !== 'faculty') {
+      void callWelcomeEmail(accessToken)
+    }
+
     return { isActive: false, role: resolvedRole }
   }
 
@@ -147,7 +175,8 @@ function CallbackInner() {
           supabase,
           resolvedSession.user.id,
           resolvedSession.user.email ?? '',
-          roleParam
+          roleParam,
+          resolvedSession.access_token,
         )
 
         // ── Saathi instant bonding ────────────────────────────────────────────

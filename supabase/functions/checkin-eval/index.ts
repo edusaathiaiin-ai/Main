@@ -16,8 +16,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+const SUPABASE_URL             = Deno.env.get('SUPABASE_URL') ?? '';
+const SUPABASE_ANON_KEY        = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 
 
@@ -220,6 +221,21 @@ STUDENT ANSWER: ${sanitizedAnswer}
 Evaluate this answer and return JSON with "feedback" and "score".`;
 
     const result = await callClaude(systemPrompt, userPrompt);
+
+    // Award check-in points (fire-and-forget)
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const { data: profile } = await userClient
+      .from('profiles')
+      .select('plan_id')
+      .eq('id', user.id)
+      .maybeSingle();
+    admin.rpc('award_saathi_points', {
+      p_user_id:     user.id,
+      p_action_type: 'checkin',
+      p_base_points: 25,
+      p_plan_id:     (profile as { plan_id?: string } | null)?.plan_id ?? 'free',
+      p_metadata:    { saathi_id: saathiId },
+    }).then(() => {}).catch(() => {});
 
     return new Response(JSON.stringify(result), {
       status: 200,

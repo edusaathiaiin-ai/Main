@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { QuotaState } from '@/types'
 import { VoiceInput } from './VoiceInput'
@@ -9,7 +9,7 @@ type Props = {
   quota: QuotaState
   isStreaming: boolean
   primaryColor: string
-  onSend: (text: string) => Promise<void>
+  onSend: (text: string, imageBase64?: string) => Promise<void>
   inputValue: string
   setInputValue: (val: string) => void
   isLegalTheme?: boolean
@@ -28,6 +28,8 @@ export function InputArea({
   isLegalTheme = false,
 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [pendingImage, setPendingImage] = useState<string | null>(null)  // base64 data URL
   const isCooling = quota.isCooling
   const isOut = quota.remaining === 0 && !isCooling
 
@@ -43,10 +45,23 @@ export function InputArea({
     return raw.replace(/[<>]/g, '').slice(0, MAX_CHARS)
   }
 
+  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) return
+    const reader = new FileReader()
+    reader.onload = () => setPendingImage(reader.result as string)
+    reader.readAsDataURL(file)
+    // reset input so same file can be re-selected
+    e.target.value = ''
+  }
+
   async function handleSend() {
     const text = inputValue.trim()
-    if (!text || isStreaming || isCooling || isOut) return
-    await onSend(text)
+    if ((!text && !pendingImage) || isStreaming || isCooling || isOut) return
+    const imageBase64 = pendingImage ?? undefined
+    setPendingImage(null)
+    await onSend(text || '📷 Sketch uploaded', imageBase64)
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -83,6 +98,41 @@ export function InputArea({
         backdropFilter: isLegalTheme ? 'none' : 'blur(12px)',
       }}
     >
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleImageSelect}
+        style={{ display: 'none' }}
+      />
+
+      {/* Image preview */}
+      {pendingImage && (
+        <div className="flex items-center gap-2 px-4 pt-3">
+          <div className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={pendingImage}
+              alt="Sketch preview"
+              style={{ height: '56px', width: '56px', objectFit: 'cover', borderRadius: '8px',
+                border: `1px solid ${primaryColor}55` }}
+            />
+            <button
+              onClick={() => setPendingImage(null)}
+              style={{ position: 'absolute', top: '-6px', right: '-6px', width: '16px', height: '16px',
+                borderRadius: '50%', background: '#EF4444', border: 'none', cursor: 'pointer',
+                color: '#fff', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              ✕
+            </button>
+          </div>
+          <p style={{ fontSize: '11px', color: isLegalTheme ? '#888' : 'rgba(255,255,255,0.4)' }}>
+            Sketch ready — add a note or send now
+          </p>
+        </div>
+      )}
+
       {/* Main input row */}
       <div className="flex items-end gap-3 px-4 py-3">
         <textarea
@@ -117,6 +167,30 @@ export function InputArea({
           }
         />
 
+        {/* Sketch / image upload */}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={disabled}
+          title="Upload sketch"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+          style={{
+            background: pendingImage
+              ? `${primaryColor}33`
+              : isLegalTheme ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
+            border: pendingImage
+              ? `1px solid ${primaryColor}66`
+              : isLegalTheme ? '1px solid #D0D0D0' : '0.5px solid rgba(255,255,255,0.1)',
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke={pendingImage ? primaryColor : isLegalTheme ? '#555' : 'rgba(255,255,255,0.4)'}
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </button>
+
         {/* Voice input */}
         <VoiceInput
           onTranscript={(text) =>
@@ -124,6 +198,7 @@ export function InputArea({
           }
           disabled={disabled}
           saathiColor={primaryColor}
+          isLegalTheme={isLegalTheme}
         />
 
         {/* Send button */}

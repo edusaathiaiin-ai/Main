@@ -11,6 +11,7 @@ import BillingToggle from '@/components/pricing/BillingToggle'
 import PricingCard from '@/components/pricing/PricingCard'
 import ComparisonTable from '@/components/pricing/ComparisonTable'
 import PricingFAQ from '@/components/pricing/PricingFAQ'
+import { ImmersiveFuture } from '@/components/pricing/ImmersiveFuture'
 
 // ── Env flag — set NEXT_PUBLIC_PAYMENTS_ACTIVE=true when Razorpay is live ─────
 const PAYMENTS_ACTIVE = process.env.NEXT_PUBLIC_PAYMENTS_ACTIVE === 'true'
@@ -557,6 +558,11 @@ export default function PricingPage() {
           {/* ── FAQ ─────────────────────────────────────────────────── */}
           <div className="mb-20">
             <PricingFAQ />
+          </div>
+
+          {/* ── Immersive Future ─────────────────────────────────────── */}
+          <div className="mb-20">
+            <ImmersiveFuture />
           </div>
 
           {/* ── Bottom CTA ───────────────────────────────────────────── */}

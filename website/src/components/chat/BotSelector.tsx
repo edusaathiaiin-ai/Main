@@ -13,20 +13,19 @@ type Props = {
   primaryColor: string
   onSelect: (slot: 1 | 2 | 3 | 4 | 5) => void
   onLockedTap: (botName: string) => void
+  isLegalTheme?: boolean
 }
 
 function isUnlocked(
   slot: number,
   planId: string,
-  role: UserRole | null,
+  _role: UserRole | null,
   createdAt?: string | null
 ): boolean {
   if (slot === 1 || slot === 5) return true // always free
-  // Free trial: all slots open for first 7 days
   const tier = getPlanTier(planId)
   if (tier === 'free' && isInFreeTrial(createdAt)) return true
   if (tier === 'free') return false
-  if (role && role !== 'student' && slot !== 1 && slot !== 5) return false
   return true
 }
 
@@ -35,60 +34,124 @@ export function BotSelector({
   userRole,
   planId,
   createdAt,
-  primaryColor,
   onSelect,
   onLockedTap,
+  isLegalTheme = false,
 }: Props) {
   return (
-    <div className="flex flex-col gap-1.5 px-3">
+    <div className="flex flex-col gap-0.5 px-3">
       <p
-        className="mb-1 px-2 text-[10px] font-semibold tracking-widest uppercase"
-        style={{ color: 'rgba(255,255,255,0.25)' }}
+        className="mb-1.5 px-2 text-[10px] font-semibold tracking-widest uppercase"
+        style={{
+          color: isLegalTheme ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.25)',
+        }}
       >
-        Bot Modes
+        Saathi Modes
       </p>
+
       {BOTS.map((bot) => {
-        const active = activeSlot === bot.slot
+        const active  = activeSlot === bot.slot
         const unlocked = isUnlocked(bot.slot, planId, userRole, createdAt)
+        const accent  = bot.color
 
         return (
           <motion.button
             key={bot.slot}
             whileHover={{ x: 2 }}
+            aria-label={`Switch to ${bot.name} mode${!unlocked ? ' (locked — upgrade to unlock)' : ''}`}
+            aria-pressed={active}
             onClick={() => {
-              if (!unlocked) {
-                onLockedTap(bot.name)
-              } else {
-                onSelect(bot.slot as 1 | 2 | 3 | 4 | 5)
-              }
+              if (!unlocked) onLockedTap(bot.name)
+              else onSelect(bot.slot as 1 | 2 | 3 | 4 | 5)
             }}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-150 outline-none"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-all duration-150 outline-none"
             style={{
-              background: active ? `${primaryColor}22` : 'transparent',
-              border: `0.5px solid ${active ? primaryColor : 'transparent'}`,
+              background: active
+                ? isLegalTheme
+                  ? `${accent}14`
+                  : `${accent}1A`
+                : 'transparent',
+              border: `0.5px solid ${
+                active
+                  ? isLegalTheme
+                    ? `${accent}55`
+                    : `${accent}66`
+                  : 'transparent'
+              }`,
               cursor: 'pointer',
-              pointerEvents: 'auto',
-              position: 'relative',
-              zIndex: 10,
             }}
           >
-            <span className="w-4 text-center text-base">
-              {!unlocked ? '🔒' : active ? '●' : '○'}
+            {/* Emoji icon with a soft colored pill */}
+            <span
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '15px',
+                flexShrink: 0,
+                background: unlocked
+                  ? active
+                    ? `${accent}25`
+                    : isLegalTheme
+                      ? `${accent}12`
+                      : `${accent}0F`
+                  : isLegalTheme
+                    ? 'rgba(0,0,0,0.04)'
+                    : 'rgba(255,255,255,0.04)',
+                border: `0.5px solid ${
+                  unlocked
+                    ? active
+                      ? `${accent}55`
+                      : `${accent}30`
+                    : isLegalTheme
+                      ? 'rgba(0,0,0,0.1)'
+                      : 'rgba(255,255,255,0.07)'
+                }`,
+                opacity: unlocked ? 1 : 0.4,
+                filter: unlocked ? 'none' : 'grayscale(0.6)',
+              }}
+            >
+              {unlocked ? bot.emoji : '🔒'}
             </span>
+
+            {/* Name */}
             <div className="min-w-0 flex-1">
               <p
-                className="truncate text-sm font-medium"
+                className="truncate text-[13px] font-medium"
                 style={{
                   color: active
-                    ? '#fff'
+                    ? isLegalTheme
+                      ? '#1A1A1A'
+                      : '#ffffff'
                     : unlocked
-                      ? 'rgba(255,255,255,0.6)'
-                      : 'rgba(255,255,255,0.3)',
+                      ? isLegalTheme
+                        ? '#444444'
+                        : 'rgba(255,255,255,0.6)'
+                      : isLegalTheme
+                        ? '#BBBBBB'
+                        : 'rgba(255,255,255,0.25)',
                 }}
               >
                 {bot.name}
               </p>
             </div>
+
+            {/* Active dot */}
+            {active && (
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: accent,
+                  flexShrink: 0,
+                  boxShadow: `0 0 6px ${accent}99`,
+                }}
+              />
+            )}
           </motion.button>
         )
       })}

@@ -188,3 +188,36 @@ Full documentation: `website/src/lib/resolveVerticalId.ts`
 **Call it** when the value comes from: URL params, user selection (Saathi picker), `profile.primary_saathi_id`, WhatsApp payloads, `SAATHIS[n].id` (slug field).
 
 **Skip it** when the value comes from: a DB query result's `.vertical_id` column, another table's `vertical_id` FK — those are already UUIDs.
+
+---
+
+## IMMERSIVE ROADMAP — EdUsaathiAI
+
+```
+Current : Text + Voice + 3D models
+Next    : 360° scenes + Spatial audio        ← in progress
+Then    : WebAR via device camera
+Then    : WebXR spatial classroom
+Then    : VR headset (no extra code — browser handles)
+Vision  : Holographic Saathi, gesture learning
+```
+
+Every rich media component built today is one step closer to full immersion.
+
+**CRITICAL — never remove 3D/immersive components.** They are the foundation of the immersive layer. Each component is load-bearing for the XR future:
+
+| Component | Tag | Immersive role |
+|-----------|-----|----------------|
+| `MoleculeViewer` | `[MOLECULE]` | 3D chemistry — AR overlay ready |
+| `Molecule3DViewer` | `[MOLECULE3D]` | PubChem 3D — direct WebXR candidate |
+| `MechanismViewer` | `[MECHANISM]` | Reaction animation — future holo-lab |
+| `AnatomyViewer` | `[ANATOMY]` | Body systems — medical AR |
+| `CircuitSimulator` | `[CIRCUIT]` | Live circuits — hands-on WebXR |
+| `ArchModel3D` | `[ARCHMODEL]` | Building walkthroughs — spatial design |
+| `FloorPlanViewer` | `[FLOORPLAN]` | 2D → AR floor plan projection |
+| `Scene360Viewer` | `[SCENE360]` | 360° pan — direct WebVR feed |
+| `MindMap` | `[MINDMAP]` | Spatial knowledge graph |
+| `GoldenRatioTool` | `[GOLDEN_RATIO]` | Design tool — AR overlay |
+| `ArchTimeline` | `[ARCH_TIMELINE]` | Temporal 3D — history hologram |
+
+**Spatial audio** (`VoiceOutput` + `AmbientEngine`) is already wired. Files go in `/public/audio/ambient/`. Each Saathi has its own ambient soundscape that plays under TTS — see the README there for file list and freesound.org IDs.

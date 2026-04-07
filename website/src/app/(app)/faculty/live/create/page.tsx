@@ -93,6 +93,7 @@ export default function CreateLiveSessionPage() {
   const [earlyBirdEnabled, setEarlyBirdEnabled] = useState(false)
   const [earlyBirdSeats, setEarlyBirdSeats] = useState(5)
   const [earlyBirdPrice, setEarlyBirdPrice] = useState(0)
+  const [meetingLink, setMeetingLink] = useState('')
   const [saving, setSaving] = useState(false)
   const [published, setPublished] = useState(false)
   const [sessionUrl, setSessionUrl] = useState('')
@@ -161,6 +162,7 @@ export default function CreateLiveSessionPage() {
         early_bird_seats: earlyBirdEnabled ? earlyBirdSeats : null,
         total_seats: totalSeats,
         min_seats: minSeats,
+        meeting_link: meetingLink.trim() || null,
         status: 'published', // auto-publish for verified faculty
         intent_id: intentId ?? null,
         priority_booking_until: intentId
@@ -684,6 +686,30 @@ export default function CreateLiveSessionPage() {
                       )}
                     </div>
                   )}
+                  {/* Meeting link */}
+                  <div>
+                    <label
+                      className="mb-1.5 block text-xs font-semibold"
+                      style={labelStyle}
+                    >
+                      Meeting link
+                    </label>
+                    <input
+                      type="url"
+                      value={meetingLink}
+                      onChange={(e) => setMeetingLink(e.target.value)}
+                      placeholder="https://meet.google.com/xxx-xxxx-xxx or Zoom link"
+                      className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                      style={inputStyle}
+                    />
+                    <p
+                      className="mt-1 text-[9px]"
+                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                    >
+                      Shared only with enrolled students. You can update this later from your sessions dashboard.
+                    </p>
+                  </div>
+
                   <div className="flex gap-3">
                     <button
                       onClick={() => setStep('content')}
@@ -944,6 +970,23 @@ export default function CreateLiveSessionPage() {
                             {t}
                           </span>
                         ))}
+                      </div>
+                    )}
+                    {meetingLink.trim() && (
+                      <div
+                        className="mb-3 flex items-center gap-2 rounded-lg px-3 py-2.5"
+                        style={{
+                          background: 'rgba(96,165,250,0.08)',
+                          border: '0.5px solid rgba(96,165,250,0.25)',
+                        }}
+                      >
+                        <span style={{ fontSize: '14px' }}>🔗</span>
+                        <p
+                          className="truncate text-[11px]"
+                          style={{ color: '#93C5FD' }}
+                        >
+                          {meetingLink.trim()}
+                        </p>
                       </div>
                     )}
                     <div className="grid grid-cols-3 gap-3 text-center">

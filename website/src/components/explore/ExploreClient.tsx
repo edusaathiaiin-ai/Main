@@ -172,7 +172,8 @@ export function ExploreClient({ saathiId }: Props) {
     [saathiId, verticalUuid]
   )
 
-  useEffect(() => {
+  useEffect(() => { // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchResources(false)
   }, [fetchResources])
 
