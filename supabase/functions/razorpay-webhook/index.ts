@@ -350,7 +350,39 @@ async function handlePaymentCaptured(
 
       console.log(`razorpay-webhook: faculty session '${sess.id}' marked paid`);
     } else {
-      console.error('razorpay-webhook: no subscription or session found for order', orderId);
+      // Check if it's a saathi_addon payment
+      const { data: addonRow } = await admin
+        .from('saathi_addons')
+        .select('id, user_id, vertical_id, status')
+        .eq('razorpay_sub_id', orderId)
+        .maybeSingle();
+
+      if (addonRow) {
+        const addon = addonRow as { id: string; user_id: string; vertical_id: string; status: string };
+
+        if (addon.status === 'active') {
+          console.log(`razorpay-webhook: saathi_addon '${addon.id}' already active — skipping`);
+          return;
+        }
+
+        // Activate addon
+        await admin.from('saathi_addons').update({
+          status:          'active',
+          next_billing_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        }).eq('id', addon.id);
+
+        // Create enrollment
+        await admin.from('saathi_enrollments').upsert({
+          user_id:       addon.user_id,
+          vertical_id:   addon.vertical_id,
+          unlock_method: 'plus_grant',
+          points_spent:  0,
+        }, { onConflict: 'user_id,vertical_id' });
+
+        console.log(`razorpay-webhook: saathi_addon activated for user ${addon.user_id}, vertical ${addon.vertical_id}`);
+      } else {
+        console.error('razorpay-webhook: no subscription, session, or addon found for order', orderId);
+      }
     }
     return;
   }
