@@ -109,6 +109,93 @@ const NAV_LINKS = [
   { href: '/profile',   icon: '⚙️', label: 'Profile',       color: '#FB923C' },
 ]
 
+function DigestButton({
+  verticalId,
+  saathiName,
+  isLegalTheme = false,
+}: {
+  verticalId: string
+  saathiName: string
+  isLegalTheme?: boolean
+}) {
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+
+  async function sendDigest() {
+    if (state === 'sending' || state === 'sent') return
+    setState('sending')
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('Not logged in')
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-session-digest`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+          },
+          body: JSON.stringify({ verticalId }),
+        }
+      )
+      const data = await res.json()
+      if (!res.ok || data.sent === 0) {
+        setState('error')
+        setTimeout(() => setState('idle'), 3000)
+      } else {
+        setState('sent')
+        setTimeout(() => setState('idle'), 4000)
+      }
+    } catch {
+      setState('error')
+      setTimeout(() => setState('idle'), 3000)
+    }
+  }
+
+  const labels = {
+    idle:    `📧 Email today's ${saathiName} chat`,
+    sending: 'Sending…',
+    sent:    '✓ Digest sent to your email',
+    error:   'No session today — chat first',
+  }
+
+  return (
+    <button
+      onClick={sendDigest}
+      disabled={state === 'sending'}
+      style={{
+        display:      'flex',
+        alignItems:   'center',
+        gap:          '8px',
+        width:        '100%',
+        padding:      '8px 16px',
+        borderRadius: '0',
+        background:   state === 'sent'
+          ? 'rgba(74,222,128,0.08)'
+          : 'transparent',
+        border:       'none',
+        borderBottom: isLegalTheme
+          ? '0.5px solid #E8E8E8'
+          : '0.5px solid rgba(255,255,255,0.06)',
+        color: state === 'sent'
+          ? '#4ADE80'
+          : state === 'error'
+            ? '#FCA5A5'
+            : isLegalTheme ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)',
+        fontSize:   '11px',
+        fontWeight: state === 'sent' ? 600 : 400,
+        cursor:     state === 'sending' ? 'not-allowed' : 'pointer',
+        transition: 'all 0.18s',
+        textAlign:  'left',
+      }}
+    >
+      {labels[state]}
+    </button>
+  )
+}
+
 export function Sidebar({
   profile,
   activeSaathi,
@@ -206,6 +293,15 @@ export function Sidebar({
           </div>
         </div>
       </div>
+
+      {/* Session digest button — students only */}
+      {profile.role === 'student' && profile.primary_saathi_id && (
+        <DigestButton
+          verticalId={profile.primary_saathi_id}
+          saathiName={activeSaathi.name}
+          isLegalTheme={isLegalTheme}
+        />
+      )}
 
       {/* Saathi Points bar — prominent, right below Saathi card */}
       <SaathiPointsBar

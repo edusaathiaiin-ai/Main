@@ -414,3 +414,6 @@ verify_jwt = false
 
 [functions.admin-digest]
 verify_jwt = false
+
+[functions.send-session-digest]
+schedule = "30 16 * * *"
