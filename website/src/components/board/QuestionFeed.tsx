@@ -75,7 +75,7 @@ const DEFAULT_QUOTA: QuotaState = {
 
 export function QuestionFeed() {
   const { profile } = useAuthStore()
-  const { activeSaathiId, activeBotSlot, setActiveBotSlot } = useChatStore()
+  const { activeSaathiId } = useChatStore()
   const { mode } = useThemeStore()
   const searchParams = useSearchParams()
 
@@ -266,10 +266,7 @@ export function QuestionFeed() {
       <Sidebar
         profile={profile!}
         activeSaathi={activeSaathi}
-        activeSlot={activeBotSlot}
         quota={DEFAULT_QUOTA}
-        onSlotChange={(slot) => setActiveBotSlot(slot)}
-        onLockedTap={() => {}}
         isLegalTheme={isLegalTheme}
         onSignOut={async () => {
           const supabase = createClient()

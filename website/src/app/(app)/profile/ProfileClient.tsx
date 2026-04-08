@@ -51,7 +51,7 @@ interface RawSoul {
 export function ProfileClient() {
   const router = useRouter()
   const { profile } = useAuthStore()
-  const { activeSaathiId, activeBotSlot, setActiveBotSlot } = useChatStore()
+  const { activeSaathiId } = useChatStore()
 
   const saathiId =
     toSlug(activeSaathiId) ??
@@ -117,10 +117,7 @@ export function ProfileClient() {
       <Sidebar
         profile={profile}
         activeSaathi={activeSaathi}
-        activeSlot={activeBotSlot}
         quota={DEFAULT_QUOTA}
-        onSlotChange={(slot) => setActiveBotSlot(slot)}
-        onLockedTap={() => {}}
         onSignOut={async () => {
           const s = createClient()
           await s.auth.signOut()

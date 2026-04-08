@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { BotSelector } from '@/components/chat/BotSelector'
 import { SaathiPointsBar } from '@/components/chat/SaathiPointsBar'
 import { CompanionshipCard } from '@/components/chat/CompanionshipCard'
 import { getPlanTier } from '@/constants/plans'
@@ -15,10 +14,7 @@ import type { Saathi, Profile, QuotaState } from '@/types'
 type Props = {
   profile: Profile
   activeSaathi: Saathi
-  activeSlot: 1 | 2 | 3 | 4 | 5
   quota: QuotaState
-  onSlotChange: (slot: 1 | 2 | 3 | 4 | 5) => void
-  onLockedTap: (botName: string) => void
   onSignOut: () => void
   sessionCount?: number
   isLegalTheme?: boolean
@@ -116,10 +112,7 @@ const NAV_LINKS = [
 export function Sidebar({
   profile,
   activeSaathi,
-  activeSlot,
   quota,
-  onSlotChange,
-  onLockedTap,
   onSignOut,
   sessionCount = 0,
   isLegalTheme = false,
@@ -214,47 +207,98 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Bot selector */}
-      <div
-        className="py-3"
-        style={{
-          borderBottom: isLegalTheme
-            ? '0.5px solid #E8E8E8'
-            : '0.5px solid rgba(255,255,255,0.06)',
-        }}
-      >
-        <BotSelector
-          activeSlot={activeSlot}
-          userRole={profile.role}
-          planId={profile.plan_id}
-          createdAt={profile.created_at}
-          primaryColor={activeSaathi.primary}
-          onSelect={onSlotChange}
-          onLockedTap={onLockedTap}
-          isLegalTheme={isLegalTheme}
-        />
-      </div>
-
-      {/* Saathi Points bar — prominent position */}
+      {/* Saathi Points bar — prominent, right below Saathi card */}
       <SaathiPointsBar
         profile={profile}
         isLegalTheme={isLegalTheme}
         primaryColor={activeSaathi.primary}
       />
 
-      {/* Companionship card — students only, shown when milestone reached */}
-      {profile.role === 'student' && toVerticalUuid(activeSaathi.id) && (
-        <CompanionshipCard
-          profile={profile}
-          verticalId={toVerticalUuid(activeSaathi.id)!}
-          location="sidebar"
-          isLegalTheme={isLegalTheme}
-          primaryColor={activeSaathi.primary}
-        />
-      )}
+      {/* 6px breathing room */}
+      <div style={{ height: '6px' }} />
 
       {/* Scrollable zone: nav links + all CTAs */}
       <div className="flex-1 min-h-0 overflow-y-auto">
+
+      {/* Companionship card — students only, triggered when milestone reached */}
+      {profile.role === 'student' && toVerticalUuid(activeSaathi.id) && (
+        <div className="px-3 pt-2">
+          <CompanionshipCard
+            profile={profile}
+            verticalId={toVerticalUuid(activeSaathi.id)!}
+            location="sidebar"
+            isLegalTheme={isLegalTheme}
+            primaryColor={activeSaathi.primary}
+          />
+        </div>
+      )}
+
+      {/* Add Extra Saathi CTA — students only */}
+      {profile.role === 'student' && (
+        <Link
+          href="/profile?tab=profile#my-saathis"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            margin: '4px 12px',
+            padding: '10px 14px',
+            borderRadius: '12px',
+            background: isLegalTheme
+              ? `${activeSaathi.primary}08`
+              : `${activeSaathi.primary}12`,
+            border: `0.5px solid ${activeSaathi.primary}35`,
+            textDecoration: 'none',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <span
+            style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '14px',
+              flexShrink: 0,
+              background: `${activeSaathi.primary}20`,
+              border: `0.5px solid ${activeSaathi.primary}40`,
+            }}
+          >
+            ✦
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p
+              style={{
+                fontSize: '12px',
+                fontWeight: '700',
+                color: isLegalTheme ? activeSaathi.primary : activeSaathi.accent,
+                margin: '0 0 1px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              Add Extra Saathi
+            </p>
+            <p style={{ fontSize: '9px', color: subColor, margin: 0 }}>
+              ₹99/month · or 500 SP free
+            </p>
+          </div>
+          <span
+            style={{
+              fontSize: '10px',
+              color: isLegalTheme
+                ? `${activeSaathi.primary}60`
+                : 'rgba(255,255,255,0.25)',
+              flexShrink: 0,
+            }}
+          >
+            →
+          </span>
+        </Link>
+      )}
 
       {/* Nav links */}
       <nav className="px-3 py-3">

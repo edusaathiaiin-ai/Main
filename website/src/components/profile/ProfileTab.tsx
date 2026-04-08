@@ -802,6 +802,93 @@ export default function ProfileTab({
         </section>
       )}
 
+      {/* ── My Saathis ──────────────────────────────────────────── */}
+      {profile.role === 'student' && (
+        <section id="my-saathis">
+          <h3 className="font-playfair mb-1 text-lg font-bold text-white">
+            My Saathis
+          </h3>
+          <p className="mb-4 text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            Add up to 2 extra Saathis to your learning journey.
+          </p>
+
+          {/* Primary Saathi — always shown */}
+          {currentSaathi && (
+            <div
+              className="mb-3 flex items-center gap-3 rounded-xl px-4 py-3"
+              style={{
+                background: `${currentSaathi.primary}14`,
+                border: `0.5px solid ${currentSaathi.primary}35`,
+              }}
+            >
+              <span className="text-2xl">{currentSaathi.emoji}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white truncate">
+                  {currentSaathi.name}
+                </p>
+                <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  Primary Saathi
+                </p>
+              </div>
+              <span
+                className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                style={{ background: 'rgba(74,222,128,0.15)', color: '#4ADE80' }}
+              >
+                Active
+              </span>
+            </div>
+          )}
+
+          {/* Add Extra Saathi CTA */}
+          <a
+            href="/profile?tab=profile#my-saathis"
+            onClick={(e) => {
+              e.preventDefault()
+              // Navigate to SaathiUnlockModal via points bar or pricing
+              window.location.href = '/pricing?trigger=addon_saathi'
+            }}
+            className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
+            style={{
+              background: 'linear-gradient(135deg, rgba(201,153,58,0.1), rgba(201,153,58,0.03))',
+              border: '0.5px solid rgba(201,153,58,0.3)',
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <span
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                flexShrink: 0,
+                background: 'rgba(201,153,58,0.15)',
+                border: '0.5px solid rgba(201,153,58,0.3)',
+              }}
+            >
+              ✦
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold" style={{ color: '#C9993A' }}>
+                Add Extra Saathi
+              </p>
+              <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                ₹99/month per add-on · or 500 SP earned free
+              </p>
+            </div>
+            <span style={{ color: 'rgba(201,153,58,0.5)', fontSize: '14px' }}>→</span>
+          </a>
+
+          <p className="mt-2 text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+            Extra Saathis share your soul profile. Each learns who you are over time.
+            You can have up to 3 Saathis active simultaneously.
+          </p>
+        </section>
+      )}
+
       {/* ── Academic Journey ─────────────────────────────────────── */}
       <section>
         <h3 className="font-playfair mb-4 text-lg font-bold text-white">

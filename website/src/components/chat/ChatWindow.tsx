@@ -743,10 +743,7 @@ export function ChatWindow() {
         <Sidebar
           profile={profile}
           activeSaathi={activeSaathi}
-          activeSlot={activeBotSlot}
           quota={quota}
-          onSlotChange={(slot) => setActiveBotSlot(slot)}
-          onLockedTap={() => {}}
           isLegalTheme={false}
           onSignOut={async () => {
             const s = createClient()
@@ -783,10 +780,7 @@ export function ChatWindow() {
       <Sidebar
         profile={profile}
         activeSaathi={activeSaathi}
-        activeSlot={activeBotSlot}
         quota={quota}
-        onSlotChange={handleSlotChange}
-        onLockedTap={handleLockedTap}
         onSignOut={handleSignOut}
         sessionCount={soulData?.sessionCount ?? 0}
         isLegalTheme={isLegalTheme}

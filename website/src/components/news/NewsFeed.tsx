@@ -83,7 +83,7 @@ function CardSkeleton() {
 
 export function NewsFeed() {
   const { profile } = useAuthStore()
-  const { activeSaathiId, activeBotSlot, setActiveBotSlot } = useChatStore()
+  const { activeSaathiId } = useChatStore()
 
   const saathiId =
     toSlug(activeSaathiId) ??
@@ -296,10 +296,7 @@ export function NewsFeed() {
       <Sidebar
         profile={profile}
         activeSaathi={activeSaathi}
-        activeSlot={activeBotSlot}
         quota={quota}
-        onSlotChange={(slot) => setActiveBotSlot(slot)}
-        onLockedTap={() => {}}
         onSignOut={async () => {
           const supabase = createClient()
           await supabase.auth.signOut()
