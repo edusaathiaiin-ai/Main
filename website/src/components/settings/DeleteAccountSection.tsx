@@ -69,8 +69,8 @@ export function DeleteAccountSection() {
         },
       )
 
-      const data = await res.json() as { deleted?: boolean; error?: string }
-      if (!res.ok || !data.deleted) {
+      const data = await res.json() as { ok?: boolean; deleted?: boolean; error?: string }
+      if (!res.ok || (!data.ok && !data.deleted)) {
         throw new Error(data.error ?? 'Deletion failed')
       }
 
