@@ -21,6 +21,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { SAATHI_PHILOSOPHY } from '../_shared/saathiPhilosophy.ts';
 import { getHorizonNudge } from '../_shared/horizonNudge.ts';
 import { checkRateLimit } from '../_shared/rateLimit.ts';
+import { getRandomPersonality, buildPersonalityPrompt } from '../_shared/saathiPersonalities.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -1748,7 +1749,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: verticalRow, error: verticalError } = await admin
       .from('verticals')
-      .select('id, slug')
+      .select('id, slug, name')
       .eq(isUUID ? 'id' : 'slug', saathiId)
       .single();
 
@@ -1758,8 +1759,9 @@ Deno.serve(async (req: Request) => {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
-    const verticalId   = (verticalRow as { id: string; slug: string }).id;
-    const verticalSlug = (verticalRow as { id: string; slug: string }).slug;
+    const verticalId   = (verticalRow as { id: string; slug: string; name: string }).id;
+    const verticalSlug = (verticalRow as { id: string; slug: string; name: string }).slug;
+    const verticalName = (verticalRow as { id: string; slug: string; name: string }).name;
 
     // ── Saathi lock: students can only use their registered Saathi ──────────
     if (profile?.primary_saathi_id && verticalId !== profile.primary_saathi_id) {
@@ -1804,7 +1806,14 @@ Deno.serve(async (req: Request) => {
     }
 
     // Build personalised system prompt (server-side only)
-    const systemPrompt = await buildSystemPrompt(admin, userId, verticalId, botSlot, verticalSlug);
+    const baseSystemPrompt = await buildSystemPrompt(admin, userId, verticalId, botSlot, verticalSlug);
+
+    // Personality mode — random historical figure per session (bot slot 1 only)
+    const personality = botSlot === 1 ? getRandomPersonality(verticalSlug) : null;
+    const personalityPrefix = personality
+      ? buildPersonalityPrompt(personality, verticalName) + '\n\n'
+      : '';
+    const systemPrompt = personalityPrefix + baseSystemPrompt;
 
     // Persist user message
     await admin.from('chat_messages').insert({
