@@ -1,14 +1,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// All 24 Saathi slugs — must match profiles.primary_saathi_id values
-const SAATHI_SLUGS = [
-  'kanoonsaathi', 'maathsaathi', 'chemsaathi', 'biosaathi', 'pharmasaathi',
-  'medicosaathi', 'nursingsaathi', 'psychsaathi', 'mechsaathi', 'civilsaathi',
-  'elecsaathi', 'compsaathi', 'envirosathi', 'bizsaathi', 'finsaathi',
-  'mktsaathi', 'hrsaathi', 'archsaathi', 'historysaathi', 'econsaathi',
-  'physisaathi', 'biotechsaathi', 'aerosaathi', 'aerospacesaathi',
-];
+// No hardcoded slugs — fetch all live verticals from the database
 
 function communityLabel(total: number): string {
   if (total >= 1000) return 'Community';
@@ -25,25 +18,42 @@ serve(async () => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
+  // Fetch all live verticals from DB — no hardcoded list
+  const { data: verticals } = await admin
+    .from('verticals')
+    .select('id, slug')
+    .eq('is_live', true)
+    .eq('is_active', true);
+
+  if (!verticals || verticals.length === 0) {
+    return new Response(
+      JSON.stringify({ refreshed: 0, error: 'No live verticals found' }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    );
+  }
+
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
 
   let refreshed = 0;
 
-  for (const slug of SAATHI_SLUGS) {
-    // Total students
+  for (const vertical of verticals) {
+    const uuid = (vertical as { id: string; slug: string }).id;
+    const slug = (vertical as { id: string; slug: string }).slug;
+
+    // Total students — profiles.primary_saathi_id stores UUID
     const { count: total } = await admin
       .from('profiles')
       .select('*', { count: 'exact', head: true })
-      .eq('primary_saathi_id', slug)
+      .eq('primary_saathi_id', uuid)
       .eq('is_active', true);
 
     // Active students — distinct user_ids with a session in last 30 days
     const { data: activeSessions } = await admin
       .from('chat_sessions')
       .select('user_id')
-      .eq('vertical_id', slug)
+      .eq('vertical_id', uuid)
       .gte('created_at', thirtyDaysAgoISO);
 
     const activeCount = new Set((activeSessions ?? []).map((r: { user_id: string }) => r.user_id)).size;
@@ -52,7 +62,7 @@ serve(async () => {
     const { count: paying } = await admin
       .from('profiles')
       .select('*', { count: 'exact', head: true })
-      .eq('primary_saathi_id', slug)
+      .eq('primary_saathi_id', uuid)
       .neq('plan_id', 'free')
       .not('plan_id', 'is', null);
 
@@ -60,7 +70,7 @@ serve(async () => {
     const { data: sessionStats } = await admin
       .from('chat_sessions')
       .select('message_count')
-      .eq('vertical_id', slug);
+      .eq('vertical_id', uuid);
 
     const totalSessions = sessionStats?.length ?? 0;
     const totalMessages = (sessionStats ?? []).reduce(
@@ -71,7 +81,7 @@ serve(async () => {
     const { data: depthRows } = await admin
       .from('student_soul')
       .select('depth_calibration')
-      .eq('vertical_id', slug)
+      .eq('vertical_id', uuid)
       .not('depth_calibration', 'is', null);
 
     const avgDepth = depthRows && depthRows.length > 0
@@ -82,7 +92,7 @@ serve(async () => {
     const { data: souls } = await admin
       .from('student_soul')
       .select('top_topics')
-      .eq('vertical_id', slug)
+      .eq('vertical_id', uuid)
       .not('top_topics', 'is', null);
 
     const topicFreq: Record<string, number> = {};
@@ -99,6 +109,7 @@ serve(async () => {
     const totalCount = total ?? 0;
     const label = communityLabel(totalCount);
 
+    // saathi_stats_cache uses slug as PK
     await admin.from('saathi_stats_cache').upsert({
       vertical_id: slug,
       total_students: totalCount,
