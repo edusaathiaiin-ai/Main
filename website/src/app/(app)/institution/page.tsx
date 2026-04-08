@@ -395,13 +395,14 @@ export default function InstitutionPage() {
 
     // Trigger matching engine
     if (listing?.id) {
+      const { data: { session: matchSession } } = await supabase.auth.getSession()
       fetch(
         `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/match-interns`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+            Authorization: `Bearer ${matchSession?.access_token ?? ''}`,
           },
           body: JSON.stringify({ listing_id: listing.id }),
         }

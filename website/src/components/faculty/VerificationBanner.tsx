@@ -64,6 +64,15 @@ export function VerificationBanner({
       setError('Only PDF, JPG, or PNG files are accepted.')
       return
     }
+    // Validate actual file content via magic numbers (not just extension/MIME)
+    const buf = new Uint8Array(await file.slice(0, 4).arrayBuffer())
+    const isPDF = buf[0] === 0x25 && buf[1] === 0x50 && buf[2] === 0x44 && buf[3] === 0x46
+    const isJPG = buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF
+    const isPNG = buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47
+    if (!isPDF && !isJPG && !isPNG) {
+      setError('File content does not match a valid PDF, JPG, or PNG.')
+      return
+    }
     await handleUpload(file)
   }
 
