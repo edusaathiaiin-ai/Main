@@ -92,7 +92,7 @@ VALUES
     '2b3d9904-71d9-4275-a3f1-4bbdbf15e0c9',
     'Constitution of India — Full Text',
     'Complete text of the Indian Constitution with all amendments up to date. The primary source for all constitutional law study.',
-    'https://www.india.gov.in/sites/upload_files/npi/files/coi_part_full.pdf',
+    'https://www.constitutionofindia.net',
     'paper', '📜',
     NULL, 'Government of India', NULL,
     TRUE, TRUE,

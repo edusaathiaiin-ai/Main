@@ -302,7 +302,7 @@ function staticFallback(slug: string): Resource[] {
       {
         title: 'Constitution of India — Full Text',
         description: 'Complete text of the Indian Constitution with all amendments. The primary source for all constitutional law study.',
-        url: 'https://www.india.gov.in/sites/upload_files/npi/files/coi_part_full.pdf',
+        url: 'https://www.constitutionofindia.net',
         resource_type: 'paper',
         emoji: '📜',
         author: null, publisher: 'Government of India', year: null,
