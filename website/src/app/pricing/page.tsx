@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Script from 'next/script'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -160,6 +160,7 @@ export default function PricingPage() {
   const [foundingReturnUrl, setFoundingReturnUrl] = useState('/chat')
   const [isLoading, setIsLoading] = useState(false)
   const [paymentError, setPaymentError] = useState('')
+  const isCreatingOrder = useRef(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -205,17 +206,22 @@ export default function PricingPage() {
   }
 
   async function handleUpgrade(planId: string) {
+    if (isCreatingOrder.current) return
+    isCreatingOrder.current = true
+
     const returnUrl = sessionStorage.getItem('upgrade_return_url') ?? '/chat'
     setPaymentError('')
 
     if (!isLoggedIn) {
       sessionStorage.setItem('upgrade_return_url', returnUrl)
       router.push('/login?redirect=/pricing')
+      isCreatingOrder.current = false
       return
     }
     if (!PAYMENTS_ACTIVE) {
       setFoundingReturnUrl(returnUrl)
       setShowFoundingModal(true)
+      isCreatingOrder.current = false
       return
     }
 
@@ -296,6 +302,8 @@ export default function PricingPage() {
           : 'Payment failed. Please try again.'
       )
       setIsLoading(false)
+    } finally {
+      isCreatingOrder.current = false
     }
   }
 

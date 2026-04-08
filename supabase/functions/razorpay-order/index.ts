@@ -143,6 +143,25 @@ Deno.serve(async (req: Request) => {
     const allowed = await checkRateLimit('razorpay-order', user.id, 5, 60);
     if (!allowed) return rateLimitResponse(CORS_HEADERS);
 
+    // Block duplicate subscriptions
+    const subCheckClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const { data: existing } = await subCheckClient
+      .from('profiles')
+      .select('subscription_status, subscription_expires_at')
+      .eq('id', user.id)
+      .single();
+
+    if (
+      existing?.subscription_status === 'active' &&
+      existing?.subscription_expires_at &&
+      new Date(existing.subscription_expires_at) > new Date()
+    ) {
+      return new Response(
+        JSON.stringify({ error: 'already_subscribed' }),
+        { status: 409, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+      );
+    }
+
     // Parse request
     type RequestBody = { planId?: unknown; billing?: unknown; sessionId?: unknown; verticalId?: unknown };
     const body = (await req.json()) as RequestBody;
