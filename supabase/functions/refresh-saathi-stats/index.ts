@@ -37,6 +37,7 @@ serve(async () => {
   const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
 
   let refreshed = 0;
+  const errors: Array<{ slug: string; error: string }> = [];
 
   for (const vertical of verticals) {
     const uuid = (vertical as { id: string; slug: string }).id;
@@ -110,25 +111,30 @@ serve(async () => {
     const label = communityLabel(totalCount);
 
     // saathi_stats_cache uses slug as PK
-    await admin.from('saathi_stats_cache').upsert({
+    const { error: upsertError } = await admin.from('saathi_stats_cache').upsert({
       vertical_id: slug,
-      total_students: totalCount,
-      active_students: activeCount,
-      paying_students: paying ?? 0,
-      total_sessions: totalSessions,
-      total_messages: totalMessages,
-      avg_depth: Math.round(avgDepth * 10) / 10,
+      total_students: Math.floor(totalCount),
+      active_students: Math.floor(activeCount),
+      paying_students: Math.floor(paying ?? 0),
+      total_sessions: Math.floor(totalSessions),
+      total_messages: Math.floor(totalMessages),
+      avg_depth: Number((Math.round(avgDepth * 10) / 10).toFixed(1)),
       top_topics: topTopics,
       community_label: label,
       last_refreshed_at: new Date().toISOString(),
       next_refresh_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
     }, { onConflict: 'vertical_id' });
 
-    refreshed++;
+    if (upsertError) {
+      console.error(`[refresh-saathi-stats] upsert failed for ${slug}:`, upsertError.message);
+      errors.push({ slug, error: upsertError.message });
+    } else {
+      refreshed++;
+    }
   }
 
   return new Response(
-    JSON.stringify({ refreshed, at: new Date().toISOString() }),
+    JSON.stringify({ refreshed, errors, at: new Date().toISOString() }),
     { status: 200, headers: { 'Content-Type': 'application/json' } },
   );
 });
