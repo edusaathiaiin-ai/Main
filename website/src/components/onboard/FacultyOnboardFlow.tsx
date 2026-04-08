@@ -1423,15 +1423,15 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
         }
       } catch { /* fire-and-forget — never block onComplete */ }
 
-      // Log DPDP consent
-      await supabase.from('consent_log').insert({
+      // Log DPDP consent (fire-and-forget)
+      void supabase.from('consent_log').insert({
         user_id: userId,
         consent_type: 'dpdp_data_collection',
         consent_version: '1.0',
         accepted: true,
         accepted_at: new Date().toISOString(),
         metadata: { source: 'faculty_onboarding' },
-      }).then(() => {}).catch(() => { /* non-critical */ })
+      })
 
       onComplete()
     } catch (err) {
