@@ -377,6 +377,7 @@ export function CompanionshipCard({
 
   const checkCompanionship = useCallback(async () => {
     if (profile.role !== 'student') return
+    if (!verticalId) return
     const supabase = createClient()
 
     // Check if card already shown or acted on
