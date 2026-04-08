@@ -112,10 +112,12 @@ const NAV_LINKS = [
 function DigestButton({
   verticalId,
   saathiName,
+  primaryColor = '#C9993A',
   isLegalTheme = false,
 }: {
   verticalId: string
   saathiName: string
+  primaryColor?: string
   isLegalTheme?: boolean
 }) {
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
@@ -170,20 +172,21 @@ function DigestButton({
         alignItems:   'center',
         gap:          '8px',
         width:        '100%',
-        padding:      '8px 16px',
+        padding:      '9px 16px',
         borderRadius: '0',
-        background:   state === 'sent'
-          ? 'rgba(74,222,128,0.08)'
-          : 'transparent',
+        background: state === 'sent'
+          ? 'rgba(74,222,128,0.1)'
+          : `${primaryColor}14`,
         border:       'none',
-        borderBottom: isLegalTheme
-          ? '0.5px solid #E8E8E8'
-          : '0.5px solid rgba(255,255,255,0.06)',
+        borderTop:    `0.5px solid ${primaryColor}22`,
+        borderBottom: `0.5px solid ${primaryColor}22`,
         color: state === 'sent'
           ? '#4ADE80'
           : state === 'error'
             ? '#FCA5A5'
-            : isLegalTheme ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)',
+            : state === 'sending'
+              ? isLegalTheme ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.35)'
+              : primaryColor,
         fontSize:   '11px',
         fontWeight: state === 'sent' ? 600 : 400,
         cursor:     state === 'sending' ? 'not-allowed' : 'pointer',
@@ -299,6 +302,7 @@ export function Sidebar({
         <DigestButton
           verticalId={profile.primary_saathi_id}
           saathiName={activeSaathi.name}
+          primaryColor={activeSaathi.primary}
           isLegalTheme={isLegalTheme}
         />
       )}
