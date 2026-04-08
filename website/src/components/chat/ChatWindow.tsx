@@ -20,6 +20,7 @@ import { MessageBubble } from './MessageBubble'
 import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
 import { DidYouKnow } from './DidYouKnow'
+import { CompanionshipCard } from './CompanionshipCard'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
 import { ConversionModal } from './ConversionModal'
@@ -901,6 +902,18 @@ export function ChatWindow() {
                   primaryColor={activeSaathi.primary}
                   reduceMotion={reduceMotion}
                 />
+                {profile.primary_saathi_id && (
+                  <CompanionshipCard
+                    profile={profile}
+                    verticalId={profile.primary_saathi_id}
+                    location="chat"
+                    isLegalTheme={isLegalTheme}
+                    primaryColor={activeSaathi.primary}
+                    onAddSaathi={(newVerticalId) => {
+                      console.log('New Saathi added:', newVerticalId)
+                    }}
+                  />
+                )}
                 <EmptyState
                   saathiId={saathiId}
                   saathiEmoji={activeSaathi.emoji}
