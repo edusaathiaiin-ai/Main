@@ -144,12 +144,13 @@ Deno.serve(async (req: Request) => {
     if (!allowed) return rateLimitResponse(CORS_HEADERS);
 
     // Parse request
-    type RequestBody = { planId?: unknown; billing?: unknown; sessionId?: unknown };
+    type RequestBody = { planId?: unknown; billing?: unknown; sessionId?: unknown; verticalId?: unknown };
     const body = (await req.json()) as RequestBody;
     const rawPlanId = typeof body.planId === 'string' ? body.planId : null;
     const billingRaw = body.billing;
     const billing = isOneOf(billingRaw, ['monthly', 'annual'] as const) ? billingRaw : 'monthly';
     const sessionId = typeof body.sessionId === 'string' ? body.sessionId : null;
+    const verticalId = typeof body.verticalId === 'string' && isUUID(body.verticalId) ? body.verticalId : null;
 
     if (sessionId !== null && !isUUID(sessionId)) {
       return new Response(JSON.stringify({ error: 'Invalid sessionId' }), {
@@ -241,6 +242,55 @@ Deno.serve(async (req: Request) => {
           keyId:     RAZORPAY_KEY_ID,
           sessionId: session.id,
           topic:     session.topic,
+        }),
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ── Add-on Saathi payment (₹99/month) ───────────────────────────────────
+    if (rawPlanId === 'saathi_addon') {
+      if (!verticalId) {
+        return new Response(JSON.stringify({ error: 'verticalId required for saathi_addon' }), {
+          status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const receipt = `addon_${user.id.slice(0, 8)}_${verticalId.slice(0, 8)}_${Date.now()}`;
+      const rzpOrder = await createRazorpayOrder({
+        amountPaise: 9900,
+        receipt,
+        notes: {
+          user_id:     user.id,
+          plan_id:     'saathi_addon',
+          vertical_id: verticalId,
+          product:     'EdUsaathiAI',
+        },
+      });
+
+      const { data: subRow, error: insertError } = await admin
+        .from('saathi_addons')
+        .insert({
+          user_id:         user.id,
+          vertical_id:     verticalId,
+          razorpay_sub_id: rzpOrder.orderId,
+          status:          'created',
+          price_inr:       99,
+        })
+        .select('id')
+        .single();
+
+      if (insertError) {
+        throw new Error(`saathi_addon insert: ${insertError.message}`);
+      }
+
+      return new Response(
+        JSON.stringify({
+          orderId:         rzpOrder.orderId,
+          amount:          rzpOrder.amount,
+          currency:        rzpOrder.currency,
+          keyId:           RAZORPAY_KEY_ID,
+          subscriptionRowId: (subRow as { id: string }).id,
+          planLabel:       'Add-on Saathi (₹99/month)',
         }),
         { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       );
