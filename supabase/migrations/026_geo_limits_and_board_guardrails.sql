@@ -38,7 +38,7 @@ begin
       + case when institution_name is not null and btrim(institution_name) <> '' then 1 else 0 end
       + case when year_of_study is not null and btrim(year_of_study) <> '' then 1 else 0 end
       + case when exam_target is not null and btrim(exam_target) <> '' then 1 else 0 end
-      + case when primary_saathi_id is not null and btrim(primary_saathi_id) <> '' then 1 else 0 end
+      + case when primary_saathi_id is not null then 1 else 0 end
   into
     p_role,
     p_registered_at,
