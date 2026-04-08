@@ -1431,7 +1431,7 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
         accepted: true,
         accepted_at: new Date().toISOString(),
         metadata: { source: 'faculty_onboarding' },
-      }).catch(() => { /* non-critical */ })
+      }).then(() => {}).catch(() => { /* non-critical */ })
 
       onComplete()
     } catch (err) {
