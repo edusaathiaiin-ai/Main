@@ -99,11 +99,35 @@ Deno.serve(async (req) => {
           status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
         });
       }
+
+      // Pre-fetch to verify ownership and state before updating
+      const { data: decSession } = await admin
+        .from('faculty_sessions')
+        .select('id, faculty_id, status')
+        .eq('id', sessionId)
+        .single();
+
+      if (!decSession) {
+        return new Response(JSON.stringify({ error: 'Session not found' }), {
+          status: 404, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+      if (decSession.faculty_id !== user.id) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+      if (decSession.status !== 'requested') {
+        return new Response(JSON.stringify({ error: 'Session cannot be declined in current state' }), {
+          status: 409, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+
       await admin.from('faculty_sessions').update({
         status: 'declined',
         faculty_declined_reason: reason ? sanitize(reason) : 'Faculty declined',
         updated_at: new Date().toISOString(),
-      }).eq('id', sessionId).eq('faculty_id', user.id);
+      }).eq('id', sessionId);
 
       return new Response(JSON.stringify({ success: true }), { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
     }

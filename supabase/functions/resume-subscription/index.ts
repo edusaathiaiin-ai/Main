@@ -10,6 +10,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
+import { isUUID } from '../_shared/validate.ts';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -113,12 +114,15 @@ Deno.serve(async (req: Request) => {
   const { data: { user }, error: authError } = await userClient.auth.getUser();
   if (authError || !user) return json({ error: 'Unauthorized' }, 401);
 
+  // Validate user.id is a proper UUID (defence-in-depth)
+  if (!isUUID(user.id)) return json({ error: 'Invalid user identity' }, 400);
+
   try {
     await resumeUser(admin, user.id);
     return json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Resume failed';
     console.error('resume-subscription:', message);
-    return json({ error: message }, 502);
+    return json({ error: 'Subscription resume failed' }, 502);
   }
 });

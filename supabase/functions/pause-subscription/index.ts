@@ -18,6 +18,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
+import { isOneOf } from '../_shared/validate.ts';
 
 const SUPABASE_URL               = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -65,7 +66,14 @@ Deno.serve(async (req: Request) => {
   let pauseDays: number;
   try {
     const body = await req.json() as { pauseDays?: unknown };
-    pauseDays = Number(body.pauseDays);
+    // Validate pauseDays is a finite number before coercion
+    if (body.pauseDays === undefined || body.pauseDays === null) {
+      return json({ error: 'pauseDays is required' }, 400);
+    }
+    if (typeof body.pauseDays !== 'number' || !Number.isFinite(body.pauseDays)) {
+      return json({ error: 'pauseDays must be a number' }, 400);
+    }
+    pauseDays = body.pauseDays;
   } catch {
     return json({ error: 'Invalid JSON body' }, 400);
   }

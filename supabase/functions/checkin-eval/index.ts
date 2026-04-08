@@ -15,6 +15,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
+import { checkRateLimit } from '../_shared/rateLimit.ts';
 
 const SUPABASE_URL             = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY        = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -152,6 +153,15 @@ Deno.serve(async (req: Request) => {
         status: 401,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Rate limit — 30 requests per 60s window
+    const checkinAllowed = await checkRateLimit('checkin-eval', user.id, 30, 60);
+    if (!checkinAllowed) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please slow down.' }),
+        { status: 429, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Parse and validate request body

@@ -13,6 +13,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
+import { isSaathiSlug, isUUID } from '../_shared/validate.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -132,12 +133,22 @@ Deno.serve(async (req: Request) => {
   const { data: { user }, error: authError } = await userClient.auth.getUser();
   if (authError || !user) return json({ error: 'Unauthorized' }, 401);
 
+  // Rate limit — 10 requests per 60s window
+  const challengeAllowed = await checkRateLimit('daily-challenge', user.id, 10, 60);
+  if (!challengeAllowed) {
+    return json({ error: 'Rate limit exceeded. Please slow down.' }, 429);
+  }
+
   const today = getTodayIST();
 
   // ── GET: fetch today's challenge ─────────────────────────────────────────────
   if (req.method === 'GET') {
     const url = new URL(req.url);
-    const saathiId = url.searchParams.get('saathi_id') ?? 'kanoonsaathi';
+    const rawSaathiId = url.searchParams.get('saathi_id');
+    if (!rawSaathiId || !isSaathiSlug(rawSaathiId)) {
+      return json({ error: 'saathi_id is required and must be a valid Saathi slug' }, 400);
+    }
+    const saathiId = rawSaathiId;
 
     // Find or generate today's challenge
     let { data: challenge } = await serviceClient
@@ -206,6 +217,12 @@ Deno.serve(async (req: Request) => {
     const { challenge_id, selected_option } = body;
     if (!challenge_id || selected_option === undefined) {
       return json({ error: 'Missing fields' }, 400);
+    }
+    if (!isUUID(challenge_id)) {
+      return json({ error: 'Invalid challenge_id' }, 400);
+    }
+    if (typeof selected_option !== 'number' || !Number.isInteger(selected_option) || selected_option < 0 || selected_option > 3) {
+      return json({ error: 'selected_option must be 0, 1, 2, or 3' }, 400);
     }
 
     // Fetch the challenge (need correct_option)

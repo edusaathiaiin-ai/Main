@@ -245,6 +245,15 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
 
   try {
+    const cronSecret = req.headers.get('x-cron-secret')
+      ?? new URL(req.url).searchParams.get('cron_secret')
+    if (cronSecret !== Deno.env.get('CRON_SECRET')) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
     const admin = getAdmin();
     const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
 

@@ -50,6 +50,15 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const cronSecret = req.headers.get('x-cron-secret')
+      ?? new URL(req.url).searchParams.get('cron_secret')
+    if (cronSecret !== Deno.env.get('CRON_SECRET')) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      })
+    }
+
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const today = todayIST();
     const now = new Date().toISOString();

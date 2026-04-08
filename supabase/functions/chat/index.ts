@@ -20,6 +20,7 @@ import { captureError, captureEvent } from '../_shared/sentry.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { SAATHI_PHILOSOPHY } from '../_shared/saathiPhilosophy.ts';
 import { getHorizonNudge } from '../_shared/horizonNudge.ts';
+import { checkRateLimit } from '../_shared/rateLimit.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -1540,6 +1541,15 @@ Deno.serve(async (req: Request) => {
         status: 401,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Shared rate limit — 60 requests per 60s window
+    const chatAllowed = await checkRateLimit('chat', user.id, 60, 60);
+    if (!chatAllowed) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please slow down.' }),
+        { status: 429, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      );
     }
 
     const userId = user.id;

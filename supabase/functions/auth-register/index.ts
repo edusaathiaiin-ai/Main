@@ -2,6 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { checkRateLimit, rateLimitResponse } from '../_shared/rateLimit.ts';
 import { isOneOf } from '../_shared/validate.ts';
 import { corsHeaders } from '../_shared/cors.ts';
+import { safeError } from '../_shared/errors.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -218,12 +219,12 @@ Deno.serve(async (req: Request) => {
 
     const { data: existing, error: existingError } = await admin
       .from('profiles')
-      .select('*')
+      .select('id, role, full_name, email, plan_id, subscription_status, primary_saathi_id, is_active, device_id, registration_ip, country_code, is_geo_limited, registered_at')
       .eq('id', user.id)
       .maybeSingle();
 
     if (existingError) {
-      return new Response(JSON.stringify({ error: existingError.message }), {
+      return new Response(JSON.stringify({ error: safeError(existingError, 'Profile lookup failed. Please try again.') }), {
         status: 500,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
@@ -249,11 +250,11 @@ Deno.serve(async (req: Request) => {
           registered_at: existing.registered_at ?? new Date().toISOString(),
         })
         .eq('id', user.id)
-        .select('*')
+        .select('id, role, full_name, email, plan_id, subscription_status, primary_saathi_id, is_active')
         .single();
 
       if (updateError) {
-        return new Response(JSON.stringify({ error: updateError.message }), {
+        return new Response(JSON.stringify({ error: safeError(updateError, 'Profile update failed. Please try again.') }), {
           status: 400,
           headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
         });
@@ -278,7 +279,7 @@ Deno.serve(async (req: Request) => {
         is_geo_limited: isGeoLimited,
         registered_at: new Date().toISOString(),
       })
-      .select('*')
+      .select('id, role, full_name, email, plan_id, subscription_status, primary_saathi_id, is_active')
       .single();
 
     if (insertError) {
@@ -290,7 +291,7 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      return new Response(JSON.stringify({ error: insertError.message }), {
+      return new Response(JSON.stringify({ error: safeError(insertError, 'Registration failed. Please try again.') }), {
         status: 400,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
@@ -302,7 +303,7 @@ Deno.serve(async (req: Request) => {
     });
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: safeError(error, 'An unexpected error occurred. Please try again.') }),
       {
         status: 500,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
