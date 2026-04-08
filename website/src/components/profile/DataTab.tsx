@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import DataDownloadButton from './DataDownloadButton'
-import DeleteAccountModal from './DeleteAccountModal'
+import { DeleteAccountSection } from '@/components/settings/DeleteAccountSection'
 
 interface DataTabProps {
   userId: string
@@ -51,7 +51,6 @@ const DATA_CATEGORIES = [
 ]
 
 export default function DataTab({ userId, onEditProfile }: DataTabProps) {
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [consentWithdrawn, setConsentWithdrawn] = useState(false)
 
   return (
@@ -258,30 +257,7 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
         >
           Danger zone
         </h4>
-        <div>
-          <p className="mb-1 text-sm font-semibold text-white">
-            🗑️ Delete my account
-          </p>
-          <p
-            className="mb-4 text-xs leading-relaxed"
-            style={{ color: 'rgba(255,255,255,0.45)' }}
-          >
-            This is permanent. All your personal data will be removed within 30
-            days, your soul profile will be deleted, and any active
-            subscriptions will be cancelled. This cannot be undone.
-          </p>
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="rounded-xl px-5 py-2.5 text-sm font-bold transition-all hover:brightness-110"
-            style={{
-              background: 'rgba(239,68,68,0.15)',
-              border: '1px solid rgba(239,68,68,0.4)',
-              color: '#EF4444',
-            }}
-          >
-            Request account deletion
-          </button>
-        </div>
+        <DeleteAccountSection />
       </section>
 
       {/* ── Grievance & Contact ──────────────────────────────────── */}
@@ -325,14 +301,6 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
         </div>
       </section>
 
-      <AnimatePresence>
-        {showDeleteModal && (
-          <DeleteAccountModal
-            userId={userId}
-            onClose={() => setShowDeleteModal(false)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   )
 }
