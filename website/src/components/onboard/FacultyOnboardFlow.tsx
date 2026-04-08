@@ -46,6 +46,7 @@ type FacultyFormData = {
   agreedTerms:           boolean
   agreedEarnings:        boolean
   agreedContent:         boolean
+  agreedDPDP:            boolean
 }
 
 type Step = 'employment' | 'profile' | 'saathi' | 'invitation' | 'agreement'
@@ -1077,14 +1078,14 @@ function AgreementStep({
   saving:   boolean
   error:    string
 }) {
-  const allChecked = form.agreedTerms && form.agreedEarnings && form.agreedContent
+  const allChecked = form.agreedTerms && form.agreedEarnings && form.agreedContent && form.agreedDPDP
 
   // eslint-disable-next-line react-hooks/static-components
   // eslint-disable-next-line react-hooks/static-components
   const CheckBox = ({
     field, label, sub,
   }: {
-    field: 'agreedTerms' | 'agreedEarnings' | 'agreedContent'
+    field: 'agreedTerms' | 'agreedEarnings' | 'agreedContent' | 'agreedDPDP'
     label: string
     sub?:  string
   }) => (
@@ -1139,7 +1140,7 @@ function AgreementStep({
           One last step
         </h2>
         <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
-          Three agreements. All transparent. No surprises.
+          Four agreements. All transparent. No surprises.
         </p>
       </motion.div>
 
@@ -1158,6 +1159,11 @@ function AgreementStep({
           field="agreedContent"
           label="I agree to the Content and Quality Policy"
           sub="Sessions must be educational, accurate, and respectful. EdUsaathiAI reserves the right to review sessions for quality standards."
+        />
+        <CheckBox
+          field="agreedDPDP"
+          label="I consent to EdUsaathiAI collecting my professional data"
+          sub="Per India DPDP Act 2023. You can request deletion anytime from your dashboard."
         />
       </div>
 
@@ -1265,7 +1271,7 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
     specialities: [], researchArea: '',
     linkedin: '', googleScholar: '',
     primarySaathiSlug: '', additionalSaathiSlugs: [],
-    agreedTerms: false, agreedEarnings: false, agreedContent: false,
+    agreedTerms: false, agreedEarnings: false, agreedContent: false, agreedDPDP: false,
   })
 
   const set = useCallback((k: keyof FacultyFormData, v: unknown) => {
@@ -1416,6 +1422,16 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
           )
         }
       } catch { /* fire-and-forget — never block onComplete */ }
+
+      // Log DPDP consent
+      await supabase.from('consent_log').insert({
+        user_id: userId,
+        consent_type: 'dpdp_data_collection',
+        consent_version: '1.0',
+        accepted: true,
+        accepted_at: new Date().toISOString(),
+        metadata: { source: 'faculty_onboarding' },
+      }).catch(() => { /* non-critical */ })
 
       onComplete()
     } catch (err) {

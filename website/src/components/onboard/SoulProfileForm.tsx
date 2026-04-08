@@ -821,7 +821,8 @@ export function SoulProfileForm({
     await onContinue({ ...formData, educationParsed: resolvedParsed })
   }
 
-  const canSubmit = fullName.trim().length > 0 && city.length > 0
+  const [dpdpConsent, setDpdpConsent] = useState(false)
+  const canSubmit = fullName.trim().length > 0 && city.length > 0 && dpdpConsent
   const submitLabel = getSubmitButtonLabel(pct)
 
   // ── Shared input style ────────────────────────────────────────────────────
@@ -1649,6 +1650,23 @@ export function SoulProfileForm({
                 something real.
               </motion.div>
             )}
+            {/* DPDP Act 2023 consent */}
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <input
+                type="checkbox"
+                id="dpdp-consent"
+                checked={dpdpConsent}
+                onChange={(e) => setDpdpConsent(e.target.checked)}
+                style={{ marginTop: '2px', flexShrink: 0, accentColor: '#C9993A' }}
+              />
+              <label htmlFor="dpdp-consent" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, cursor: 'pointer' }}>
+                I have read the{' '}
+                <a href="/privacy" target="_blank" style={{ color: '#C9993A', textDecoration: 'underline' }}>Privacy Notice</a>
+                {' '}and consent to EdUsaathiAI collecting my learning data to personalise my Saathi experience.
+                I can withdraw consent anytime from Settings.
+              </label>
+            </div>
+
             <motion.button
               type="button"
               onClick={handleSubmit}

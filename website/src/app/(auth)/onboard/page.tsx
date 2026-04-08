@@ -1457,6 +1457,16 @@ function OnboardInner() {
       )
     }
 
+    // Log DPDP consent
+    await supabase.from('consent_log').insert({
+      user_id: userId,
+      consent_type: 'dpdp_data_collection',
+      consent_version: '1.0',
+      accepted: true,
+      accepted_at: new Date().toISOString(),
+      metadata: { source: 'onboarding', role: urlRole ?? 'student' },
+    })
+
     setProfile({
       ...profile,
       id: userId,
