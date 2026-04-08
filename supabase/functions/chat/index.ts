@@ -21,7 +21,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { SAATHI_PHILOSOPHY } from '../_shared/saathiPhilosophy.ts';
 import { getHorizonNudge } from '../_shared/horizonNudge.ts';
 import { checkRateLimit } from '../_shared/rateLimit.ts';
-import { getRandomPersonality, buildPersonalityPrompt } from '../_shared/saathiPersonalities.ts';
+import { getRandomPersonality, getPersonalityById, buildPersonalityPrompt } from '../_shared/saathiPersonalities.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -207,7 +207,7 @@ async function checkUpstashRateLimit(key: string, maxRequests: number): Promise<
 // Quota helpers
 // ---------------------------------------------------------------------------
 
-type QuotaRow = { message_count: number; cooling_until: string | null };
+type QuotaRow = { message_count: number; cooling_until: string | null; personality_id: string | null };
 
 // deno-lint-ignore no-explicit-any
 type SupabaseClientType = ReturnType<typeof createClient<any>>;
@@ -221,7 +221,7 @@ async function getOrCreateQuotaRow(
 ): Promise<QuotaRow> {
   const { data, error } = await admin
     .from('chat_sessions')
-    .select('message_count, cooling_until')
+    .select('message_count, cooling_until, personality_id')
     .eq('user_id', userId)
     .eq('vertical_id', saathiId)
     .eq('bot_slot', botSlot)
@@ -238,9 +238,10 @@ async function getOrCreateQuotaRow(
     quota_date_ist: dateIst,
     message_count: 0,
     cooling_until: null,
+    personality_id: null,
   });
   if (insertError) throw new Error(`quota create: ${insertError.message}`);
-  return { message_count: 0, cooling_until: null };
+  return { message_count: 0, cooling_until: null, personality_id: null };
 }
 
 async function incrementQuota(
@@ -1808,8 +1809,25 @@ Deno.serve(async (req: Request) => {
     // Build personalised system prompt (server-side only)
     const baseSystemPrompt = await buildSystemPrompt(admin, userId, verticalId, botSlot, verticalSlug);
 
-    // Personality mode — random historical figure per session (bot slot 1 only)
-    const personality = botSlot === 1 ? getRandomPersonality(verticalSlug) : null;
+    // Personality mode — consistent historical figure per session (bot slot 1 only)
+    let personality = null as ReturnType<typeof getRandomPersonality>;
+    if (botSlot === 1) {
+      if (quotaRow.personality_id) {
+        // Reuse the same personality throughout the session
+        personality = getPersonalityById(verticalSlug, quotaRow.personality_id);
+      }
+      if (!personality) {
+        // First message of session — pick a random personality and persist it
+        personality = getRandomPersonality(verticalSlug);
+        if (personality) {
+          await admin.from('chat_sessions').update({ personality_id: personality.id })
+            .eq('user_id', userId)
+            .eq('vertical_id', verticalId)
+            .eq('bot_slot', botSlot)
+            .eq('quota_date_ist', dateIst);
+        }
+      }
+    }
     const personalityPrefix = personality
       ? buildPersonalityPrompt(personality, verticalName) + '\n\n'
       : '';

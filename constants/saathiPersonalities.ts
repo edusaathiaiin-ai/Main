@@ -859,6 +859,19 @@ export function getRandomPersonality(
 }
 
 /**
+ * Look up a specific personality by saathiId + personality id.
+ * Used to maintain the same personality across a multi-message session.
+ */
+export function getPersonalityById(
+  saathiId: string,
+  personalityId: string,
+): SaathiPersonality | null {
+  const personalities = SAATHI_PERSONALITIES[saathiId]
+  if (!personalities) return null
+  return personalities.find((p) => p.id === personalityId) ?? null
+}
+
+/**
  * Build the personality system prompt prefix.
  * Injected at the START of the Saathi system prompt for the session.
  * The student can exit by typing the exit commands.
