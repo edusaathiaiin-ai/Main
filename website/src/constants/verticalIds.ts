@@ -1,5 +1,5 @@
 /**
- * Static UUID ↔ slug mapping for all 24 Saathi verticals.
+ * Static UUID ↔ slug mapping for all 30 Saathi verticals.
  *
  * Source: SELECT id, slug FROM verticals ORDER BY slug;
  * Applied: 2026-04-03 — verticals.id converted from TEXT slug to proper UUID.
