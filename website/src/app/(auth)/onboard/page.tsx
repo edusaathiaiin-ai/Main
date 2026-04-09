@@ -1601,7 +1601,7 @@ function OnboardInner() {
               exit="exit"
             >
               <SoulProfileForm
-                saathiId={profile?.primary_saathi_id ?? null}
+                saathiId={toSlug(profile?.primary_saathi_id) ?? null}
                 academicLevel={academicLevel}
                 examTargetFromLevel={examTargetFromLevel}
                 onContinue={handleProfile}

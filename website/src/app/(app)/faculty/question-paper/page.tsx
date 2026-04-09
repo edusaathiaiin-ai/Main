@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import { getSubjectChips } from '@/constants/subjectChips'
+import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
 
 const TOTAL_MARKS = [50, 75, 100]
@@ -30,7 +31,7 @@ const Q_TYPES = [
 export default function QuestionPaperPage() {
   const { profile } = useAuthStore()
 
-  const saathiId = profile?.primary_saathi_id ?? ''
+  const saathiId = toSlug(profile?.primary_saathi_id) ?? ''
   const subjectOptions = getSubjectChips(saathiId)
 
   const [subject, setSubject] = useState('')

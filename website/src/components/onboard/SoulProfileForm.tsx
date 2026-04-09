@@ -700,12 +700,8 @@ export function SoulProfileForm({
   const saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
   const primaryColor = saathi.primary
 
-  const subjectOptions = saathiId
-    ? getSubjectChips(saathiId)
-    : getSubjectChips('compsaathi')
-  const interestOptions = saathiId
-    ? getInterestChips(saathiId)
-    : getInterestChips('default')
+  const subjectOptions = getSubjectChips(saathiId ?? '')
+  const interestOptions = getInterestChips(saathiId ?? '')
 
   // Completeness
   const pct = useMemo(

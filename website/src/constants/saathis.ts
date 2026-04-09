@@ -235,7 +235,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     description: `Economics explains almost everything — if you know how to read it. Micro and macro theory, Indian economic policy, RBI decisions, trade, development economics, and UPSC Economics optional: I make the abstract tangible and the tangible meaningful.`,
   },
   {
-    id: 'chemengg saathi',
+    id: 'chemenggsaathi',
     name: 'ChemEnggSaathi',
     emoji: '⚗️',
     tagline: 'Where chemistry meets industry',
