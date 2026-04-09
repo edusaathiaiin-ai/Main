@@ -1842,9 +1842,21 @@ Deno.serve(async (req: Request) => {
         }
       }
     }
-    const personalityPrefix = personality
+    const istHour = parseInt(
+      new Date().toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata', hour: 'numeric', hour12: false,
+      })
+    )
+    const timeOfDay = istHour < 12 ? 'morning'
+      : istHour < 17 ? 'afternoon'
+      : istHour < 21 ? 'evening'
+      : 'night'
+
+    let personalityPrefix = personality
       ? buildPersonalityPrompt(personality, verticalName) + '\n\n'
       : '';
+    personalityPrefix += `\nCurrent time in India: ${timeOfDay}. Greet accordingly — never say Good morning at night.`
+
     const systemPrompt = personalityPrefix + baseSystemPrompt;
 
     // Persist user message
