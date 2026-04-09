@@ -107,11 +107,14 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: CORS_HEADERS });
   }
 
-  // Auth: cron secret OR valid admin JWT
+  // Auth: cron secret, service_role Bearer, or valid admin JWT
   const cronSecret = req.headers.get('x-cron-secret');
   const authHeader = req.headers.get('Authorization');
+  const authBearer = authHeader?.replace('Bearer ', '');
+  const isServiceRole = authBearer === SUPABASE_SERVICE_ROLE_KEY;
   const isAuthorized =
     (CRON_SECRET && cronSecret === CRON_SECRET) ||
+    isServiceRole ||
     (authHeader && authHeader.startsWith('Bearer '));
 
   if (!isAuthorized) {
@@ -121,8 +124,8 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Optionally verify admin JWT
-  if (authHeader && !cronSecret) {
+  // Optionally verify admin JWT (skip for cron/service_role paths)
+  if (authHeader && !cronSecret && !isServiceRole) {
     const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: authHeader } }
     });

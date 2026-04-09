@@ -13,10 +13,13 @@ const supabase = createClient(
 const resend = new Resend(Deno.env.get('RESEND_API_KEY')!)
 
 serve(async (req: Request) => {
-  // Allow cron or manual admin trigger
+  // Allow cron secret, service_role Bearer, or manual admin trigger
   const cronSecret = req.headers.get('x-cron-secret')
     ?? new URL(req.url).searchParams.get('cron_secret')
-  if (cronSecret !== Deno.env.get('CRON_SECRET')) {
+  const authBearer = req.headers.get('Authorization')?.replace('Bearer ', '')
+  const isAuthed   = (cronSecret === Deno.env.get('CRON_SECRET'))
+                  || (authBearer === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))
+  if (!isAuthed) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
@@ -132,7 +135,7 @@ serve(async (req: Request) => {
                   </p>
 
                   <p style="font-size: 11px; color: rgba(255,255,255,0.15); margin-top: 28px; text-align: center;">
-                    EdUsaathiAI &mdash; Indo American Education Society (IAES), Ahmedabad
+                    EdUsaathiAI &mdash; edusaathiai.in
                   </p>
                 </div>
               </body>

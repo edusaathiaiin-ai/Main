@@ -575,11 +575,12 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // ── CRON_SECRET auth check ─────────────────────────────────────────────────
-  // The cron job sends x-cron-secret instead of the service role key.
-  // This prevents the service role key from ever appearing in SQL.
+  // ── Auth check: x-cron-secret OR service_role Bearer ────────────────────────
   const incomingSecret = req.headers.get('x-cron-secret');
-  if (!CRON_SECRET || incomingSecret !== CRON_SECRET) {
+  const authBearer     = req.headers.get('Authorization')?.replace('Bearer ', '');
+  const isAuthed       = (CRON_SECRET && incomingSecret === CRON_SECRET)
+                      || (authBearer === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+  if (!isAuthed) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },

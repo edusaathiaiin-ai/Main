@@ -198,7 +198,9 @@ serve(async (req: Request) => {
   try {
     const admin      = createClient(SUPABASE_URL, SERVICE_KEY)
     const cronHeader = req.headers.get('x-cron-secret')
+    const authBearer = req.headers.get('Authorization')?.replace('Bearer ', '')
     const isCron     = cronHeader === CRON_SECRET
+                    || authBearer === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const isManual   = !isCron
 
     const body = await req.json().catch(() => ({}))

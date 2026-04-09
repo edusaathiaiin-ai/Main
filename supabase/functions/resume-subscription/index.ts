@@ -80,10 +80,13 @@ Deno.serve(async (req: Request) => {
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-  // ── Cron path: x-cron-secret header + optional userId in body ────────────
+  // ── Cron path: x-cron-secret header OR service_role Bearer ───────────────
   const cronHeader = req.headers.get('x-cron-secret');
-  if (cronHeader) {
-    if (cronHeader !== CRON_SECRET) return json({ error: 'Forbidden' }, 403);
+  const authBearer = req.headers.get('Authorization')?.replace('Bearer ', '');
+  const isCronAuth = (cronHeader !== null && cronHeader === CRON_SECRET)
+                  || (authBearer === SUPABASE_SERVICE_ROLE_KEY);
+  if (cronHeader && !isCronAuth) return json({ error: 'Forbidden' }, 403);
+  if (isCronAuth) {
 
     // Auto-resume all overdue pauses
     const now = new Date().toISOString();

@@ -52,7 +52,10 @@ Deno.serve(async (req: Request) => {
   try {
     const cronSecret = req.headers.get('x-cron-secret')
       ?? new URL(req.url).searchParams.get('cron_secret')
-    if (cronSecret !== Deno.env.get('CRON_SECRET')) {
+    const authBearer = req.headers.get('Authorization')?.replace('Bearer ', '')
+    const isAuthed   = (cronSecret === Deno.env.get('CRON_SECRET'))
+                    || (authBearer === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))
+    if (!isAuthed) {
       return new Response(JSON.stringify({ error: 'Forbidden' }), {
         status: 403,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
