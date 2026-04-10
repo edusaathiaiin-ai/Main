@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: '%s · EdUsaathiAI',
   },
   description:
-    '24 AI subject companions. Built for India. ₹199/month. Your Saathi knows your name, remembers your journey.',
+    '30 AI subject companions. Built for India. ₹199/month. Your Saathi knows your name, remembers your journey.',
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? 'https://edusaathiai.in'
   ),
@@ -54,6 +54,7 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
       <head>
         <meta name="build-version" content={BUILD_VERSION} />
+        <meta name="theme-color" content="#0B1F3A" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

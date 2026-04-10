@@ -1,7 +1,7 @@
 {
   "name": "EdUsaathiAI — Your Learning Saathi",
   "short_name": "EdUsaathiAI",
-  "description": "24 AI subject companions. Built for India. Your Saathi knows your name, remembers your journey.",
+  "description": "30 AI subject companions. Built for India. Your Saathi knows your name, remembers your journey.",
   "start_url": "/chat",
   "display": "standalone",
   "background_color": "#060F1D",
