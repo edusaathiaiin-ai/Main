@@ -580,7 +580,7 @@ async function buildSystemPrompt(
       .eq('vertical_id', saathiId)
       .eq('is_active', true)
       .order('fetched_at', { ascending: false })
-      .limit(3),
+      .limit(7),
     admin
       .from('profiles')
       .select('institution_name, degree_programme, current_semester, graduation_year, current_subjects, interest_areas, role, academic_level, learning_style')
@@ -2035,6 +2035,32 @@ Deno.serve(async (req: Request) => {
               content: assistantText,
             });
             await incrementQuota(admin, userId, verticalId, botSlot, dateIst, quotaRow.message_count, dailyQuota, effectiveCoolingHours);
+
+            // M7: Post-stream guardrail check — flag response if it violated boundaries
+            // Can't un-send (already streamed), but flags for moderation review
+            const g = SUBJECT_GUARDRAILS[verticalSlug];
+            if (g) {
+              const responseLC = assistantText.toLowerCase();
+              const violated = g.hardBlocked.some(topic =>
+                responseLC.includes(topic.toLowerCase())
+              );
+              if (violated) {
+                admin.from('moderation_flags').insert({
+                  target_id:        null,
+                  target_type:      'assistant_response',
+                  reporter_user_id: userId,
+                  reason:           'guardrail_violation',
+                  status:           'pending',
+                  details:          JSON.stringify({
+                    vertical_id:  verticalId,
+                    bot_slot:     botSlot,
+                    bot_message:  assistantText.slice(0, 500),
+                    user_message: sanitized.slice(0, 200),
+                    detection:    'post_stream_guardrail',
+                  }),
+                }).then(() => {}).catch(() => {});
+              }
+            }
           }
 
           // ── Award Saathi Points for first chat of the day (fire-and-forget)
