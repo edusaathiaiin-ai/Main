@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { streamChat } from '@/lib/ai'
 import { useChatStore } from '@/stores/chatStore'
@@ -14,22 +15,24 @@ import { getPlanTier } from '@/constants/plans'
 import { getSaathiTheme } from '@/lib/saathiThemes'
 import { useThemeStore } from '@/stores/themeStore'
 import { useFontStore, getChatFontStyle } from '@/stores/fontStore'
+// ── Always-visible — eager ────────────────────────────────────────────────────
 import { ChatWatermark } from './ChatWatermark'
 import { SaathiHeader } from './SaathiHeader'
 import { MessageBubble } from './MessageBubble'
 import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
-import { DidYouKnow } from './DidYouKnow'
-import { CompanionshipCard } from './CompanionshipCard'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
-import { ConversionModal } from './ConversionModal'
 import { Sidebar } from '@/components/layout/Sidebar'
-import { MobileNav } from '@/components/layout/MobileNav'
-import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
+// ── Below-fold / conditional — lazy ───────────────────────────────────────────
+const DidYouKnow            = dynamic(() => import('./DidYouKnow').then(m => ({ default: m.DidYouKnow })), { ssr: false })
+const CompanionshipCard     = dynamic(() => import('./CompanionshipCard').then(m => ({ default: m.CompanionshipCard })), { ssr: false })
+const ConversionModal       = dynamic(() => import('./ConversionModal').then(m => ({ default: m.ConversionModal })), { ssr: false })
+const SuspensionScreen      = dynamic(() => import('./SuspensionScreen').then(m => ({ default: m.SuspensionScreen })), { ssr: false })
+const SaathiCommunityBanner = dynamic(() => import('./SaathiCommunityBanner').then(m => ({ default: m.SaathiCommunityBanner })), { ssr: false })
+const MobileNav             = dynamic(() => import('@/components/layout/MobileNav').then(m => ({ default: m.MobileNav })), { ssr: false })
+const UpgradeBanner         = dynamic(() => import('@/components/ui/UpgradeBanner').then(m => ({ default: m.UpgradeBanner })), { ssr: false })
 import type { UpgradeTrigger } from '@/components/ui/UpgradeBanner'
-import { SuspensionScreen } from './SuspensionScreen'
-import { SaathiCommunityBanner } from './SaathiCommunityBanner'
 import type { QuotaState, Saathi } from '@/types'
 
 const DEFAULT_QUOTA: QuotaState = {
