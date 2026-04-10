@@ -1770,17 +1770,18 @@ export function EmptyState({
 }: Props) {
   const { opener, description, starters, possibilityPrompt } = getStarterSet(saathiId, botName)
 
-  const subtitleColor   = isLegalTheme ? 'rgba(0,0,0,0.35)'  : 'rgba(255,255,255,0.4)'
-  const openerBg        = isLegalTheme ? '#F5F5F5'            : 'rgba(255,255,255,0.04)'
-  const openerBorder    = isLegalTheme ? '#E0E0E0'            : 'rgba(255,255,255,0.07)'
-  const openerColor     = isLegalTheme ? '#444444'            : 'rgba(255,255,255,0.6)'
-  const descColor       = isLegalTheme ? 'rgba(0,0,0,0.4)'   : 'rgba(255,255,255,0.3)'
-  const chipBg          = isLegalTheme ? 'rgba(0,0,0,0.03)'  : 'rgba(255,255,255,0.04)'
-  const chipBorder      = isLegalTheme ? 'rgba(0,0,0,0.09)'  : 'rgba(255,255,255,0.08)'
-  const chipColor       = isLegalTheme ? 'rgba(0,0,0,0.55)'  : 'rgba(255,255,255,0.55)'
-  const chipHoverBg     = isLegalTheme ? 'rgba(0,0,0,0.07)'  : 'rgba(255,255,255,0.08)'
-  const chipHoverBorder = isLegalTheme ? 'rgba(0,0,0,0.18)'  : 'rgba(255,255,255,0.16)'
-  const chipHoverColor  = isLegalTheme ? '#1A1A1A'           : '#ffffff'
+  // All colors via CSS vars — light theme, per-Saathi tinted
+  const subtitleColor   = 'var(--text-ghost)'
+  const openerBg        = 'var(--saathi-bg)'
+  const openerBorder    = 'var(--saathi-border)'
+  const openerColor     = 'var(--text-secondary)'
+  const descColor       = 'var(--text-tertiary)'
+  const chipBg          = 'var(--bg-surface)'
+  const chipBorder      = 'var(--border-medium)'
+  const chipColor       = 'var(--text-secondary)'
+  const chipHoverBg     = 'var(--saathi-bg)'
+  const chipHoverBorder = 'var(--saathi-mid)'
+  const chipHoverColor  = 'var(--saathi-text)'
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center">
@@ -1802,8 +1803,8 @@ export function EmptyState({
         className="mb-5"
       >
         <p
-          className="font-playfair mb-1 text-lg font-semibold"
-          style={{ color: isLegalTheme ? '#1A1A1A' : '#ffffff' }}
+          className="font-display mb-1 text-lg font-semibold"
+          style={{ color: 'var(--text-primary)' }}
         >
           {botName}
         </p>
@@ -1877,17 +1878,17 @@ export function EmptyState({
             onClick={() => onStarterClick(possibilityPrompt)}
             className='mt-2 w-full rounded-xl px-4 py-3 text-left text-sm transition-all duration-150'
             style={{
-              background: isLegalTheme ? 'rgba(201,153,58,0.06)' : 'rgba(201,153,58,0.07)',
-              border: isLegalTheme ? '0.5px solid rgba(201,153,58,0.3)' : '0.5px solid rgba(201,153,58,0.25)',
-              color: isLegalTheme ? '#8B6914' : '#C9993A',
+              background: 'var(--saathi-light)',
+              border: '1.5px solid var(--saathi-border)',
+              color: 'var(--saathi-text)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = isLegalTheme ? 'rgba(201,153,58,0.12)' : 'rgba(201,153,58,0.13)'
-              e.currentTarget.style.borderColor = isLegalTheme ? 'rgba(201,153,58,0.5)' : 'rgba(201,153,58,0.45)'
+              e.currentTarget.style.background = 'var(--saathi-bg)'
+              e.currentTarget.style.borderColor = 'var(--saathi-mid)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = isLegalTheme ? 'rgba(201,153,58,0.06)' : 'rgba(201,153,58,0.07)'
-              e.currentTarget.style.borderColor = isLegalTheme ? 'rgba(201,153,58,0.3)' : 'rgba(201,153,58,0.25)'
+              e.currentTarget.style.background = 'var(--saathi-light)'
+              e.currentTarget.style.borderColor = 'var(--saathi-border)'
             }}
           >
             <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.7, display: 'block', marginBottom: '3px' }}>

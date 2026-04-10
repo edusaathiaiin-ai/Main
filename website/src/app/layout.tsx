@@ -72,7 +72,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="flex min-h-screen flex-col bg-[#060F1D] font-sans text-white antialiased">
+      <body className="flex min-h-screen flex-col antialiased">
         <a href="#chat-main" className="skip-to-content">
           Skip to chat
         </a>

@@ -23,6 +23,7 @@ import { GoldenRatioTool } from './GoldenRatioTool'
 import { FloorPlanViewer, type FloorPlanData } from './FloorPlanViewer'
 import { Scene360Viewer } from './Scene360Viewer'
 import { SketchResult } from './SketchResult'
+import { ReportErrorButton } from './ReportErrorButton'
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -688,6 +689,12 @@ type Props = {
   onFlag?: (messageId: string) => void
   primaryColor?: string
   isLegalTheme?: boolean
+  // For factual error reporting
+  verticalId?: string
+  verticalSlug?: string
+  verticalName?: string
+  botSlot?: number
+  sessionId?: string
 }
 
 function formatTime(iso: string): string {
@@ -734,6 +741,11 @@ export function MessageBubble({
   onFlag,
   primaryColor = '#C9993A',
   isLegalTheme = false,
+  verticalId,
+  verticalSlug,
+  verticalName,
+  botSlot,
+  sessionId,
 }: Props) {
   const { fontSize, fontType, fontColor, highContrast, reduceMotion } = useFontStore()
   const [hovered, setHovered] = useState(false)
@@ -756,7 +768,7 @@ export function MessageBubble({
       {!isUser && showBotLabel && botName && (
         <span
           className="mb-0.5 ml-1 text-[11px] font-medium"
-          style={{ color: 'var(--text-muted, rgba(255,255,255,0.35))' }}
+          style={{ color: 'var(--text-ghost)' }}
         >
           {botName}
         </span>
@@ -775,23 +787,22 @@ export function MessageBubble({
           style={
             isUser
               ? {
-                  background: 'var(--user-bubble-bg, var(--accent, #C9993A))',
-                  color: 'var(--user-bubble-text, #060F1D)',
+                  background: 'var(--saathi-primary)',
+                  color: '#FFFFFF',
                   borderRadius: '18px 18px 4px 18px',
-                  fontFamily: 'var(--font-dm-sans)',
+                  fontFamily: 'var(--font-body)',
                   fontWeight: 500,
                   maxWidth: '70%',
                   fontSize: '15px',
                 }
               : {
-                  background: 'var(--bg-message, #0F2847)',
+                  background: 'var(--bg-surface)',
                   maxWidth: '75%',
-                  borderRadius: isLegalTheme ? '12px' : '4px 18px 18px 18px',
-                  border: isLegalTheme
-                    ? '0.5px solid #E0E0E0'
-                    : '0.5px solid var(--border, rgba(255,255,255,0.07))',
+                  borderRadius: '4px 18px 18px 18px',
+                  border: '1px solid var(--border-subtle)',
+                  boxShadow: 'var(--shadow-xs)',
                   transition: 'background 0.4s ease, border-color 0.3s ease',
-                  ...getChatFontStyle(fontSize, fontType, fontColor, isLegalTheme, highContrast),
+                  ...getChatFontStyle(fontSize, fontType, fontColor, true, highContrast),
                 }
           }
         >
@@ -826,10 +837,8 @@ export function MessageBubble({
               onClick={() => setShowSave((v) => !v)}
               className="flex h-6 w-6 items-center justify-center rounded-full text-xs message-action-btn"
               style={{
-                background: showSave
-                  ? `${primaryColor}30`
-                  : 'rgba(201,153,58,0.15)',
-                border: `0.5px solid ${primaryColor}50`,
+                background: showSave ? 'var(--saathi-light)' : 'var(--bg-elevated)',
+                border: '1px solid var(--saathi-border)',
               }}
               title="Save as flashcard"
               aria-label="Save as flashcard"
@@ -861,13 +870,29 @@ export function MessageBubble({
         <div className="mx-1 flex items-center gap-2">
           <span
             className="text-[10px]"
-            style={{ color: 'var(--text-muted, rgba(255,255,255,0.2))' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             {formatTime(message.createdAt)}
           </span>
           {!isUser && message.content && (
             <VoiceOutput text={message.content} saathiColor={primaryColor} />
           )}
+        </div>
+      )}
+
+      {/* Factual error report button — assistant messages only, after streaming completes */}
+      {!isUser && !isStreaming && verticalId && verticalSlug && verticalName && botSlot !== undefined && (
+        <div style={{ marginTop: '2px' }}>
+          <ReportErrorButton
+            verticalId={verticalId}
+            verticalSlug={verticalSlug}
+            verticalName={verticalName}
+            botSlot={botSlot}
+            sessionId={sessionId}
+            messageExcerpt={message.content.slice(0, 500)}
+            isLegalTheme={isLegalTheme}
+            primaryColor={primaryColor}
+          />
         </div>
       )}
 

@@ -55,10 +55,10 @@ export function CoolingBanner({ quota, saathiName }: Props) {
       {/* Header */}
       <div className="mb-4 flex items-start justify-between">
         <div>
-          <p className="font-playfair mb-1 text-lg font-bold text-white">
+          <p className="font-display mb-1 text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
             ☕ Take a breather
           </p>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             Your daily chats are used up. Resuming in:
           </p>
         </div>
@@ -76,13 +76,13 @@ export function CoolingBanner({ quota, saathiName }: Props) {
           href="/news"
           className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm transition-all duration-150"
           style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
-            color: 'rgba(255,255,255,0.6)',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-secondary)',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
           onMouseLeave={(e) =>
-            (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')
+            (e.currentTarget.style.color = 'var(--text-secondary)')
           }
         >
           📰 Explore what&apos;s happening in {saathiName} while you wait →
@@ -91,15 +91,15 @@ export function CoolingBanner({ quota, saathiName }: Props) {
           href="/pricing"
           className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-150"
           style={{
-            background: 'rgba(201,153,58,0.12)',
-            border: '0.5px solid rgba(201,153,58,0.35)',
-            color: '#C9993A',
+            background: 'var(--saathi-light)',
+            border: '1px solid var(--saathi-border)',
+            color: 'var(--saathi-primary)',
           }}
           onMouseEnter={(e) =>
-            (e.currentTarget.style.background = 'rgba(201,153,58,0.2)')
+            (e.currentTarget.style.background = 'var(--saathi-bg)')
           }
           onMouseLeave={(e) =>
-            (e.currentTarget.style.background = 'rgba(201,153,58,0.12)')
+            (e.currentTarget.style.background = 'var(--saathi-light)')
           }
         >
           ✦ Upgrade to Plus for unlimited chats →

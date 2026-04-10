@@ -300,6 +300,16 @@ export function ChatWindow() {
   // Legal theme = KanoonSaathi in day (light) mode
   const isLegalTheme = activeSaathi.theme === 'legal' && mode === 'light'
 
+  // Apply per-Saathi CSS variable world to body
+  useEffect(() => {
+    if (saathiId) {
+      document.body.setAttribute('data-saathi', saathiId)
+    }
+    return () => {
+      document.body.removeAttribute('data-saathi')
+    }
+  }, [saathiId])
+
   // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -764,12 +774,9 @@ export function ChatWindow() {
     <div
       className="flex h-screen w-full overflow-hidden"
       style={{
-        ...theme,
-        background: isLegalTheme
-          ? '#FFFFFF'
-          : `radial-gradient(ellipse at 60% 0%, ${activeSaathi.accent}12 0%, #0B1F3A 58%)`,
-        color: isLegalTheme ? '#1A1A1A' : '#ffffff',
-        transition: 'background 0.6s ease, color 0.3s ease',
+        background: 'var(--bg-base)',
+        color: 'var(--text-primary)',
+        transition: 'background 0.4s ease, color 0.3s ease',
       }}
     >
       {/* Sidebar (desktop) */}
@@ -810,25 +817,12 @@ export function ChatWindow() {
               exit={{ opacity: 0, height: 0 }}
               className="flex items-start justify-between px-5 py-3 text-sm"
               style={{
-                background: isLegalTheme
-                  ? '#F5F5F5'
-                  : `${activeSaathi.primary}18`,
-                borderBottom: isLegalTheme
-                  ? '0.5px solid #E0E0E0'
-                  : `0.5px solid ${activeSaathi.primary}22`,
+                background: 'var(--saathi-bg)',
+                borderBottom: '1px solid var(--saathi-border)',
               }}
             >
-              <p
-                style={{
-                  color: isLegalTheme ? '#555555' : 'rgba(255,255,255,0.6)',
-                }}
-              >
-                <span
-                  style={{
-                    fontWeight: 600,
-                    color: isLegalTheme ? '#1A1A1A' : '#ffffff',
-                  }}
-                >
+              <p style={{ color: 'var(--text-secondary)' }}>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                   Welcome back, {soulBanner.name}.
                 </span>{' '}
                 Last time we covered: {soulBanner.summary}
@@ -836,9 +830,7 @@ export function ChatWindow() {
               <button
                 onClick={() => setShowSoulBanner(false)}
                 className="ml-4 shrink-0 text-xs"
-                style={{
-                  color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)',
-                }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 ✕
               </button>
@@ -872,7 +864,7 @@ export function ChatWindow() {
               <button
                 onClick={() => setErrorBanner(null)}
                 className="text-xs"
-                style={{ color: 'rgba(255,255,255,0.3)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 ✕
               </button>

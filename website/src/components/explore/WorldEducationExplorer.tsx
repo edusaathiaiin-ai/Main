@@ -102,18 +102,12 @@ const DESTINATIONS = [
 // ─── CTA card in sidebar ──────────────────────────────────────────────────────
 
 export function WorldEducationExplorerCTA({
-  isLegalTheme = false,
-  primaryColor  = '#C9993A',
+  primaryColor = '#C9993A',
 }: {
   isLegalTheme?: boolean
   primaryColor?:  string
 }) {
   const [open, setOpen] = useState(false)
-
-  const bg     = isLegalTheme ? '#F5F5F5'                  : 'rgba(255,255,255,0.04)'
-  const border = isLegalTheme ? '1px solid #E0E0E0'        : '0.5px solid rgba(255,255,255,0.08)'
-  const headC  = isLegalTheme ? '#1A1A1A'                  : '#FFFFFF'
-  const subC   = isLegalTheme ? '#777777'                  : 'rgba(255,255,255,0.4)'
 
   return (
     <>
@@ -126,19 +120,19 @@ export function WorldEducationExplorerCTA({
           width:        '100%',
           padding:      '10px 14px',
           borderRadius: '12px',
-          background:   bg,
-          border,
+          background:   'var(--bg-elevated)',
+          border:       '1px solid var(--border-subtle)',
           cursor:       'pointer',
           textAlign:    'left',
           transition:   'all 0.18s',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background  = isLegalTheme ? '#EEEEEE' : 'rgba(255,255,255,0.07)'
+          e.currentTarget.style.background  = 'var(--bg-sunken)'
           e.currentTarget.style.borderColor = `${primaryColor}50`
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background  = bg
-          e.currentTarget.style.borderColor = isLegalTheme ? '#E0E0E0' : 'rgba(255,255,255,0.08)'
+          e.currentTarget.style.background  = 'var(--bg-elevated)'
+          e.currentTarget.style.borderColor = 'var(--border-subtle)'
         }}
       >
         <span style={{
@@ -155,10 +149,10 @@ export function WorldEducationExplorerCTA({
           🌍
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: '12px', fontWeight: 600, color: headC, margin: '0 0 1px', lineHeight: 1.3 }}>
+          <p style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 1px', lineHeight: 1.3 }}>
             World Education Explorer
           </p>
-          <p style={{ fontSize: '10px', color: subC, margin: 0, lineHeight: 1.4 }}>
+          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.4 }}>
             USA · Canada · UK · Germany · Australia
           </p>
         </div>

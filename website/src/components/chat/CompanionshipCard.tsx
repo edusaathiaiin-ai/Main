@@ -203,16 +203,16 @@ function AddSaathiModal({
         transition={{ type: 'spring', stiffness: 280, damping: 24 }}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm rounded-3xl overflow-hidden"
-        style={{ background: '#0B1F3A', border: '1px solid rgba(255,255,255,0.1)' }}
+        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-medium)' }}
       >
         {/* Header */}
-        <div className="px-6 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="px-6 py-5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-playfair text-lg font-bold text-white">
+              <p className="font-display text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
                 {step === 'confirm' && selected ? `Add ${selected.name}?` : 'Add another Saathi'}
               </p>
-              <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
                 {step === 'suggest' ? 'Soul-matched for you · or browse all'
                   : step === 'all' ? 'All available Saathis'
                   : '₹99/month or 500 SP'}
@@ -220,7 +220,7 @@ function AddSaathiModal({
             </div>
             <button onClick={onClose}
               style={{ background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(255,255,255,0.3)', fontSize: '18px' }}>✕</button>
+                color: 'var(--text-ghost)', fontSize: '18px' }}>✕</button>
           </div>
         </div>
 
@@ -243,21 +243,19 @@ function AddSaathiModal({
                       <button key={s.id}
                         onClick={() => { setSelected(s); setStep('confirm') }}
                         className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all"
-                        style={{ background: 'rgba(255,255,255,0.04)',
-                          border: '0.5px solid rgba(255,255,255,0.08)' }}
+                        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = `${s.primary}18`
+                          e.currentTarget.style.background = `${s.primary}15`
                           e.currentTarget.style.borderColor = `${s.primary}50`
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
+                          e.currentTarget.style.background = 'var(--bg-elevated)'
+                          e.currentTarget.style.borderColor = 'var(--border-subtle)'
                         }}>
                         <span style={{ fontSize: '22px', flexShrink: 0 }}>{s.emoji}</span>
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold text-white">{s.name}</p>
-                          <p className="text-[10px] truncate"
-                            style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{s.name}</p>
+                          <p className="text-[10px] truncate" style={{ color: 'var(--text-tertiary)' }}>
                             {suggestion?.reasons[0] ?? s.tagline}
                           </p>
                         </div>
@@ -275,7 +273,7 @@ function AddSaathiModal({
                 {step === 'suggest' && allUnenrolled.length > 3 && (
                   <button onClick={() => setStep('all')}
                     className="w-full text-center text-[11px] py-1"
-                    style={{ color: 'rgba(255,255,255,0.35)', background: 'none',
+                    style={{ color: 'var(--text-tertiary)', background: 'none',
                       border: 'none', cursor: 'pointer' }}>
                     Browse all {allUnenrolled.length} Saathis →
                   </button>
@@ -283,7 +281,7 @@ function AddSaathiModal({
                 {step === 'all' && (
                   <button onClick={() => setStep('suggest')}
                     className="w-full text-center text-[11px] py-1"
-                    style={{ color: 'rgba(255,255,255,0.35)', background: 'none',
+                    style={{ color: 'var(--text-tertiary)', background: 'none',
                       border: 'none', cursor: 'pointer' }}>
                     ← Back to recommendations
                   </button>
@@ -300,14 +298,14 @@ function AddSaathiModal({
                   style={{ background: `${selected.primary}12`,
                     border: `0.5px solid ${selected.primary}35` }}>
                   <span style={{ fontSize: '36px' }}>{selected.emoji}</span>
-                  <p className="mt-2 text-sm font-bold text-white">{selected.name}</p>
-                  <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  <p className="mt-2 text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{selected.name}</p>
+                  <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
                     {selected.tagline}
                   </p>
                 </div>
 
                 <p className="mb-3 text-center text-[11px] font-semibold"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  style={{ color: 'var(--text-tertiary)' }}>
                   Choose how to unlock
                 </p>
 
@@ -341,7 +339,7 @@ function AddSaathiModal({
 
                 <button onClick={() => setStep('suggest')}
                   className="mt-3 w-full text-center text-[11px]"
-                  style={{ color: 'rgba(255,255,255,0.3)', background: 'none',
+                  style={{ color: 'var(--text-ghost)', background: 'none',
                     border: 'none', cursor: 'pointer' }}>
                   ← Choose a different Saathi
                 </button>
@@ -438,11 +436,11 @@ export function CompanionshipCard({
 
   if (!visible || dismissed || !saathi) return null
 
-  const bg     = isLegalTheme ? '#FFFDF7'           : 'rgba(201,153,58,0.06)'
-  const border = isLegalTheme ? '1px solid #E8D98A' : '0.5px solid rgba(201,153,58,0.25)'
-  const headC  = isLegalTheme ? '#1A1A1A'           : '#FFFFFF'
-  const bodyC  = isLegalTheme ? '#555555'           : 'rgba(255,255,255,0.6)'
-  const mutedC = isLegalTheme ? 'rgba(0,0,0,0.3)'  : 'rgba(255,255,255,0.25)'
+  const bg     = 'var(--saathi-bg)'
+  const border = '1px solid var(--saathi-border)'
+  const headC  = 'var(--text-primary)'
+  const bodyC  = 'var(--text-secondary)'
+  const mutedC = 'var(--text-ghost)'
   const padding = location === 'sidebar' ? '12px 14px' : '16px'
   const margin  = location === 'sidebar' ? '4px 12px'  : '12px 0'
 
@@ -524,14 +522,14 @@ export function CompanionshipCard({
             style={{ position: 'fixed', bottom: '32px', left: '50%',
               transform: 'translateX(-50%)', zIndex: 60,
               padding: '14px 24px', borderRadius: '16px',
-              background: 'rgba(11,31,58,0.95)',
+              background: 'var(--bg-surface)',
               border: `1px solid ${primaryColor}50`,
-              backdropFilter: 'blur(16px)', textAlign: 'center' }}
+              boxShadow: 'var(--shadow-lg)', textAlign: 'center' }}
           >
             <p style={{ fontSize: '14px', fontWeight: 700, color: primaryColor, margin: '0 0 4px' }}>
               New Saathi added! ✦
             </p>
-            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+            <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', margin: 0 }}>
               {done.method === 'paid'
                 ? 'Billing ₹99/month · Cancel anytime'
                 : '500 Saathi Points spent'}

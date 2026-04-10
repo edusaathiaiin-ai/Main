@@ -17,16 +17,16 @@ export function QuotaBanner({ quota }: Props) {
   const isLow = remaining <= 2 && remaining > 0
 
   const bgColor = isOut
-    ? 'rgba(239,68,68,0.08)'
+    ? 'rgba(239,68,68,0.07)'
     : isLow
-      ? 'rgba(249,115,22,0.1)'
-      : 'rgba(201,153,58,0.1)'
+      ? 'rgba(249,115,22,0.07)'
+      : 'rgba(201,153,58,0.07)'
   const borderColor = isOut
-    ? 'rgba(239,68,68,0.3)'
+    ? 'rgba(239,68,68,0.25)'
     : isLow
-      ? 'rgba(249,115,22,0.35)'
-      : 'rgba(201,153,58,0.3)'
-  const textColor = isOut ? '#FCA5A5' : isLow ? '#FD8C4E' : '#C9993A'
+      ? 'rgba(249,115,22,0.3)'
+      : 'rgba(201,153,58,0.25)'
+  const textColor = isOut ? '#DC2626' : isLow ? '#EA580C' : 'var(--saathi-primary)'
 
   const message = isOut
     ? 'All chats used — your Saathi will be ready in 48 hours'
@@ -53,9 +53,9 @@ export function QuotaBanner({ quota }: Props) {
             href="/pricing"
             className="rounded-full px-3 py-1 text-xs font-semibold transition-all"
             style={{
-              background: 'rgba(201,153,58,0.15)',
-              border: '0.5px solid #C9993A',
-              color: '#C9993A',
+              background: 'var(--saathi-light)',
+              border: '1px solid var(--saathi-border)',
+              color: 'var(--saathi-primary)',
             }}
           >
             Upgrade →

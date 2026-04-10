@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useEffect } from 'react'
 import type React from 'react'
 
 export type FontSize  = 'S' | 'M' | 'L' | 'XL'
@@ -106,6 +107,32 @@ export const useFontStore = create<FontStore>()(
     { name: 'edusaathiai-font-prefs' }
   )
 )
+
+// ─── DOM sync hook — call once in FontSelector or a root provider ────────────
+// Wires data-font-size and data-high-contrast on <html> so CSS vars auto-scale
+
+export function useFontStoreSync() {
+  const { fontSize, highContrast } = useFontStore()
+
+  useEffect(() => {
+    const sizeMap: Record<FontSize, string> = {
+      S: 'default', M: 'default', L: 'large', XL: 'xlarge',
+    }
+    const attr = sizeMap[fontSize]
+    if (attr === 'default') {
+      document.documentElement.removeAttribute('data-font-size')
+    } else {
+      document.documentElement.setAttribute('data-font-size', attr)
+    }
+  }, [fontSize])
+
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      'data-high-contrast',
+      highContrast ? 'true' : 'false'
+    )
+  }, [highContrast])
+}
 
 // ─── Style helper — used in MessageBubble ────────────────────────────────────
 

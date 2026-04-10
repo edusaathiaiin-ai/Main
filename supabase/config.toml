@@ -417,3 +417,9 @@ verify_jwt = false
 
 [functions.send-session-digest]
 verify_jwt = false
+
+[functions.report-factual-error]
+verify_jwt = false
+
+[functions.verify-correction]
+verify_jwt = false

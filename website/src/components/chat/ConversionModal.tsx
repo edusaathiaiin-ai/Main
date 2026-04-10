@@ -56,9 +56,9 @@ export function ConversionModal({ open, trigger, botName, onClose }: Props) {
             transition={{ type: 'spring', stiffness: 300, damping: 28 }}
             className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-md -translate-y-1/2 rounded-3xl p-8"
             style={{
-              background: 'linear-gradient(160deg, #0B1F3A 0%, #060F1D 100%)',
-              border: '0.5px solid rgba(201,153,58,0.25)',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-medium)',
+              boxShadow: 'var(--shadow-xl)',
             }}
           >
             {/* Close */}
@@ -66,8 +66,8 @@ export function ConversionModal({ open, trigger, botName, onClose }: Props) {
               onClick={onClose}
               className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full text-sm transition-colors"
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                color: 'rgba(255,255,255,0.4)',
+                background: 'var(--bg-elevated)',
+                color: 'var(--text-ghost)',
               }}
             >
               ✕
@@ -88,12 +88,12 @@ export function ConversionModal({ open, trigger, botName, onClose }: Props) {
             </div>
 
             {/* Title */}
-            <h2 className="font-playfair mb-3 text-2xl font-bold text-white">
+            <h2 className="font-display mb-3 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
               {title}
             </h2>
             <p
               className="mb-8 text-sm leading-relaxed"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
+              style={{ color: 'var(--text-secondary)' }}
             >
               {subtitle}
             </p>
@@ -131,10 +131,10 @@ export function ConversionModal({ open, trigger, botName, onClose }: Props) {
                   }
                 >
                   <div>
-                    <p className="text-sm font-bold text-white">{plan.name}</p>
+                    <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{plan.name}</p>
                     <p
                       className="text-xs"
-                      style={{ color: 'rgba(255,255,255,0.4)' }}
+                      style={{ color: 'var(--text-tertiary)' }}
                     >
                       {plan.detail}
                     </p>
@@ -152,13 +152,9 @@ export function ConversionModal({ open, trigger, botName, onClose }: Props) {
             <button
               onClick={onClose}
               className="w-full py-2 text-center text-xs transition-colors"
-              style={{ color: 'rgba(255,255,255,0.25)' }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = 'rgba(255,255,255,0.25)')
-              }
+              style={{ color: 'var(--text-ghost)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-ghost)')}
             >
               Continue with free plan
             </button>

@@ -98,10 +98,10 @@ export function SaathiPointsBar({
     ? SAATHIS.find((s) => s.id === targetSlug)
     : null
 
-  const labelColor = isLegalTheme ? '#888888'                : 'rgba(255,255,255,0.3)'
-  const valueColor = isLegalTheme ? '#1A1A1A'                : '#FFFFFF'
-  const trackBg    = isLegalTheme ? '#E8E8E8'                : 'rgba(255,255,255,0.08)'
-  const borderColor= isLegalTheme ? '0.5px solid #E8E8E8'   : '0.5px solid rgba(255,255,255,0.06)'
+  const labelColor = 'var(--text-tertiary)'
+  const valueColor = 'var(--text-primary)'
+  const trackBg    = 'var(--bg-elevated)'
+  const borderColor= '1px solid var(--border-subtle)'
 
   return (
     <>
@@ -285,8 +285,8 @@ function SaathiTargetPicker({
   // Filter using slugs — SAATHIS.id is always a slug
   const available = SAATHIS.filter((s) => !enrolledSlugs.includes(s.id))
 
-  const bg     = isLegalTheme ? '#FFFFFF'            : '#0D2140'
-  const border = isLegalTheme ? '1px solid #E0E0E0'  : '1px solid rgba(255,255,255,0.12)'
+  const bg     = 'var(--bg-surface)'
+  const border = '1px solid var(--border-medium)'
 
   return (
     <motion.div
@@ -304,18 +304,18 @@ function SaathiTargetPicker({
       >
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="font-playfair text-base font-bold"
-               style={{ color: isLegalTheme ? '#1A1A1A' : '#FFFFFF' }}>
+            <p className="font-display text-base font-bold"
+               style={{ color: 'var(--text-primary)' }}>
               Set your next goal
             </p>
             <p className="text-[11px]"
-               style={{ color: isLegalTheme ? '#888888' : 'rgba(255,255,255,0.4)' }}>
+               style={{ color: 'var(--text-tertiary)' }}>
               Which Saathi are you earning toward?
             </p>
           </div>
           <button onClick={onClose}
             style={{ background: 'none', border: 'none', cursor: 'pointer',
-              color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)', fontSize: '18px' }}>
+              color: 'var(--text-ghost)', fontSize: '18px' }}>
             ✕
           </button>
         </div>
@@ -327,26 +327,26 @@ function SaathiTargetPicker({
               onClick={() => void onSelect(s.id)}  // passes SLUG; caller converts to UUID
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all"
               style={{
-                background:  isLegalTheme ? '#F4F4F4' : 'rgba(255,255,255,0.05)',
-                border:      isLegalTheme ? '1px solid #E8E8E8' : '0.5px solid rgba(255,255,255,0.08)',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-subtle)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = `${s.primary}15`
                 e.currentTarget.style.borderColor = `${s.primary}50`
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = isLegalTheme ? '#F4F4F4' : 'rgba(255,255,255,0.05)'
-                e.currentTarget.style.borderColor = isLegalTheme ? '#E8E8E8' : 'rgba(255,255,255,0.08)'
+                e.currentTarget.style.background = 'var(--bg-elevated)'
+                e.currentTarget.style.borderColor = 'var(--border-subtle)'
               }}
             >
               <span style={{ fontSize: '20px' }}>{s.emoji}</span>
               <div>
                 <p className="text-xs font-semibold"
-                   style={{ color: isLegalTheme ? '#1A1A1A' : '#FFFFFF' }}>
+                   style={{ color: 'var(--text-primary)' }}>
                   {s.name}
                 </p>
                 <p className="text-[10px]"
-                   style={{ color: isLegalTheme ? '#888888' : 'rgba(255,255,255,0.4)' }}>
+                   style={{ color: 'var(--text-tertiary)' }}>
                   {s.tagline}
                 </p>
               </div>

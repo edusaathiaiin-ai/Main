@@ -97,25 +97,25 @@ export function SaathiUnlockModal({
             transition={{ type: 'spring', stiffness: 280, damping: 22 }}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-sm rounded-3xl p-8 text-center"
-            style={{ background: '#0B1F3A', border: `1.5px solid ${primaryColor}50`,
+            style={{ background: 'var(--bg-surface)', border: `1.5px solid ${primaryColor}50`,
               boxShadow: `0 0 60px ${primaryColor}20` }}>
             <motion.div animate={{ rotate: [0, 15, -15, 10, -10, 0] }}
               transition={{ duration: 0.6, delay: 0.2 }} className="mb-4 text-6xl">
               🎉
             </motion.div>
-            <h2 className="font-playfair mb-3 text-2xl font-bold"
+            <h2 className="font-display mb-3 text-2xl font-bold"
               style={{ color: primaryColor }}>
               Saathi Points milestone!
             </h2>
-            <p className="mb-2 text-5xl font-bold tabular-nums" style={{ color: '#FFFFFF' }}>
+            <p className="mb-2 text-5xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
               {formatPoints(pointsAvailable)}
             </p>
-            <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
+            <p className="mb-6 text-sm" style={{ color: 'var(--text-tertiary)' }}>
               Saathi Points earned through learning
             </p>
             <div className="mb-6 rounded-2xl p-4"
               style={{ background: `${primaryColor}10`, border: `0.5px solid ${primaryColor}30` }}>
-              <p className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.8)' }}>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                 You&apos;ve earned the right to unlock
                 <br /><span style={{ color: primaryColor }}>a new Saathi</span> — for free.
               </p>
@@ -125,7 +125,7 @@ export function SaathiUnlockModal({
               style={{ background: primaryColor, color: '#060F1D' }}>
               Choose my new Saathi →
             </button>
-            <p className="mt-3 text-[11px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            <p className="mt-3 text-[11px]" style={{ color: 'var(--text-ghost)' }}>
               Tap anywhere to continue
             </p>
           </motion.div>
@@ -138,20 +138,20 @@ export function SaathiUnlockModal({
             exit={{ opacity: 0, y: -20 }}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-sm rounded-3xl overflow-hidden"
-            style={{ background: '#0B1F3A', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="px-6 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-medium)' }}>
+            <div className="px-6 py-5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-playfair text-lg font-bold" style={{ color: '#FFFFFF' }}>
+                  <p className="font-display text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
                     Choose your new Saathi
                   </p>
-                  <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
                     Costs {formatPoints(pointsCost)} SP · You have {formatPoints(pointsAvailable)} SP
                   </p>
                 </div>
                 <button onClick={onClose}
                   style={{ background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'rgba(255,255,255,0.3)', fontSize: '18px' }}>✕</button>
+                    color: 'var(--text-ghost)', fontSize: '18px' }}>✕</button>
               </div>
             </div>
 
@@ -159,7 +159,7 @@ export function SaathiUnlockModal({
               style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {available.length === 0 ? (
                 <p className="py-8 text-center text-sm"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  style={{ color: 'var(--text-tertiary)' }}>
                   You&apos;ve unlocked all available Saathis! 🎊
                 </p>
               ) : (
@@ -167,21 +167,20 @@ export function SaathiUnlockModal({
                   <button key={s.id}
                     onClick={() => { setSelected(s); setStep('confirm') }}
                     className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all"
-                    style={{ background: 'rgba(255,255,255,0.04)',
-                      border: '0.5px solid rgba(255,255,255,0.08)' }}
+                    style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = `${s.primary}18`
+                      e.currentTarget.style.background = `${s.primary}15`
                       e.currentTarget.style.borderColor = `${s.primary}50`
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
+                      e.currentTarget.style.background = 'var(--bg-elevated)'
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)'
                     }}>
                     <span style={{ fontSize: '22px', flexShrink: 0 }}>{s.emoji}</span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-white">{s.name}</p>
+                      <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{s.name}</p>
                       <p className="text-[10px] truncate"
-                        style={{ color: 'rgba(255,255,255,0.4)' }}>{s.tagline}</p>
+                        style={{ color: 'var(--text-tertiary)' }}>{s.tagline}</p>
                     </div>
                     <span className="text-[10px] font-bold"
                       style={{ color: s.accent ?? primaryColor, flexShrink: 0 }}>
@@ -201,15 +200,15 @@ export function SaathiUnlockModal({
             exit={{ opacity: 0, scale: 0.95 }}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-sm rounded-3xl p-6 text-center"
-            style={{ background: '#0B1F3A', border: `1.5px solid ${selected.primary}50` }}>
+            style={{ background: 'var(--bg-surface)', border: `1.5px solid ${selected.primary}50` }}>
             <span className="mb-3 block text-5xl">{selected.emoji}</span>
-            <h3 className="font-playfair mb-2 text-xl font-bold text-white">
+            <h3 className="font-display mb-2 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
               Unlock {selected.name}?
             </h3>
-            <p className="mb-1 text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
+            <p className="mb-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {selected.tagline}
             </p>
-            <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <p className="mb-6 text-sm" style={{ color: 'var(--text-tertiary)' }}>
               This will spend{' '}
               <span style={{ color: primaryColor, fontWeight: 700 }}>
                 {formatPoints(pointsCost)} Saathi Points
@@ -217,16 +216,15 @@ export function SaathiUnlockModal({
             </p>
             {error && (
               <p className="mb-4 rounded-xl px-3 py-2 text-xs"
-                style={{ color: '#FCA5A5', background: 'rgba(239,68,68,0.1)',
-                  border: '0.5px solid rgba(239,68,68,0.3)' }}>
+                style={{ color: 'var(--error)', background: 'rgba(239,68,68,0.08)',
+                  border: '1px solid rgba(239,68,68,0.25)' }}>
                 {error}
               </p>
             )}
             <div className="flex gap-3">
               <button onClick={() => setStep('pick')}
                 className="flex-1 rounded-xl py-2.5 text-sm transition-all"
-                style={{ background: 'rgba(255,255,255,0.05)',
-                  border: '0.5px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}>
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
                 ← Back
               </button>
               <button onClick={() => void handleUnlock()} disabled={unlocking}
@@ -245,17 +243,17 @@ export function SaathiUnlockModal({
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-sm rounded-3xl p-8 text-center"
-            style={{ background: '#0B1F3A', border: `2px solid ${selected.primary}`,
+            style={{ background: 'var(--bg-surface)', border: `2px solid ${selected.primary}`,
               boxShadow: `0 0 50px ${selected.primary}25` }}>
             <motion.div animate={{ rotate: [0, -10, 10, -8, 8, 0] }}
               transition={{ duration: 0.5 }} className="mb-4 text-6xl">
               {selected.emoji}
             </motion.div>
-            <h3 className="font-playfair mb-2 text-2xl font-bold"
+            <h3 className="font-display mb-2 text-2xl font-bold"
               style={{ color: selected.accent ?? primaryColor }}>
               {selected.name} unlocked!
             </h3>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               Your new soul partner is ready.
             </p>
           </motion.div>

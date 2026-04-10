@@ -232,13 +232,13 @@ export function DidYouKnow({
   const tip = orderedTips[index]
 
   // ── Theme tokens ────────────────────────────────────────────────────────────
-  const cardBg      = isLegalTheme ? '#FFFDF7'               : 'rgba(201,153,58,0.05)'
-  const cardBorder  = isLegalTheme ? '1px solid #E8D98A'     : '0.5px solid rgba(201,153,58,0.18)'
-  const headlineC   = isLegalTheme ? '#1A1A1A'               : '#FFFFFF'
-  const bodyC       = isLegalTheme ? '#555555'               : 'rgba(255,255,255,0.6)'
-  const mutedC      = isLegalTheme ? 'rgba(0,0,0,0.3)'       : 'rgba(255,255,255,0.2)'
-  const navBtnC     = isLegalTheme ? 'rgba(0,0,0,0.25)'      : 'rgba(255,255,255,0.25)'
-  const dotInactive = isLegalTheme ? 'rgba(0,0,0,0.15)'      : 'rgba(255,255,255,0.15)'
+  const cardBg      = 'var(--saathi-bg)'
+  const cardBorder  = '1px solid var(--saathi-border)'
+  const headlineC   = 'var(--text-primary)'
+  const bodyC       = 'var(--text-secondary)'
+  const mutedC      = 'var(--text-ghost)'
+  const navBtnC     = 'var(--text-ghost)'
+  const dotInactive = 'var(--border-medium)'
 
   const slideVariants = {
     enter:  (d: number) => ({ x: d > 0 ? 40 : -40, opacity: 0 }),
@@ -267,8 +267,8 @@ export function DidYouKnow({
           padding: '10px 14px 0',
         }}>
           <span style={{
-            fontSize: '9px', fontWeight: 700,
-            letterSpacing: '0.1em', textTransform: 'uppercase',
+            fontSize: 'var(--text-xs)', fontWeight: 700,
+            letterSpacing: '0.08em', textTransform: 'uppercase',
             color: primaryColor,
           }}>
             Did you know?
@@ -308,7 +308,7 @@ export function DidYouKnow({
                   {tip.emoji}
                 </span>
                 <p style={{
-                  fontSize: '12px', fontWeight: 700,
+                  fontSize: 'var(--text-sm)', fontWeight: 700,
                   color: headlineC, margin: 0, lineHeight: 1.35,
                 }}>
                   {tip.headline}
@@ -317,8 +317,8 @@ export function DidYouKnow({
 
               {/* Body */}
               <p style={{
-                fontSize: '11px', color: bodyC,
-                margin: '0 0 0 30px', lineHeight: 1.55,
+                fontSize: 'var(--text-sm)', color: bodyC,
+                margin: '0 0 0 30px', lineHeight: 1.6,
               }}>
                 {tip.body}
               </p>
@@ -330,7 +330,7 @@ export function DidYouKnow({
                   style={{
                     display: 'inline-block',
                     marginTop: '8px', marginLeft: '30px',
-                    fontSize: '11px', fontWeight: 600,
+                    fontSize: 'var(--text-sm)', fontWeight: 600,
                     color: primaryColor, textDecoration: 'none',
                   }}
                 >

@@ -61,19 +61,17 @@ export function VoiceInput({
   ]
 
   // Theme tokens
-  const selectBg     = isLegalTheme ? '#FFFFFF'                    : 'rgba(255,255,255,0.06)'
-  const selectBorder = isLegalTheme ? '0.5px solid #C8C8C8'        : '0.5px solid rgba(255,255,255,0.1)'
-  const selectColor  = isLegalTheme ? '#444444'                    : 'rgba(255,255,255,0.5)'
-  const optionBg     = isLegalTheme ? '#FFFFFF'                    : '#0B1F3A'
-  const micIdleBg    = isLegalTheme ? 'rgba(0,0,0,0.06)'           : `${saathiColor}18`
-  const micIdleBorder= isLegalTheme ? `1.5px solid #AAAAAA`        : `1.5px solid ${saathiColor}55`
-  const micIdleColor = isLegalTheme ? 'rgba(0,0,0,0.6)'            : `${saathiColor}CC`
-  const popupBg      = isLegalTheme ? '#FFFFFF'                    : '#0B1F3A'
-  const popupBorder  = isLegalTheme ? `1px solid ${saathiColor}40` : `1px solid ${saathiColor}50`
-  const popupColor   = isLegalTheme ? '#1A1A1A'                    : '#ffffff'
-  const popupShadow  = isLegalTheme
-    ? '0 4px 20px rgba(0,0,0,0.12)'
-    : '0 8px 32px rgba(0,0,0,0.4)'
+  const selectBg     = 'var(--bg-surface)'
+  const selectBorder = '1px solid var(--border-subtle)'
+  const selectColor  = 'var(--text-secondary)'
+  const optionBg     = 'var(--bg-surface)'
+  const micIdleBg    = `${saathiColor}18`
+  const micIdleBorder= `1.5px solid ${saathiColor}55`
+  const micIdleColor = `${saathiColor}CC`
+  const popupBg      = 'var(--bg-surface)'
+  const popupBorder  = `1px solid ${saathiColor}50`
+  const popupColor   = 'var(--text-primary)'
+  const popupShadow  = 'var(--shadow-md)'
 
   function startListening() {
     const w = window as typeof window & {
