@@ -102,7 +102,7 @@ const RICH_FEATURE_SAATHIS: Record<
     ],
     example: 'Try: "Explain load distribution in a beam"',
   },
-  physisaathi: {
+  physicsaathi: {
     features: ['📐 Physics equations render beautifully'],
     example: 'Try: "Show Maxwell\'s equations"',
   },
@@ -113,17 +113,10 @@ const RICH_FEATURE_SAATHIS: Record<
     ],
     example: 'Try: "Show me ATP synthesis"',
   },
-  aerosaathi: {
-    features: [
-      '📐 Equations render beautifully',
-      '📊 Flight processes become diagrams',
-    ],
-    example: 'Try: "Show Bernoulli\'s equation"',
-  },
   aerospacesaathi: {
     features: [
       '📐 Equations render beautifully',
-      '📊 Processes become diagrams',
+      '📊 Flight & orbital processes become diagrams',
     ],
     example: 'Try: "Show orbital mechanics equations"',
   },
@@ -134,7 +127,7 @@ const RICH_FEATURE_SAATHIS: Record<
     ],
     example: 'Try: "Show Kirchhoff\'s laws"',
   },
-  envirosaathi: {
+  envirosathi: {
     features: [
       '📐 Environmental equations render beautifully',
       '📊 Processes become diagrams',
@@ -262,6 +255,7 @@ export function ChatWindow() {
   const searchParams = useSearchParams()
 
   const [quota, setQuota] = useState<QuotaState>(DEFAULT_QUOTA)
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(undefined)
   const [inputValue, setInputValue] = useState('')
   const [errorBanner, setErrorBanner] = useState<string | null>(null)
   const [soulBanner, setSoulBanner] = useState<SoulBanner | null>(null)
@@ -467,7 +461,7 @@ export function ChatWindow() {
     const supabase = createClient()
     const { data } = await supabase
       .from('chat_sessions')
-      .select('message_count, cooling_until')
+      .select('id, message_count, cooling_until')
       .eq('user_id', userId)
       .eq('bot_slot', activeBotSlot)
       .eq('quota_date_ist', new Date().toISOString().slice(0, 10))
@@ -481,6 +475,7 @@ export function ChatWindow() {
       setQuota({ limit, used: 0, remaining: limit, coolingUntil: null, isCooling: false })
       return
     }
+    if (data.id) setCurrentSessionId(data.id as string)
     const used = data.message_count ?? 0
     const coolingUntil = data.cooling_until
       ? new Date(data.cooling_until)
@@ -937,6 +932,11 @@ export function ChatWindow() {
                       onFlag={handleFlag}
                       primaryColor={activeSaathi.primary}
                       isLegalTheme={isLegalTheme}
+                      verticalId={activeSaathiId ?? profile?.primary_saathi_id ?? ''}
+                      verticalSlug={saathiId}
+                      verticalName={activeSaathi.name}
+                      botSlot={activeBotSlot}
+                      sessionId={currentSessionId}
                     />
                   )
                 })}

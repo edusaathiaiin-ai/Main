@@ -9,17 +9,17 @@ export type FontColor = 'default' | 'warm' | 'cool' | 'sage' | 'rose'
 // ─── Size ────────────────────────────────────────────────────────────────────
 
 export const FONT_SIZE_MAP: Record<FontSize, string> = {
-  S:  '13px',
-  M:  '15px',
-  L:  '17px',
-  XL: '20px',
+  S:  '14px',
+  M:  '16px',
+  L:  '18px',
+  XL: '21px',
 }
 
 export const FONT_LINE_HEIGHT_MAP: Record<FontSize, string> = {
-  S:  '1.55',
-  M:  '1.65',
-  L:  '1.75',
-  XL: '1.85',
+  S:  '1.6',
+  M:  '1.7',
+  L:  '1.8',
+  XL: '1.9',
 }
 
 // ─── Font family ─────────────────────────────────────────────────────────────
@@ -92,7 +92,7 @@ type FontStore = {
 export const useFontStore = create<FontStore>()(
   persist(
     (set) => ({
-      fontSize:     'M',
+      fontSize:     'L',
       fontType:     'sans',
       fontColor:    'default',
       highContrast: false,
