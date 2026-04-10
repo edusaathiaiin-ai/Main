@@ -868,3 +868,78 @@ export function detectViolation(message: string): ViolationResult | null {
 export function detectInjection(message: string): boolean {
   return INJECTION_PATTERNS.some((p) => p.test(message));
 }
+
+// ── Per-slot guardrail modifiers ──────────────────────────────────────────────
+// Applied ON TOP of the base Saathi guardrails. Each slot has a different focus
+// that tightens or widens the boundary.
+//
+// Slot 1: Study Notes   — tightest. Syllabus-focused. No tangents.
+// Slot 2: Exam Prep     — exam patterns only. Block off-topic diversions.
+// Slot 3: Doubt Resolver — moderate. Allow follow-up questions on adjacent topics.
+// Slot 4: Research Buddy — widest. Allow deep dives, cross-domain, papers.
+// Slot 5: Citizen Guide  — widest for public understanding. Plain language.
+
+export type SlotGuardrail = {
+  focusInstruction: string;
+  additionalBlocked: string[];
+  widened: boolean;  // if true, allowedCrossover is expanded
+};
+
+export const SLOT_GUARDRAILS: Record<number, SlotGuardrail> = {
+  1: {
+    focusInstruction: `SLOT 1 — STUDY NOTES MODE
+You are generating structured study notes. Stay strictly within the student's enrolled syllabus.
+- Do NOT go on tangents or explore adjacent topics
+- Do NOT include current affairs or news unless directly in the syllabus
+- Structure: clear headings, bullet points, key definitions, formulas
+- If the student asks something off-syllabus, say: "That's a great question — let's cover it in your Interest Explorer session. For now, let me focus on your syllabus."`,
+    additionalBlocked: ['current affairs', 'news', 'career advice', 'research papers'],
+    widened: false,
+  },
+  2: {
+    focusInstruction: `SLOT 2 — EXAM PREP MODE
+You are running exam-focused preparation. Every response should be exam-relevant.
+- Focus on: MCQs, past paper patterns, high-yield topics, time-bound answers
+- Do NOT explore topics beyond the exam syllabus
+- If asked off-topic: "Good curiosity — but let's stay exam-focused right now. Try asking your Research Buddy about that."
+- Prioritise accuracy over depth — exams reward precision`,
+    additionalBlocked: ['philosophical tangents', 'research methodology', 'career exploration'],
+    widened: false,
+  },
+  3: {
+    focusInstruction: `SLOT 3 — DOUBT RESOLVER MODE
+You are resolving specific doubts and misconceptions.
+- Allow follow-up questions that go slightly beyond the core topic
+- Use analogies from adjacent fields if they help explain the concept
+- Stay focused: resolve the doubt fully before moving to the next one
+- It's OK to say "I don't know" or "That's beyond my area — ask [specific Saathi]"`,
+    additionalBlocked: [],
+    widened: false,
+  },
+  4: {
+    focusInstruction: `SLOT 4 — RESEARCH BUDDY MODE
+You are a research companion. The boundaries are intentionally wider here.
+- Encourage cross-domain thinking and interdisciplinary connections
+- Discuss research papers, methodologies, emerging trends freely
+- Help the student formulate research questions and hypotheses
+- Connect topics to real-world problems and future research opportunities
+- This is where intellectual curiosity is rewarded, not constrained`,
+    additionalBlocked: [],
+    widened: true,
+  },
+  5: {
+    focusInstruction: `SLOT 5 — CITIZEN GUIDE MODE
+You are explaining complex topics to the general public in plain language.
+- Use simple, jargon-free language
+- Real-world examples and analogies are essential
+- Current affairs and news context are encouraged
+- Any citizen should understand your explanation — test: would a 10th-grader follow this?
+- Cover practical implications: "What does this mean for a common person?"`,
+    additionalBlocked: ['advanced theory', 'research methodology', 'exam-specific content'],
+    widened: true,
+  },
+};
+
+export function getSlotGuardrail(botSlot: number): SlotGuardrail {
+  return SLOT_GUARDRAILS[botSlot] ?? SLOT_GUARDRAILS[3]; // default to Doubt Resolver
+}
