@@ -37,7 +37,7 @@ export default function DataDownloadButton({
       const exportData = {
         exported_at: new Date().toISOString(),
         platform: 'EdUsaathiAI',
-        data_controller: 'IAES Ahmedabad, Gujarat, India',
+        data_controller: 'EdUsaathiAI, Gujarat, India',
         dpdp_notice: 'Exported under DPDP Act 2023 Right to Access',
         profile,
         soul_profiles: souls,

@@ -180,7 +180,7 @@ export default function LoginScreen() {
             className="text-navy/40 text-xs text-center"
             style={{ fontFamily: 'DMSans-Regular' }}
           >
-            Indo American Education Society (IAES){'\n'}Ahmedabad · edusaathiai.in
+            edusaathiai.in
           </Text>
         </View>
       </ScrollView>

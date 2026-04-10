@@ -70,13 +70,13 @@ export default function SplashScreen() {
         </Text>
       </Animated.View>
 
-      {/* IAES mark at bottom */}
+      {/* Brand mark at bottom */}
       <View className="absolute bottom-12 items-center">
         <Text
           className="text-xs"
           style={{ fontFamily: 'DMSans-Regular', color: '#FAF7F240' }}
         >
-          Indo American Education Society · Ahmedabad
+          edusaathiai.in
         </Text>
       </View>
     </View>

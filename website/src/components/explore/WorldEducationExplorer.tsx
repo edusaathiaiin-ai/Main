@@ -91,7 +91,7 @@ const DESTINATIONS = [
     flag:    '🌐',
     label:   'EdUmeetup — India × World',
     url:     'https://edumeetup.com',
-    source:  'EdUmeetup · IAES Ahmedabad',
+    source:  'EdUmeetup · EdUsaathiAI',
     desc:    'Connect Indian students directly with international universities. Free profile, university discovery, group sessions with admissions advisors, and direct application support.',
     tags:    ['Free Profile', 'University Connect', 'Ahmedabad'],
     color:   '#C9993A',

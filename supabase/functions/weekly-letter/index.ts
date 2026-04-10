@@ -196,7 +196,7 @@ function buildEmail(user: UserWithSoul, letterText: string): string {
       <!-- Footer -->
       <tr><td style="padding:28px 0 0;text-align:center;">
         <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.18);font-family:Arial,sans-serif;line-height:1.75;">
-          EdUsaathiAI · Indo American Education Society, Ahmedabad<br>
+          EdUsaathiAI<br>
           You receive this because you have an active Saathi companion.<br>
           <a href="https://edusaathiai.in/profile?tab=notifications" style="color:rgba(255,255,255,0.28);text-decoration:underline;">Unsubscribe from weekly letters</a>
         </p>

@@ -107,7 +107,7 @@ async function sendPayoutEmail(opts: {
     View session history →
   </a>
   <p style="font-size:11px;color:rgba(255,255,255,0.2);text-align:center;margin:20px 0 0">
-    EdUsaathiAI · IAES Ahmedabad · payments@edusaathiai.in
+    EdUsaathiAI · payments@edusaathiai.in
   </p>
 </div>`,
     }),
