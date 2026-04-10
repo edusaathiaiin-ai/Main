@@ -1029,7 +1029,7 @@ export function SoulProfileForm({
                 value={city ? city : citySearch}
                 onChange={(e) => {
                   setCitySearch(e.target.value)
-                  setCity('')
+                  setCity(e.target.value.trim())
                   setShowCityDropdown(true)
                 }}
                 onFocus={(e) => {
