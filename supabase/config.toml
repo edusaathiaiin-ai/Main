@@ -417,3 +417,6 @@ verify_jwt = false
 
 [functions.send-session-digest]
 verify_jwt = false
+
+[functions.subscription-lifecycle]
+verify_jwt = false

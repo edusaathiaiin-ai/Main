@@ -138,14 +138,51 @@ serve(async (req: Request) => {
 // ── HTML builder ──────────────────────────────────────────────────────────────
 
 function buildWelcomeHtml(name: string, role: string, _email: string): string {
-  const isFaculty = role === 'faculty';
+  let roleMessage: string;
+  let ctaText: string;
+  let ctaUrl: string;
+  let featureList: string;
 
-  const roleMessage = isFaculty
-    ? `As a faculty member, you can answer student questions on the Community Board, offer 1:1 sessions, and create live lectures.`
-    : `You now have access to your personal AI Saathi — a subject companion that remembers you, learns your pace, and grows with you.`;
-
-  const ctaText = isFaculty ? 'Go to Faculty Dashboard' : 'Start Learning';
-  const ctaUrl = isFaculty ? 'https://edusaathiai.in/faculty' : 'https://edusaathiai.in/chat';
+  switch (role) {
+    case 'faculty':
+      roleMessage = `As a faculty member, you can answer student questions on the Community Board, offer 1:1 sessions, and create live lectures.`;
+      ctaText = 'Go to Faculty Dashboard';
+      ctaUrl = 'https://edusaathiai.in/faculty';
+      featureList = `
+                <li>Answer questions and earn your Verified Faculty badge</li>
+                <li>Offer 1:1 sessions and live lectures</li>
+                <li>Community Board for Q&A with students and peers</li>
+                <li>Daily news curated for your subject</li>`;
+      break;
+    case 'institution':
+      roleMessage = `Your institution is now on EdUsaathiAI. Post internships, browse student talent, and showcase your organisation on the Saathi Spotlight.`;
+      ctaText = 'Go to Institution Dashboard';
+      ctaUrl = 'https://edusaathiai.in/institution';
+      featureList = `
+                <li>Post internships and browse student profiles</li>
+                <li>Saathi Spotlight — showcase your institution</li>
+                <li>Track student engagement and applications</li>`;
+      break;
+    case 'general_public':
+      roleMessage = `You now have access to EdUsaathiAI as a curious learner. Explore subjects with the Study Notes and Citizen Guide bots, and join the Community Board.`;
+      ctaText = 'Start Exploring';
+      ctaUrl = 'https://edusaathiai.in/chat';
+      featureList = `
+                <li>AI chat with Study Notes and Citizen Guide bots</li>
+                <li>Community Board for Q&A with peers and faculty</li>
+                <li>Daily news curated for your interests</li>`;
+      break;
+    default: // student
+      roleMessage = `You now have access to your personal AI Saathi — a subject companion that remembers you, learns your pace, and grows with you.`;
+      ctaText = 'Start Learning';
+      ctaUrl = 'https://edusaathiai.in/chat';
+      featureList = `
+                <li>AI chat with your Saathi — personalised to your level</li>
+                <li>Community Board for Q&A with peers and faculty</li>
+                <li>Daily news curated for your subject</li>
+                <li>Saathi Check-ins to track your progress</li>`;
+      break;
+  }
 
   return `
 <!DOCTYPE html>
@@ -183,17 +220,14 @@ function buildWelcomeHtml(name: string, role: string, _email: string): string {
               </p>
 
               <p style="margin:0 0 20px; font-size:15px; color:rgba(255,255,255,0.75); line-height:1.7;">
-                EdUsaathiAI is built for Indian students — 24 subject Saathis covering Law, Medicine, Engineering, Commerce, Sciences, and more. Each one knows your name, remembers your journey, and adapts to your learning style.
+                EdUsaathiAI is built for India — 24 subject Saathis covering Law, Medicine, Engineering, Commerce, Sciences, and more. Each one knows your name, remembers your journey, and adapts to your style.
               </p>
 
               <p style="margin:0 0 8px; font-size:14px; color:rgba(255,255,255,0.5);">
                 What you get:
               </p>
               <ul style="margin:0 0 24px; padding-left:20px; font-size:14px; color:rgba(255,255,255,0.65); line-height:1.8;">
-                <li>AI chat with your Saathi — personalised to your level</li>
-                <li>Community Board for Q&A with peers and faculty</li>
-                <li>Daily news curated for your subject</li>
-                <li>Saathi Check-ins to track your progress</li>
+                ${featureList}
               </ul>
 
               <!-- CTA Button -->
@@ -217,7 +251,6 @@ function buildWelcomeHtml(name: string, role: string, _email: string): string {
           <tr>
             <td style="padding:20px 40px; text-align:center; border-top:1px solid rgba(201,153,58,0.15);">
               <p style="margin:0; font-size:12px; color:rgba(255,255,255,0.25); line-height:1.6;">
-                EdUsaathiAI &mdash; Indo American Education Society (IAES), Ahmedabad<br>
                 <a href="https://edusaathiai.in" style="color:#C9993A; text-decoration:none;">edusaathiai.in</a>
               </p>
             </td>
