@@ -1467,6 +1467,24 @@ function OnboardInner() {
       metadata: { source: 'onboarding', role: urlRole ?? 'student' },
     })
 
+    // Fire welcome email — profile + Saathi are now set, name is known
+    // Fire-and-forget: never block navigation
+    const { data: { session: welSession } } = await supabase.auth.getSession()
+    if (welSession?.access_token) {
+      void fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-welcome-email`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+            Authorization: `Bearer ${welSession.access_token}`,
+          },
+          body: JSON.stringify({}),
+        }
+      ).catch(() => { /* fire-and-forget */ })
+    }
+
     setProfile({
       ...profile,
       id: userId,

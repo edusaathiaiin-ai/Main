@@ -47,10 +47,10 @@ serve(async (req: Request) => {
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // ── Fetch profile ───────────────────────────────────────────
+    // ── Fetch profile + Saathi name ─────────────────────────────
     const { data: profile } = await admin
       .from('profiles')
-      .select('full_name, email, role, welcome_email_sent')
+      .select('full_name, email, role, welcome_email_sent, primary_saathi_id, verticals(name)')
       .eq('id', user.id)
       .single();
 
@@ -79,13 +79,16 @@ serve(async (req: Request) => {
 
     const name = profile.full_name?.split(' ')[0] ?? 'there';
     const role = profile.role ?? 'student';
+    const saathiName = (profile as { verticals?: { name: string } | null }).verticals?.name ?? null;
 
     // ── Build email ─────────────────────────────────────────────
     const subject = role === 'faculty'
       ? `Welcome to EdUsaathiAI, Professor ${name}`
-      : `Welcome to EdUsaathiAI, ${name}!`;
+      : saathiName
+        ? `${name}, meet your ${saathiName}!`
+        : `Welcome to EdUsaathiAI, ${name}!`;
 
-    const html = buildWelcomeHtml(name, role, email);
+    const html = buildWelcomeHtml(name, role, email, saathiName);
 
     // ── Send via Resend ─────────────────────────────────────────
     if (!RESEND_API_KEY) {
@@ -137,7 +140,7 @@ serve(async (req: Request) => {
 
 // ── HTML builder ──────────────────────────────────────────────────────────────
 
-function buildWelcomeHtml(name: string, role: string, _email: string): string {
+function buildWelcomeHtml(name: string, role: string, _email: string, saathiName: string | null): string {
   let roleMessage: string;
   let ctaText: string;
   let ctaUrl: string;
@@ -173,8 +176,10 @@ function buildWelcomeHtml(name: string, role: string, _email: string): string {
                 <li>Daily news curated for your interests</li>`;
       break;
     default: // student
-      roleMessage = `You now have access to your personal AI Saathi — a subject companion that remembers you, learns your pace, and grows with you.`;
-      ctaText = 'Start Learning';
+      roleMessage = saathiName
+        ? `Your <strong style="color:#C9993A;">${saathiName}</strong> is ready. This is your personal AI companion — it knows your name, remembers your journey, and grows with you every session.`
+        : `You now have access to your personal AI Saathi — a subject companion that remembers you, learns your pace, and grows with you.`;
+      ctaText = saathiName ? `Start with ${saathiName} →` : 'Start Learning';
       ctaUrl = 'https://edusaathiai.in/chat';
       featureList = `
                 <li>AI chat with your Saathi — personalised to your level</li>

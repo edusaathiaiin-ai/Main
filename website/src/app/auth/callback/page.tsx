@@ -80,12 +80,10 @@ async function ensureProfile(
       }
     }
 
-    // New user — send welcome email fire-and-forget
-    // Faculty skip here: their name is unknown until FacultyOnboardFlow completes.
-    // The welcome email is sent from FacultyOnboardFlow.handleSubmit instead.
-    if (resolvedRole !== 'faculty') {
-      void callWelcomeEmail(accessToken)
-    }
+    // Welcome email is sent from onboard/page.tsx handleComplete()
+    // after the student has set their name and chosen their Saathi.
+    // Firing it here would miss the name and Saathi since the profile
+    // is created by the handle_new_user DB trigger before this callback runs.
 
     return { isActive: false, role: resolvedRole }
   }
