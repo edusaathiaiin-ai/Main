@@ -65,6 +65,17 @@ const GEMINI_SAATHIS = new Set([
 ]);
 // CompSaathi intentionally excluded → Claude (best for code quality & architecture)
 
+// ── High-stakes Saathis — always Claude regardless of bot slot ───────────────
+// These verticals require factual precision, legal accuracy, or patient safety.
+// Slot-based routing is bypassed entirely for these slugs.
+const CLAUDE_ALWAYS_SAATHIS = new Set([
+  'kanoonsaathi',   // Law — factual accuracy, no hallucinated case law
+  'medicosaathi',   // Medicine — patient safety critical
+  'pharmasaathi',   // Pharmacy — drug interactions, dosage accuracy
+  'accountsaathi',  // Accounting — tax/compliance accuracy
+]);
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ── Plan-specific quota config (mirrors constants/plans.ts) ──────────────────
 // Inlined here because Deno cannot import from the React Native app layer.
 type PlanQuotaConfig = { dailyChatLimit: number; coolingHours: number };
@@ -651,7 +662,7 @@ async function buildSystemPrompt(
         (priorKnowledge ? ` Acknowledge their background: ${priorKnowledge}.` : '') +
         ` Ask about their specialisation and thesis area immediately.` +
         ` Skip basic introductions — they are advanced.` +
-        ` Open with: "What brings you to ${saathiId} at the Masters level? What are you specialising in?"`,
+        ` Open with: "What brings you to ${saathiSlug} at the Masters level? What are you specialising in?"`,
       phd:
         `FIRST SESSION — PEER MODE from message 1.` +
         ` Welcome ${displayName} as a fellow researcher. No condescension, no over-explaining.` +
@@ -721,7 +732,7 @@ RULES:
 # IDENTITY AND BOUNDARIES — READ FIRST
 # ═════════════════════════════════════
 ${(() => {
-  const g = SUBJECT_GUARDRAILS[saathiId];
+  const g = SUBJECT_GUARDRAILS[saathiSlug];
   if (!g) return `You are ${personaName}, a specialist educational companion on EdUsaathiAI. Respond only to your subject area.`;
   return `${g.personalityBoundary}
 
@@ -905,21 +916,21 @@ ${firstSessionBlock}
 ` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}${(() => {
   // ── Rich rendering instructions ──────────────────────────────────────────────
   const MATH_SAATHIS = new Set([
-    'maathsaathi', 'chemsaathi', 'biosaathi', 'physisaathi',
-    'aerosaathi', 'aerospacesaathi', 'compsaathi', 'mechsaathi',
-    'electronicssaathi', 'biotechsaathi', 'envirosaathi',
-    'civilsaathi', 'elecsaathi', 'chemenggsaathi',
+    'maathsaathi', 'chemsaathi', 'biosaathi', 'physicsaathi',
+    'aerospacesaathi', 'compsaathi', 'mechsaathi',
+    'electronicssaathi', 'biotechsaathi', 'envirosathi',
+    'civilsaathi', 'elecsaathi', 'chemenggsaathi', 'statssaathi',
   ]);
   const DIAGRAM_SAATHIS = new Set([
     'archsaathi', 'civilsaathi', 'compsaathi', 'biosaathi',
     'econsaathi', 'kanoonsaathi', 'mechsaathi', 'chemenggsaathi',
-    'biotechsaathi', 'aerosaathi', 'aerospacesaathi',
+    'biotechsaathi', 'aerospacesaathi', 'geosaathi', 'agrisaathi',
   ]);
   const MOLECULE_SAATHIS = new Set([
     'chemsaathi', 'pharmasaathi', 'biosaathi', 'medicosaathi',
     'chemenggsaathi', 'biotechsaathi',
   ]);
-  const slug = saathiId.toLowerCase().replace(/\s+/g, '');
+  const slug = saathiSlug;
   const parts: string[] = [];
   if (MATH_SAATHIS.has(slug)) {
     parts.push(`
@@ -1857,7 +1868,40 @@ Deno.serve(async (req: Request) => {
       : '';
     personalityPrefix += `\nCurrent time in India: ${timeOfDay}. Greet accordingly — never say Good morning at night.`
 
-    const systemPrompt = personalityPrefix + baseSystemPrompt;
+    // When a historical personality is active, replace the DB persona name in the base
+    // system prompt so Claude doesn't reintroduce "Prof. Sharma" after the personality prefix.
+    const resolvedBase = personality
+      ? baseSystemPrompt
+          .replace(/You are [^,—\n]+(?=[,—])/g, `You are ${personality.name}`)
+      : baseSystemPrompt;
+
+    let systemPrompt = personalityPrefix + resolvedBase;
+
+    // ── Inject verified factual corrections (prepend, highest priority) ─────────
+    const { data: corrections } = await admin
+      .from('fact_corrections')
+      .select('wrong_claim, correct_claim, topic')
+      .eq('vertical_id', verticalId)
+      .eq('status', 'verified')
+      .order('verified_at', { ascending: false })
+      .limit(20);
+
+    if (corrections?.length) {
+      const correctionBlock = [
+        'VERIFIED FACTUAL CORRECTIONS — ALWAYS USE THESE EXACT FACTS:',
+        ...corrections.map((c: { wrong_claim: string; correct_claim: string; topic: string | null }, i: number) =>
+          `${i + 1}. WRONG: "${c.wrong_claim}"\n   CORRECT: "${c.correct_claim}"${c.topic ? ` (Topic: ${c.topic})` : ''}`
+        ),
+        'Never repeat the wrong claims above. Always use the correct versions.',
+      ].join('\n');
+      systemPrompt = correctionBlock + '\n\n' + systemPrompt;
+    }
+
+    // ── Append professional disclaimer for high-stakes Saathis ──────────────────
+    if (CLAUDE_ALWAYS_SAATHIS.has(verticalSlug.toLowerCase())) {
+      systemPrompt += '\n\nDISCLAIMER INSTRUCTION: At the end of every response, add exactly one line: "📌 Always verify legal/medical/financial information with the primary source or a qualified professional before relying on it in practice." Keep it brief. Never skip it.';
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
 
     // Persist user message
     await admin.from('chat_messages').insert({
@@ -1879,8 +1923,9 @@ Deno.serve(async (req: Request) => {
     ];
 
     const slug = verticalSlug.toLowerCase();
-    const isSpeedSlot  = SPEED_SLOTS.has(botSlot);
-    const isGeminiFirst = !isSpeedSlot && GEMINI_SAATHIS.has(slug);
+    const forceClaudeForSaathi = CLAUDE_ALWAYS_SAATHIS.has(slug);
+    const isSpeedSlot  = !forceClaudeForSaathi && SPEED_SLOTS.has(botSlot);
+    const isGeminiFirst = !forceClaudeForSaathi && !isSpeedSlot && GEMINI_SAATHIS.has(slug);
 
     // When a sketch image is uploaded, always use Claude Vision regardless of Saathi routing.
     // Prepend the Saathi-specific sketch prompt if one exists; otherwise plain vision description.
@@ -1925,7 +1970,7 @@ Deno.serve(async (req: Request) => {
           lastError = { code: 'STREAM_ERROR', message: msg.slice(0, 500) };
           captureError(err, {
             level: 'error',
-            tags: { function: 'chat', error_type: 'stream_failure', ai_provider: isSpeedSlot ? 'groq' : isGeminiFirst ? 'gemini' : 'claude' },
+            tags: { function: 'chat', error_type: 'stream_failure', ai_provider: forceClaudeForSaathi ? 'claude' : isSpeedSlot ? 'groq' : isGeminiFirst ? 'gemini' : 'claude' },
             extra: { userId, saathiId, botSlot, msg: msg.slice(0, 200) },
             fingerprint: ['chat-stream-error'],
           });
