@@ -423,3 +423,6 @@ verify_jwt = false
 
 [functions.verify-correction]
 verify_jwt = false
+
+[functions.subscription-lifecycle]
+verify_jwt = false

@@ -361,6 +361,60 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
     { url: 'https://eepower.com/feed/', source: 'EE Power', category: 'Power Electronics' },
   ],
 
+  // ── New Saathis (migration 070+) ──────────────────────────────────────────
+
+  physicsaathi: [
+    { url: 'https://rss.arxiv.org/rss/physics', source: 'arXiv Physics', category: 'Physics Research' },
+    { url: 'https://rss.arxiv.org/rss/hep-ph', source: 'arXiv HEP Phenomenology', category: 'Particle Physics' },
+    { url: 'https://rss.arxiv.org/rss/cond-mat', source: 'arXiv Condensed Matter', category: 'Condensed Matter' },
+    { url: 'https://rss.arxiv.org/rss/quant-ph', source: 'arXiv Quantum Physics', category: 'Quantum Physics' },
+    { url: 'https://www.nature.com/nphys.rss', source: 'Nature Physics', category: 'Physics Research' },
+    { url: 'https://journals.aps.org/prl/recent.xml', source: 'Physical Review Letters', category: 'Physics Research' },
+    { url: 'https://rss.sciencedaily.com/releases/matter_energy.xml', source: 'Science Daily Physics', category: 'Physics News' },
+    { url: 'https://physicsworld.com/feed/', source: 'Physics World', category: 'Physics News' },
+  ],
+
+  accountsaathi: [
+    { url: 'https://economictimes.indiatimes.com/wealth/tax/rssfeeds/837555174.cms', source: 'Economic Times Tax', category: 'Taxation' },
+    { url: 'https://www.livemint.com/rss/money', source: 'Mint Money', category: 'Finance & Accounting' },
+    { url: 'https://rbi.org.in/rss/Rss.aspx', source: 'RBI', category: 'Banking & Regulation' },
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=accounting+audit+finance&format=rss', source: 'PubMed Accounting', category: 'Accounting Research' },
+    { url: 'https://rss.sciencedaily.com/releases/science_society/economics.xml', source: 'Science Daily Economics', category: 'Economic Research' },
+  ],
+
+  polscisaathi: [
+    { url: 'https://www.thehindu.com/news/national/feeder/default.rss', source: 'The Hindu National', category: 'Indian Politics' },
+    { url: 'https://prsindia.org/rss.xml', source: 'PRS India', category: 'Legislative Research' },
+    { url: 'https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3', source: 'PIB India', category: 'Government Policy' },
+    { url: 'https://www.cambridge.org/core/journals/american-political-science-review/rss', source: 'APSR', category: 'Political Science Research' },
+    { url: 'https://journals.sagepub.com/action/showFeed?jc=cps&type=etoc&feed=rss', source: 'Comparative Political Studies', category: 'Comparative Politics' },
+    { url: 'https://rss.sciencedaily.com/releases/science_society/political_science.xml', source: 'Science Daily PolSci', category: 'Political Science News' },
+  ],
+
+  statssaathi: [
+    { url: 'https://rss.arxiv.org/rss/stat', source: 'arXiv Statistics', category: 'Statistics Research' },
+    { url: 'https://rss.arxiv.org/rss/stat.ML', source: 'arXiv Statistical ML', category: 'Statistical Machine Learning' },
+    { url: 'https://rss.arxiv.org/rss/stat.AP', source: 'arXiv Applied Statistics', category: 'Applied Statistics' },
+    { url: 'https://rss.sciencedaily.com/releases/computers_math/statistics.xml', source: 'Science Daily Statistics', category: 'Statistics News' },
+    { url: 'https://www.nature.com/natmethods.rss', source: 'Nature Methods', category: 'Statistical Methods' },
+  ],
+
+  geosaathi: [
+    { url: 'https://www.nature.com/ngeo.rss', source: 'Nature Geoscience', category: 'Earth Science' },
+    { url: 'https://rss.sciencedaily.com/releases/earth_climate.xml', source: 'Science Daily Earth', category: 'Earth & Climate' },
+    { url: 'https://rss.sciencedaily.com/releases/earth_climate/geography.xml', source: 'Science Daily Geography', category: 'Geography' },
+    { url: 'https://www.thehindu.com/news/national/feeder/default.rss', source: 'The Hindu National', category: 'Indian Geography Context' },
+    { url: 'https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3', source: 'PIB India', category: 'Government Geography' },
+  ],
+
+  agrisaathi: [
+    { url: 'https://rss.sciencedaily.com/releases/plants_animals/agriculture_and_food.xml', source: 'Science Daily Agriculture', category: 'Agricultural Science' },
+    { url: 'https://www.nature.com/nplants.rss', source: 'Nature Plants', category: 'Plant Science' },
+    { url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=agriculture+crop+science+India&format=rss', source: 'PubMed Agriculture', category: 'Agricultural Research' },
+    { url: 'https://economictimes.indiatimes.com/news/economy/agriculture/rssfeeds/15891793.cms', source: 'Economic Times Agriculture', category: 'Indian Agriculture' },
+    { url: 'https://www.downtoearth.org.in/rss/agriculture', source: 'Down To Earth', category: 'Agriculture & Environment' },
+  ],
+
 };
 
 // UPSC feeds shared across all verticals
@@ -400,6 +454,12 @@ const TRUSTED_DOMAINS: Record<string, string[]> = {
   biotechsaathi:   ['nature.com', 'sciencedaily.com', 'genengnews.com', 'pubmed.ncbi.nlm.nih.gov'],
   aerospacesaathi: ['nasa.gov', 'esa.int', 'aiaa.org', 'isro.gov.in', 'sciencedaily.com'],
   electronicssaathi: ['spectrum.ieee.org', 'sciencedaily.com', 'electronicsforu.com'],
+  physicsaathi:    ['arxiv.org', 'nature.com', 'aps.org', 'sciencedaily.com', 'physicsworld.com'],
+  accountsaathi:   ['economictimes.indiatimes.com', 'livemint.com', 'rbi.org.in', 'pubmed.ncbi.nlm.nih.gov', 'sciencedaily.com'],
+  polscisaathi:    ['thehindu.com', 'prsindia.org', 'pib.gov.in', 'cambridge.org', 'sagepub.com', 'sciencedaily.com'],
+  statssaathi:     ['arxiv.org', 'sciencedaily.com', 'nature.com'],
+  geosaathi:       ['nature.com', 'sciencedaily.com', 'thehindu.com', 'pib.gov.in'],
+  agrisaathi:      ['sciencedaily.com', 'nature.com', 'pubmed.ncbi.nlm.nih.gov', 'economictimes.indiatimes.com', 'downtoearth.org.in'],
 };
 
 function isDomainTrusted(url: string, saathiKey: string): boolean {
@@ -442,6 +502,12 @@ const SAATHI_SUBJECTS: Record<string, string> = {
   biotechsaathi:   'Biotechnology and Bioengineering',
   aerospacesaathi: 'Aerospace and Space Engineering',
   electronicssaathi: 'Electronics Engineering',
+  physicsaathi:      'Physics',
+  accountsaathi:     'Accounting, Auditing, and Taxation',
+  polscisaathi:      'Political Science and Governance',
+  statssaathi:       'Statistics and Data Science',
+  geosaathi:         'Geography and Earth Sciences',
+  agrisaathi:        'Agriculture and Crop Science',
 };
 
 async function generateProfessorNote(title: string, source: string, saathiKey: string): Promise<string | null> {

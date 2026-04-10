@@ -35,7 +35,7 @@ const EDUSAATHI_PROS = [
   'Exam-mode with high-yield topic structure',
   'Saathi Check-ins + study rhythm tracking',
   'Only ₹199/month — less than a pizza delivery',
-  'Built exclusively for Indian students by IAES Ahmedabad',
+  'Built exclusively for Indian students',
 ]
 
 // ── Founding Access Modal (shown when PAYMENTS_ACTIVE=false) ─────────────────

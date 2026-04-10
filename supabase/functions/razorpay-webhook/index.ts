@@ -207,6 +207,194 @@ async function sendUpgradeEmail(
   }
 }
 
+// ── Cancellation email ────────────────────────────────────────────────────────
+
+async function sendCancelledEmail(
+  email: string,
+  planId: string,
+  studentName?: string,
+): Promise<void> {
+  if (!RESEND_API_KEY || !email) return;
+  const planLabel = PLAN_LABELS[planId] ?? planId;
+  const name = studentName ?? 'Student';
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: RESEND_FROM_EMAIL,
+        to: [email],
+        reply_to: 'support@edusaathiai.in',
+        subject: `Your ${planLabel} subscription has been cancelled`,
+        html: `
+          <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
+            <h1 style="color:#C9993A;font-size:24px;margin-bottom:8px">Subscription cancelled</h1>
+            <p style="color:rgba(255,255,255,0.7);line-height:1.7">
+              Hi ${name}, your <strong>${planLabel}</strong> subscription has been cancelled.
+              Your account has been moved to the Free plan.
+            </p>
+            <p style="color:rgba(255,255,255,0.7);line-height:1.7">
+              Your Saathi memory, chat history, and soul profile are fully preserved.
+              You can resubscribe anytime to unlock all features again.
+            </p>
+            <a href="https://www.edusaathiai.in/pricing"
+               style="display:inline-block;margin-top:16px;background:#C9993A;color:#0B1F3A;padding:13px 32px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none">
+              View plans →
+            </a>
+            <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:20px">
+              Questions? Reply to this email or write to support@edusaathiai.in
+            </p>
+          </div>
+        `,
+      }),
+    });
+  } catch (err) {
+    console.error('razorpay-webhook: cancel email failed', err instanceof Error ? err.message : err);
+  }
+}
+
+// ── Pause email ───────────────────────────────────────────────────────────────
+
+async function sendPausedEmail(
+  email: string,
+  planId: string,
+  studentName?: string,
+): Promise<void> {
+  if (!RESEND_API_KEY || !email) return;
+  const planLabel = PLAN_LABELS[planId] ?? planId;
+  const name = studentName ?? 'Student';
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: RESEND_FROM_EMAIL,
+        to: [email],
+        reply_to: 'support@edusaathiai.in',
+        subject: `Your ${planLabel} subscription is paused`,
+        html: `
+          <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
+            <h1 style="color:#C9993A;font-size:24px;margin-bottom:8px">Subscription paused</h1>
+            <p style="color:rgba(255,255,255,0.7);line-height:1.7">
+              Hi ${name}, your <strong>${planLabel}</strong> subscription is now paused.
+              You will not be billed during this period.
+            </p>
+            <p style="color:rgba(255,255,255,0.7);line-height:1.7">
+              Your Saathi memory and learning history are safe. Resume anytime to pick up
+              right where you left off — your Saathi remembers everything.
+            </p>
+            <a href="https://www.edusaathiai.in/profile"
+               style="display:inline-block;margin-top:16px;background:#C9993A;color:#0B1F3A;padding:13px 32px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none">
+              Resume subscription →
+            </a>
+            <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:20px">
+              Questions? Reply to this email or write to support@edusaathiai.in
+            </p>
+          </div>
+        `,
+      }),
+    });
+  } catch (err) {
+    console.error('razorpay-webhook: pause email failed', err instanceof Error ? err.message : err);
+  }
+}
+
+// ── Resume email ──────────────────────────────────────────────────────────────
+
+async function sendResumedEmail(
+  email: string,
+  planId: string,
+  studentName?: string,
+): Promise<void> {
+  if (!RESEND_API_KEY || !email) return;
+  const planLabel = PLAN_LABELS[planId] ?? planId;
+  const name = studentName ?? 'Student';
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: RESEND_FROM_EMAIL,
+        to: [email],
+        reply_to: 'support@edusaathiai.in',
+        subject: `Welcome back, ${name}! Your ${planLabel} is active again`,
+        html: `
+          <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
+            <h1 style="color:#C9993A;font-size:24px;margin-bottom:8px">You're back! ✦</h1>
+            <p style="color:rgba(255,255,255,0.7);line-height:1.7">
+              Hi ${name}, your <strong>${planLabel}</strong> subscription is active again.
+              All your premium features are unlocked.
+            </p>
+            <p style="color:rgba(255,255,255,0.7);line-height:1.7">
+              Your Saathi has been waiting. Everything is exactly as you left it —
+              your soul profile, chat history, and learning progress are all intact.
+            </p>
+            <a href="https://www.edusaathiai.in/chat"
+               style="display:inline-block;margin-top:16px;background:#C9993A;color:#0B1F3A;padding:13px 32px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none">
+              Continue learning →
+            </a>
+            <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:20px">
+              Questions? Reply to this email or write to support@edusaathiai.in
+            </p>
+          </div>
+        `,
+      }),
+    });
+  } catch (err) {
+    console.error('razorpay-webhook: resume email failed', err instanceof Error ? err.message : err);
+  }
+}
+
+// ── Payment failed email ──────────────────────────────────────────────────────
+
+async function sendPaymentFailedEmail(
+  email: string,
+  planId: string,
+  studentName?: string,
+): Promise<void> {
+  if (!RESEND_API_KEY || !email) return;
+  const planLabel = PLAN_LABELS[planId] ?? planId;
+  const name = studentName ?? 'Student';
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: RESEND_FROM_EMAIL,
+        to: [email],
+        reply_to: 'support@edusaathiai.in',
+        subject: `Payment could not be processed — ${planLabel}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
+            <h1 style="color:#C9993A;font-size:24px;margin-bottom:8px">Payment unsuccessful</h1>
+            <p style="color:rgba(255,255,255,0.7);line-height:1.7">
+              Hi ${name}, we could not process your payment for <strong>${planLabel}</strong>.
+              This usually happens due to insufficient funds or a temporary bank issue.
+            </p>
+            <p style="color:rgba(255,255,255,0.7);line-height:1.7">
+              Don't worry — your account is unchanged. You can try again when ready.
+              If this keeps happening, try a different payment method.
+            </p>
+            <a href="https://www.edusaathiai.in/pricing"
+               style="display:inline-block;margin-top:16px;background:#C9993A;color:#0B1F3A;padding:13px 32px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none">
+              Try again →
+            </a>
+            <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:20px">
+              Questions? Reply to this email or write to support@edusaathiai.in
+            </p>
+          </div>
+        `,
+      }),
+    });
+  } catch (err) {
+    console.error('razorpay-webhook: payment-failed email failed', err instanceof Error ? err.message : err);
+  }
+}
+
 // ── Step 2: HMAC-SHA256 signature verification ──────────────────────────────
 
 async function verifyRazorpaySignature(
@@ -451,6 +639,30 @@ async function handlePaymentFailed(
     webhook_event: 'payment.failed',
     raw_webhook: rawPayload,
   }).eq('razorpay_order_id', orderId);
+
+  // Send payment failed email (fire-and-forget)
+  const { data: failedSub } = await admin
+    .from('subscriptions')
+    .select('user_id, plan_id')
+    .eq('razorpay_order_id', orderId)
+    .maybeSingle();
+
+  if (failedSub) {
+    const fs = failedSub as { user_id: string; plan_id: string };
+    const { data: failedProfile } = await admin
+      .from('profiles')
+      .select('email, display_name')
+      .eq('id', fs.user_id)
+      .maybeSingle();
+
+    if (failedProfile?.email) {
+      await sendPaymentFailedEmail(
+        failedProfile.email as string,
+        fs.plan_id,
+        (failedProfile.display_name as string | null) ?? undefined,
+      );
+    }
+  }
 }
 
 async function handleSubscriptionCancelled(
@@ -484,6 +696,21 @@ async function handleSubscriptionCancelled(
     subscription_expires_at: null,
     razorpay_subscription_id: null,
   }).eq('id', sub.user_id);
+
+  // Send cancellation email (fire-and-forget)
+  const { data: cancelProfile } = await admin
+    .from('profiles')
+    .select('email, display_name, plan_id')
+    .eq('id', sub.user_id)
+    .maybeSingle();
+
+  if (cancelProfile?.email) {
+    await sendCancelledEmail(
+      cancelProfile.email as string,
+      (cancelProfile.plan_id as string) ?? 'plus-monthly',
+      (cancelProfile.display_name as string | null) ?? undefined,
+    );
+  }
 }
 
 async function handleSubscriptionPaused(
@@ -495,18 +722,27 @@ async function handleSubscriptionPaused(
 
   const { data: subRow } = await admin
     .from('profiles')
-    .select('id')
+    .select('id, email, display_name, plan_id')
     .eq('razorpay_subscription_id', subId)
     .maybeSingle();
 
   if (!subRow) return;
-  const profile = subRow as { id: string };
+  const profile = subRow as { id: string; email?: string; display_name?: string; plan_id?: string };
 
   await admin.from('profiles').update({
     subscription_status: 'paused',
   }).eq('id', profile.id);
 
   console.log(`razorpay-webhook: subscription.paused for profile ${profile.id}`);
+
+  // Send pause email (fire-and-forget)
+  if (profile.email) {
+    await sendPausedEmail(
+      profile.email,
+      profile.plan_id ?? 'plus-monthly',
+      profile.display_name ?? undefined,
+    );
+  }
 }
 
 // Handles both payment.refunded and refund.processed
@@ -601,12 +837,12 @@ async function handleSubscriptionResumed(
 
   const { data: subRow } = await admin
     .from('profiles')
-    .select('id')
+    .select('id, email, display_name, plan_id')
     .eq('razorpay_subscription_id', subId)
     .maybeSingle();
 
   if (!subRow) return;
-  const profile = subRow as { id: string };
+  const profile = subRow as { id: string; email?: string; display_name?: string; plan_id?: string };
 
   await admin.from('profiles').update({
     subscription_status: 'active',
@@ -614,6 +850,15 @@ async function handleSubscriptionResumed(
   }).eq('id', profile.id);
 
   console.log(`razorpay-webhook: subscription.resumed for profile ${profile.id}`);
+
+  // Send resumed email (fire-and-forget)
+  if (profile.email) {
+    await sendResumedEmail(
+      profile.email,
+      profile.plan_id ?? 'plus-monthly',
+      profile.display_name ?? undefined,
+    );
+  }
 }
 
 

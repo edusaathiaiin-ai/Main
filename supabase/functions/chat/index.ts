@@ -13,6 +13,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   SUBJECT_GUARDRAILS,
   detectInjection,
+  getSlotGuardrail,
 } from './guardrails.ts';
 import { detectViolation as detectViolationNew } from '../_shared/violations.ts';
 import { checkSuspension, recordViolationAndCheck } from '../_shared/suspensions.ts';
@@ -544,6 +545,8 @@ type RawProfile = {
   current_subjects: unknown;
   interest_areas: unknown;
   role: unknown;
+  academic_level: unknown;
+  learning_style: unknown;
 };
 
 type RawNews = { source: unknown; title: unknown };
@@ -555,7 +558,7 @@ async function buildSystemPrompt(
   botSlot: number,
   saathiSlug: string
 ): Promise<string> {
-  const [personaRes, soulRes, newsRes, profileRes] = await Promise.all([
+  const [personaRes, soulRes, newsRes, profileRes, examRes] = await Promise.all([
     admin
       .from('bot_personas')
       .select('name, role, tone, specialities, never_do')
@@ -573,21 +576,30 @@ async function buildSystemPrompt(
       .maybeSingle(),
     admin
       .from('news_items')
-      .select('source, title')
+      .select('source, title, professor_note')
       .eq('vertical_id', saathiId)
       .eq('is_active', true)
       .order('fetched_at', { ascending: false })
-      .limit(3),
+      .limit(7),
     admin
       .from('profiles')
-      .select('institution_name, degree_programme, current_semester, graduation_year, current_subjects, interest_areas, role')
+      .select('institution_name, degree_programme, current_semester, graduation_year, current_subjects, interest_areas, role, academic_level, learning_style')
       .eq('id', userId)
       .maybeSingle(),
+    admin
+      .from('exam_calendar')
+      .select('exam_name, exam_date, description')
+      .eq('vertical_id', saathiId)
+      .eq('is_active', true)
+      .gte('exam_date', new Date().toISOString().split('T')[0])
+      .order('exam_date', { ascending: true })
+      .limit(3),
   ]);
 
   const p = personaRes.data as RawPersona | null;
   const s = soulRes.data as RawSoul | null;
   const news = ((newsRes.data ?? []) as RawNews[]);
+  const exams = (examRes.data ?? []) as Array<{ exam_name: string; exam_date: string; description: string }>;
   const prof = profileRes.data as RawProfile | null;
 
   const personaName = typeof p?.name === 'string' ? p.name : saathiId;
@@ -618,7 +630,9 @@ async function buildSystemPrompt(
   const sessionCount = typeof s?.session_count === 'number' ? s.session_count : 0;
 
   // ── Calibration fields ─────────────────────────────────────────────────────
-  const academicLevel       = typeof s?.academic_level === 'string' ? s.academic_level : 'bachelor';
+  const academicLevel       = typeof s?.academic_level === 'string' ? s.academic_level
+                            : typeof prof?.academic_level === 'string' ? (prof.academic_level as string)
+                            : 'bachelor';
   const depthCalibration    = typeof s?.depth_calibration === 'number' ? s.depth_calibration : 40;
   const peerMode            = s?.peer_mode === true;
   const examMode            = s?.exam_mode === true;
@@ -630,7 +644,9 @@ async function buildSystemPrompt(
   const isFirstSession      = sessionCount === 0;
 
   // ── Soul integrity fields ──────────────────────────────────────────────────
-  const learningStyle       = typeof s?.learning_style === 'string' ? s.learning_style : '';
+  const learningStyle       = typeof s?.learning_style === 'string' ? s.learning_style
+                            : typeof prof?.learning_style === 'string' ? (prof.learning_style as string)
+                            : '';
   const passionIntensity    = typeof s?.passion_intensity === 'number' ? (s.passion_intensity as number) : null;
   const shellBroken         = s?.shell_broken === true;
   const shellBrokenAt       = typeof s?.shell_broken_at === 'string' ? s.shell_broken_at : null;
@@ -693,13 +709,21 @@ async function buildSystemPrompt(
 
   const firstSessionBlock = buildFirstSessionGreeting();
 
-  const newsContext =
-    news.length > 0
+  // H2: News scoped to bot slot — suppress for focused slots (Study Notes, Exam Prep)
+  // H6: Inject professor_note when available
+  const suppressNews = botSlot === 1 || botSlot === 2;
+  const newsContext = suppressNews
+    ? '(News context suppressed for this focused session mode.)'
+    : news.length > 0
       ? news
-          .map(
-            (n) =>
-              `- ${typeof n.source === 'string' ? n.source : 'Source'}: ${typeof n.title === 'string' ? n.title : ''}`
-          )
+          .map((n) => {
+            const source = typeof n.source === 'string' ? n.source : 'Source';
+            const title = typeof n.title === 'string' ? n.title : '';
+            const note = typeof (n as Record<string, unknown>).professor_note === 'string'
+              ? ` — ${(n as Record<string, unknown>).professor_note}`
+              : '';
+            return `- ${source}: ${title}${note}`;
+          })
           .join('\n')
       : 'No news items available today.';
 
@@ -733,14 +757,18 @@ RULES:
 # ═════════════════════════════════════
 ${(() => {
   const g = SUBJECT_GUARDRAILS[saathiSlug];
-  if (!g) return `You are ${personaName}, a specialist educational companion on EdUsaathiAI. Respond only to your subject area.`;
+  const slotG = getSlotGuardrail(botSlot);
+  if (!g) return `You are ${personaName}, a specialist educational companion on EdUsaathiAI. Respond only to your subject area.\n\n${slotG.focusInstruction}`;
+  const effectiveBlocked = [...g.hardBlocked, ...slotG.additionalBlocked];
   return `${g.personalityBoundary}
 
 YOUR SUBJECT BOUNDARY
 You are an expert ONLY in: ${g.coreSubjects.join(', ')}
 You may also discuss: ${g.allowedTopics.join(', ')}
-Legitimate crossovers: ${g.allowedCrossover.join(', ')}
-Hard blocked topics for you: ${g.hardBlocked.join(', ')}
+Legitimate crossovers: ${g.allowedCrossover.join(', ')}${slotG.widened ? ' (WIDENED — this slot encourages cross-domain exploration)' : ''}
+Hard blocked topics for you: ${effectiveBlocked.join(', ')}
+
+${slotG.focusInstruction}
 
 IF ASKED OFF-TOPIC: Do not engage. Respond warmly but firmly:
 "${g.redirectMessage}"
@@ -828,6 +856,13 @@ Sessions completed together: ${sessionCount}
 
 # TODAY'S CONTEXT
 ${newsContext}
+${exams.length > 0 ? `
+# UPCOMING EXAMS
+${exams.map(e => {
+  const daysLeft = Math.ceil((new Date(e.exam_date).getTime() - Date.now()) / 86400000);
+  return `- ${e.exam_name} — ${e.exam_date} (${daysLeft} days away): ${e.description}`;
+}).join('\n')}
+If the student's topic relates to an upcoming exam, naturally mention the deadline and suggest focused preparation.` : ''}
 
 # TIME OF DAY
 ${(() => {
@@ -1912,10 +1947,24 @@ Deno.serve(async (req: Request) => {
       content: sanitized,
     });
 
-    // Normalise history (last 10 user/assistant messages only)
-    const normalizedHistory: MessageParam[] = (history ?? [])
-      .filter((m): m is MessageParam => m.role === 'user' || m.role === 'assistant')
-      .slice(-10);
+    // ── Server-validated history — fetch from DB, never trust client ──────────
+    // Prevents context leakage between Saathis: history is scoped to
+    // this exact (user, vertical, bot_slot) tuple.
+    const { data: dbHistory } = await admin
+      .from('chat_messages')
+      .select('role, content')
+      .eq('user_id', userId)
+      .eq('vertical_id', verticalId)
+      .eq('bot_slot', botSlot)
+      .in('role', ['user', 'assistant'])
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    const normalizedHistory: MessageParam[] = (dbHistory ?? [])
+      .reverse()  // DB returns newest first, we need chronological
+      .filter((m: { role: string; content: string }) =>
+        m.role === 'user' || m.role === 'assistant'
+      ) as MessageParam[];
 
     const messages: MessageParam[] = [
       ...normalizedHistory,
@@ -1986,6 +2035,32 @@ Deno.serve(async (req: Request) => {
               content: assistantText,
             });
             await incrementQuota(admin, userId, verticalId, botSlot, dateIst, quotaRow.message_count, dailyQuota, effectiveCoolingHours);
+
+            // M7: Post-stream guardrail check — flag response if it violated boundaries
+            // Can't un-send (already streamed), but flags for moderation review
+            const g = SUBJECT_GUARDRAILS[verticalSlug];
+            if (g) {
+              const responseLC = assistantText.toLowerCase();
+              const violated = g.hardBlocked.some(topic =>
+                responseLC.includes(topic.toLowerCase())
+              );
+              if (violated) {
+                admin.from('moderation_flags').insert({
+                  target_id:        null,
+                  target_type:      'assistant_response',
+                  reporter_user_id: userId,
+                  reason:           'guardrail_violation',
+                  status:           'pending',
+                  details:          JSON.stringify({
+                    vertical_id:  verticalId,
+                    bot_slot:     botSlot,
+                    bot_message:  assistantText.slice(0, 500),
+                    user_message: sanitized.slice(0, 200),
+                    detection:    'post_stream_guardrail',
+                  }),
+                }).then(() => {}).catch(() => {});
+              }
+            }
           }
 
           // ── Award Saathi Points for first chat of the day (fire-and-forget)
