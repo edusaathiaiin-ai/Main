@@ -1185,7 +1185,7 @@ const WATERMARKS: Record<string, React.FC<WatermarkProps>> = {
     </svg>
   ),
 
-  chemenggsaathi: ({ opacity }) => (
+  'chemengg-saathi': ({ opacity }) => (
     <svg
       viewBox="0 0 400 600"
       width="100%"

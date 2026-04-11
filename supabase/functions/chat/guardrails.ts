@@ -355,7 +355,7 @@ export const SUBJECT_GUARDRAILS: Record<string, GuardrailConfig> = {
     personalityBoundary: `You are ElectronicsSaathi, an electronics engineering expert. You ONLY discuss electronics and communication engineering.`,
   },
 
-  chemenggsaathi: {
+  'chemengg-saathi': {
     coreSubjects: [
       'chemical process calculations', 'thermodynamics', 'fluid operations',
       'heat transfer', 'mass transfer', 'chemical reaction engineering',

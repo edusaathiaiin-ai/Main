@@ -62,7 +62,7 @@ const SPEED_SLOTS = new Set([1, 2, 5]);
 const GEMINI_SAATHIS = new Set([
   'maathsaathi', 'chemsaathi', 'biosaathi', 'physisaathi',
   'mechsaathi', 'civilsaathi', 'elecsaathi', 'envirosaathi',
-  'biotechsaathi', 'aerosaathi', 'aerospacesaathi', 'chemenggsaathi',
+  'biotechsaathi', 'aerosaathi', 'aerospacesaathi', 'chemengg-saathi',
 ]);
 // CompSaathi intentionally excluded → Claude (best for code quality & architecture)
 
@@ -472,7 +472,7 @@ DOCTORAL (PhD): Research peer. Climate change adaptation in India. Urban ecology
 COMPETITIVE: UGC NET Environmental Science. IFS Forest Ecology and Environment. State pollution control board recruitment.
 POLICY: Indian environmental law — EPA, Wildlife Protection Act, Forest Act, NGT. MoEF&CC regulations. Paris Agreement implications for India. NAPCC.`,
 
-    chemenggsaathi: `You have mastered chemical engineering at every level:
+    'chemengg-saathi': `You have mastered chemical engineering at every level:
 UNDERGRADUATE (B.Tech ChemE): Fluid Mechanics, Heat Transfer, Mass Transfer, Chemical Reaction Engineering, Thermodynamics, Process Dynamics and Control, Chemical Technology, Safety Engineering, Plant Design. IIT, NIT, UICT Mumbai, ICT, BITS Pilani syllabi. Textbooks: McCabe & Smith, Fogler, Smith (Chemical Process Design).
 POSTGRADUATE (M.Tech): Advanced Transport Phenomena, Biochemical Engineering, Polymer Engineering, Petroleum Refining, Natural Gas Processing, CFD.
 DOCTORAL (PhD): Research peer. Process intensification. Green chemical engineering. Catalysis. Indian petrochemical and pharma industry research.
@@ -954,16 +954,16 @@ ${firstSessionBlock}
     'maathsaathi', 'chemsaathi', 'biosaathi', 'physicsaathi',
     'aerospacesaathi', 'compsaathi', 'mechsaathi',
     'electronicssaathi', 'biotechsaathi', 'envirosathi',
-    'civilsaathi', 'elecsaathi', 'chemenggsaathi', 'statssaathi',
+    'civilsaathi', 'elecsaathi', 'chemengg-saathi', 'statssaathi',
   ]);
   const DIAGRAM_SAATHIS = new Set([
     'archsaathi', 'civilsaathi', 'compsaathi', 'biosaathi',
-    'econsaathi', 'kanoonsaathi', 'mechsaathi', 'chemenggsaathi',
+    'econsaathi', 'kanoonsaathi', 'mechsaathi', 'chemengg-saathi',
     'biotechsaathi', 'aerospacesaathi', 'geosaathi', 'agrisaathi',
   ]);
   const MOLECULE_SAATHIS = new Set([
     'chemsaathi', 'pharmasaathi', 'biosaathi', 'medicosaathi',
-    'chemenggsaathi', 'biotechsaathi',
+    'chemengg-saathi', 'biotechsaathi',
   ]);
   const slug = saathiSlug;
   const parts: string[] = [];

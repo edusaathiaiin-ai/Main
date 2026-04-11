@@ -127,7 +127,7 @@ export function AnatomyViewer({
           <p
             style={{
               fontSize: '10px',
-              color: 'rgba(255,255,255,0.3)',
+              color: 'rgba(255,255,255,0.65)',
               margin: '2px 0 0',
             }}
           >
@@ -172,7 +172,7 @@ export function AnatomyViewer({
               animation: 'anatomy-spin 0.9s linear infinite',
             }}
           />
-          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
+          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)' }}>
             Loading 3D anatomy…
           </span>
         </div>

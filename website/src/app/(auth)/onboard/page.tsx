@@ -21,13 +21,14 @@ import {
 import { computeProfileCompleteness } from '@/lib/profileCompleteness'
 import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete'
 import { validateFacultyEmail } from '@/lib/faculty-email-validation'
+import { validateDisplayName } from '@/lib/validation/nameValidation'
 import type { Saathi, Profile } from '@/types'
 import { FacultyOnboardFlow } from '@/components/onboard/FacultyOnboardFlow'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type DbUserRole = 'student' | 'faculty' | 'public' | 'institution'
-type OnboardStep = 'loading' | 'role_extra' | 'academic' | 'saathi' | 'profile'
+type OnboardStep = 'loading' | 'role_extra' | 'academic' | 'saathi' | 'profile' | 'name'
 
 type MinProfile = {
   id: string
@@ -36,6 +37,7 @@ type MinProfile = {
   full_name: string | null
   academic_level: string | null
   is_active: boolean | null
+  needs_name_update: boolean | null
 }
 
 type ProfileForm = {
@@ -599,6 +601,88 @@ function SaathiStep({
   )
 }
 
+// ── Name Fix Step — shown to users with needs_name_update = true ──────────────
+// This step is NOT part of the normal onboarding sequence.
+// It appears when (app)/layout.tsx detects needs_name_update on an active profile.
+
+function NameStep({
+  onSave,
+  saving,
+}: {
+  onSave: (name: string) => Promise<void>
+  saving: boolean
+}) {
+  const [name, setName] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const result = validateDisplayName(name)
+    if (!result.valid) {
+      setError(result.error)
+      return
+    }
+    setError(null)
+    void onSave(name.trim())
+  }
+
+  return (
+    <div
+      className="mx-auto flex min-h-[80vh] max-w-md flex-col items-center justify-center px-6 py-12"
+    >
+      <div
+        className="w-full rounded-2xl p-8"
+        style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '0.5px solid rgba(201,153,58,0.2)',
+        }}
+      >
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#C9993A' }}>
+          One moment
+        </p>
+        <h2 className="mb-2 font-playfair text-2xl font-bold text-white">
+          What should your Saathi call you?
+        </h2>
+        <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
+          Your Saathi greets you by name every session. Enter the name you'd like to hear.
+        </p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => { setName(e.target.value); setError(null) }}
+              placeholder="Your name"
+              autoFocus
+              maxLength={40}
+              className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+              style={{
+                background: 'rgba(255,255,255,0.07)',
+                border: `1px solid ${error ? 'rgba(239,68,68,0.6)' : 'rgba(201,153,58,0.25)'}`,
+              }}
+            />
+            {error && (
+              <p className="mt-1.5 text-xs" style={{ color: '#F87171' }}>
+                {error}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving || name.trim().length < 2}
+            className="rounded-xl py-3 text-sm font-semibold transition-all disabled:opacity-50"
+            style={{ background: '#C9993A', color: '#060F1D' }}
+          >
+            {saving ? 'Saving…' : 'Continue →'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ── Step 2: Profile Form (level-adaptive) ─────────────────────────────────────
 
 export function ProfileStep({
@@ -637,7 +721,23 @@ export function ProfileStep({
   const set = (key: keyof ProfileForm) => (val: string | number | null) =>
     setForm((prev) => ({ ...prev, [key]: val }))
 
-  const canSubmit = form.fullName.trim().length > 0 && form.city !== ''
+  const [nameTouched, setNameTouched] = useState(false)
+
+  const nameTyped = form.fullName.trim().length > 0
+  const { valid: nameValid, error: nameError } = nameTyped
+    ? validateDisplayName(form.fullName)
+    : { valid: false, error: null }
+
+  // Only show feedback after the user has blurred the field
+  const showNameError  = nameTouched && nameTyped && !nameValid
+  const showNameValid  = nameTouched && nameValid
+  const nameFieldBorderColor = showNameError
+    ? 'rgba(239,68,68,0.6)'
+    : showNameValid
+      ? 'rgba(74,222,128,0.5)'
+      : 'rgba(255,255,255,0.1)'
+
+  const canSubmit = nameValid && form.city !== ''
 
   const isPhD = academicLevel === 'phd' || academicLevel === 'postdoc'
   const isMasters = academicLevel === 'masters'
@@ -691,20 +791,40 @@ export function ProfileStep({
       >
         {/* Full name */}
         <InputField label="Full name" required>
-          <input
-            type="text"
-            value={form.fullName}
-            onChange={(e) => set('fullName')(e.target.value)}
-            placeholder="Your name as your Saathi will call you"
-            className="w-full rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
-            style={inputStyle}
-            onFocus={(e) =>
-              (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
-            }
-            onBlur={(e) =>
-              (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
-            }
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={form.fullName}
+              onChange={(e) => set('fullName')(e.target.value)}
+              onBlur={() => setNameTouched(true)}
+              placeholder="Your name as your Saathi will call you"
+              className="w-full rounded-xl px-4 py-3 pr-10 text-sm text-white transition-all outline-none"
+              style={{
+                ...inputStyle,
+                borderColor: nameFieldBorderColor,
+              }}
+              onFocus={(e) =>
+                (e.currentTarget.style.borderColor = showNameError
+                  ? 'rgba(239,68,68,0.8)'
+                  : showNameValid
+                    ? 'rgba(74,222,128,0.7)'
+                    : 'rgba(201,153,58,0.6)')
+              }
+            />
+            {showNameValid && (
+              <span
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold"
+                style={{ color: '#4ADE80' }}
+              >
+                ✓
+              </span>
+            )}
+          </div>
+          {showNameError && (
+            <p className="mt-1.5 text-xs" style={{ color: '#FCA5A5' }}>
+              {nameError}
+            </p>
+          )}
         </InputField>
 
         {/* City */}
@@ -1108,7 +1228,7 @@ function OnboardInner() {
         // maybeSingle() returns null (not error) when row is missing
         const { data: row, error } = await supabase
           .from('profiles')
-          .select('id, role, primary_saathi_id, full_name, academic_level, is_active')
+          .select('id, role, primary_saathi_id, full_name, academic_level, is_active, needs_name_update')
           .eq('id', user.id)
           .maybeSingle()
 
@@ -1133,6 +1253,13 @@ function OnboardInner() {
 
       const p = data as MinProfile
       setLocalProfile(p)
+
+      // Name-fix flow: ?step=name redirected here by (app)/layout.tsx
+      // Skip all routing logic and show the name collection step directly.
+      if (searchParams.get('step') === 'name' || p.needs_name_update) {
+        setStep('name')
+        return
+      }
 
       // Faculty and institution skip the academic level step
       const effectiveRole = roleParam ?? p.role
@@ -1519,6 +1646,36 @@ function OnboardInner() {
     }
   }
 
+  async function handleNameSave(name: string) {
+    setSaving(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.replace('/login'); return }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ full_name: name, needs_name_update: false })
+      .eq('id', user.id)
+
+    setSaving(false)
+    if (error) return // stay on step, user can retry
+
+    // Call auth-register so authStore gets updated profile back
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/auth-register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ action: 'register_profile' }),
+      })
+    }
+
+    router.replace('/chat')
+  }
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   // Faculty gets their own dedicated flow — not the student form
@@ -1575,7 +1732,7 @@ function OnboardInner() {
         >
           EdUsaathiAI
         </span>
-        {step !== 'academic' && <StepIndicator step={step} />}
+        {step !== 'academic' && step !== 'name' && <StepIndicator step={step} />}
       </div>
 
       {/* Step content */}
@@ -1608,6 +1765,17 @@ function OnboardInner() {
                 onBack={goBack}
                 saving={saving}
               />
+            </motion.div>
+          )}
+          {step === 'name' && (
+            <motion.div
+              key="name"
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+            >
+              <NameStep onSave={handleNameSave} saving={saving} />
             </motion.div>
           )}
           {step === 'profile' && (

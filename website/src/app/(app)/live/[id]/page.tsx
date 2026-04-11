@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
+import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
 
 type SessionDetail = {
@@ -295,7 +296,7 @@ export default function LiveSessionDetailPage() {
     )
   }
 
-  const saathi = SAATHIS.find((s) => s.id === session.vertical_id)
+  const saathi = SAATHIS.find((s) => s.id === toSlug(session.vertical_id))
   const color = saathi?.primary ?? '#C9993A'
   const isFull = seatsBooked >= session.total_seats
   const remaining = session.total_seats - seatsBooked

@@ -816,7 +816,7 @@ export const SAATHI_PERSONALITIES: SaathiPersonalityMap = {
   ],
 
   // ── ChemEnggSaathi ──────────────────────────────────────────────────────
-  chemengg: [
+  'chemengg-saathi': [
     {
       id: 'haber',
       name: 'Fritz Haber',

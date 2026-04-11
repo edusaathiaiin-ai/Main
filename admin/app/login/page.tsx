@@ -9,6 +9,7 @@ const ADMIN_EMAILS = ['edusaathiai.in@gmail.com']
 
 export default function LoginPage() {
   const router = useRouter()
+  const [tab, setTab] = useState<'password' | 'otp'>('password')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
@@ -16,6 +17,42 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [resetSent, setResetSent] = useState(false)
   const [resetMode, setResetMode] = useState(false)
+  // OTP flow
+  const [otpSent, setOtpSent] = useState(false)
+  const [otp, setOtp] = useState('')
+
+  const sendOtp = async () => {
+    setLoading(true)
+    setError('')
+    const sb = getBrowserClient()
+    const { error: err } = await sb.auth.signInWithOtp({
+      email: email.trim().toLowerCase(),
+      options: { shouldCreateUser: false },
+    })
+    setLoading(false)
+    if (err) { setError(err.message); return }
+    setOtpSent(true)
+  }
+
+  const verifyOtp = async () => {
+    setLoading(true)
+    setError('')
+    const sb = getBrowserClient()
+    const { data, error: err } = await sb.auth.verifyOtp({
+      email: email.trim().toLowerCase(),
+      token: otp.trim(),
+      type: 'email',
+    })
+    if (err) { setError(err.message); setLoading(false); return }
+    const userEmail = data.user?.email?.toLowerCase() ?? ''
+    if (!ADMIN_EMAILS.includes(userEmail)) {
+      await sb.auth.signOut()
+      setError('Admin access only.')
+      setLoading(false)
+      return
+    }
+    router.push('/users')
+  }
 
   const signIn = async () => {
     setLoading(true)
@@ -64,12 +101,24 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-8">
-        <div className="mb-8 text-center">
-          <div className="text-2xl font-bold text-amber-400 mb-1">
-            EdUsaathiAI
-          </div>
+        <div className="mb-6 text-center">
+          <div className="text-2xl font-bold text-amber-400 mb-1">EdUsaathiAI</div>
           <div className="text-sm text-slate-400">Admin Control Centre</div>
         </div>
+
+        {/* Tab switcher */}
+        {!resetMode && (
+          <div className="flex rounded-xl bg-slate-800 p-1 mb-6">
+            <button
+              onClick={() => { setTab('password'); setError('') }}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${tab === 'password' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            >Password</button>
+            <button
+              onClick={() => { setTab('otp'); setError('') }}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${tab === 'otp' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            >OTP to Gmail</button>
+          </div>
+        )}
 
         {resetMode ? (
           resetSent ? (
@@ -122,6 +171,58 @@ export default function LoginPage() {
               )}
             </>
           )
+        ) : tab === 'otp' ? (
+          /* ── OTP login ── */
+          <>
+            {!otpSent ? (
+              <>
+                <label className="block text-sm text-slate-400 mb-1">Admin email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && sendOtp()}
+                  placeholder="edusaathiai.in@gmail.com"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 mb-4"
+                />
+                <button
+                  onClick={sendOtp}
+                  disabled={loading || !email}
+                  className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-semibold rounded-xl py-3 text-sm transition-colors"
+                >
+                  {loading ? 'Sending…' : 'Send 6-digit code →'}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-slate-400 text-sm mb-4 text-center">
+                  Code sent to <strong className="text-white">{email}</strong>. Check your Gmail inbox (not spam).
+                </p>
+                <label className="block text-sm text-slate-400 mb-1">OTP code</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={8}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  onKeyDown={(e) => e.key === 'Enter' && otp.length >= 6 && verifyOtp()}
+                  placeholder="12345678"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 mb-4 tracking-widest text-center text-lg"
+                />
+                <button
+                  onClick={verifyOtp}
+                  disabled={loading || otp.length < 6}
+                  className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-semibold rounded-xl py-3 text-sm transition-colors mb-3"
+                >
+                  {loading ? 'Verifying…' : 'Verify & sign in →'}
+                </button>
+                <button onClick={() => { setOtpSent(false); setOtp('') }} className="w-full text-slate-500 text-xs hover:text-slate-300">
+                  Resend code
+                </button>
+              </>
+            )}
+            {error && <p className="mt-3 text-red-400 text-sm text-center">{error}</p>}
+          </>
         ) : (
           <>
             <label className="block text-sm text-slate-400 mb-1">Email</label>

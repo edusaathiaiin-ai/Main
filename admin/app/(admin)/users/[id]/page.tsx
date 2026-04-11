@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/auth'
 import { getAdminClient } from '@/lib/supabase-admin'
 import { CopyField } from '@/components/CopyField'
+import { DirectActions } from './DirectActions'
 
 export const dynamic = 'force-dynamic'
 
@@ -195,6 +196,16 @@ export default async function SubscriberDetailPage({
             </span>
           </Row>
         </Section>
+      </div>
+
+      {/* ── Direct Actions ────────────────────────────────────────── */}
+      <div className="mb-5">
+        <DirectActions
+          userId={id}
+          userName={profile.full_name ?? null}
+          userEmail={profile.email ?? null}
+          hasPhone={Boolean(profile.phone_number)}
+        />
       </div>
 
       {/* ── Payment History ────────────────────────────────────────── */}

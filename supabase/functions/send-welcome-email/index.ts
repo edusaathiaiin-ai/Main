@@ -15,6 +15,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const CRON_SECRET = Deno.env.get('CRON_SECRET') ?? '';
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
 const RESEND_FROM = Deno.env.get('RESEND_FROM_EMAIL') ?? 'noreply@edusaathiai.in';
 
@@ -25,20 +26,11 @@ serve(async (req: Request) => {
   }
 
   try {
-    // ── Auth: verify JWT ────────────────────────────────────────
-    const authHeader = req.headers.get('Authorization');
+    // ── Auth: user JWT or service role + user_id body ───────────
+    // Service role path: used by auth-register backfill, admin triggers.
+    // User JWT path: used by client-side callers (onboard, callback).
+    const authHeader = req.headers.get('Authorization') ?? '';
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
-    if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -47,11 +39,43 @@ serve(async (req: Request) => {
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    let userId: string;
+    const token = authHeader.replace('Bearer ', '').trim();
+    const cronSecret = req.headers.get('x-cron-secret') ?? '';
+    const isServiceRole = token === SUPABASE_SERVICE_ROLE_KEY ||
+      (CRON_SECRET && cronSecret === CRON_SECRET);
+
+    if (isServiceRole) {
+      // Server-side caller — read user_id from body
+      let body: { user_id?: string } = {};
+      try { body = await req.json() } catch { /* no body */ }
+      if (!body.user_id) {
+        return new Response(JSON.stringify({ error: 'user_id required for service role calls' }), {
+          status: 400,
+          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+      userId = body.user_id;
+    } else {
+      // User JWT — validate and extract user id
+      const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user }, error: authError } = await userClient.auth.getUser();
+      if (authError || !user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+      userId = user.id;
+    }
+
     // ── Fetch profile + Saathi name ─────────────────────────────
     const { data: profile } = await admin
       .from('profiles')
       .select('full_name, email, role, welcome_email_sent, primary_saathi_id, verticals(name)')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
     if (!profile) {
@@ -69,7 +93,7 @@ serve(async (req: Request) => {
       });
     }
 
-    const email = profile.email ?? user.email;
+    const email = profile.email;
     if (!email) {
       return new Response(JSON.stringify({ skipped: true, reason: 'no_email' }), {
         status: 200,
@@ -123,7 +147,7 @@ serve(async (req: Request) => {
     }
 
     // ── Mark as sent ────────────────────────────────────────────
-    await admin.from('profiles').update({ welcome_email_sent: true }).eq('id', user.id);
+    await admin.from('profiles').update({ welcome_email_sent: true }).eq('id', userId);
 
     return new Response(JSON.stringify({ sent: true, to: email }), {
       status: 200,

@@ -75,7 +75,7 @@ export function MindMap({ markdown, saathiColor = '#C9993A' }: MindMapProps) {
           style={{
             background: 'none',
             border: 'none',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'rgba(255,255,255,0.65)',
             cursor: 'pointer',
             fontSize: '11px',
           }}

@@ -134,7 +134,7 @@ export function PostQuestionModal({
     setError(null)
     setQuotaError(false)
 
-    // Re-check quota server-side (RLS is the last gate, this is the UI gate)
+    // Server-side gate: covers quota, 24h restriction, and profile completeness
     try {
       const quotaRes = await fetch('/api/board/quota')
       if (quotaRes.ok) {
@@ -147,19 +147,6 @@ export function PostQuestionModal({
       }
     } catch {
       // Network error — let the insert proceed; RLS enforces at DB level
-    }
-
-    // 24-hour new account restriction
-    const registeredAt = new Date(profile.registered_at)
-    const hoursSinceRegistration =
-      (Date.now() - registeredAt.getTime()) / (1000 * 60 * 60)
-    if (hoursSinceRegistration < 24) {
-      const hoursLeft = Math.ceil(24 - hoursSinceRegistration)
-      setError(
-        `Board posting unlocks ${hoursLeft} hour${hoursLeft === 1 ? '' : 's'} after registration. Keep learning in the meantime!`
-      )
-      setSubmitting(false)
-      return
     }
 
     const supabase = createClient()

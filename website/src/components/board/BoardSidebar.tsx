@@ -23,6 +23,44 @@ const TOP_FACULTY = [
   { name: 'Mr. Aditya Shah', badge: '👨‍🎓', verified: false },
 ]
 
+// Saathi-specific trending topics — shown in the sidebar
+const SAATHI_TOPICS: Record<string, string[]> = {
+  // Original 20
+  kanoonsaathi:      ['Constitutional Law', 'IPC 302', 'Bail Reform', 'UPSC Prep', 'Section 498A'],
+  maathsaathi:       ['Calculus', 'Matrices', 'Integration', 'Probability', 'UPSC Maths'],
+  chemsaathi:        ['Organic Reactions', 'Periodic Table', 'Mole Concept', 'Thermodynamics', 'NEET Chem'],
+  biosaathi:         ['Cell Biology', 'Genetics', 'Ecology', 'Human Physiology', 'NEET Bio'],
+  pharmasaathi:      ['Pharmacokinetics', 'Drug Interactions', 'Dosage Forms', 'Clinical Pharmacy', 'Drug Safety'],
+  medicosaathi:      ['Anatomy', 'Clinical Skills', 'Differential Diagnosis', 'MBBS Prep', 'Medical Ethics'],
+  nursingsaathi:     ['Patient Care', 'Drug Administration', 'Nursing Ethics', 'ICU Protocols', 'Clinical Practice'],
+  psychsaathi:       ['Cognitive Therapy', 'Mental Health', 'Counselling', 'DSM Disorders', 'Psychological Testing'],
+  mechsaathi:        ['Thermodynamics', 'Fluid Mechanics', 'Machine Design', 'GATE Prep', 'CAD Tools'],
+  civilsaathi:       ['Structural Analysis', 'Concrete Design', 'Soil Mechanics', 'GATE Civil', 'AutoCAD'],
+  elecsaathi:        ['Circuit Theory', 'Digital Electronics', 'Power Systems', 'GATE ECE', 'Microcontrollers'],
+  compsaathi:        ['Data Structures', 'Algorithms', 'DBMS', 'System Design', 'GATE CS'],
+  envirosaathi:      ['Climate Change', 'Environmental Law', 'Sustainability', 'Pollution Control', 'EIA'],
+  bizsaathi:         ['Business Strategy', 'Marketing Mix', 'HRM', 'MBA Prep', 'Case Studies'],
+  finsaathi:         ['Financial Ratios', 'Valuation', 'CA Prep', 'Equity Analysis', 'Taxation'],
+  mktsaathi:         ['Brand Strategy', 'Consumer Behaviour', 'Digital Marketing', 'SEO', 'Market Research'],
+  hrsaathi:          ['Talent Acquisition', 'Labour Law', 'Performance Mgmt', 'HR Analytics', 'Org Behaviour'],
+  archsaathi:        ['Design Theory', 'Building Materials', 'Urban Planning', 'AutoCAD', 'NATA Prep'],
+  historysaathi:     ['Ancient India', 'Freedom Movement', 'Medieval India', 'UPSC History', 'Art & Culture'],
+  econsaathi:        ['Macro Economics', 'Indian Economy', 'RBI Policy', 'UPSC Eco', 'International Trade'],
+  // New 10
+  accountsaathi:     ['Financial Statements', 'GST', 'Tally', 'CA Foundation', 'Cost Accounting'],
+  aerospacesaathi:   ['Fluid Dynamics', 'Propulsion', 'ISRO Prep', 'Aircraft Design', 'Orbital Mechanics'],
+  agrisaathi:        ['Soil Science', 'Crop Management', 'ICAR Prep', 'Irrigation', 'Agri Policy'],
+  biotechsaathi:     ['Genetic Engineering', 'Fermentation', 'GATE BT', 'Bioinformatics', 'Cell Culture'],
+  'chemengg-saathi': ['Mass Transfer', 'Reaction Engineering', 'GATE CH', 'Process Design', 'Fluid Mechanics'],
+  electronicssaathi: ['Analog Circuits', 'VLSI Design', 'Signal Processing', 'GATE EC', 'Embedded Systems'],
+  geosaathi:         ['Plate Tectonics', 'Geomorphology', 'Remote Sensing', 'UPSC Geography', 'Cartography'],
+  physicsaathi:      ['Quantum Mechanics', 'Electromagnetism', 'Thermodynamics', 'GATE PH', 'JEE Physics'],
+  polscisaathi:      ['Indian Constitution', 'IR Theory', 'Public Policy', 'UPSC Polity', 'Comparative Politics'],
+  statssaathi:       ['Probability', 'Regression', 'Hypothesis Testing', 'GATE ST', 'Data Analysis'],
+}
+
+const DEFAULT_TOPICS = ['Concepts', 'Exam Prep', 'Case Studies', 'UPSC', 'Research']
+
 export function BoardSidebar({
   activeSaathi,
   onAskQuestion,
@@ -203,25 +241,19 @@ export function BoardSidebar({
       >
         <p
           className="mb-3 text-xs font-semibold tracking-wider uppercase"
-          style={{ color: 'rgba(255,255,255,0.35)' }}
+          style={{ color: 'rgba(255,255,255,0.45)' }}
         >
           Trending Topics
         </p>
         <div className="flex flex-wrap gap-2">
-          {[
-            'Constitutional Law',
-            'IPC 302',
-            'Bail Reform',
-            'UPSC Prep',
-            'Section 498A',
-          ].map((topic) => (
+          {(SAATHI_TOPICS[activeSaathi.id] ?? DEFAULT_TOPICS).map((topic) => (
             <span
               key={topic}
               className="rounded-full px-2.5 py-1 text-[10px] font-medium"
               style={{
-                background: `${activeSaathi.primary}15`,
-                border: `0.5px solid ${activeSaathi.primary}33`,
-                color: activeSaathi.primary,
+                background: `${activeSaathi.primary}18`,
+                border: `0.5px solid ${activeSaathi.primary}40`,
+                color: 'rgba(255,255,255,0.72)',
               }}
             >
               {topic}

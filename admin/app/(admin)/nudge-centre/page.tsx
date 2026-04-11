@@ -266,7 +266,7 @@ export default async function NudgeCentrePage({
         <NudgeBuilder
           templateId="custom"
           templateTitle="Custom Nudge"
-          estimatedReach={0}
+          estimatedReach={inactiveStudents ?? 0}
         />
       )}
 

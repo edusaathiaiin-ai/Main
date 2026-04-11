@@ -22,6 +22,18 @@ export default async function AppLayout({
     redirect('/login')
   }
 
+  // Name gate: if profile is active but has no valid name, force name collection
+  // before any app page is accessible. Catches Google OAuth users with bad names.
+  const { data: profileRow } = await supabase
+    .from('profiles')
+    .select('needs_name_update, is_active')
+    .eq('id', user.id)
+    .single()
+
+  if (profileRow?.is_active && profileRow?.needs_name_update) {
+    redirect('/onboard?step=name')
+  }
+
   return (
     <div className="flex min-h-screen">
       {/* Sidebar and Navbar — Step W3 */}

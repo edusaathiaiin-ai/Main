@@ -108,6 +108,27 @@ export function QuestionFeed() {
 
   const canPost = !profile?.is_geo_limited
 
+  // Board access gates — computed from live profile data
+  const hoursSince = profile?.registered_at
+    ? (Date.now() - new Date(profile.registered_at).getTime()) / 3600000
+    : Infinity
+  const postBlockReason: 'under24h' | 'profile_incomplete' | null = canPost
+    ? hoursSince < 24
+      ? 'under24h'
+      : (profile?.profile_completeness_pct ?? 0) < 60
+        ? 'profile_incomplete'
+        : null
+    : null
+  const canActuallyPost = canPost && postBlockReason === null
+  const accessOpensAt = profile?.registered_at
+    ? new Date(new Date(profile.registered_at).getTime() + 86400000)
+    : null
+  const profileGaps: string[] = []
+  if (!profile?.institution_name) profileGaps.push('institution')
+  if (!profile?.academic_level) profileGaps.push('academic level')
+  if (!profile?.degree_programme) profileGaps.push('programme')
+  if (!(profile?.current_subjects?.length)) profileGaps.push('subjects')
+
   // Resolve slug → UUID
   useEffect(() => {
     if (!profile) return
@@ -326,7 +347,7 @@ export function QuestionFeed() {
               <div className="relative lg:hidden">
                 <button
                   onClick={() => {
-                    if (!canPost) return
+                    if (!canActuallyPost) return
                     if (boardQuota && !boardQuota.allowed) {
                       setShowQuotaTooltip(true)
                       setTimeout(() => setShowQuotaTooltip(false), 3000)
@@ -337,21 +358,30 @@ export function QuestionFeed() {
                   className="rounded-xl px-4 py-2 text-sm font-bold transition-all"
                   style={{
                     background:
-                      boardQuota && !boardQuota.allowed
+                      !canActuallyPost || (boardQuota && !boardQuota.allowed)
                         ? 'rgba(201,153,58,0.25)'
                         : '#C9993A',
                     color:
-                      boardQuota && !boardQuota.allowed ? '#C9993A' : '#060F1D',
-                    opacity: boardQuota && !boardQuota.allowed ? 0.6 : 1,
+                      !canActuallyPost || (boardQuota && !boardQuota.allowed)
+                        ? '#C9993A'
+                        : '#060F1D',
+                    opacity:
+                      !canActuallyPost || (boardQuota && !boardQuota.allowed)
+                        ? 0.6
+                        : 1,
                     cursor:
-                      boardQuota && !boardQuota.allowed
+                      !canActuallyPost || (boardQuota && !boardQuota.allowed)
                         ? 'not-allowed'
                         : 'pointer',
                   }}
                 >
-                  {boardQuota && !boardQuota.allowed
-                    ? `${boardQuota.used}/${boardQuota.limit} used`
-                    : '+ Ask'}
+                  {postBlockReason === 'under24h'
+                    ? 'Opens soon'
+                    : postBlockReason === 'profile_incomplete'
+                      ? 'Profile needed'
+                      : boardQuota && !boardQuota.allowed
+                        ? `${boardQuota.used}/${boardQuota.limit} used`
+                        : '+ Ask'}
                 </button>
 
                 <AnimatePresence>
@@ -472,6 +502,113 @@ export function QuestionFeed() {
                 </div>
               )}
 
+            {/* Place A2 — 24h new-account gate */}
+            {canPost && postBlockReason === 'under24h' && (
+              <div
+                style={{
+                  margin: '0 0 16px',
+                  padding: '14px 18px',
+                  borderRadius: '12px',
+                  background: 'rgba(201,153,58,0.08)',
+                  border: '1px solid rgba(201,153,58,0.25)',
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#C9993A',
+                    margin: '0 0 4px',
+                  }}
+                >
+                  ✦ Your Board access opens soon
+                </p>
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: 'rgba(255,255,255,0.5)',
+                    margin: 0,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  To maintain quality, new members can post after 24 hours of
+                  joining. You joined {Math.floor(hoursSince)} hour
+                  {Math.floor(hoursSince) === 1 ? '' : 's'} ago — access opens
+                  at{' '}
+                  {accessOpensAt?.toLocaleTimeString('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                  })}{' '}
+                  IST.
+                  <br />
+                  Browse and read all questions in the meantime.
+                </p>
+              </div>
+            )}
+
+            {/* Place A3 — profile completeness gate */}
+            {canPost && postBlockReason === 'profile_incomplete' && (
+              <div
+                style={{
+                  margin: '0 0 16px',
+                  padding: '14px 18px',
+                  borderRadius: '12px',
+                  background: 'rgba(239,68,68,0.06)',
+                  border: '1px solid rgba(239,68,68,0.2)',
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#F87171',
+                    margin: '0 0 4px',
+                  }}
+                >
+                  Complete your profile to post questions
+                </p>
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: 'rgba(255,255,255,0.5)',
+                    margin: '0 0 10px',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Your profile is {profile?.profile_completeness_pct ?? 0}%
+                  complete. Board posting requires 60% to ensure quality
+                  discussions.
+                  {profileGaps.length > 0 && (
+                    <>
+                      {' '}
+                      Add your {profileGaps.slice(0, 2).join(' and ')} to reach
+                      60%.
+                    </>
+                  )}
+                </p>
+                <a
+                  href="/profile"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    background: activeSaathi.primary,
+                    color: '#fff',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                  }}
+                >
+                  Complete my profile → {profile?.profile_completeness_pct ?? 0}
+                  % → 60%
+                </a>
+              </div>
+            )}
+
             {/* Filter bar */}
             <div className="mb-5">
               <FilterBar
@@ -503,7 +640,7 @@ export function QuestionFeed() {
                     >
                       You haven&apos;t asked any questions yet.
                     </p>
-                    {canPost && (
+                    {canActuallyPost && (
                       <button
                         onClick={() => setModalOpen(true)}
                         className="rounded-xl px-5 py-2.5 text-sm font-bold"
@@ -525,7 +662,7 @@ export function QuestionFeed() {
                     >
                       Be the first to ask a question in {activeSaathi.name}!
                     </p>
-                    {canPost && (
+                    {canActuallyPost && (
                       <button
                         onClick={() => setModalOpen(true)}
                         className="rounded-xl px-5 py-2.5 text-sm font-bold"
@@ -702,10 +839,11 @@ export function QuestionFeed() {
           <BoardSidebar
             activeSaathi={activeSaathi}
             onAskQuestion={() => {
+              if (!canActuallyPost) return
               if (boardQuota && !boardQuota.allowed) return
               setModalOpen(true)
             }}
-            canPost={canPost}
+            canPost={canActuallyPost}
             quotaReached={boardQuota?.allowed === false}
             boardQuota={boardQuota}
           />

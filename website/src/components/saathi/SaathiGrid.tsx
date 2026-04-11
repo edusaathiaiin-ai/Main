@@ -30,7 +30,7 @@ const RICH_SAATHIS = new Set([
   'archsaathi',
   'historysaathi',
   'econsaathi',
-  'chemengg saathi',
+  'chemengg-saathi',
   'biotechsaathi',
   'aerospacesaathi',
   'electronicssaathi',

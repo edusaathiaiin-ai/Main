@@ -1771,7 +1771,7 @@ export function EmptyState({
   const { opener, description, starters, possibilityPrompt } = getStarterSet(saathiId, botName)
 
   // All colors via CSS vars — light theme, per-Saathi tinted
-  const subtitleColor   = 'var(--text-ghost)'
+  const subtitleColor   = 'var(--text-secondary)'
   const openerBg        = 'var(--saathi-bg)'
   const openerBorder    = 'var(--saathi-border)'
   const openerColor     = 'var(--text-secondary)'

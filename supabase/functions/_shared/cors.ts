@@ -21,8 +21,10 @@
 const ALLOWED_ORIGINS = new Set([
   'https://www.edusaathiai.in',
   'https://edusaathiai.in',
+  'https://admin.edusaathiai.in',
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://localhost:3002',
 ]);
 
 const PRIMARY_ORIGIN = 'https://www.edusaathiai.in';

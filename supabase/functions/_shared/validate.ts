@@ -9,11 +9,20 @@ export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9
 
 /** All valid Saathi slugs — used as DB vertical_id slug form and in system prompts. */
 export const SAATHI_SLUGS = new Set([
-  'kanoonsaathi', 'maathsaathi', 'chemsaathi', 'biosaathi', 'pharmasaathi',
-  'medicosaathi', 'nursingsaathi', 'psychsaathi', 'mechsaathi', 'civilsaathi',
-  'elecsaathi', 'compsaathi', 'envirosathi', 'bizsaathi', 'finsaathi',
-  'mktsaathi', 'hrsaathi', 'archsaathi', 'historysaathi', 'econsaathi',
-  'chemengg saathi', 'biotechsaathi', 'aerospacesaathi', 'electronicssaathi',
+  // STEM
+  'biosaathi', 'biotechsaathi', 'physicsaathi',
+  'chemsaathi', 'maathsaathi', 'compsaathi',
+  'mechsaathi', 'civilsaathi', 'aerospacesaathi',
+  'elecsaathi', 'electronicssaathi', 'chemengg-saathi',
+  'envirosaathi', 'agrisaathi',
+  // Medical
+  'medicosaathi', 'pharmasaathi', 'nursingsaathi',
+  // Social + Law
+  'kanoonsaathi', 'historysaathi', 'psychsaathi',
+  'polscisaathi', 'geosaathi', 'archsaathi',
+  // Commerce
+  'econsaathi', 'accountsaathi', 'finsaathi',
+  'bizsaathi', 'mktsaathi', 'hrsaathi', 'statssaathi',
 ]);
 
 /** Returns true if the value is a valid UUID v4. */

@@ -214,7 +214,7 @@ export function Molecule3DViewer({
                 animation: 'mol3d-spin 0.9s linear infinite',
               }}
             />
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.65)' }}>
               Loading from PubChem…
             </span>
           </div>

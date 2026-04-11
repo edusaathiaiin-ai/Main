@@ -321,7 +321,7 @@ function AddSaathiModal({
                   style={{
                     background:  canUsePoints ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.04)',
                     border:      canUsePoints ? '0.5px solid rgba(74,222,128,0.35)' : '0.5px solid rgba(255,255,255,0.08)',
-                    color:       canUsePoints ? '#4ADE80' : 'rgba(255,255,255,0.3)',
+                    color:       canUsePoints ? '#4ADE80' : 'rgba(255,255,255,0.5)',
                   }}>
                   {spending ? 'Unlocking…'
                     : canUsePoints

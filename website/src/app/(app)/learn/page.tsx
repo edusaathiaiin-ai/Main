@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
+import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -83,7 +84,7 @@ function IntentCard({
   onJoin: (id: string) => void
   currentUserId: string
 }) {
-  const saathi = SAATHIS.find((s) => s.id === intent.vertical_id)
+  const saathi = SAATHIS.find((s) => s.id === toSlug(intent.vertical_id))
   const isOwn = intent.student_id === currentUserId
   const hasJoined = intent.has_joined
 

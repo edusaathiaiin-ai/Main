@@ -10,6 +10,7 @@ import { getPlanTier } from '@/constants/plans'
 import { toVerticalUuid } from '@/constants/verticalIds'
 import { createClient } from '@/lib/supabase/client'
 import { WorldEducationExplorerCTA } from '@/components/explore/WorldEducationExplorer'
+import { ExploreBeyond } from '@/components/chat/ExploreBeyond'
 import type { Saathi, Profile, QuotaState } from '@/types'
 
 type Props = {
@@ -279,6 +280,7 @@ export function Sidebar({
 }: Props) {
   const pathname     = usePathname()
   const [bookmarkCount, setBookmarkCount] = useState(0)
+  const [exploreOpen, setExploreOpen] = useState(false)
 
   useEffect(() => {
     if (!profile) return
@@ -399,14 +401,23 @@ export function Sidebar({
             isActive={pathname === '/flashcards'}
             accentColor="#FBBF24"
           />
-          <ExpandableSidebarItem
-            id="explore-beyond"
-            icon="🔭"
-            label="Explore Beyond"
-            href="/explore"
-            isActive={pathname === '/explore'}
-            accentColor="#A78BFA"
-          />
+          <div>
+            <ExpandableSidebarItem
+              id="explore-beyond"
+              icon="🔭"
+              label="Explore Beyond"
+              onClick={() => setExploreOpen(p => !p)}
+              isActive={exploreOpen}
+              accentColor="#A78BFA"
+            />
+            <div style={{
+              maxHeight:  exploreOpen ? '600px' : '0px',
+              overflow:   'hidden',
+              transition: 'max-height 0.3s ease',
+            }}>
+              <ExploreBeyond saathiSlug={activeSaathi.id} />
+            </div>
+          </div>
           <ExpandableSidebarItem
             id="profile"
             icon="⚙️"

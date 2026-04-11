@@ -333,7 +333,7 @@ const RSS_FEEDS: Record<string, FeedDef[]> = {
   ],
 
   // ── New Saathis (migration 047) ────────────────────────────────────────────
-  'chemengg saathi': [
+  'chemengg-saathi': [
     { url: 'https://www.chemengonline.com/feed/', source: 'Chem Eng Online', category: 'Process Engineering' },
     { url: 'https://www.nature.com/nchem.rss', source: 'Nature Chemistry', category: 'Chemical Sciences' },
     { url: 'https://rss.arxiv.org/rss/physics.chem-ph', source: 'arXiv Chemical Physics', category: 'Chemical Engineering' },

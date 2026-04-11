@@ -10,35 +10,34 @@ type Props = {
 }
 
 function formatCountdown(ms: number): string {
-  if (ms <= 0) return '00:00:00'
+  if (ms <= 0) return '0s left'
   const totalSec = Math.floor(ms / 1000)
   const h = Math.floor(totalSec / 3600)
   const m = Math.floor((totalSec % 3600) / 60)
   const s = totalSec % 60
-  return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':')
+  if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m left`
+  if (m > 0) return `${m}m ${String(s).padStart(2, '0')}s left`
+  return `${s}s left`
 }
 
 export function CoolingBanner({ quota, saathiName }: Props) {
   const router = useRouter()
-  const [remaining, setRemaining] = useState<number>(0)
+  const [remaining, setRemaining] = useState<number>(
+    () => quota.coolingUntil ? Math.max(0, quota.coolingUntil.getTime() - Date.now()) : 0
+  )
 
   useEffect(() => {
     if (!quota.coolingUntil) return
+    setRemaining(Math.max(0, quota.coolingUntil.getTime() - Date.now()))
     const interval = setInterval(() => {
       const diff = quota.coolingUntil!.getTime() - Date.now()
       if (diff <= 0) {
         clearInterval(interval)
-        router.refresh() // refresh quota
+        router.refresh()
       } else {
         setRemaining(diff)
       }
     }, 1000)
-    // Set initial
-    async function init() {
-      await Promise.resolve()
-      setRemaining(Math.max(0, quota.coolingUntil!.getTime() - Date.now()))
-    }
-    void init()
     return () => clearInterval(interval)
   }, [quota.coolingUntil, router])
 
@@ -59,12 +58,12 @@ export function CoolingBanner({ quota, saathiName }: Props) {
             ☕ Take a breather
           </p>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Your daily chats are used up. Resuming in:
+            Your daily chats are used up. Chat resumes in
           </p>
         </div>
         <div
-          className="font-mono text-2xl font-bold tabular-nums"
-          style={{ color: '#F59E0B' }}
+          className="text-xl font-bold tabular-nums"
+          style={{ color: '#F59E0B', fontVariantNumeric: 'tabular-nums' }}
         >
           {formatCountdown(remaining)}
         </div>

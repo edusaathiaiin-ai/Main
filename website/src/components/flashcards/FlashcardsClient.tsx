@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { todayIST } from '@/lib/date'
 import { SAATHIS } from '@/constants/saathis'
+import { toSlug } from '@/constants/verticalIds'
 
 type Flashcard = {
   id: string
@@ -76,7 +77,7 @@ function FlipCard({
     setFlipped(false)
   }
 
-  const saathi = SAATHIS.find((s) => s.id === card.vertical_id)
+  const saathi = SAATHIS.find((s) => s.id === toSlug(card.vertical_id))
 
   return (
     <div style={{ perspective: '1000px' }}>

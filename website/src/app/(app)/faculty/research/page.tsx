@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
+import { toSlug } from '@/constants/verticalIds'
+import { resolveVerticalId } from '@/lib/resolveVerticalId'
 import {
   RESEARCH_PROJECT_STATUS,
   RESEARCH_APPLICATION_STATUS,
@@ -198,9 +200,15 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
     setSubmitting(true)
     setError(null)
     const supabase = createClient()
+    const verticalUUID = await resolveVerticalId(form.vertical_id, supabase)
+    if (!verticalUUID) {
+      setError('Invalid Saathi selected.')
+      setSubmitting(false)
+      return
+    }
     const { error: err } = await supabase.from('research_projects').insert({
       faculty_id: profile.id,
-      vertical_id: form.vertical_id,
+      vertical_id: verticalUUID,
       title: form.title.trim(),
       description: form.description.trim(),
       what_you_will_do: form.what_you_will_do.trim(),
@@ -983,7 +991,7 @@ export default function FacultyResearchPage() {
                 <div className="space-y-4">
                   {projects.map((project) => {
                     const saathi = SAATHIS.find(
-                      (s) => s.id === project.vertical_id
+                      (s) => s.id === toSlug(project.vertical_id)
                     )
                     return (
                       <div

@@ -198,7 +198,7 @@ export const SUBJECT_CHIPS: Record<string, string[]> = {
     'IoT',
     'Semiconductor Devices',
   ],
-  chemenggsaathi: [
+  'chemengg-saathi': [
     'Chemical Process Calculations',
     'Thermodynamics',
     'Fluid Operations',
@@ -567,7 +567,7 @@ export const INTEREST_CHIPS: Record<string, string[]> = {
     'Quantum Electronics',
     'Neuromorphic Computing',
   ],
-  chemenggsaathi: [
+  'chemengg-saathi': [
     'Green Process Engineering',
     'Carbon Capture',
     'Pharmaceutical Manufacturing',

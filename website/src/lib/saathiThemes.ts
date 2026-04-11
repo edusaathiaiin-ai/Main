@@ -563,7 +563,7 @@ export const SAATHI_THEMES: Record<string, SaathiTheme> = {
       border: 'oklch(81% 0.01 45)',
     },
   },
-  chemenggsaathi: {
+  'chemengg-saathi': {
     bgPrimary: 'oklch(16% 0.04 50)',
     bgSecondary: 'oklch(13% 0.04 50)',
     bgTertiary: 'oklch(18% 0.04 50)',

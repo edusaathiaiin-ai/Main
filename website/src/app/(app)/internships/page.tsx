@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
+import { toSlug } from '@/constants/verticalIds'
 import {
   computeMatchScore,
   buildSoulSnapshot,
@@ -198,7 +199,7 @@ function CompanyApplyModal({
     }
   }
 
-  const saathi = SAATHIS.find((s) => s.id === posting.vertical_id)
+  const saathi = SAATHIS.find((s) => s.id === toSlug(posting.vertical_id))
 
   return (
     <div
@@ -587,7 +588,7 @@ function CompanyCard({
   posting: Posting
   onApply: (p: Posting) => void
 }) {
-  const saathi = SAATHIS.find((s) => s.id === posting.vertical_id)
+  const saathi = SAATHIS.find((s) => s.id === toSlug(posting.vertical_id))
   const applied = posting.my_application
   const seatsLeft = posting.total_seats - posting.seats_filled
 
@@ -756,7 +757,7 @@ function ResearchCard({
   posting: Posting
   onApply: (p: Posting) => void
 }) {
-  const saathi = SAATHIS.find((s) => s.id === posting.vertical_id)
+  const saathi = SAATHIS.find((s) => s.id === toSlug(posting.vertical_id))
   const applied = posting.my_application
   const seatsLeft = posting.total_seats - posting.seats_filled
 
@@ -1092,7 +1093,7 @@ export default function InternshipsPage() {
         .filter(Boolean)
     )
   )
-    .map((id) => SAATHIS.find((s) => s.id === id))
+    .map((id) => SAATHIS.find((s) => s.id === toSlug(id)))
     .filter(Boolean)
 
   return (

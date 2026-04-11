@@ -560,7 +560,7 @@ export function MechanismViewer({
         >
           {MECHANISM_LABELS[mechanism] ?? `⚙️ ${mechanism}`}
         </span>
-        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.65)' }}>
           Drag to rotate · Scroll to zoom · Interactive
         </span>
       </div>

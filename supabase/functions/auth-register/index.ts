@@ -76,6 +76,19 @@ async function isDisposableDomain(admin: ReturnType<typeof createClient>, email:
   return Boolean(data);
 }
 
+function isValidName(name: string): boolean {
+  if (!name || name.trim().length < 2) return false
+  if (name.trim().length > 40) return false
+  if (/^\d+$/.test(name.trim())) return false
+  const letters = (name.match(/[a-zA-Z\u0900-\u097F]/g) ?? []).length
+  if (letters < 2) return false
+  const blocked = ['test','user','admin','guest','demo',
+    'na','none','null','abc','xyz','asdf','qwerty',
+    'undefined','anon','anonymous','temp']
+  if (blocked.includes(name.trim().toLowerCase())) return false
+  return true
+}
+
 async function deviceExists(admin: ReturnType<typeof createClient>, deviceId: string): Promise<boolean> {
   const { count, error } = await admin
     .from('profiles')
@@ -212,10 +225,13 @@ Deno.serve(async (req: Request) => {
     const countryCode = extractCountryCode(req);
     const isGeoLimited = isGeoLimitedCountry(countryCode);
 
-    const fullNameRaw = user.user_metadata?.full_name;
-    const fullName = typeof fullNameRaw === 'string' && fullNameRaw.trim().length > 0
+    // Resolve name — works for both email OTP (body) and Google OAuth (user_metadata)
+    const fullNameRaw = user.user_metadata?.full_name ?? user.user_metadata?.name;
+    const fullNameCandidate = typeof fullNameRaw === 'string' && fullNameRaw.trim().length > 0
       ? fullNameRaw.trim().slice(0, 120)
       : null;
+    const fullName       = fullNameCandidate && isValidName(fullNameCandidate) ? fullNameCandidate : null;
+    const needsNameUpdate = fullName === null;
 
     const { data: existing, error: existingError } = await admin
       .from('profiles')
@@ -238,11 +254,14 @@ Deno.serve(async (req: Request) => {
         ? existing.is_geo_limited
         : isGeoLimited;
 
+      // Only promote a valid name if the profile doesn't already have one
+      const resolvedName = existing.full_name ?? fullName;
       const { data: updated, error: updateError } = await admin
         .from('profiles')
         .update({
           email,
-          full_name: existing.full_name ?? fullName,
+          full_name: resolvedName,
+          needs_name_update: resolvedName === null,
           device_id: nextDevice,
           registration_ip: nextIp,
           country_code: nextCountry,
@@ -250,7 +269,7 @@ Deno.serve(async (req: Request) => {
           registered_at: existing.registered_at ?? new Date().toISOString(),
         })
         .eq('id', user.id)
-        .select('id, role, full_name, email, plan_id, subscription_status, primary_saathi_id, is_active')
+        .select('id, role, full_name, email, plan_id, subscription_status, primary_saathi_id, is_active, needs_name_update')
         .single();
 
       if (updateError) {
@@ -272,6 +291,7 @@ Deno.serve(async (req: Request) => {
         id: user.id,
         email,
         full_name: fullName,
+        needs_name_update: needsNameUpdate,
         role: null,
         device_id: deviceId || null,
         registration_ip: ip,
@@ -279,7 +299,7 @@ Deno.serve(async (req: Request) => {
         is_geo_limited: isGeoLimited,
         registered_at: new Date().toISOString(),
       })
-      .select('id, role, full_name, email, plan_id, subscription_status, primary_saathi_id, is_active')
+      .select('id, role, full_name, email, plan_id, subscription_status, primary_saathi_id, is_active, needs_name_update')
       .single();
 
     if (insertError) {
@@ -296,6 +316,16 @@ Deno.serve(async (req: Request) => {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
+
+    // Fire welcome email — pass user JWT so the function can identify the caller.
+    // Non-blocking, never delays registration response.
+    fetch(`${SUPABASE_URL}/functions/v1/send-welcome-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader,
+      },
+    }).catch(() => {});
 
     return new Response(JSON.stringify({ profile: created }), {
       status: 200,

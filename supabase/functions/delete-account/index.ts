@@ -70,34 +70,48 @@ serve(async (req: Request) => {
 
     // ── Cascade delete — all personal data ────────────────────────
 
-    // 1. Student data
+    // 1. Student learning data
     await admin.from('student_soul').delete().eq('user_id', userId)
+    await admin.from('student_subjects').delete().eq('user_id', userId).catch(() => {})
     await admin.from('student_points').delete().eq('user_id', userId).catch(() => {})
     await admin.from('point_transactions').delete().eq('user_id', userId).catch(() => {})
     await admin.from('saathi_enrollments').delete().eq('user_id', userId).catch(() => {})
     await admin.from('saathi_addons').delete().eq('user_id', userId).catch(() => {})
     await admin.from('companionship_milestones').delete().eq('user_id', userId).catch(() => {})
-    await admin.from('chat_messages').delete().eq('user_id', userId)
-    await admin.from('chat_sessions').delete().eq('user_id', userId)
-    await admin.from('feedback').delete().eq('user_id', userId).catch(() => {})
-    await admin.from('live_bookings').delete().eq('student_id', userId).catch(() => {})
-    await admin.from('consent_log').delete().eq('user_id', userId)
-    await admin.from('lecture_requests').delete().eq('student_id', userId).catch(() => {})
     await admin.from('checkin_results').delete().eq('user_id', userId).catch(() => {})
     await admin.from('notes_saved').delete().eq('user_id', userId).catch(() => {})
     await admin.from('flashcards').delete().eq('user_id', userId).catch(() => {})
     await admin.from('daily_challenge_attempts').delete().eq('user_id', userId).catch(() => {})
-    await admin.from('conversion_shown').delete().eq('user_id', userId).catch(() => {})
-    await admin.from('whatsapp_sessions').delete().eq('user_id', userId).catch(() => {})
-    await admin.from('moderation_flags').delete().eq('reporter_user_id', userId).catch(() => {})
-    await admin.from('board_questions').delete().eq('user_id', userId).catch(() => {})
+    await admin.from('learning_intents').delete().eq('student_id', userId).catch(() => {})
 
-    // 2. Faculty data (if applicable)
+    // 2. Chat data
+    await admin.from('chat_messages').delete().eq('user_id', userId)
+    await admin.from('chat_sessions').delete().eq('user_id', userId)
+    await admin.from('digest_sent_log').delete().eq('user_id', userId).catch(() => {})
+
+    // 3. Community data
+    await admin.from('board_answers').delete().eq('user_id', userId).catch(() => {})
+    await admin.from('board_questions').delete().eq('user_id', userId).catch(() => {})
+    await admin.from('moderation_flags').delete().eq('reporter_user_id', userId).catch(() => {})
+    await admin.from('feedback').delete().eq('user_id', userId).catch(() => {})
+
+    // 4. Session / booking data
+    await admin.from('live_bookings').delete().eq('student_id', userId).catch(() => {})
+    await admin.from('lecture_requests').delete().eq('student_id', userId).catch(() => {})
+    await admin.from('intern_applications').delete().eq('student_id', userId).catch(() => {})
+    await admin.from('conversion_shown').delete().eq('user_id', userId).catch(() => {})
+
+    // 5. Compliance
+    await admin.from('consent_log').delete().eq('user_id', userId)
+    await admin.from('whatsapp_sessions').delete().eq('user_id', userId).catch(() => {})
+
+    // 6. Faculty / institution data (if applicable)
     await admin.from('faculty_profiles').delete().eq('user_id', userId).catch(() => {})
     await admin.from('faculty_sessions').delete().eq('faculty_id', userId).catch(() => {})
     await admin.from('live_sessions').delete().eq('faculty_id', userId).catch(() => {})
     await admin.from('lecture_requests').delete().eq('faculty_id', userId).catch(() => {})
     await admin.from('research_projects').delete().eq('faculty_id', userId).catch(() => {})
+    await admin.from('internship_postings').delete().eq('posted_by', userId).catch(() => {})
 
     // 3. Anonymise profile (keep row for referential integrity,
     //    but scrub all PII)
@@ -240,7 +254,9 @@ serve(async (req: Request) => {
           </body>
           </html>
         `,
-      }).catch(() => {})
+      }).catch((emailErr: unknown) => {
+        console.error('delete-account: confirmation email failed', emailErr)
+      })
     }
 
     // ── Admin notification ─────────────────────────────────────────

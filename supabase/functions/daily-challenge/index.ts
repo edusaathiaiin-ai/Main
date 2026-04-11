@@ -52,7 +52,7 @@ const SAATHI_SUBJECTS: Record<string, string> = {
   biotechsaathi: 'biotechnology — molecular biology, genetic engineering, fermentation, bioprocessing',
   aerosaathi: 'aerospace engineering — aerodynamics, propulsion, flight mechanics, aircraft structures',
   aerospacesaathi: 'aerospace engineering — aerodynamics, propulsion, flight mechanics, aircraft structures',
-  chemenggsaathi: 'chemical engineering — mass transfer, reaction engineering, process design',
+  'chemengg-saathi': 'chemical engineering — mass transfer, reaction engineering, process design',
   electronicssaathi: 'electronics — semiconductor devices, digital circuits, microprocessors, VLSI',
 };
 

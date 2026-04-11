@@ -164,7 +164,12 @@
   --saathi-primary:  #0369A1; --saathi-dark:  #075985; --saathi-light: #E0F2FE;
   --saathi-mid:      #0284C7; --saathi-border:rgba(3,105,161,0.18);
   --saathi-bg:       rgba(3,105,161,0.05); --saathi-text:  #075985;
-  --sidebar-bg:      #F0F9FF; --bg-base:      #F0F9FF;
+  --sidebar-bg:      #F0F9FF; --bg-base:      #EFF6FF;
+  --text-primary:    #0C2340;
+  --text-secondary:  #1E3A5F;
+  --text-tertiary:   #2D5A8E;
+  --bg-surface:      #FFFFFF;
+  --bg-elevated:     #DBEAFE;
 }
 [data-saathi="mechsaathi"] {
   --saathi-primary:  #334155; --saathi-dark:  #1E293B; --saathi-light: #E2E8F0;

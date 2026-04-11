@@ -258,7 +258,7 @@ function subjectHint(slug: string): string {
       - GATE ECE preparation resources
       - Sedra/Smith Microelectronic Circuits`,
 
-    'chemengg saathi': `
+    'chemengg-saathi': `
       - AIChE (aiche.org) resources and journals
       - NPTEL Chemical Engineering courses
       - Perry's Chemical Engineers' Handbook

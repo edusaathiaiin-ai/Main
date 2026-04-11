@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
+import { toSlug } from '@/constants/verticalIds'
 import { RESEARCH_APPLICATION_STATUS } from '@/constants/db-enums'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -193,7 +194,7 @@ function ApplyModal({
               style={{ color: 'rgba(255,255,255,0.4)' }}
             >
               {project.faculty_profile?.institution_name ?? 'Research Lab'} ·{' '}
-              {SAATHIS.find((s) => s.id === project.vertical_id)?.name ??
+              {SAATHIS.find((s) => s.id === toSlug(project.vertical_id))?.name ??
                 project.vertical_id}
             </p>
           </div>
@@ -329,7 +330,7 @@ function ProjectCard({
   project: ResearchProject
   onApply: (p: ResearchProject) => void
 }) {
-  const saathi = SAATHIS.find((s) => s.id === project.vertical_id)
+  const saathi = SAATHIS.find((s) => s.id === toSlug(project.vertical_id))
   const applied = project.my_application
   const seatsLeft = project.seats_available - project.total_applicants
 
@@ -594,7 +595,7 @@ export default function ResearchPage() {
 
   // Unique verticals present in the project list
   const verticals = Array.from(new Set(projects.map((p) => p.vertical_id)))
-    .map((id) => SAATHIS.find((s) => s.id === id))
+    .map((id) => SAATHIS.find((s) => s.id === toSlug(id)))
     .filter(Boolean)
 
   return (

@@ -11,7 +11,8 @@ import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
 import { toSlug } from '@/constants/verticalIds'
 import { BOTS } from '@/constants/bots'
-import { getPlanTier } from '@/constants/plans'
+import { getPlanTier, isInFreeTrial } from '@/constants/plans'
+import { todayIST } from '@/lib/quota'
 import { getSaathiTheme } from '@/lib/saathiThemes'
 import { useThemeStore } from '@/stores/themeStore'
 import { useFontStore, getChatFontStyle } from '@/stores/fontStore'
@@ -23,6 +24,7 @@ import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
+import { FreePlanBar } from './FreePlanBar'
 import { Sidebar } from '@/components/layout/Sidebar'
 // ── Below-fold / conditional — lazy ───────────────────────────────────────────
 const DidYouKnow            = dynamic(() => import('./DidYouKnow').then(m => ({ default: m.DidYouKnow })), { ssr: false })
@@ -194,7 +196,7 @@ function RichFeatureBanner({
             key={i}
             style={{
               fontSize: '12px',
-              color: isLegalTheme ? '#555555' : 'rgba(255,255,255,0.6)',
+              color: 'var(--text-secondary)',
               margin: '2px 0',
               fontFamily: 'var(--font-dm-sans)',
             }}
@@ -205,7 +207,7 @@ function RichFeatureBanner({
         <p
           style={{
             fontSize: '11px',
-            color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.35)',
+            color: 'var(--text-tertiary)',
             margin: '6px 0 0',
             fontStyle: 'italic',
             fontFamily: 'var(--font-dm-sans)',
@@ -222,7 +224,7 @@ function RichFeatureBanner({
         style={{
           background: 'none',
           border: 'none',
-          color: isLegalTheme ? '#CCCCCC' : 'rgba(255,255,255,0.25)',
+          color: 'var(--text-ghost)',
           cursor: 'pointer',
           fontSize: '16px',
           padding: 0,
@@ -472,12 +474,16 @@ export function ChatWindow() {
 
   async function fetchQuota(userId: string, overridePlanId?: string) {
     const supabase = createClient()
+    // vertical_id filter prevents cross-Saathi row collision; todayIST() matches
+    // the IST date the Edge Function uses (avoids 12 AM–5:30 AM UTC date mismatch)
+    const vid = profile?.primary_saathi_id ?? ''
     const { data } = await supabase
       .from('chat_sessions')
       .select('id, message_count, cooling_until')
       .eq('user_id', userId)
+      .eq('vertical_id', vid)
       .eq('bot_slot', activeBotSlot)
-      .eq('quota_date_ist', new Date().toISOString().slice(0, 10))
+      .eq('quota_date_ist', todayIST())
       .maybeSingle()
 
     const planId = overridePlanId ?? profile?.plan_id ?? 'free'
@@ -806,6 +812,13 @@ export function ChatWindow() {
           createdAt={profile.created_at}
           onSlotChange={handleSlotChange}
           onLockedTap={handleLockedTap}
+        />
+
+        {/* Free plan ambient quota bar — always visible, hides during cooling */}
+        <FreePlanBar
+          quota={quota}
+          planId={profile.plan_id ?? 'free'}
+          isFreeTrial={isInFreeTrial(profile.created_at)}
         />
 
         {/* Quota banner */}

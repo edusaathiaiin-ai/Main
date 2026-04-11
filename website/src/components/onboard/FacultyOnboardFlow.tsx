@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { SAATHIS } from '@/constants/saathis'
 import { toVerticalUuid } from '@/constants/verticalIds'
 import { validateFacultyEmail } from '@/lib/faculty-email-validation'
+import { validateDisplayName } from '@/lib/validation/nameValidation'
 import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -336,15 +337,29 @@ function ProfileStep({
   onNext: () => void
   onBack: () => void
 }) {
-  const [tagInput, setTagInput] = useState('')
-  const [error,    setError]    = useState('')
+  const [tagInput,    setTagInput]    = useState('')
+  const [error,       setError]       = useState('')
+  const [nameTouched, setNameTouched] = useState(false)
 
   const isActive      = form.employment === 'active'
   const isRetired     = form.employment === 'retired'
   const isIndependent = form.employment === 'independent'
 
+  const nameTyped = form.fullName.trim().length > 0
+  const { valid: nameValid, error: nameValidationError } = nameTyped
+    ? validateDisplayName(form.fullName)
+    : { valid: false, error: null }
+  const showNameError = nameTouched && nameTyped && !nameValid
+  const showNameValid = nameTouched && nameValid
+  const nameFieldBorderColor = showNameError
+    ? 'rgba(239,68,68,0.6)'
+    : showNameValid
+      ? 'rgba(74,222,128,0.5)'
+      : 'rgba(255,255,255,0.1)'
+
   function validate() {
-    if (!form.fullName.trim())                         return 'Please enter your full name'
+    const nameCheck = validateDisplayName(form.fullName)
+    if (!nameCheck.valid)                              return nameCheck.error ?? 'Please enter your full name'
     if (!form.city)                                    return 'Please select your city'
     if (isActive && !form.institution.trim())          return 'Please enter your institution'
     if (isActive && !form.designation)                 return 'Please select your designation'
@@ -406,14 +421,32 @@ function ProfileStep({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
             <Label>Full name *</Label>
-            <input
-              value={form.fullName}
-              onChange={(e) => set('fullName', e.target.value)}
-              placeholder="Prof. Jayant Narlikar"
-              style={inp}
-              onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-              onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                value={form.fullName}
+                onChange={(e) => set('fullName', e.target.value)}
+                onBlur={() => setNameTouched(true)}
+                placeholder="Prof. Jayant Narlikar"
+                style={{ ...inp, borderColor: nameFieldBorderColor, paddingRight: '2rem' }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = showNameError
+                  ? 'rgba(239,68,68,0.8)'
+                  : showNameValid
+                    ? 'rgba(74,222,128,0.7)'
+                    : `${GOLD}80`)}
+              />
+              {showNameValid && (
+                <span style={{
+                  position: 'absolute', right: '10px', top: '50%',
+                  transform: 'translateY(-50%)', color: '#4ADE80',
+                  fontWeight: 700, fontSize: '13px', pointerEvents: 'none',
+                }}>✓</span>
+              )}
+            </div>
+            {showNameError && (
+              <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#F87171' }}>
+                {nameValidationError}
+              </p>
+            )}
           </div>
           <div>
             <Label>City *</Label>

@@ -246,14 +246,14 @@ serve(async (req: Request) => {
         .select('id, user_id, vertical_id, started_at, ended_at')
         .eq('user_id',     manualUserId!)
         .eq('vertical_id', manualVerticalId!)
-        .eq('date_ist',    date)
+        .eq('quota_date_ist', date)
         .order('started_at')
       rows = (data ?? []) as Row[]
     } else {
       const { data } = await admin
         .from('chat_sessions')
         .select('id, user_id, vertical_id, started_at, ended_at')
-        .eq('date_ist', date)
+        .eq('quota_date_ist', date)
         .order('started_at')
       rows = (data ?? []) as Row[]
     }
@@ -306,12 +306,18 @@ serve(async (req: Request) => {
           .maybeSingle()
         if (!vert) continue
 
-        // Messages
+        // Messages — session_id is not populated by the chat function,
+        // so query by user_id + vertical_id + IST day window instead.
+        const dayStart = new Date(`${date}T00:00:00+05:30`).toISOString()
+        const dayEnd   = new Date(`${date}T23:59:59+05:30`).toISOString()
         const { data: msgs } = await admin
-          .from('session_messages')
+          .from('chat_messages')
           .select('role, content, created_at')
-          .in('session_id', g.sessions.map(s => s.id))
+          .eq('user_id',     g.user_id)
+          .eq('vertical_id', g.vertical_id)
           .in('role', ['user', 'assistant'])
+          .gte('created_at', dayStart)
+          .lte('created_at', dayEnd)
           .order('created_at')
         if (!msgs?.length) continue
 

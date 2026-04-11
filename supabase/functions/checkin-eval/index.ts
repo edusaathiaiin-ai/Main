@@ -58,7 +58,7 @@ const SAATHI_CONTEXT: Record<string, string> = {
   civilsaathi:      'The student is studying civil engineering. Evaluate structural reasoning, application of engineering concepts, and problem-solving.',
   elecsaathi:       'The student is studying electrical engineering. Evaluate circuit understanding, power systems knowledge, and technical accuracy.',
   electronicssaathi:'The student is studying electronics engineering. Evaluate circuit analysis, signal processing understanding, and technical reasoning.',
-  chemenggsaathi:   'The student is studying chemical engineering. Evaluate process understanding, mass/energy balance, and engineering application.',
+  'chemengg-saathi': 'The student is studying chemical engineering. Evaluate process understanding, mass/energy balance, and engineering application.',
   biotechsaathi:    'The student is studying biotechnology. Evaluate understanding of bioprocesses, genetic concepts, and technical accuracy.',
   aerospacesaathi:  'The student is studying aerospace engineering. Evaluate understanding of aerodynamics, orbital mechanics, and aerospace systems.',
   archsaathi:       'The student is studying architecture. Evaluate design thinking, technical knowledge, and ability to connect form with function.',

@@ -6,22 +6,41 @@ import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Session } from '@supabase/supabase-js'
 
-// ── Welcome email (fire-and-forget for brand-new users only) ────────────────
+// ── Welcome email with retry ─────────────────────────────────────────────────
+// Profile row may not exist yet when the callback fires (DB trigger race).
+// Retry up to 3 times with increasing delays before giving up.
+// send-welcome-email is idempotent (welcome_email_sent flag) — safe to call
+// for both new and returning users.
 
-async function callWelcomeEmail(accessToken: string): Promise<void> {
-  const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-welcome-email`
-  try {
-    await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({}),
-    })
-  } catch {
-    // fire-and-forget — never blocks auth flow
+async function sendWelcomeWithRetry(
+  session: Session,
+  maxAttempts = 3
+): Promise<void> {
+  for (let i = 0; i < maxAttempts; i++) {
+    // Wait before every attempt — profile needs time to be created
+    await new Promise((r) => setTimeout(r, 2000 * (i + 1)))
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-welcome-email`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+          },
+        }
+      )
+      const data = await res.json()
+
+      // Success or already sent — stop retrying
+      if (res.ok && (data.sent || data.skipped)) return
+
+      // Profile not ready yet — retry
+      console.warn(`Welcome email attempt ${i + 1} failed:`, data)
+    } catch {
+      // Network error — retry
+    }
   }
 }
 
@@ -194,6 +213,10 @@ function CallbackInner() {
           }
         }
         // ─────────────────────────────────────────────────────────────────────
+
+        // Fire welcome email — retries handle profile-not-ready race condition.
+        // Never blocks navigation.
+        sendWelcomeWithRetry(resolvedSession).catch(() => {})
 
         if (!isActive) {
           // Build onboard URL preserving role + saathi params

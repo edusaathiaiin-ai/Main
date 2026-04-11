@@ -7,7 +7,9 @@
       "Bash(ls -la d:/Main/.env* d:/Main/website/.env*)",
       "Bash(npm run:*)",
       "Bash(nslookup -type=NS edusaathiai.in)",
-      "Bash(nslookup www.edusaathiai.in)"
+      "Bash(nslookup www.edusaathiai.in)",
+      "Bash(git stash:*)",
+      "Bash(git pull:*)"
     ]
   }
 }

@@ -9,7 +9,7 @@
 ## 1. What is EdUsaathiAI?
 
 EdUsaathiAI (edusaathiai.in) is an AI-first education platform built for India.
-It is a mother app under which 20 subject-specific verticals called "Saathis" live as distinct, branded learning companions.
+It is a mother app under which 30 subject-specific verticals called "Saathis" live as distinct, branded learning companions.
 Built under the Indo American Education Society (IAES), Ahmedabad.
 
 **Brand name:** Always `EdUsaathiAI` — capital E, capital U, capital AI. Never "Edusaathi", never "edusaathiai", never "EduSaathi".
@@ -130,7 +130,7 @@ EdUsaathiAI/
 │   ├── useQuota.ts
 │   └── useSaathi.ts
 ├── constants/
-│   ├── saathis.ts           ← all 20 Saathi configs
+│   ├── saathis.ts           ← all 30 Saathi configs
 │   ├── bots.ts              ← 5 bot slot definitions
 │   └── plans.ts             ← subscription plan configs
 ├── types/
@@ -145,31 +145,47 @@ EdUsaathiAI/
 
 ---
 
-## 5. The 20 Saathis
+## 5. The 30 Saathis
+
+> NOTE: The DB is the source of truth. Always query `SELECT slug, name FROM verticals ORDER BY name` for the live list.
+> As of 2026-04-11 there are 30 verticals live.
 
 ```typescript
+// Original 20 + 10 new additions (AccountSaathi, AerospaceSaathi, AgriSaathi,
+// BioTechSaathi, ChemEnggSaathi, ElectronicsSaathi, GeoSaathi, PhysicsSaathi,
+// PolSciSaathi, StatsSaathi)
 // constants/saathis.ts — reference data
 export const SAATHIS = [
-  { id: 'kanoonsaathi',   name: 'KanoonSaathi',  emoji: '⚖️',  tagline: 'Where law meets intelligence',              primary: '#1E3A5F', accent: '#3B82F6', bg: '#E8F0FE' },
-  { id: 'maathsaathi',    name: 'MaathSaathi',   emoji: '📐',  tagline: 'Numbers made neighbourly',                  primary: '#0F4C2A', accent: '#22C55E', bg: '#EAF3DE' },
-  { id: 'chemsaathi',     name: 'ChemSaathi',    emoji: '🧪',  tagline: 'Reactions decoded, concepts unlocked',      primary: '#5C1A6B', accent: '#A855F7', bg: '#F5E8FE' },
-  { id: 'biosaathi',      name: 'BioSaathi',     emoji: '🧬',  tagline: 'Life explained, cell by cell',              primary: '#1A5C2E', accent: '#10B981', bg: '#E6F7EC' },
-  { id: 'pharmasaathi',   name: 'PharmaSaathi',  emoji: '💊',  tagline: 'Every molecule has a story',                primary: '#7A1C1C', accent: '#EF4444', bg: '#FDEAEA' },
-  { id: 'medicosaathi',   name: 'MedicoSaathi',  emoji: '🏥',  tagline: 'Healing starts with understanding',         primary: '#1A4A5C', accent: '#0EA5E9', bg: '#E4F0F5' },
-  { id: 'nursingsaathi',  name: 'NursingSaathi', emoji: '🩺',  tagline: 'Care grounded in knowledge',                primary: '#5C001A', accent: '#F43F5E', bg: '#FCEAF0' },
-  { id: 'psychsaathi',    name: 'PsychSaathi',   emoji: '🧠',  tagline: 'Understanding minds, building empathy',     primary: '#3A1C5C', accent: '#8B5CF6', bg: '#F0E8FC' },
-  { id: 'mechsaathi',     name: 'MechSaathi',    emoji: '⚙️',  tagline: 'Engineering minds, precision built',        primary: '#1A3A5C', accent: '#0EA5E9', bg: '#E6EEF8' },
-  { id: 'civilsaathi',    name: 'CivilSaathi',   emoji: '🏗️',  tagline: 'Structures that stand the test of time',   primary: '#3A2800', accent: '#F59E0B', bg: '#FFF3E0' },
-  { id: 'elecsaathi',     name: 'ElecSaathi',    emoji: '⚡',  tagline: 'Current knowledge, grounded thinking',      primary: '#003A5C', accent: '#06B6D4', bg: '#E0F0FA' },
-  { id: 'compsaathi',     name: 'CompSaathi',    emoji: '💻',  tagline: 'Code, conquer, create',                     primary: '#1C1C5C', accent: '#6366F1', bg: '#EEEEF8' },
-  { id: 'envirosathi',    name: 'EnviroSaathi',  emoji: '🌍',  tagline: 'Engineering a sustainable tomorrow',        primary: '#0F3A1A', accent: '#84CC16', bg: '#E4F5E8' },
-  { id: 'bizsaathi',      name: 'BizSaathi',     emoji: '📈',  tagline: 'Business thinking, sharpened daily',        primary: '#1A3A00', accent: '#65A30D', bg: '#EEF8E4' },
-  { id: 'finsaathi',      name: 'FinSaathi',     emoji: '💰',  tagline: 'Money matters, demystified',                primary: '#1A3A2A', accent: '#059669', bg: '#E4F5EE' },
-  { id: 'mktsaathi',      name: 'MktSaathi',     emoji: '📣',  tagline: 'From insight to influence',                 primary: '#5C1A00', accent: '#F97316', bg: '#FFF0E8' },
-  { id: 'hrsaathi',       name: 'HRSaathi',      emoji: '🤝',  tagline: 'People first, always',                      primary: '#3A003A', accent: '#EC4899', bg: '#F8E8F8' },
-  { id: 'archsaathi',     name: 'ArchSaathi',    emoji: '🏛️',  tagline: 'Design thinking, built different',          primary: '#6B4A00', accent: '#D97706', bg: '#FFF4D6' },
-  { id: 'historysaathi',  name: 'HistorySaathi', emoji: '🏺',  tagline: 'Every era has a lesson',                    primary: '#5C3A00', accent: '#B45309', bg: '#FFF0E0' },
-  { id: 'econsaathi',     name: 'EconSaathi',    emoji: '📊',  tagline: 'Markets explained, policies demystified',   primary: '#2C4A00', accent: '#4D7C0F', bg: '#EEF6E0' },
+  { id: 'kanoonsaathi',      name: 'KanoonSaathi',      emoji: '⚖️',  tagline: 'Where law meets intelligence',              primary: '#1E3A5F', accent: '#3B82F6', bg: '#E8F0FE' },
+  { id: 'maathsaathi',       name: 'MaathSaathi',       emoji: '📐',  tagline: 'Numbers made neighbourly',                  primary: '#0F4C2A', accent: '#22C55E', bg: '#EAF3DE' },
+  { id: 'chemsaathi',        name: 'ChemSaathi',        emoji: '🧪',  tagline: 'Reactions decoded, concepts unlocked',      primary: '#5C1A6B', accent: '#A855F7', bg: '#F5E8FE' },
+  { id: 'biosaathi',         name: 'BioSaathi',         emoji: '🧬',  tagline: 'Life explained, cell by cell',              primary: '#1A5C2E', accent: '#10B981', bg: '#E6F7EC' },
+  { id: 'pharmasaathi',      name: 'PharmaSaathi',      emoji: '💊',  tagline: 'Every molecule has a story',                primary: '#7A1C1C', accent: '#EF4444', bg: '#FDEAEA' },
+  { id: 'medicosaathi',      name: 'MedicoSaathi',      emoji: '🏥',  tagline: 'Healing starts with understanding',         primary: '#1A4A5C', accent: '#0EA5E9', bg: '#E4F0F5' },
+  { id: 'nursingsaathi',     name: 'NursingSaathi',     emoji: '🩺',  tagline: 'Care grounded in knowledge',                primary: '#5C001A', accent: '#F43F5E', bg: '#FCEAF0' },
+  { id: 'psychsaathi',       name: 'PsychSaathi',       emoji: '🧠',  tagline: 'Understanding minds, building empathy',     primary: '#3A1C5C', accent: '#8B5CF6', bg: '#F0E8FC' },
+  { id: 'mechsaathi',        name: 'MechSaathi',        emoji: '⚙️',  tagline: 'Engineering minds, precision built',        primary: '#1A3A5C', accent: '#0EA5E9', bg: '#E6EEF8' },
+  { id: 'civilsaathi',       name: 'CivilSaathi',       emoji: '🏗️',  tagline: 'Structures that stand the test of time',   primary: '#3A2800', accent: '#F59E0B', bg: '#FFF3E0' },
+  { id: 'elecsaathi',        name: 'ElecSaathi',        emoji: '⚡',  tagline: 'Current knowledge, grounded thinking',      primary: '#003A5C', accent: '#06B6D4', bg: '#E0F0FA' },
+  { id: 'compsaathi',        name: 'CompSaathi',        emoji: '💻',  tagline: 'Code, conquer, create',                     primary: '#1C1C5C', accent: '#6366F1', bg: '#EEEEF8' },
+  { id: 'envirosaathi',      name: 'EnviroSaathi',      emoji: '🌍',  tagline: 'Engineering a sustainable tomorrow',        primary: '#0F3A1A', accent: '#84CC16', bg: '#E4F5E8' },
+  { id: 'bizsaathi',         name: 'BizSaathi',         emoji: '📈',  tagline: 'Business thinking, sharpened daily',        primary: '#1A3A00', accent: '#65A30D', bg: '#EEF8E4' },
+  { id: 'finsaathi',         name: 'FinSaathi',         emoji: '💰',  tagline: 'Money matters, demystified',                primary: '#1A3A2A', accent: '#059669', bg: '#E4F5EE' },
+  { id: 'mktsaathi',         name: 'MktSaathi',         emoji: '📣',  tagline: 'From insight to influence',                 primary: '#5C1A00', accent: '#F97316', bg: '#FFF0E8' },
+  { id: 'hrsaathi',          name: 'HRSaathi',          emoji: '🤝',  tagline: 'People first, always',                      primary: '#3A003A', accent: '#EC4899', bg: '#F8E8F8' },
+  { id: 'archsaathi',        name: 'ArchSaathi',        emoji: '🏛️',  tagline: 'Design thinking, built different',          primary: '#6B4A00', accent: '#D97706', bg: '#FFF4D6' },
+  { id: 'historysaathi',     name: 'HistorySaathi',     emoji: '🏺',  tagline: 'Every era has a lesson',                    primary: '#5C3A00', accent: '#B45309', bg: '#FFF0E0' },
+  { id: 'econsaathi',        name: 'EconSaathi',        emoji: '📊',  tagline: 'Markets explained, policies demystified',   primary: '#2C4A00', accent: '#4D7C0F', bg: '#EEF6E0' },
+  { id: 'accountsaathi',     name: 'AccountSaathi',     emoji: '📒',  tagline: 'Numbers that tell the real story',          primary: '#1A3A5C', accent: '#3B82F6', bg: '#E8F0FE' },
+  { id: 'aerospacesaathi',   name: 'AerospaceSaathi',   emoji: '🚀',  tagline: 'From runway to orbit',                      primary: '#0A1628', accent: '#60A5FA', bg: '#E8F0FE' },
+  { id: 'agrisaathi',        name: 'AgriSaathi',        emoji: '🌾',  tagline: 'Science of the soil, future of food',       primary: '#2A4A00', accent: '#84CC16', bg: '#F0F7E0' },
+  { id: 'biotechsaathi',     name: 'BioTechSaathi',     emoji: '🔬',  tagline: 'Where biology meets engineering',           primary: '#003A3A', accent: '#14B8A6', bg: '#E0F7F5' },
+  { id: 'chemengg-saathi',   name: 'ChemEnggSaathi',    emoji: '⚗️',  tagline: 'Processes that power the world',            primary: '#3A1A5C', accent: '#A855F7', bg: '#F3E8FE' },
+  { id: 'electronicssaathi', name: 'ElectronicsSaathi', emoji: '🔌',  tagline: 'Signals, systems, solutions',               primary: '#001A3A', accent: '#0EA5E9', bg: '#E0F0FA' },
+  { id: 'geosaathi',         name: 'GeoSaathi',         emoji: '🗺️',  tagline: 'Every layer of the Earth has a story',      primary: '#2A3A1A', accent: '#65A30D', bg: '#EEF4E0' },
+  { id: 'physicsaathi',      name: 'PhysicsSaathi',     emoji: '⚛️',  tagline: 'The universe, explained',                   primary: '#1A1A5C', accent: '#818CF8', bg: '#EEEEF8' },
+  { id: 'polscisaathi',      name: 'PolSciSaathi',      emoji: '🏛️',  tagline: 'Power, policy, and the people',             primary: '#3A1A00', accent: '#F97316', bg: '#FFF0E8' },
+  { id: 'statssaathi',       name: 'StatsSaathi',       emoji: '📉',  tagline: 'Data speaks — learn to listen',             primary: '#1A003A', accent: '#C084FC', bg: '#F5E8FE' },
 ];
 ```
 
@@ -313,7 +329,7 @@ All 16 tables. RLS enabled on every table without exception.
 
 ```
 profiles            — all users, all roles
-verticals           — 20 Saathi configurations
+verticals           — 30 Saathi configurations
 bot_personas        — bot definitions per Saathi per slot
 student_soul        — soul matching engine (7 signals)
 student_subjects    — enrolled + future subjects
@@ -366,7 +382,7 @@ consent_log         — consent audit trail
 1. Splash Screen          → Logo, tagline, USP, 2s auto-advance
 2. Welcome Carousel       → 3 slides (What / Meet Saathis / How it works), skippable
 3. Role Selection         → 4 expandable cards, role color on selection
-4. Saathi Picker          → Grid of 20 Saathis, pick primary, 1 required
+4. Saathi Picker          → Grid of 30 Saathis, pick primary, 1 required
 5. Sign Up / Login        → Google OAuth (primary) + Email OTP, screen = Saathi color
 6. Profile Completion     → Name, city, institution, year, subjects, research area, exam target
 7. Home Screen            → Personalised dashboard, bottom tab bar, Saathi theme
@@ -524,7 +540,7 @@ Build in this exact order. Do not skip steps.
 ```
 Step 1  → Project scaffold (Expo Router, TypeScript, NativeWind, Supabase, Sentry)
 Step 2  → Supabase schema (all 16 tables, RLS policies)
-Step 3  → Constants (20 Saathis, 5 bots, subscription plans)
+Step 3  → Constants (30 Saathis, 5 bots, subscription plans)
 Step 4  → Auth flow (Google OAuth + Email OTP, useAuth hook, protected routes)
 Step 5  → Onboarding (7 screens, role cards, Saathi picker, profile completion)
 Step 6  → Soul engine (buildSystemPrompt, updateSoulProfile, lib/soul.ts)

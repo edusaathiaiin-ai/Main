@@ -68,7 +68,7 @@ export function ArchModel3D({
         >
           🏛️ {label} — 3D Model
         </span>
-        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.65)' }}>
           Rotate · Zoom · Explore
         </span>
       </div>

@@ -1,7 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { getBrowserClient } from '@/lib/supabase-browser'
+
+// ── Fixed screen toast — appears regardless of where modal was ────────────────
+function Toast({ message, type }: { message: string; type: 'success' | 'error' }) {
+  return createPortal(
+    <div
+      className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] px-6 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-semibold animate-in fade-in slide-in-from-top-4 duration-300 ${
+        type === 'success'
+          ? 'bg-emerald-500 text-white'
+          : 'bg-red-500 text-white'
+      }`}
+    >
+      <span className="text-lg">{type === 'success' ? '✅' : '❌'}</span>
+      {message}
+    </div>,
+    document.body,
+  )
+}
 
 const SEGMENTS = [
   { id: 'all_students', label: 'All students' },
@@ -40,38 +58,115 @@ export function NudgeBuilder({
   })
   const [scheduleNow, setScheduleNow] = useState(true)
   const [scheduledAt, setScheduledAt] = useState('')
+  const [subject, setSubject] = useState(templateTitle)
   const [confirming, setConfirming] = useState(false)
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
+  const [sentReach, setSentReach] = useState(0)
+  const [sendError, setSendError] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  // Auto-dismiss toast after 5s
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 5000)
+    return () => clearTimeout(t)
+  }, [toast])
 
   async function sendNudge() {
     setSending(true)
+    setSendError(null)
     const sb = getBrowserClient()
-    // Log the nudge send
-    await sb
-      .from('nudge_log')
+
+    // Step 1: Insert campaign row and capture ID
+    const { data: log, error: logError } = await sb
+      .from('nudge_campaigns')
       .insert({
         template_id: templateId,
         segment,
         message: message.trim() || templateTitle,
         channels: JSON.stringify(channels),
-        reach: estimatedReach,
+        status: 'pending',
         scheduled_at: scheduleNow ? new Date().toISOString() : scheduledAt,
       })
-      .select()
-      .maybeSingle()
+      .select('id')
+      .single()
+
+    if (logError || !log?.id) {
+      console.error('[NudgeBuilder] nudge_log insert error:', logError)
+      setSendError(logError?.message ?? 'Failed to create nudge log')
+      setSending(false)
+      setToast({ message: 'Failed to send nudge — check console', type: 'error' })
+      return
+    }
+
+    // Step 2: Call Edge Function with the log ID
+    let reach = 0
+    try {
+      // getUser() forces a token refresh if the current token is expired
+      const { data: { user: currentUser } } = await sb.auth.getUser()
+      if (!currentUser) throw new Error('Not authenticated — please reload and log in again')
+
+      const { data: { session } } = await sb.auth.getSession()
+      if (!session?.access_token) throw new Error('No active session — please reload the page')
+
+      const channelArray = (Object.entries(channels) as [keyof typeof channels, boolean][])
+        .filter(([, enabled]) => enabled)
+        .map(([ch]) => ch)
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-nudge`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            nudgeCampaignId: log.id,
+            segment,
+            subject: subject.trim() || templateTitle,
+            message: message.trim() || templateTitle,
+            channels: channelArray,
+            senderName: 'Jaydeep from EdUsaathiAI',
+          }),
+        },
+      )
+      const result = await res.json()
+      if (!res.ok) {
+        throw new Error(result.error ?? `HTTP ${res.status}`)
+      }
+      reach = result.reach ?? 0
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      console.error('[NudgeBuilder] Edge Function error:', msg)
+      setSendError(msg)
+      setSending(false)
+      setToast({ message: `Send failed: ${msg}`, type: 'error' })
+      return
+    }
+
+    // Step 3: Show result
+    setSentReach(reach)
     setSending(false)
     setSent(true)
-    setOpen(false)
     setConfirming(false)
-    setTimeout(() => setSent(false), 3000)
+    // Show prominent fixed toast
+    setToast({ message: `Nudge sent to ${reach} users`, type: 'success' })
+    // Close modal after 2s so user sees the in-modal success state first
+    setTimeout(() => {
+      setOpen(false)
+      setTimeout(() => setSent(false), 1000)
+    }, 2000)
   }
 
   if (compact) {
     return (
       <>
+        {toast && <Toast message={toast.message} type={toast.type} />}
         {sent ? (
-          <span className="text-xs text-emerald-400">✓ Sent</span>
+          <span className="text-xs text-emerald-400">✓ Sent to {sentReach}</span>
         ) : (
           <button
             onClick={() => setOpen(true)}
@@ -84,65 +179,82 @@ export function NudgeBuilder({
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             style={{ background: 'rgba(0,0,0,0.7)' }}
-            onClick={(e) => e.target === e.currentTarget && setOpen(false)}
+            onClick={(e) => !sending && !sent && e.target === e.currentTarget && setOpen(false)}
           >
             <div className="w-full max-w-md rounded-2xl p-6 bg-slate-900 border border-slate-700 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-white">{templateTitle}</h3>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="text-slate-500 text-xl"
-                >
-                  ×
-                </button>
+                {!sending && !sent && (
+                  <button onClick={() => setOpen(false)} className="text-slate-500 text-xl">×</button>
+                )}
               </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
-                  Target segment
-                </label>
-                <select
-                  value={segment}
-                  onChange={(e) => setSegment(e.target.value as SegmentId)}
-                  className="w-full rounded-lg px-3 py-2 text-sm text-white bg-slate-800 border border-slate-700 outline-none"
-                >
-                  {SEGMENTS.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <p className="text-xs text-slate-500">
-                Estimated reach: ~{estimatedReach} users
-              </p>
-              {!confirming ? (
-                <button
-                  onClick={() => setConfirming(true)}
-                  className="w-full py-2.5 rounded-xl text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-500"
-                >
-                  Send Nudge →
-                </button>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-xs text-amber-400 text-center font-semibold">
-                    This will notify ~{estimatedReach} users. Confirm?
-                  </p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setConfirming(false)}
-                      className="flex-1 py-2 rounded-xl text-xs font-medium bg-slate-700 text-slate-300"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={sendNudge}
-                      disabled={sending}
-                      className="flex-1 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white disabled:opacity-50"
-                    >
-                      {sending ? 'Sending…' : 'Confirm Send'}
-                    </button>
-                  </div>
+
+              {/* Success state — shown inside modal for 2s before auto-close */}
+              {sent ? (
+                <div className="py-6 text-center space-y-2">
+                  <div className="text-4xl">✅</div>
+                  <p className="text-lg font-bold text-emerald-400">Nudge sent!</p>
+                  <p className="text-sm text-slate-400">Reached <span className="text-white font-semibold">{sentReach}</span> users</p>
                 </div>
+              ) : sendError ? (
+                <div className="py-4 text-center space-y-2">
+                  <div className="text-3xl">❌</div>
+                  <p className="text-sm font-semibold text-red-400">Send failed</p>
+                  <p className="text-xs text-slate-500">{sendError}</p>
+                  <button
+                    onClick={() => { setSendError(null); setConfirming(false) }}
+                    className="text-xs text-indigo-400 underline"
+                  >Try again</button>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1">Target segment</label>
+                    <select
+                      value={segment}
+                      onChange={(e) => setSegment(e.target.value as SegmentId)}
+                      className="w-full rounded-lg px-3 py-2 text-sm text-white bg-slate-800 border border-slate-700 outline-none"
+                    >
+                      {SEGMENTS.map((s) => (
+                        <option key={s.id} value={s.id}>{s.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="text-xs text-slate-500">Estimated reach: ~{estimatedReach} users</p>
+                  {!confirming ? (
+                    <button
+                      onClick={() => setConfirming(true)}
+                      className="w-full py-2.5 rounded-xl text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-500"
+                    >
+                      Send Nudge →
+                    </button>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-xs text-amber-400 text-center font-semibold">
+                        This will notify ~{estimatedReach} users. Confirm?
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setConfirming(false)}
+                          disabled={sending}
+                          className="flex-1 py-2 rounded-xl text-xs font-medium bg-slate-700 text-slate-300 disabled:opacity-40"
+                        >Cancel</button>
+                        <button
+                          onClick={sendNudge}
+                          disabled={sending}
+                          className="flex-1 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white disabled:opacity-50"
+                        >
+                          {sending ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                              Sending…
+                            </span>
+                          ) : 'Confirm Send'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -154,6 +266,7 @@ export function NudgeBuilder({
   // Full custom builder
   return (
     <div className="max-w-xl space-y-5">
+      {toast && <Toast message={toast.message} type={toast.type} />}
       <h2 className="text-lg font-semibold text-white">Custom Nudge Builder</h2>
 
       <div>
@@ -203,6 +316,19 @@ export function NudgeBuilder({
             ⚠️ Use WhatsApp sparingly — opt-out risk
           </p>
         )}
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+          Email subject
+        </label>
+        <input
+          type="text"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          placeholder="Your {saathi_name} has a message for you"
+          className="w-full rounded-xl px-4 py-3 text-sm text-white bg-slate-800 border border-slate-700 outline-none"
+        />
       </div>
 
       <div>
@@ -270,7 +396,7 @@ export function NudgeBuilder({
 
       {sent ? (
         <div className="py-3 rounded-xl text-center text-sm font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30">
-          ✓ Nudge sent!
+          ✓ Sent to {sentReach} users
         </div>
       ) : !confirming ? (
         <button

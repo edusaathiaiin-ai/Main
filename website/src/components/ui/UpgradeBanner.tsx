@@ -69,20 +69,10 @@ const BANNER_CONFIGS: Record<UpgradeTrigger, BannerConfig> = {
   },
 }
 
-const URGENCY_BG: Record<string, string> = {
-  low: 'rgba(201,153,58,0.12)',
-  medium: 'rgba(251,146,60,0.12)',
-  high: 'rgba(239,68,68,0.1)',
-}
 const URGENCY_BORDER: Record<string, string> = {
-  low: 'rgba(201,153,58,0.35)',
-  medium: 'rgba(251,146,60,0.4)',
-  high: 'rgba(239,68,68,0.35)',
-}
-const URGENCY_ACCENT: Record<string, string> = {
-  low: '#C9993A',
-  medium: '#FB923C',
-  high: '#F87171',
+  low:    'rgba(184,134,11,0.25)',
+  medium: 'rgba(184,134,11,0.40)',
+  high:   'rgba(184,134,11,0.60)',
 }
 
 export function UpgradeBanner({
@@ -109,46 +99,38 @@ export function UpgradeBanner({
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       style={{
         position: 'fixed',
-        bottom: '24px',
+        bottom: '72px',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 50,
-        width: 'calc(100% - 48px)',
-        maxWidth: '520px',
-        padding: '16px 20px',
-        borderRadius: '16px',
-        background: URGENCY_BG[config.urgency],
+        width: 'calc(100% - 32px)',
+        maxWidth: '480px',
+        padding: '10px 12px 10px 16px',
+        borderRadius: '14px',
+        background: '#FFFFFF',
         border: `1px solid ${URGENCY_BORDER[config.urgency]}`,
-        backdropFilter: 'blur(12px)',
         display: 'flex',
         alignItems: 'center',
-        gap: '16px',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+        gap: '10px',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
       }}
     >
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <p
           style={{
-            fontSize: '13px',
+            fontSize: '12px',
             fontWeight: '600',
-            color: '#ffffff',
-            margin: '0 0 3px',
+            color: '#1A1814',
+            margin: 0,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}
         >
           {studentName
             ? config.headline.replace('[Name]', studentName)
             : config.headline}
-        </p>
-        <p
-          style={{
-            fontSize: '11px',
-            color: 'rgba(255,255,255,0.5)',
-            margin: 0,
-            lineHeight: 1.5,
-          }}
-        >
-          {config.subtext}
         </p>
       </div>
 
@@ -158,10 +140,10 @@ export function UpgradeBanner({
         onClick={handleUpgrade}
         style={{
           flexShrink: 0,
-          padding: '8px 16px',
-          borderRadius: '10px',
-          background: URGENCY_ACCENT[config.urgency],
-          color: '#0B1F3A',
+          padding: '7px 14px',
+          borderRadius: '9px',
+          background: '#B8860B',
+          color: '#FFFFFF',
           fontSize: '12px',
           fontWeight: '700',
           textDecoration: 'none',
@@ -174,15 +156,22 @@ export function UpgradeBanner({
       {/* Dismiss */}
       <button
         onClick={onDismiss}
+        aria-label="Dismiss"
         style={{
           flexShrink: 0,
-          background: 'none',
-          border: 'none',
-          color: 'rgba(255,255,255,0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '28px',
+          height: '28px',
+          borderRadius: '50%',
+          background: 'rgba(26,24,20,0.06)',
+          border: '0.5px solid rgba(26,24,20,0.12)',
+          color: '#4A4740',
           cursor: 'pointer',
-          fontSize: '18px',
-          padding: '0',
+          fontSize: '16px',
           lineHeight: 1,
+          padding: 0,
         }}
       >
         ×

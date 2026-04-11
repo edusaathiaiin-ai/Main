@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
+import { toSlug } from '@/constants/verticalIds'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1324,7 +1325,7 @@ export default function InstitutionPage() {
             ) : (
               <div className="space-y-4">
                 {ifPostings.map((p) => {
-                  const saathi = SAATHIS.find((s) => s.id === p.vertical_id)
+                  const saathi = SAATHIS.find((s) => s.id === toSlug(p.vertical_id))
                   return (
                     <div
                       key={p.id}

@@ -98,7 +98,7 @@ const SAATHI_META: Record<string, SaathiMeta> = {
     lure: 'India is building ₹100 lakh crore of infrastructure this decade. Civil engineers are at the centre.',
   },
 
-  'chemengg saathi': {
+  'chemengg-saathi': {
     primary:   ['B.Tech Chemical Engineering', 'GATE CH', 'PSU exams'],
     crossover: ['Chemistry students (industrial application)',
                 'Pharma students (drug manufacturing)',
@@ -300,14 +300,14 @@ const CURRICULUM_GROUPS: CurriculumGroup[] = [
     id: 'btech', label: 'B.Tech / B.E', emoji: '⚙️', color: '#0EA5E9',
     tagline: 'Engineering across every branch',
     slugs: ['compsaathi','maathsaathi','physicsaathi','chemsaathi','mechsaathi',
-            'elecsaathi','civilsaathi','electronicssaathi','chemengg saathi',
-            'aerospacesaathi','biotechsaathi','envirosathi'],
+            'elecsaathi','civilsaathi','electronicssaathi','chemengg-saathi',
+            'aerospacesaathi','biotechsaathi','envirosaathi'],
   },
   {
     id: 'bsc', label: 'B.Sc / M.Sc', emoji: '🔬', color: '#10B981',
     tagline: 'Pure sciences from cell to cosmos',
     slugs: ['physicsaathi','chemsaathi','biosaathi','maathsaathi',
-            'statssaathi','envirosathi','biotechsaathi','agrisaathi'],
+            'statssaathi','envirosaathi','biotechsaathi','agrisaathi'],
   },
   {
     id: 'bcom', label: 'B.Com / MBA', emoji: '📊', color: '#F59E0B',
@@ -333,12 +333,12 @@ const CURRICULUM_GROUPS: CurriculumGroup[] = [
     id: 'upsc', label: 'UPSC', emoji: '🎯', color: '#C9993A',
     tagline: 'Every UPSC optional and GS subject covered',
     slugs: ['kanoonsaathi','historysaathi','polscisaathi','geosaathi','econsaathi',
-            'envirosathi','agrisaathi','maathsaathi','physicsaathi','psychsaathi','statssaathi'],
+            'envirosaathi','agrisaathi','maathsaathi','physicsaathi','psychsaathi','statssaathi'],
   },
   {
     id: 'agri', label: 'Agriculture', emoji: '🌾', color: '#84CC16',
     tagline: 'B.Sc Ag, ICAR NET, State PSC Agriculture',
-    slugs: ['agrisaathi','biosaathi','envirosathi','chemsaathi','statssaathi'],
+    slugs: ['agrisaathi','biosaathi','envirosaathi','chemsaathi','statssaathi'],
   },
   {
     id: 'arch', label: 'Architecture', emoji: '🏗️', color: '#D97706',

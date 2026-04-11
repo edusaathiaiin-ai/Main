@@ -49,6 +49,19 @@ type Trajectory =
   | 'academic'        // teaching, academia, PhD
   | 'undecided'
 
+// ─── Name guard — block numeric/mash values from being written back ──────────
+
+function isValidDisplayName(name: string | null | undefined): boolean {
+  if (!name) return false
+  const t = name.trim()
+  if (t.length < 2 || t.length > 40) return false
+  if (/^\d+$/.test(t)) return false                      // pure numbers
+  if (!/[a-zA-Z\u0900-\u097F]/.test(t)) return false    // must have at least one letter
+  const blocked = ['test','user','admin','guest','demo','na','none','null','undefined','anon','anonymous','temp']
+  if (blocked.includes(t.toLowerCase())) return false
+  return true
+}
+
 // ─── Flame stage — now quality-gated, not just session count ─────────────────
 
 function computeFlameStage(
@@ -399,7 +412,8 @@ Deno.serve(async (req: Request) => {
       .eq('vertical_id', saathiId)
       .maybeSingle()
 
-    const displayName         = soul?.display_name        ?? 'Student'
+    const rawDisplayName      = soul?.display_name
+    const displayName         = isValidDisplayName(rawDisplayName) ? rawDisplayName! : 'Student'
     const existingTone        = soul?.preferred_tone       ?? 'neutral'
     const existingTopics      = soul?.top_topics           ?? []
     const existingStruggles   = soul?.struggle_topics      ?? []

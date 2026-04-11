@@ -5,6 +5,23 @@ import { ManualCronButton } from './ManualCronButton'
 
 export const dynamic = 'force-dynamic'
 
+// ── Edge Function metadata (Supabase Management API) ─────────────────────────
+
+type FunctionMeta = {
+  id: string
+  slug: string
+  name: string
+  version: number
+  status: string
+  created_at: number   // Unix ms
+  updated_at: number   // Unix ms
+  verify_jwt: boolean
+}
+
+const PROJECT_REF = 'vpmpuxosyrijknbxautx'
+const STALE_DAYS  = 30   // flag if not deployed in this many days
+const V1_GRACE    = 7    // don't flag v1 functions newer than this many days
+
 const CRON_JOBS = [
   {
     id: 'refresh-saathi-stats',
@@ -86,6 +103,57 @@ const HEALTH_CHECKS = [
 export default async function PlatformHealthPage() {
   await requireAdmin()
   const admin = getAdminClient()
+
+  // ── Edge Functions health (Supabase Management API) ───────────────────────
+
+  let edgeFunctions: FunctionMeta[] = []
+  let functionsError: string | null = null
+
+  const mgmtToken = process.env.SUPABASE_ACCESS_TOKEN
+  if (mgmtToken) {
+    try {
+      const res = await fetch(
+        `https://api.supabase.com/v1/projects/${PROJECT_REF}/functions`,
+        {
+          headers: { Authorization: `Bearer ${mgmtToken}` },
+          cache: 'no-store',
+        }
+      )
+      if (res.ok) {
+        edgeFunctions = (await res.json()) as FunctionMeta[]
+        edgeFunctions.sort((a, b) => a.slug.localeCompare(b.slug))
+      } else {
+        functionsError = `Management API returned ${res.status}`
+      }
+    } catch {
+      functionsError = 'Could not reach api.supabase.com'
+    }
+  } else {
+    functionsError = 'SUPABASE_ACCESS_TOKEN not set in env'
+  }
+
+  const now = Date.now()
+
+  function fnFlags(fn: FunctionMeta): { stale: boolean; neverUpdated: boolean } {
+    const daysAgo = (now - fn.updated_at) / 86_400_000
+    return {
+      stale: daysAgo > STALE_DAYS,
+      neverUpdated: fn.version === 1 && daysAgo > V1_GRACE,
+    }
+  }
+
+  function daysAgoLabel(ts: number): string {
+    const days = Math.floor((now - ts) / 86_400_000)
+    if (days === 0) return 'Today'
+    if (days === 1) return 'Yesterday'
+    return `${days}d ago`
+  }
+
+  const activeCount  = edgeFunctions.filter((f) => f.status === 'ACTIVE').length
+  const flaggedCount = edgeFunctions.filter((f) => {
+    const { stale, neverUpdated } = fnFlags(f)
+    return f.status !== 'ACTIVE' || stale || neverUpdated
+  }).length
 
   // ── Key metrics (today) ───────────────────────────────────────────────────
 
@@ -311,6 +379,116 @@ export default async function PlatformHealthPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Edge Functions */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+            Edge Functions
+          </h2>
+          {edgeFunctions.length > 0 && (
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+              flaggedCount === 0
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : 'bg-amber-500/10 text-amber-400'
+            }`}>
+              {activeCount}/{edgeFunctions.length} active
+              {flaggedCount > 0 && ` · ${flaggedCount} flagged`}
+            </span>
+          )}
+        </div>
+
+        {functionsError ? (
+          <div className="rounded-xl p-5 bg-slate-800/40 border border-slate-700">
+            <p className="text-xs text-amber-400 font-mono">{functionsError}</p>
+            {!mgmtToken && (
+              <p className="text-xs text-slate-500 mt-2">
+                Add{' '}
+                <code className="text-amber-300">SUPABASE_ACCESS_TOKEN</code>
+                {' '}to your admin .env.local — get it from{' '}
+                supabase.com/dashboard → Account → Access Tokens.
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left border-b border-slate-800">
+                  {['Function', 'Version', 'Last deployed', 'Status', 'Flags'].map((h) => (
+                    <th
+                      key={h}
+                      className="pb-3 pr-4 text-xs font-semibold uppercase tracking-wider text-slate-500"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {edgeFunctions.map((fn) => {
+                  const { stale, neverUpdated } = fnFlags(fn)
+                  const isFlagged = fn.status !== 'ACTIVE' || stale || neverUpdated
+                  return (
+                    <tr
+                      key={fn.id}
+                      className={`hover:bg-slate-800/40 ${isFlagged ? 'bg-amber-500/3' : ''}`}
+                    >
+                      <td className="py-2.5 pr-4">
+                        <span className="text-xs font-mono text-white">{fn.slug}</span>
+                        {!fn.verify_jwt && (
+                          <span className="ml-1.5 text-[10px] text-slate-500">
+                            public
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2.5 pr-4">
+                        <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                          fn.version === 1
+                            ? 'bg-slate-700 text-slate-400'
+                            : 'bg-slate-800 text-slate-300'
+                        }`}>
+                          v{fn.version}
+                        </span>
+                      </td>
+                      <td className="py-2.5 pr-4 text-xs text-slate-400">
+                        {daysAgoLabel(fn.updated_at)}
+                      </td>
+                      <td className="py-2.5 pr-4">
+                        <span className={`flex items-center gap-1.5 text-xs font-medium ${
+                          fn.status === 'ACTIVE' ? 'text-emerald-400' : 'text-red-400'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            fn.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-red-500'
+                          }`} />
+                          {fn.status}
+                        </span>
+                      </td>
+                      <td className="py-2.5 flex flex-wrap gap-1">
+                        {stale && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            Stale {'>'}30d
+                          </span>
+                        )}
+                        {neverUpdated && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            v1 — check if intentional
+                          </span>
+                        )}
+                        {fn.status !== 'ACTIVE' && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
+                            Not active
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* RSS feed health per Saathi */}

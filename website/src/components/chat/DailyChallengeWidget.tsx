@@ -286,7 +286,7 @@ export function DailyChallengeWidget({
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: 'rgba(255,255,255,0.3)',
+                    color: 'rgba(255,255,255,0.65)',
                     cursor: 'pointer',
                     fontSize: '18px',
                     lineHeight: 1,
@@ -377,7 +377,7 @@ export function DailyChallengeWidget({
                       color = '#FCA5A5'
                     } else {
                       bg = 'rgba(255,255,255,0.02)'
-                      color = 'rgba(255,255,255,0.3)'
+                      color = 'rgba(255,255,255,0.65)'
                     }
                   } else if (isSelected) {
                     bg = `${primaryColor}18`

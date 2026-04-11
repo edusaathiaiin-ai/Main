@@ -147,7 +147,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     description: `Code is a tool — thinking is the skill. I help Computer Science students master algorithms, data structures, operating systems, and AI fundamentals, while connecting your learning to industry reality, research opportunities, and the career you're building.`,
   },
   {
-    id: 'envirosathi',
+    id: 'envirosaathi',
     name: 'EnviroSaathi',
     emoji: '🌍',
     tagline: 'Engineering a sustainable tomorrow',
@@ -235,7 +235,7 @@ export const SAATHIS: SaathiWithDescription[] = [
     description: `Economics explains almost everything — if you know how to read it. Micro and macro theory, Indian economic policy, RBI decisions, trade, development economics, and UPSC Economics optional: I make the abstract tangible and the tangible meaningful.`,
   },
   {
-    id: 'chemenggsaathi',
+    id: 'chemengg-saathi',
     name: 'ChemEnggSaathi',
     emoji: '⚗️',
     tagline: 'Where chemistry meets industry',

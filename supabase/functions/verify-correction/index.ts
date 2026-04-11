@@ -20,8 +20,13 @@ const admin  = createClient(
 const resend = new Resend(Deno.env.get('RESEND_API_KEY')!)
 
 serve(async (req: Request) => {
-  const cronSecret = req.headers.get('x-cron-secret')
-  if (cronSecret !== Deno.env.get('CRON_SECRET')) {
+  // Accept either cron secret (scheduled jobs) or service role key (admin UI)
+  const cronSecret    = req.headers.get('x-cron-secret')
+  const authHeader    = req.headers.get('Authorization') ?? ''
+  const serviceKey    = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  const validCron     = cronSecret === Deno.env.get('CRON_SECRET')
+  const validService  = authHeader === `Bearer ${serviceKey}`
+  if (!validCron && !validService) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
       status: 403, headers: { 'Content-Type': 'application/json' },
     })

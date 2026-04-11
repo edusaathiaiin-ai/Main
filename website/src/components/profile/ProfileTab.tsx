@@ -8,6 +8,7 @@ import { toSlug, toVerticalUuid } from '@/constants/verticalIds'
 import { useAuthStore } from '@/stores/authStore'
 import { useChatStore } from '@/stores/chatStore'
 import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete'
+import { validateDisplayName } from '@/lib/validation/nameValidation'
 import type { Profile, Saathi } from '@/types'
 
 const EXAM_TARGETS = [
@@ -216,8 +217,24 @@ export default function ProfileTab({
     setNewChip('')
   }
 
+  const [nameTouched, setNameTouched] = useState(false)
+
+  const nameTyped = fullName.trim().length > 0
+  const { valid: nameValid, error: nameError } = nameTyped
+    ? validateDisplayName(fullName)
+    : { valid: false, error: null }
+
+  const showNameError = nameTouched && nameTyped && !nameValid
+  const showNameValid = nameTouched && nameValid
+  const nameFieldBorderColor = showNameError
+    ? 'rgba(239,68,68,0.6)'
+    : showNameValid
+      ? 'rgba(74,222,128,0.5)'
+      : 'rgba(255,255,255,0.1)'
+
   async function handleSave() {
     if (!profile) return
+    if (nameTyped && !nameValid) return
     setSaving(true)
     try {
       const supabase = createClient()
@@ -338,36 +355,47 @@ export default function ProfileTab({
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {[
-            {
-              label: 'Full name',
-              value: fullName,
-              setter: setFullName,
-              placeholder: 'Your full name',
-            },
-            {
-              label: 'City',
-              value: city,
-              setter: setCity,
-              placeholder: 'Your city',
-            },
-          ].map(({ label, value, setter, placeholder }) => (
-            <div key={label}>
-              <label
-                className="mb-1.5 block text-xs font-semibold"
-                style={labelStyle}
-              >
-                {label}
-              </label>
+          {/* Full name — validated */}
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold" style={labelStyle}>
+              Full name
+            </label>
+            <div className="relative">
               <input
-                value={value}
-                onChange={(e) => setter(e.target.value)}
-                placeholder={placeholder}
-                className="w-full rounded-xl px-4 py-3 text-sm transition-all outline-none"
-                style={inputStyle}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                onBlur={() => setNameTouched(true)}
+                placeholder="Your full name"
+                className="w-full rounded-xl px-4 py-3 pr-9 text-sm transition-all outline-none"
+                style={{ ...inputStyle, borderColor: nameFieldBorderColor }}
               />
+              {showNameValid && (
+                <span
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold"
+                  style={{ color: '#4ADE80' }}
+                >
+                  ✓
+                </span>
+              )}
             </div>
-          ))}
+            {showNameError && (
+              <p className="mt-1 text-xs" style={{ color: '#F87171' }}>{nameError}</p>
+            )}
+          </div>
+
+          {/* City */}
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold" style={labelStyle}>
+              City
+            </label>
+            <input
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="Your city"
+              className="w-full rounded-xl px-4 py-3 text-sm transition-all outline-none"
+              style={inputStyle}
+            />
+          </div>
 
           <div>
             <label
@@ -1145,7 +1173,7 @@ export default function ProfileTab({
       <div className="flex flex-col gap-3 pb-6">
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || (nameTyped && !nameValid)}
           className="w-full rounded-xl py-4 text-sm font-bold transition-all hover:brightness-110 disabled:opacity-60"
           style={{ background: '#C9993A', color: '#060F1D' }}
         >

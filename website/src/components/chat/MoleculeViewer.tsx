@@ -98,7 +98,7 @@ export function MoleculeViewer({ name }: { name: string }) {
         <p
           style={{
             fontSize: '12px',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'rgba(255,255,255,0.65)',
             margin: 0,
             fontFamily: 'var(--font-dm-sans)',
           }}
@@ -110,7 +110,7 @@ export function MoleculeViewer({ name }: { name: string }) {
       <p
         style={{
           fontSize: '10px',
-          color: 'rgba(255,255,255,0.2)',
+          color: 'rgba(255,255,255,0.65)',
           margin: '8px 0 0',
           fontFamily: 'var(--font-dm-sans)',
         }}
