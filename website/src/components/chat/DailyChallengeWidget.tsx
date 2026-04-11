@@ -53,30 +53,18 @@ export function DailyChallengeWidget({
     setLoading(true)
     try {
       const supabase = createClient()
-      const { data, error } = await supabase.functions.invoke(
-        'daily-challenge',
-        {
-          method: 'GET',
-          headers: { 'x-query': `saathi_id=${saathiId}` },
-        }
-      )
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
 
-      // functions.invoke doesn't support GET params natively — use fetch directly
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/daily-challenge?saathi_id=${saathiId}`,
         {
           headers: {
-            Authorization: `Bearer ${session?.access_token ?? ''}`,
+            Authorization: `Bearer ${session.access_token}`,
             apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
           },
         }
       )
-      // Suppress unused variable warning from first invoke call
-      void data
-      void error
 
       if (!res.ok) return
       const payload = (await res.json()) as {
@@ -111,15 +99,14 @@ export function DailyChallengeWidget({
     setSubmitting(true)
     try {
       const supabase = createClient()
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/daily-challenge`,
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${session?.access_token ?? ''}`,
+            Authorization: `Bearer ${session.access_token}`,
             apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
             'Content-Type': 'application/json',
           },
