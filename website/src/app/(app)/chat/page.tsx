@@ -52,9 +52,11 @@ export default async function ChatPage() {
       >
         <ChatWindow />
       </ChatWelcomeGate>
-      <DailyChallengeWidget
-        saathiId={toSlug(profile.primary_saathi_id) ?? ''}
-      />
+      {toSlug(profile.primary_saathi_id) && (
+        <DailyChallengeWidget
+          saathiId={toSlug(profile.primary_saathi_id)!}
+        />
+      )}
     </>
   )
 }

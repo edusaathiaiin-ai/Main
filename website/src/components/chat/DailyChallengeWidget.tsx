@@ -49,6 +49,7 @@ export function DailyChallengeWidget({
   const [submitting, setSubmitting] = useState(false)
 
   const load = useCallback(async () => {
+    if (!saathiId) return
     setLoading(true)
     try {
       const supabase = createClient()
