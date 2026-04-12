@@ -58,6 +58,8 @@ const PLAN_DEFS = {
     priceMonthly: 199,
     priceAnnual: 125,
     priceLabel: '₹99',
+    originalPrice: 199,
+    offerTag: 'Launch offer · First 6 months',
     priceSuffix: '/mo',
     annualNote: '₹125/mo · billed ₹1,499/year',
     tagline: 'Less than your weekly pizza',
@@ -212,77 +214,61 @@ export default function PricingCard({
 
       {/* Price */}
       <div className="mb-5">
-        {'introPrice' in plan && !showAnnual ? (
-          // Intro pricing — strikethrough + offer
-          <div>
-            <div className="flex items-end gap-2">
-              <motion.span
-                key="intro"
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="font-playfair text-4xl font-bold"
-                style={{ color: '#E5B86A' }}
-              >
-                {(plan as typeof plan & { introPrice: string }).introPrice}
-              </motion.span>
-              <span
-                className="mb-1 text-sm"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
-              >
-                /mo
-              </span>
-              <span
-                className="mb-1 text-lg line-through"
-                style={{ color: 'rgba(255,255,255,0.3)' }}
-              >
-                {(plan as typeof plan & { regularPrice: string }).regularPrice}
-              </span>
-            </div>
-            <p className="mt-1 text-xs font-medium" style={{ color: '#4ADE80' }}>
-              {(plan as typeof plan & { introDuration: string }).introDuration}
-            </p>
+        <div className="flex items-end gap-1.5">
+          {/* Strikethrough original price — only for plus */}
+          {id === 'plus' && !showAnnual && (
+            <span
+              className="mb-2 text-base line-through"
+              style={{ color: 'rgba(255,255,255,0.25)' }}
+            >
+              ₹199
+            </span>
+          )}
+          <motion.span
+            key={displayPrice}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="font-playfair text-4xl font-bold text-white"
+          >
+            {displayPrice}
+          </motion.span>
+          {id !== 'free' && (
+            <span
+              className="mb-1 text-sm"
+              style={{ color: 'rgba(255,255,255,0.4)' }}
+            >
+              {displaySuffix}
+            </span>
+          )}
+        </div>
+
+        {/* Launch offer tag — plus only, monthly only */}
+        {id === 'plus' && !showAnnual && (
+          <div className="mt-1.5">
+            <span
+              className="rounded-full px-2.5 py-0.5 text-[11px] font-bold"
+              style={{ background: 'rgba(74,222,128,0.15)', color: '#4ADE80' }}
+            >
+              Launch offer · First 6 months
+            </span>
           </div>
-        ) : (
-          // Regular / annual pricing
-          <div>
-            <div className="flex items-end gap-1.5">
-              <motion.span
-                key={displayPrice}
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="font-playfair text-4xl font-bold text-white"
-              >
-                {displayPrice}
-              </motion.span>
-              {id !== 'free' && (
-                <span
-                  className="mb-1 text-sm"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}
-                >
-                  {displaySuffix}
-                </span>
-              )}
-            </div>
-            {plan.annualNote && (
-              <motion.p
-                key={billing + id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="mt-1 text-xs"
-                style={{ color: showAnnual ? '#4ADE80' : 'rgba(255,255,255,0.3)' }}
-              >
-                {showAnnual ? plan.annualNote : ''}
-              </motion.p>
-            )}
-            {id === 'unlimited' && (
-              <p
-                className="mt-1 text-xs"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
-              >
-                Monthly only — no annual plan
-              </p>
-            )}
-          </div>
+        )}
+
+        {plan.annualNote && (
+          <motion.p
+            key={billing + id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-1 text-xs"
+            style={{ color: showAnnual ? '#4ADE80' : 'rgba(255,255,255,0.3)' }}
+          >
+            {showAnnual ? plan.annualNote : ''}
+          </motion.p>
+        )}
+        {id === 'unlimited' && (
+          <p className="mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            Monthly only — no annual plan
+          </p>
         )}
       </div>
 
