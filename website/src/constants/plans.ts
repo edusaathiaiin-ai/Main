@@ -28,6 +28,8 @@ export type Plan = {
   priorityResponse?: boolean
   fastestResponse?: boolean
   badge?: string
+  introPrice?: number
+  introDurationMonths?: number
 }
 
 export const PLAN_CONFIG: Record<PlanId, Plan> = {
@@ -49,7 +51,9 @@ export const PLAN_CONFIG: Record<PlanId, Plan> = {
   plus: {
     id: 'plus',
     name: 'Saathi Plus',
-    priceMonthly: 199,
+    priceMonthly: 199,        // regular rate after intro period
+    introPrice: 99,           // survey-validated intro rate
+    introDurationMonths: 6,   // first 6 months at ₹99
     priceAnnual: 1499,
     billing: 'monthly',
     dailyChatLimit: 20,
