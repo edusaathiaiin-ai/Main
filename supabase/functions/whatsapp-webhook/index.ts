@@ -102,6 +102,7 @@ type SessionRow = {
   messages: Message[];
   message_count_today: number;
   last_reset_date: string;
+  last_message_at: string | null;
 };
 
 type Message = {
@@ -196,6 +197,28 @@ Deno.serve(async (req: Request) => {
   return new Response('OK', { status: 200 });
 });
 
+// ── Cooling period helpers ─────────────────────────────────────────────────────
+
+function getCoolingHours(planId: string | null): number {
+  if (!planId || planId === 'free') return 48;
+  if (planId.startsWith('plus')) return 48;
+  if (planId.startsWith('pro')) return 24;
+  // unlimited / institution
+  return 0;
+}
+
+function coolingExpiresAt(lastMessageAt: string, coolingHours: number): Date {
+  return new Date(new Date(lastMessageAt).getTime() + coolingHours * 3_600_000);
+}
+
+function formatCoolingTime(expiresAt: Date): string {
+  return expiresAt.toLocaleString('en-IN', {
+    hour: '2-digit', minute: '2-digit', hour12: true,
+    day: 'numeric', month: 'long',
+    timeZone: 'Asia/Kolkata',
+  });
+}
+
 // ── Main message handler ───────────────────────────────────────────────────────
 
 async function handleMessage(from: string, waPhone: string, text: string) {
@@ -226,6 +249,7 @@ async function handleMessage(from: string, waPhone: string, text: string) {
       messages: [],
       message_count_today: 0,
       last_reset_date: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }),
+      last_message_at: null,
     };
   }
 
@@ -302,14 +326,6 @@ async function handleMessage(from: string, waPhone: string, text: string) {
     return;
   }
 
-  if (cmd === 'SWITCH') {
-    await sendWhatsAppMessage(
-      from,
-      `Your Saathi is locked to your registered subject. This ensures deep, personalised learning.\n\nTo change your Saathi, visit edusaathiai.in/profile and request a full profile reset.\n\n_One student. One soul. One Saathi._ \u{2726}`,
-    );
-    return;
-  }
-
   if (cmd === 'PROFILE' && profile) {
     await sendProfileSummary(from, profile);
     return;
@@ -327,10 +343,26 @@ async function handleMessage(from: string, waPhone: string, text: string) {
     return;
   }
 
+  // ── Cooling period check ─────────────────────────────
+  const coolingHours = getCoolingHours(profile.plan_id);
+  const sess = session as SessionRow;
+  if (coolingHours > 0 && sess.last_message_at) {
+    const expires = coolingExpiresAt(sess.last_message_at, coolingHours);
+    if (Date.now() < expires.getTime()) {
+      const opensAt = formatCoolingTime(expires);
+      const isUpgradeable = !profile.plan_id || profile.plan_id === 'free' || profile.plan_id.startsWith('plus');
+      await sendWhatsAppMessage(
+        from,
+        `\u23F8 Your Saathi is resting.\n\nYour next session opens at *${opensAt} IST*.\n\nThis cooling period helps your learning consolidate \u2014 come back refreshed!${isUpgradeable ? '\n\nUpgrade to Pro for 24hr cooling \u2192 edusaathiai.in/pricing' : ''}`,
+      );
+      return;
+    }
+  }
+
   // ── Quota check ──────────────────────────────────────
   const quota = getQuotaLimit(profile.plan_id);
 
-  if ((session as SessionRow).message_count_today >= quota) {
+  if (sess.message_count_today >= quota) {
     const planName = getPlanName(profile.plan_id);
     await sendWhatsAppMessage(
       from,
@@ -386,9 +418,21 @@ async function handleNewUser(
 async function sendWelcome(from: string, profile: ProfileRow | null) {
   const name = profile?.full_name?.split(' ')[0];
 
+  // Returning user with Saathi already locked — just greet, no re-selection
+  if (profile?.wa_saathi_id) {
+    const { data: saathi } = await admin
+      .from('verticals').select('name, emoji').eq('id', profile.wa_saathi_id).single();
+    await sendWhatsAppMessage(
+      from,
+      `${saathi?.emoji ?? '\u{1F393}'} *Welcome back${name ? `, ${name}` : ''}!*\n\nYour ${saathi?.name ?? 'Saathi'} is ready. Ask me anything!`,
+    );
+    return;
+  }
+
+  // New user or no Saathi set yet — show selection list
   const msg = profile
-    ? `\u{1F393} *Welcome back${name ? `, ${name}` : ''}!*\n\nYour Saathi is here. Which subject would you like help with today?\n\nReply with a number to choose your Saathi:`
-    : `\u{1F393} *Welcome to EdUsaathiAI!*\n\nI'm your AI-powered subject companion \u2014 built for Indian students.\n\n24 specialist Saathis. Law, Medicine, Maths, Engineering and more.\n\n*Which subject are you studying?*\nReply with a number:`;
+    ? `\u{1F393} *Welcome back${name ? `, ${name}` : ''}!*\n\nLet's choose your Saathi.\n\n*Which subject are you studying?*\nReply with a number:`
+    : `\u{1F393} *Welcome to EdUsaathiAI!*\n\nI'm your AI-powered subject companion \u2014 built for Indian students.\n\n30 specialist Saathis. Law, Medicine, Maths, Engineering and more.\n\n*Which subject are you studying?*\nReply with a number:`;
 
   await sendWhatsAppMessage(from, msg);
   await sendSaathiList(from);
@@ -422,6 +466,23 @@ async function handleSaathiSelection(
   text: string,
   profile: ProfileRow | null,
 ) {
+  // ── Saathi lock: once set, permanent on WhatsApp ──────
+  if (profile?.wa_saathi_id) {
+    const { data: currentSaathi } = await admin
+      .from('verticals')
+      .select('name')
+      .eq('id', profile.wa_saathi_id)
+      .single();
+    const saathiName = currentSaathi?.name ?? 'your Saathi';
+    await sendWhatsAppMessage(
+      from,
+      `\u2726 Your Saathi is *${saathiName}*.\n\nWhatsApp Saathi is one student, one soul, one Saathi.\n\nTo change your Saathi, visit edusaathiai.in/profile and request a full profile reset.`,
+    );
+    // Ensure state is corrected
+    await admin.from('profiles').update({ wa_state: 'active' }).eq('id', profile.id);
+    return;
+  }
+
   const { data: saathis } = await admin
     .from('verticals')
     .select('id, name, emoji, slug, tagline')
@@ -496,7 +557,7 @@ async function handleSaathiSelection(
 
   await sendWhatsAppMessage(
     from,
-    `${selectedSaathi.emoji} *${selectedSaathi.name} is ready!*\n\n${name ? `Hello ${name}! ` : ''}I'm your ${selectedSaathi.name} \u2014 ${selectedSaathi.tagline}.\n\nAsk me anything about your subject. I'll remember our conversation and personalise every answer to you.\n\n_Type *HELP* to see what I can do_\n_Type *SWITCH* to change your Saathi_`,
+    `${selectedSaathi.emoji} *${selectedSaathi.name} is ready!*\n\n${name ? `Hello ${name}! ` : ''}I'm your ${selectedSaathi.name} \u2014 ${selectedSaathi.tagline}.\n\nAsk me anything about your subject. I'll remember our conversation and personalise every answer to you.\n\n_Type *HELP* to see what I can do_`,
   );
 }
 
@@ -738,7 +799,7 @@ async function markRead(to: string, messageId: string) {
 async function sendHelp(from: string) {
   await sendWhatsAppMessage(
     from,
-    `\u{1F5FA}\u{FE0F} *EdUsaathiAI \u2014 WhatsApp Saathi*\n\nJust send your question and your Saathi responds!\n\n*Commands:*\n\u{1F4CA} *STATUS* \u2014 See your quota & Saathi\n\u{1F464} *PROFILE* \u2014 See your soul summary\n\u{2753} *HELP* \u2014 Show this message\n\u{1F6AA} *STOP* \u2014 Unsubscribe\n\n*Tips:*\n- Ask in Hindi, Gujarati, or English\n- I remember our conversation\n- 5 free messages per day\n- Upgrade at edusaathiai.in for more\n\n_Ask me anything about your subject!_ \u{1F4DA}`,
+    `\u{1F5FA}\u{FE0F} *EdUsaathiAI \u2014 WhatsApp Saathi*\n\nJust send your question and your Saathi responds!\n\n*Commands:*\n\u{1F4CA} *STATUS* \u2014 See your quota & Saathi\n\u{1F464} *PROFILE* \u2014 See your soul summary\n\u{2753} *HELP* \u2014 Show this message\n\u{1F6AA} *STOP* \u2014 Unsubscribe\n\n*Tips:*\n- Ask in Hindi, Gujarati, or English\n- I remember our conversation\n- One Saathi per account \u2014 choose wisely!\n- Upgrade at edusaathiai.in for more\n\n_Ask me anything about your subject!_ \u{1F4DA}`,
   );
 }
 
