@@ -24,6 +24,8 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '
 const RAZORPAY_WEBHOOK_SECRET = Deno.env.get('RAZORPAY_WEBHOOK_SECRET') ?? '';
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
 const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') ?? 'EdUsaathiAI <noreply@edusaathiai.in>';
+const WA_TOKEN    = Deno.env.get('WHATSAPP_ACCESS_TOKEN') ?? '';
+const WA_PHONE_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID') ?? '';
 
 // Plan expiry durations
 const PLAN_EXPIRY_MS: Record<string, number> = {
@@ -44,6 +46,58 @@ const PLAN_LABELS: Record<string, string> = {
   'unlimited-monthly': 'Saathi Unlimited',
   'institution': 'Institution',
 };
+
+// ── WhatsApp: subscription activated ─────────────────────────────────────────
+
+async function sendWhatsAppActivation(
+  waPhone: string,
+  firstName: string,
+  planLabel: string,
+  expiresAt: string,
+): Promise<void> {
+  if (!WA_TOKEN || !WA_PHONE_ID || !waPhone) return;
+
+  const expiryFormatted = new Date(expiresAt).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata',
+  }); // e.g. "12 May 2026"
+
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/v25.0/${WA_PHONE_ID}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${WA_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: waPhone,
+          type: 'template',
+          template: {
+            name: 'edusaathiai_subscription_activated',
+            language: { code: 'en' },
+            components: [
+              {
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: firstName },
+                  { type: 'text', text: planLabel },
+                  { type: 'text', text: expiryFormatted },
+                ],
+              },
+            ],
+          },
+        }),
+      },
+    );
+    const body = await res.text();
+    console.log(`razorpay-webhook: WhatsApp activation sent to ${waPhone}, status=${res.status}, body=${body}`);
+  } catch (err) {
+    // Never block payment flow for WhatsApp failure
+    console.error('razorpay-webhook: WhatsApp activation failed', err instanceof Error ? err.message : err);
+  }
+}
 
 // ── Refund confirmation email ──────────────────────────────────────────────
 
@@ -609,19 +663,32 @@ async function handlePaymentCaptured(
     throw new Error(`profiles.update failed for user ${sub.user_id}: ${profileUpdateError.message}`);
   }
 
-  // Send confirmation email (fire-and-forget)
+  // Send confirmation email + WhatsApp (fire-and-forget)
   const { data: userProfile } = await admin
     .from('profiles')
-    .select('email, display_name')
+    .select('email, display_name, wa_phone')
     .eq('id', sub.user_id)
     .maybeSingle();
+
+  const displayName = (userProfile?.display_name as string | null) ?? undefined;
+  const firstName   = (displayName ?? 'Student').split(' ')[0];
+  const planLabel   = PLAN_LABELS[sub.plan_id] ?? sub.plan_id;
 
   if (userProfile?.email) {
     await sendUpgradeEmail(
       userProfile.email as string,
       sub.plan_id,
       expiresAt,
-      (userProfile.display_name as string | null) ?? undefined,
+      displayName,
+    );
+  }
+
+  if (userProfile?.wa_phone) {
+    await sendWhatsAppActivation(
+      userProfile.wa_phone as string,
+      firstName,
+      planLabel,
+      expiresAt,
     );
   }
 }
