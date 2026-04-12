@@ -81,6 +81,7 @@ async function sendExpiredEmail(
   email: string,
   name: string,
   planLabel: string,
+  expiresAt: string,
 ): Promise<boolean> {
   if (!RESEND_API_KEY || !email) return false;
 
@@ -97,17 +98,12 @@ async function sendExpiredEmail(
 <div style="font-family:'DM Sans',Arial,sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
   <h1 style="color:#C9993A;font-size:22px;margin-bottom:8px">Your plan has expired</h1>
   <p style="color:rgba(255,255,255,0.7);line-height:1.7">
-    Hi ${name}, your <strong>${planLabel}</strong> subscription has expired.
-    Your account has been moved to the Free plan.
-  </p>
-  <p style="color:rgba(255,255,255,0.7);line-height:1.7">
-    Your Saathi still remembers everything — your soul profile, chat history,
-    and learning progress are fully preserved. Resubscribe anytime to pick up
-    right where you left off.
+    Hi ${name}, your <strong>${planLabel}</strong> expired on <strong>${new Date(expiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
+    Your learning journey and soul memory are safe — tap below to continue.
   </p>
   <a href="https://www.edusaathiai.in/pricing"
      style="display:inline-block;margin-top:16px;background:#C9993A;color:#0B1F3A;padding:13px 32px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none">
-    Resubscribe →
+    Resubscribe for ₹99 →
   </a>
   <p style="color:rgba(255,255,255,0.35);font-size:12px;margin-top:20px;line-height:1.7">
     Questions? Reply to this email or write to support@edusaathiai.in
@@ -217,7 +213,7 @@ Deno.serve(async (_req: Request) => {
         const planLabel = PLAN_LABELS[profile.plan_id] ?? profile.plan_id;
         const name = profile.display_name?.split(' ')[0] ?? 'Student';
 
-        const sent = await sendExpiredEmail(profile.email, name, planLabel);
+        const sent = await sendExpiredEmail(profile.email, name, planLabel, profile.subscription_expires_at);
 
         if (sent) {
           await admin.from('renewal_reminders_sent').insert({
