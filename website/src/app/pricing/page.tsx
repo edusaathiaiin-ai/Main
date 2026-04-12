@@ -170,9 +170,9 @@ function WaPostPaymentModal({ onDone }: { onDone: () => void }) {
     try {
       const res  = await fetch('/api/whatsapp-verify', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: input }),
+        body: JSON.stringify({ phone: `91${input}` }),
       })
-      const data = await res.json() as { ok?: boolean; error?: string }
+      const data = await res.json() as { success?: boolean; error?: string }
       if (!res.ok) { setError(data.error ?? 'Could not send. Try again.'); setStep('idle') }
       else setStep('sent')
     } catch { setError('Network error. Try again.'); setStep('idle') }

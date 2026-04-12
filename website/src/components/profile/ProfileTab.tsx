@@ -528,9 +528,9 @@ export default function ProfileTab({
                         const res = await fetch('/api/whatsapp-verify', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ phone: waInput }),
+                          body: JSON.stringify({ phone: `91${waInput}` }),
                         })
-                        const data = await res.json() as { ok?: boolean; error?: string }
+                        const data = await res.json() as { success?: boolean; error?: string }
                         if (!res.ok) {
                           setWaError(data.error ?? 'Could not send. Try again.')
                           setWaStep('idle')
