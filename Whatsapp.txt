@@ -1,0 +1,649 @@
+# ════════════════════════════════════════════════════════════════
+# EdUsaathiAI — WhatsApp Message Templates
+# All 18 templates for Meta Business API approval
+# ════════════════════════════════════════════════════════════════
+#
+# HOW TO SUBMIT:
+# Meta Business Suite → WhatsApp Manager → Message Templates
+# → Create template → paste each template below
+#
+# CATEGORY GUIDE:
+# UTILITY    → transactional, triggered by user action
+# MARKETING  → promotional, announcements
+# AUTHENTICATION → OTP, verification
+#
+# VARIABLE FORMAT: {{1}}, {{2}}, {{3}} etc.
+# Always provide sample values for Meta review.
+#
+# APPROVAL TIME: 24-48 hours typically
+# ════════════════════════════════════════════════════════════════
+
+
+# ── STUDENT DASHBOARD ────────────────────────────────────────────
+
+
+# ── T01 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_welcome
+Category:         UTILITY
+Language:         English
+Header:           Text → "Welcome to EdUsaathiAI ✦"
+Body:
+  Namaste {{1}}! 🎓
+
+  Your EdUsaathiAI account is ready.
+
+  Your Saathi: *{{2}}*
+  Plan: {{3}}
+
+  Start learning now:
+  👉 edusaathiai.in/chat
+
+  Your first 7 days are completely free.
+  Your Saathi is waiting.
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          Quick Reply → "Start learning →"
+                  URL → "Open EdUsaathiAI" → edusaathiai.in/chat
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = KanoonSaathi
+  {{3}} = Plus Monthly
+
+When sent:        After successful registration + onboarding
+Edge Function:    send-welcome-email (add WhatsApp call)
+
+
+# ── T02 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_subscription_activated
+Category:         UTILITY
+Language:         English
+Header:           Text → "Payment confirmed ✓"
+Body:
+  Hi {{1}},
+
+  Your EdUsaathiAI *{{2}}* is now active.
+
+  ✓ Unlimited Saathi sessions
+  ✓ All 30 subject Saathis
+  ✓ WhatsApp Saathi access
+  Valid until: {{3}}
+
+  Continue learning:
+  👉 edusaathiai.in/chat
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "Open EdUsaathiAI" → edusaathiai.in/chat
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = Plus Monthly Plan
+  {{3}} = 2 May 2026
+
+When sent:        After Razorpay payment captured
+Edge Function:    razorpay-webhook
+
+
+# ── T03 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_lecture_proposal
+Category:         UTILITY
+Language:         English
+Header:           Text → "Faculty accepted your request 🎉"
+Body:
+  Hi {{1}},
+
+  *{{2}}* has accepted your lecture request!
+
+  📚 Subject: {{3}}
+  💰 Fee: {{4}}
+  ⏱ Duration: {{5}} minutes
+
+  They have proposed time slots for you.
+  Pick your slot and confirm to book:
+  👉 edusaathiai.in/requests/{{6}}
+
+  Offer expires in 72 hours.
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "Pick my slot →" → edusaathiai.in/requests/{{6}}
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = Prof. Mehta
+  {{3}} = Section 498A IPC
+  {{4}} = ₹500
+  {{5}} = 60
+  {{6}} = abc123
+
+When sent:        Faculty accepts + proposes slots
+Edge Function:    notify-lecture-proposal
+
+
+# ── T04 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_lecture_declined
+Category:         UTILITY
+Language:         English
+Header:           Text → "Update on your lecture request"
+Body:
+  Hi {{1}},
+
+  {{2}} is unable to take your session on *{{3}}* at this time.
+
+  Reason: {{4}}
+
+  You can post your request to other faculty on EdUsaathiAI —
+  many qualified teachers are available.
+
+  👉 edusaathiai.in/faculty-finder
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "Find another faculty →" → edusaathiai.in/faculty-finder
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = Prof. Mehta
+  {{3}} = Section 498A IPC
+  {{4}} = Scheduling constraints this month
+
+When sent:        Faculty declines a request
+Edge Function:    notify-lecture-proposal (declined: true)
+
+
+# ── T05 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_session_booked
+Category:         UTILITY
+Language:         English
+Header:           Text → "Session confirmed ✓"
+Body:
+  Hi {{1}},
+
+  Your session is confirmed and payment received!
+
+  📚 *{{2}}*
+  👤 With: {{3}}
+  📅 Date: {{4}}
+  🕐 Time: {{5}} IST
+
+  Your meeting link will be shared 30 minutes before the session
+  via WhatsApp and email.
+
+  View your session:
+  👉 edusaathiai.in/live/{{6}}
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "View session →" → edusaathiai.in/live/{{6}}
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = Criminal Law — Section 498A Deep Dive
+  {{3}} = Prof. Mehta
+  {{4}} = Monday, 14 April 2026
+  {{5}} = 5:00 PM
+  {{6}} = session-uuid-short
+
+When sent:        Student pays and confirms slot
+Edge Function:    confirm-lecture-slot
+
+
+# ── T06 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_meeting_link_ready
+Category:         UTILITY
+Language:         English
+Header:           Text → "Your meeting link is ready 🔗"
+Body:
+  Hi {{1}},
+
+  Your session starts soon!
+
+  📚 *{{2}}*
+  📅 {{3}} at {{4}} IST
+  👤 {{5}}
+
+  Join here:
+  👉 {{6}}
+
+  Save this link. See you in the session!
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "Join session →" → {{6}}
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = Criminal Law — Section 498A Deep Dive
+  {{3}} = Monday, 14 April 2026
+  {{4}} = 5:00 PM
+  {{5}} = Prof. Mehta
+  {{6}} = https://meet.google.com/abc-defg-hij
+
+When sent:        Faculty shares meeting link
+Edge Function:    notify-meeting-link
+
+
+# ── T07 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_session_reminder_24h
+Category:         UTILITY
+Language:         English
+Header:           Text → "Session tomorrow — don't forget! 📅"
+Body:
+  Hi {{1}},
+
+  Reminder: You have a session tomorrow.
+
+  📚 *{{2}}*
+  📅 {{3}}
+  🕐 {{4}} IST
+  👤 {{5}}
+
+  Your meeting link will be shared 30 minutes before the session.
+
+  View details:
+  👉 edusaathiai.in/live/{{6}}
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "View session →" → edusaathiai.in/live/{{6}}
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = Criminal Law — Section 498A Deep Dive
+  {{3}} = Monday, 14 April 2026
+  {{4}} = 5:00 PM
+  {{5}} = Prof. Mehta
+  {{6}} = session-uuid-short
+
+When sent:        24 hours before session (cron: send-24h-reminders)
+Edge Function:    send-24h-reminders (TO BUILD)
+
+
+# ── T08 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_session_reminder_1h
+Category:         UTILITY
+Language:         English
+Header:           Text → "Your session starts in 1 hour ⏰"
+Body:
+  Hi {{1}},
+
+  *{{2}}* starts in 1 hour!
+
+  🕐 {{3}} IST today
+  👤 {{4}}
+
+  Join link:
+  👉 {{5}}
+
+  Be ready 5 minutes early.
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "Join now →" → {{5}}
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = Criminal Law — Section 498A Deep Dive
+  {{3}} = 5:00 PM
+  {{4}} = Prof. Mehta
+  {{5}} = https://meet.google.com/abc-defg-hij
+
+When sent:        1 hour before session (cron: send-1h-reminders)
+Edge Function:    send-1h-reminders (TO BUILD)
+
+
+# ── T09 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_error_correction_verified
+Category:         UTILITY
+Language:         English
+Header:           Text → "Your correction is now live ✓"
+Body:
+  Hi {{1}},
+
+  Your factual correction for *{{2}}* has been verified
+  and is now live!
+
+  Every student who asks this question from now on
+  will receive the correct answer — because of you.
+
+  🏆 You earned *50 Saathi Points* (60 SP total)
+
+  Keep helping make EdUsaathiAI more accurate:
+  👉 edusaathiai.in/chat
+
+Footer:           EdUsaathiAI · Ahmedabad
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = KanoonSaathi
+
+When sent:        Admin verifies a factual correction
+Edge Function:    verify-correction
+
+
+# ── FACULTY DASHBOARD ────────────────────────────────────────────
+
+
+# ── T10 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_faculty_new_request
+Category:         UTILITY
+Language:         English
+Header:           Text → "New lecture request for you 📬"
+Body:
+  Namaste {{1}},
+
+  A student has requested a session with you on EdUsaathiAI.
+
+  👤 Student: {{2}}
+  📚 Subject: {{3}}
+  💰 Budget: {{4}}
+  ⏱ Duration: {{5}} minutes
+
+  "{{6}}"
+
+  Review and respond:
+  👉 edusaathiai.in/faculty/requests
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "View request →" → edusaathiai.in/faculty/requests
+
+Sample values:
+  {{1}} = Prof. Mehta
+  {{2}} = Prarthi (B.A. LLB, GLS University)
+  {{3}} = Section 498A IPC
+  {{4}} = ₹500
+  {{5}} = 60
+  {{6}} = I need help understanding the cognizability and arrest guidelines under 498A
+
+When sent:        Student posts a lecture request to this faculty
+Edge Function:    notify-lecture-proposal (faculty side)
+
+
+# ── T11 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_faculty_student_paid
+Category:         UTILITY
+Language:         English
+Header:           Text → "Student confirmed and paid ✓"
+Body:
+  Hi {{1}},
+
+  Great news! {{2}} has confirmed and paid for your session.
+
+  📚 *{{3}}*
+  📅 {{4}}
+  🕐 {{5}} IST
+  💰 Your earnings: {{6}} (paid after session)
+
+  Add your meeting link now:
+  👉 edusaathiai.in/faculty/live
+
+  Share it at least 30 minutes before the session.
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "Add meeting link →" → edusaathiai.in/faculty/live
+
+Sample values:
+  {{1}} = Prof. Mehta
+  {{2}} = Prarthi
+  {{3}} = Criminal Law — Section 498A Deep Dive
+  {{4}} = Monday, 14 April 2026
+  {{5}} = 5:00 PM
+  {{6}} = ₹400
+
+When sent:        Student confirms slot and pays
+Edge Function:    confirm-lecture-slot (faculty notification)
+
+
+# ── T12 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_faculty_session_reminder
+Category:         UTILITY
+Language:         English
+Header:           Text → "Your session is tomorrow 📅"
+Body:
+  Hi {{1}},
+
+  Reminder: You have a session tomorrow on EdUsaathiAI.
+
+  📚 *{{2}}*
+  👥 {{3}} student(s) registered
+  📅 {{4}} at {{5}} IST
+
+  If you haven't shared the meeting link yet,
+  please do so before the session:
+  👉 edusaathiai.in/faculty/live
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "Add meeting link →" → edusaathiai.in/faculty/live
+
+Sample values:
+  {{1}} = Prof. Mehta
+  {{2}} = Criminal Law — Section 498A Deep Dive
+  {{3}} = 8
+  {{4}} = Monday, 14 April 2026
+  {{5}} = 5:00 PM
+
+When sent:        24 hours before session (cron: send-24h-reminders)
+Edge Function:    send-24h-reminders (TO BUILD)
+
+
+# ── T13 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_faculty_payout_released
+Category:         UTILITY
+Language:         English
+Header:           Text → "Your earnings have been released 💰"
+Body:
+  Hi {{1}},
+
+  Your session payout has been released!
+
+  📚 Session: {{2}}
+  📅 Date: {{3}}
+  💰 Amount: *{{4}}* (80% of ₹{{5}})
+
+  Payment will reflect in your registered account
+  within 2-3 business days.
+
+  View your earnings:
+  👉 edusaathiai.in/faculty/sessions
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "View earnings →" → edusaathiai.in/faculty/sessions
+
+Sample values:
+  {{1}} = Prof. Mehta
+  {{2}} = Criminal Law — Section 498A Deep Dive
+  {{3}} = Monday, 14 April 2026
+  {{4}} = ₹400
+  {{5}} = 500
+
+When sent:        Admin releases payout (auto-release-payments cron)
+Edge Function:    auto-release-payments (TO BUILD)
+
+
+# ── T14 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_faculty_verified
+Category:         UTILITY
+Language:         English
+Header:           Text → "Your Faculty badge is live ✦"
+Body:
+  Namaste {{1}},
+
+  Your EdUsaathiAI faculty profile has been verified!
+
+  ✓ Faculty Verified badge is now on your profile
+  ✓ You appear on Faculty Finder
+  ✓ Students can discover and book you
+
+  Your primary Saathi: *{{2}}*
+
+  View your faculty dashboard:
+  👉 edusaathiai.in/faculty
+
+  Welcome to the EdUsaathiAI teaching community.
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "View dashboard →" → edusaathiai.in/faculty
+
+Sample values:
+  {{1}} = Prof. Mehta
+  {{2}} = KanoonSaathi
+
+When sent:        Admin verifies faculty profile (48h after registration)
+Edge Function:    Add to admin verification workflow
+
+
+# ── ADMIN NOTIFICATIONS (to your WhatsApp) ───────────────────────
+
+
+# ── T15 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_admin_alert
+Category:         UTILITY
+Language:         English
+Header:           Text → "EdUsaathiAI Alert"
+Body:
+  {{1}}
+
+  *{{2}}*
+
+  {{3}}
+
+  Action needed:
+  👉 {{4}}
+
+Footer:           EdUsaathiAI Admin
+
+Sample values:
+  {{1}} = 🔴 New paid user
+  {{2}} = Prarthi subscribed to Plus Monthly
+  {{3}} = Payment: ₹199 · Email: pjb13.in@gmail.com
+  {{4}} = edusaathiai.in (admin dashboard)
+
+When sent:        New payment, new faculty registration,
+                  critical error, DPDP request
+Edge Function:    send-feedback-alert, razorpay-webhook,
+                  report-factual-error
+
+
+# ── SUBSCRIPTION LIFECYCLE ───────────────────────────────────────
+
+
+# ── T16 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_renewal_reminder
+Category:         UTILITY
+Language:         English
+Header:           Text → "Your Saathi Plus expires soon ⏳"
+Body:
+  Hi {{1}},
+
+  Your Saathi Plus is active until *{{2}}*.
+
+  To continue without interruption, renew before that date —
+  your plan does not renew automatically.
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "Renew for ₹99 →" → edusaathiai.in/pricing
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = 15 May 2026
+
+When sent:        3 days before subscription_expires_at (cron: subscription-lifecycle)
+Edge Function:    subscription-lifecycle
+
+
+# ── T17 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_plan_expired
+Category:         UTILITY
+Language:         English
+Header:           Text → "Your Saathi is waiting 💙"
+Body:
+  Hi {{1}},
+
+  Your Saathi Plus expired on *{{2}}*.
+
+  Your learning journey and soul memory are safe —
+  your Saathi remembers everything.
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "Resubscribe for ₹99 →" → edusaathiai.in/pricing
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = 15 May 2026
+
+When sent:        On subscription_expires_at day (cron: subscription-lifecycle)
+Edge Function:    subscription-lifecycle
+
+
+# ── RE-ENGAGEMENT ────────────────────────────────────────────────
+
+
+# ── T18 ──────────────────────────────────────────────────────────
+Template Name:    edusaathiai_come_back
+Category:         MARKETING
+Language:         English
+Header:           Text → "Your Saathi misses you ✦"
+Body:
+  Hi {{1}},
+
+  Your Saathi hasn't seen you in a while.
+  Your last topic was *{{2}}* — pick up where you left off.
+
+Footer:           EdUsaathiAI · Ahmedabad
+Buttons:          URL → "Continue learning →" → edusaathiai.in/chat
+
+Sample values:
+  {{1}} = Prarthi
+  {{2}} = Constitutional Law — Article 21
+
+When sent:        7 days after last session (cron: inactivity-nudge)
+Edge Function:    inactivity-nudge (TO BUILD)
+
+
+# ════════════════════════════════════════════════════════════════
+# SUBMISSION ORDER (submit in this order — Meta approves
+# UTILITY faster than MARKETING)
+# ════════════════════════════════════════════════════════════════
+
+# Priority 1 — Submit immediately (core flow):
+#   T06  meeting_link_ready        ← students need this most
+#   T05  session_booked            ← confirmation
+#   T10  faculty_new_request       ← faculty workflow
+#   T11  faculty_student_paid      ← faculty workflow
+#   T03  lecture_proposal          ← student workflow
+#   T04  lecture_declined          ← student workflow
+
+# Priority 2 — Submit after Priority 1 approved:
+#   T01  welcome
+#   T02  subscription_activated
+#   T07  session_reminder_24h
+#   T08  session_reminder_1h
+#   T12  faculty_session_reminder
+#   T13  faculty_payout_released
+#   T16  renewal_reminder
+#   T17  plan_expired
+
+# Priority 3 — Submit last:
+#   T14  faculty_verified
+#   T09  error_correction_verified
+#   T15  admin_alert
+#   T18  come_back                 ← MARKETING, slower approval
+
+
+# ════════════════════════════════════════════════════════════════
+# IMPORTANT: FREE-FORM vs TEMPLATE
+# ════════════════════════════════════════════════════════════════
+#
+# FREE-FORM (no template needed — within 24h window):
+#   → Student messages the WhatsApp number first
+#   → Platform replies within 24 hours
+#   → Used for: WhatsApp Saathi chat replies
+#
+# TEMPLATE REQUIRED (platform initiates):
+#   → All 18 templates above
+#   → Any message sent outside the 24h window
+#   → Any proactive notification (reminders, links)
+#
+# ════════════════════════════════════════════════════════════════
+# PHONE NUMBERS
+# ════════════════════════════════════════════════════════════════
+#
+# Business number (WhatsApp Cloud API): +91 98255 93204
+# Phone Number ID:                      1010533742151361
+# Admin notifications sent to:          +91 98255 93262
+#
+# ════════════════════════════════════════════════════════════════

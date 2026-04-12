@@ -11,7 +11,7 @@ const SUPABASE_URL      = Deno.env.get('SUPABASE_URL')!
 const SERVICE_KEY       = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const RESEND_API_KEY    = Deno.env.get('RESEND_API_KEY')!
 const ADMIN_EMAIL       = 'admin@edusaathiai.in'
-const ADMIN_PHONE       = '919825593204'   // Jaydeep's WhatsApp number (91 prefix, no +)
+const ADMIN_PHONE       = '919825593262'   // Jaydeep's personal WhatsApp (91 prefix, no +)
 const WHATSAPP_TOKEN    = Deno.env.get('WHATSAPP_ACCESS_TOKEN')
 const WHATSAPP_PHONE_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID')
 
