@@ -17,7 +17,7 @@ import { checkSuspension, recordViolationAndCheck } from '../_shared/suspensions
 // ── Environment ────────────────────────────────────────────────────────────────
 
 const VERIFY_TOKEN = Deno.env.get('WHATSAPP_VERIFY_TOKEN')!;
-const WA_TOKEN = Deno.env.get('WHATSAPP_TOKEN')!;
+const WA_TOKEN = Deno.env.get('WHATSAPP_ACCESS_TOKEN')!;
 const PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID')!;
 const ANTHROPIC_KEY = Deno.env.get('ANTHROPIC_API_KEY')!;
 const WA_APP_SECRET = Deno.env.get('WHATSAPP_APP_SECRET') ?? '';
@@ -686,7 +686,7 @@ You are not just answering questions. You are shaping a future.`;
 // ── WhatsApp API helpers ───────────────────────────────────────────────────────
 
 async function sendWhatsAppMessage(to: string, text: string) {
-  await fetch(`https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`, {
+  await fetch(`https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${WA_TOKEN}`,
@@ -702,7 +702,7 @@ async function sendWhatsAppMessage(to: string, text: string) {
 }
 
 async function markRead(to: string, messageId: string) {
-  await fetch(`https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`, {
+  await fetch(`https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${WA_TOKEN}`,
