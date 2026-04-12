@@ -50,21 +50,17 @@ async function sendRenewalReminder(
         from: RESEND_FROM,
         to: [email],
         reply_to: 'support@edusaathiai.in',
-        subject: `Your ${planLabel} renews on ${expiryDate}`,
+        subject: `Your ${planLabel} is active until ${expiryDate} — renew to continue`,
         html: `
 <div style="font-family:'DM Sans',Arial,sans-serif;max-width:500px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px;border-radius:16px">
-  <h1 style="color:#C9993A;font-size:22px;margin-bottom:8px">Renewal reminder</h1>
+  <h1 style="color:#C9993A;font-size:22px;margin-bottom:8px">Your plan expires soon</h1>
   <p style="color:rgba(255,255,255,0.7);line-height:1.7">
-    Hi ${name}, your <strong>${planLabel}</strong> subscription renews on
-    <strong>${expiryDate}</strong>.
+    Hi ${name}, your <strong>${planLabel}</strong> is active until
+    <strong>${expiryDate}</strong>. To continue without interruption, renew before that date.
   </p>
-  <p style="color:rgba(255,255,255,0.7);line-height:1.7">
-    No action needed if you'd like to continue — your plan will renew automatically.
-    If you'd like to change or cancel your plan, you can do so from your profile.
-  </p>
-  <a href="https://www.edusaathiai.in/profile"
+  <a href="https://www.edusaathiai.in/pricing"
      style="display:inline-block;margin-top:16px;background:#C9993A;color:#0B1F3A;padding:13px 32px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none">
-    Manage subscription →
+    Renew for ₹99 →
   </a>
   <p style="color:rgba(255,255,255,0.35);font-size:12px;margin-top:20px;line-height:1.7">
     Your Saathi memory and learning history are always preserved, regardless of plan changes.<br>
