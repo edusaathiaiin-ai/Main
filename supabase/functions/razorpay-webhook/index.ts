@@ -24,8 +24,13 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '
 const RAZORPAY_WEBHOOK_SECRET = Deno.env.get('RAZORPAY_WEBHOOK_SECRET') ?? '';
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
 const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') ?? 'EdUsaathiAI <noreply@edusaathiai.in>';
-const WA_TOKEN    = Deno.env.get('WHATSAPP_ACCESS_TOKEN') ?? '';
+const WA_TOKEN    = Deno.env.get('WHATSAPP_TOKEN') ?? '';
 const WA_PHONE_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID') ?? '';
+
+const WA_PLAN_LABELS: Record<string, string> = {
+  'plus-monthly': 'Plus Monthly Plan',
+  'plus-annual':  'Plus Annual Plan',
+};
 
 // Plan expiry durations
 const PLAN_EXPIRY_MS: Record<string, number> = {
@@ -666,13 +671,15 @@ async function handlePaymentCaptured(
   // Send confirmation email + WhatsApp (fire-and-forget)
   const { data: userProfile } = await admin
     .from('profiles')
-    .select('email, display_name, wa_phone')
+    .select('email, full_name, display_name, wa_phone')
     .eq('id', sub.user_id)
     .maybeSingle();
 
   const displayName = (userProfile?.display_name as string | null) ?? undefined;
-  const firstName   = (displayName ?? 'Student').split(' ')[0];
-  const planLabel   = PLAN_LABELS[sub.plan_id] ?? sub.plan_id;
+  const fullName    = (userProfile?.full_name    as string | null) ?? null;
+  const firstName   = (fullName ?? 'Student').split(' ')[0];
+  const waPhone     = ((userProfile?.wa_phone as string | null) ?? '').replace(/^\+/, '');
+  const waPlanLabel = WA_PLAN_LABELS[sub.plan_id] ?? sub.plan_id;
 
   if (userProfile?.email) {
     await sendUpgradeEmail(
@@ -683,13 +690,8 @@ async function handlePaymentCaptured(
     );
   }
 
-  if (userProfile?.wa_phone) {
-    await sendWhatsAppActivation(
-      userProfile.wa_phone as string,
-      firstName,
-      planLabel,
-      expiresAt,
-    );
+  if (waPhone) {
+    await sendWhatsAppActivation(waPhone, firstName, waPlanLabel, expiresAt);
   }
 }
 
