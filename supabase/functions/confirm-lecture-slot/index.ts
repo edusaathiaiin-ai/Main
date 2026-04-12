@@ -162,6 +162,67 @@ async function notifyFaculty(
   if (tasks.length > 0) await Promise.allSettled(tasks);
 }
 
+// ─── Student WhatsApp: session booked ────────────────────────────────────────
+
+async function notifyStudentWhatsApp(
+  waPhone:      string,
+  firstName:    string,
+  sessionTopic: string,
+  facultyName:  string,
+  slotStart:    string,
+  sessionId:    string,
+): Promise<void> {
+  if (!WA_TOKEN || !PHONE_NUMBER_ID || !waPhone) return;
+
+  const slotDt = new Date(slotStart);
+  const sessionDate = slotDt.toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata',
+  }); // e.g. "14 April 2026"
+  const sessionTime = slotDt.toLocaleTimeString('en-IN', {
+    hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
+  }); // e.g. "5:00 PM"
+  const sessionIdShort = sessionId.slice(0, 8);
+
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${WA_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: waPhone,
+          type: 'template',
+          template: {
+            name: 'edusaathiai_session_booked',
+            language: { code: 'en' },
+            components: [
+              {
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: firstName },
+                  { type: 'text', text: sessionTopic },
+                  { type: 'text', text: facultyName },
+                  { type: 'text', text: sessionDate },
+                  { type: 'text', text: sessionTime },
+                  { type: 'text', text: sessionIdShort },
+                ],
+              },
+            ],
+          },
+        }),
+      },
+    );
+    const body = await res.text();
+    console.log(`confirm-lecture-slot: WA session_booked sent to ${waPhone}, status=${res.status}, body=${body}`);
+  } catch (err) {
+    console.error('confirm-lecture-slot: WA session_booked failed', err instanceof Error ? err.message : err);
+  }
+}
+
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
@@ -339,19 +400,28 @@ Deno.serve(async (req: Request) => {
     // ── 11. Notify faculty (fire-and-forget) ──────────────────────────────────
     const [{ data: facultyProfile }, { data: studentProfile }] = await Promise.all([
       admin.from('profiles').select('full_name, email, wa_phone').eq('id', facultyId).single(),
-      admin.from('profiles').select('full_name').eq('id', user.id).single(),
+      admin.from('profiles').select('full_name, wa_phone').eq('id', user.id).single(),
     ]);
 
-    const facultyName  = (facultyProfile?.full_name as string | null) ?? 'Professor';
-    const studentName  = (studentProfile?.full_name  as string | null) ?? 'Student';
-    const facultyEmail = facultyProfile?.email    as string | null;
-    const facultyWa    = facultyProfile?.wa_phone as string | null;
+    const facultyName  = (facultyProfile?.full_name  as string | null) ?? 'Professor';
+    const studentName  = (studentProfile?.full_name   as string | null) ?? 'Student';
+    const facultyEmail = (facultyProfile?.email       as string | null);
+    const facultyWa    = (facultyProfile?.wa_phone    as string | null);
+    const studentWa    = ((studentProfile?.wa_phone   as string | null) ?? '').replace(/^\+/, '');
+    const studentFirst = studentName.split(' ')[0];
     const slotLabel    = chosenSlot.label ?? fmtSlotIST(chosenSlot.start, durationMin);
 
     void notifyFaculty(
       facultyEmail, facultyWa, facultyName,
       studentName, subject, slotLabel, sessionId,
     );
+
+    if (studentWa) {
+      void notifyStudentWhatsApp(
+        studentWa, studentFirst, subject,
+        facultyName, chosenSlot.start, sessionId,
+      );
+    }
 
     return new Response(
       JSON.stringify({ success: true, sessionId }),
