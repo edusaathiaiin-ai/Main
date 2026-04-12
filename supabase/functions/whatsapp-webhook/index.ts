@@ -588,8 +588,12 @@ async function handleChat(
   const aiData = await aiRes.json();
   const response: string = aiData.content?.[0]?.text ?? 'I apologize, please try again.';
 
-  // Send response
-  await sendWhatsAppMessage(from, response);
+  // Send response — append one-time nudge on first message only
+  const isFirstMessage = session.message_count_today === 0;
+  const finalResponse = isFirstMessage
+    ? `${response}\n\n_✦ Like your Saathi? Continue at edusaathiai.in — ₹99/month_`
+    : response;
+  await sendWhatsAppMessage(from, finalResponse);
 
   // Update session — keep last 10 messages
   const newMessages = [
