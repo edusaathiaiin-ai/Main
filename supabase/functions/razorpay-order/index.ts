@@ -51,7 +51,7 @@ if (RAZORPAY_KEY_ID && RAZORPAY_KEY_ID.startsWith(KEY_PREFIX_FORBIDDEN)) {
 
 // Plan definitions (INR, in paise for Razorpay)
 const PLAN_AMOUNTS: Record<string, { amountInr: number; label: string }> = {
-  'plus-monthly':     { amountInr: 99,   label: 'Saathi Plus (Monthly · intro)' },
+  'plus-monthly':     { amountInr: 99,   label: 'Saathi Plus (Monthly)' },
   'plus-annual':      { amountInr: 1499, label: 'Saathi Plus (Annual)' },
   'pro-monthly':      { amountInr: 499,  label: 'Saathi Pro (Monthly)' },
   'pro-annual':       { amountInr: 3999, label: 'Saathi Pro (Annual)' },
