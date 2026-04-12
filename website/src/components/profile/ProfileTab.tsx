@@ -52,7 +52,19 @@ interface RawSoul {
   flame_stage: string | null
 }
 
-const WA_NUMBER = '919825593204'
+function maskWaPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '') // e.g. 919825593262
+  const nat = digits.length >= 12 ? digits.slice(2) : digits // 10 digits
+  if (nat.length < 10) return phone
+  return `+91 ${nat.slice(0, 2)}XXX XX${nat.slice(7)}`
+}
+
+function validateWaInput(v: string): string | null {
+  const d = v.replace(/\D/g, '')
+  if (d.length !== 10) return 'Enter a valid 10-digit Indian mobile number'
+  if (!/^[6-9]/.test(d)) return 'Enter a valid 10-digit Indian mobile number'
+  return null
+}
 
 interface ProfileTabProps {
   profile: Profile
@@ -86,8 +98,11 @@ export default function ProfileTab({
     soul?.future_subjects ?? []
   )
   const [newChip, setNewChip] = useState('')
-  const [waPhone, setWaPhone] = useState(profile.wa_phone ?? '')
-  const [waSaving, setWaSaving] = useState(false)
+  // WhatsApp field state
+  const [waInput,   setWaInput]   = useState('')
+  const [waError,   setWaError]   = useState<string | null>(null)
+  const [waStep,    setWaStep]     = useState<'idle' | 'sending' | 'sent' | 'saving'>('idle')
+  const [waEditing, setWaEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -430,114 +445,173 @@ export default function ProfileTab({
         </div>
       </section>
 
-      {/* ── WhatsApp Connect ───────────────────────────────────────── */}
+      {/* ── WhatsApp Number ────────────────────────────────────────── */}
       <section>
-        <h3 className="font-playfair mb-4 text-lg font-bold text-white">
-          WhatsApp Saathi
-        </h3>
-        <div
-          className="rounded-xl p-5"
-          style={{
-            background: 'rgba(37,211,102,0.06)',
-            border: '1px solid rgba(37,211,102,0.2)',
-          }}
-        >
-          {profile.wa_phone ? (
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">&#x2705;</span>
-              <div>
-                <p className="text-sm font-semibold text-white">
-                  Connected: {profile.wa_phone}
-                </p>
-                <p
-                  className="mt-0.5 text-xs"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}
-                >
-                  Message your Saathi anytime on WhatsApp
-                </p>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="mb-4 flex items-center gap-3">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="#25D366">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                </svg>
-                <div>
-                  <p className="text-sm font-semibold text-white">
-                    Connect WhatsApp
-                  </p>
-                  <p
-                    className="text-xs"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}
-                  >
-                    Study without opening the app &mdash; just message your
-                    Saathi
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  value={waPhone}
-                  onChange={(e) =>
-                    setWaPhone(
-                      e.target.value.replace(/[^+\d]/g, '').slice(0, 15)
-                    )
-                  }
-                  placeholder="+919825123456"
-                  className="flex-1 rounded-xl px-4 py-3 text-sm outline-none"
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#fff',
-                  }}
-                />
-                <button
-                  disabled={waSaving || !waPhone.match(/^\+\d{10,14}$/)}
-                  onClick={async () => {
-                    setWaSaving(true)
-                    const supabase = createClient()
-                    const { error } = await supabase
-                      .from('profiles')
-                      .update({ wa_phone: waPhone, wa_state: 'active' })
-                      .eq('id', profile.id)
-                    setWaSaving(false)
-                    if (error) {
-                      setToast(
-                        error.message.includes('unique')
-                          ? '⚠️ This number is already linked to another account.'
-                          : '⚠️ Failed to save. Try again.'
-                      )
-                    } else {
-                      setToast(
-                        '✓ WhatsApp connected! Send "Hi" to your Saathi to get started.'
-                      )
-                    }
-                    setTimeout(() => setToast(null), 5000)
-                  }}
-                  className="rounded-xl px-5 py-3 text-sm font-bold transition-all disabled:opacity-40"
-                  style={{ background: '#25D366', color: '#fff' }}
-                >
-                  {waSaving ? '...' : 'Connect'}
-                </button>
-              </div>
-              <p
-                className="mt-2 text-[10px]"
-                style={{ color: 'rgba(255,255,255,0.25)' }}
-              >
-                Or save this number and send &quot;Hi&quot;:{' '}
-                <a
-                  href={`https://wa.me/${WA_NUMBER}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#25D366', textDecoration: 'underline' }}
-                >
-                  +{WA_NUMBER}
-                </a>
-              </p>
-            </>
+        <div className="mb-1.5 flex items-center justify-between">
+          <div>
+            <label className="block text-xs font-semibold" style={labelStyle}>
+              WhatsApp Number
+            </label>
+            <p className="mt-0.5 text-[11px]" style={{ color: 'var(--text-tertiary, #7A7570)' }}>
+              For session reminders and Saathi updates
+            </p>
+          </div>
+          {profile.wa_phone && !waEditing && (
+            <button
+              onClick={() => { setWaEditing(true); setWaStep('idle'); setWaInput(''); setWaError(null) }}
+              className="text-xs font-semibold"
+              style={{ color: 'var(--gold, #B8860B)' }}
+            >
+              Edit
+            </button>
           )}
         </div>
+
+        {/* Already connected — masked display */}
+        {profile.wa_phone && !waEditing ? (
+          <div
+            className="flex items-center gap-3 rounded-xl px-4 py-3"
+            style={{ background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.2)' }}
+          >
+            <span className="text-base">✅</span>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary, #1A1814)' }}>
+                {maskWaPhone(profile.wa_phone)}
+              </p>
+              <p className="text-[11px]" style={{ color: 'var(--text-tertiary, #7A7570)' }}>
+                Connected · You&apos;ll receive updates on this number
+              </p>
+            </div>
+          </div>
+        ) : (
+          /* Input form — new entry or editing */
+          <div>
+            {waStep === 'idle' || waStep === 'sending' ? (
+              <div>
+                <div className="flex gap-2">
+                  {/* +91 prefix badge */}
+                  <div
+                    className="flex items-center rounded-xl px-3 text-sm font-semibold select-none"
+                    style={{
+                      background: 'rgba(184,134,11,0.08)',
+                      border: '1px solid rgba(184,134,11,0.2)',
+                      color: 'var(--gold, #B8860B)',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    +91
+                  </div>
+                  <input
+                    value={waInput}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, '').slice(0, 10)
+                      setWaInput(v)
+                      setWaError(null)
+                    }}
+                    placeholder="10-digit mobile number"
+                    inputMode="numeric"
+                    maxLength={10}
+                    className="flex-1 rounded-xl px-4 py-3 text-sm outline-none transition-all"
+                    style={{
+                      ...inputStyle,
+                      borderColor: waError ? 'rgba(239,68,68,0.5)' : undefined,
+                    }}
+                  />
+                  <button
+                    disabled={waStep === 'sending' || waInput.length !== 10}
+                    onClick={async () => {
+                      const err = validateWaInput(waInput)
+                      if (err) { setWaError(err); return }
+                      setWaError(null)
+                      setWaStep('sending')
+                      try {
+                        const res = await fetch('/api/whatsapp-verify', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ phone: waInput }),
+                        })
+                        const data = await res.json() as { ok?: boolean; error?: string }
+                        if (!res.ok) {
+                          setWaError(data.error ?? 'Could not send. Try again.')
+                          setWaStep('idle')
+                        } else {
+                          setWaStep('sent')
+                        }
+                      } catch {
+                        setWaError('Network error. Try again.')
+                        setWaStep('idle')
+                      }
+                    }}
+                    className="rounded-xl px-4 py-3 text-sm font-bold transition-all disabled:opacity-40"
+                    style={{ background: '#25D366', color: '#fff', whiteSpace: 'nowrap' }}
+                  >
+                    {waStep === 'sending' ? 'Sending…' : 'Verify'}
+                  </button>
+                </div>
+                {waError && (
+                  <p className="mt-1.5 text-xs" style={{ color: '#EF4444' }}>
+                    {waError}
+                  </p>
+                )}
+              </div>
+            ) : (
+              /* Sent — ask for confirmation */
+              <div
+                className="rounded-xl p-4 space-y-3"
+                style={{ background: 'rgba(37,211,102,0.05)', border: '1px solid rgba(37,211,102,0.2)' }}
+              >
+                <p className="text-sm font-semibold" style={{ color: 'var(--text-primary, #1A1814)' }}>
+                  Did you receive our WhatsApp message?
+                </p>
+                <p className="text-xs" style={{ color: 'var(--text-tertiary, #7A7570)' }}>
+                  We sent a test message to +91 {waInput}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    disabled={waStep === 'saving'}
+                    onClick={async () => {
+                      setWaStep('saving')
+                      const supabase = createClient()
+                      const { error } = await supabase
+                        .from('profiles')
+                        .update({ wa_phone: `+91${waInput}`, wa_state: 'active' })
+                        .eq('id', profile.id)
+                      if (error) {
+                        setWaError(
+                          error.message.includes('unique')
+                            ? 'This number is already linked to another account.'
+                            : 'Failed to save. Try again.'
+                        )
+                        setWaStep('sent')
+                      } else {
+                        setWaEditing(false)
+                        setWaStep('idle')
+                        setWaInput('')
+                        setToast('WhatsApp connected ✓ You\'ll receive updates on this number')
+                        setTimeout(() => setToast(null), 5000)
+                        onSaved()
+                      }
+                    }}
+                    className="rounded-xl px-5 py-2.5 text-sm font-bold transition-all disabled:opacity-40"
+                    style={{ background: '#25D366', color: '#fff' }}
+                  >
+                    {waStep === 'saving' ? 'Saving…' : 'Yes, save it'}
+                  </button>
+                  <button
+                    onClick={() => { setWaStep('idle'); setWaInput(''); setWaError(null) }}
+                    className="rounded-xl px-5 py-2.5 text-sm font-medium"
+                    style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--text-secondary, #4A4740)' }}
+                  >
+                    No, re-enter
+                  </button>
+                </div>
+                {waError && (
+                  <p className="text-xs" style={{ color: '#EF4444' }}>{waError}</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* ── Your Saathi (locked) ──────────────────────────────────── */}

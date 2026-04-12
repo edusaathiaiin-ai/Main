@@ -150,6 +150,145 @@ function FoundingModal({
   )
 }
 
+// ── WhatsApp post-payment modal ───────────────────────────────────────────────
+function WaPostPaymentModal({ onDone }: { onDone: () => void }) {
+  const [input,   setInput]   = useState('')
+  const [error,   setError]   = useState<string | null>(null)
+  const [step,    setStep]    = useState<'idle' | 'sending' | 'sent' | 'saving'>('idle')
+
+  function validate(v: string): string | null {
+    const d = v.replace(/\D/g, '')
+    if (d.length !== 10) return 'Enter a valid 10-digit Indian mobile number'
+    if (!/^[6-9]/.test(d)) return 'Enter a valid 10-digit Indian mobile number'
+    return null
+  }
+
+  async function sendVerification() {
+    const err = validate(input)
+    if (err) { setError(err); return }
+    setError(null); setStep('sending')
+    try {
+      const res  = await fetch('/api/whatsapp-verify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: input }),
+      })
+      const data = await res.json() as { ok?: boolean; error?: string }
+      if (!res.ok) { setError(data.error ?? 'Could not send. Try again.'); setStep('idle') }
+      else setStep('sent')
+    } catch { setError('Network error. Try again.'); setStep('idle') }
+  }
+
+  async function savePhone() {
+    setStep('saving')
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.from('profiles')
+        .update({ wa_phone: `+91${input}`, wa_state: 'active' })
+        .eq('id', user.id)
+    }
+    onDone()
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+        className="w-full max-w-sm rounded-2xl p-6"
+        style={{ background: '#FAFAF8', boxShadow: '0 24px 64px rgba(0,0,0,0.3)' }}
+      >
+        {/* Header */}
+        <div className="mb-5 flex items-start gap-3">
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl"
+            style={{ background: 'rgba(37,211,102,0.12)' }}
+          >
+            💬
+          </div>
+          <div>
+            <p className="text-sm font-bold" style={{ color: '#1A1814' }}>
+              Add your WhatsApp to receive your plan confirmation instantly
+            </p>
+            <p className="mt-0.5 text-xs" style={{ color: '#7A7570' }}>
+              10-digit Indian mobile number
+            </p>
+          </div>
+        </div>
+
+        {step === 'idle' || step === 'sending' ? (
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <div
+                className="flex items-center rounded-xl px-3 text-sm font-bold select-none"
+                style={{ background: 'rgba(184,134,11,0.1)', color: '#B8860B', border: '1px solid rgba(184,134,11,0.2)', whiteSpace: 'nowrap' }}
+              >
+                +91
+              </div>
+              <input
+                value={input}
+                onChange={(e) => { setInput(e.target.value.replace(/\D/g, '').slice(0, 10)); setError(null) }}
+                placeholder="10-digit number"
+                inputMode="numeric"
+                maxLength={10}
+                className="flex-1 rounded-xl px-4 py-2.5 text-sm outline-none"
+                style={{
+                  background: '#F5F4F2', color: '#1A1814',
+                  border: `1px solid ${error ? 'rgba(239,68,68,0.5)' : 'rgba(0,0,0,0.1)'}`,
+                }}
+              />
+            </div>
+            {error && <p className="text-xs" style={{ color: '#EF4444' }}>{error}</p>}
+            <button
+              disabled={step === 'sending' || input.length !== 10}
+              onClick={sendVerification}
+              className="w-full rounded-xl py-3 text-sm font-bold transition-all disabled:opacity-40"
+              style={{ background: '#25D366', color: '#fff' }}
+            >
+              {step === 'sending' ? 'Sending…' : 'Send verification message'}
+            </button>
+            <button onClick={onDone} className="w-full text-center text-xs" style={{ color: '#7A7570' }}>
+              Skip for now
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="rounded-xl p-3" style={{ background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.2)' }}>
+              <p className="text-sm font-semibold" style={{ color: '#1A1814' }}>
+                Did you receive our WhatsApp message?
+              </p>
+              <p className="mt-0.5 text-xs" style={{ color: '#7A7570' }}>
+                We sent a test message to +91 {input}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                disabled={step === 'saving'}
+                onClick={savePhone}
+                className="flex-1 rounded-xl py-2.5 text-sm font-bold disabled:opacity-40"
+                style={{ background: '#25D366', color: '#fff' }}
+              >
+                {step === 'saving' ? 'Saving…' : 'Yes, save it'}
+              </button>
+              <button
+                onClick={() => { setStep('idle'); setInput(''); setError(null) }}
+                className="flex-1 rounded-xl py-2.5 text-sm"
+                style={{ background: 'rgba(0,0,0,0.06)', color: '#4A4740' }}
+              >
+                No, re-enter
+              </button>
+            </div>
+            {error && <p className="text-xs" style={{ color: '#EF4444' }}>{error}</p>}
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function PricingPage() {
   const router = useRouter()
@@ -160,6 +299,7 @@ export default function PricingPage() {
   const [foundingReturnUrl, setFoundingReturnUrl] = useState('/chat')
   const [isLoading, setIsLoading] = useState(false)
   const [paymentError, setPaymentError] = useState('')
+  const [showWaModal, setShowWaModal] = useState(false)
   const isCreatingOrder = useRef(false)
 
   useEffect(() => {
@@ -278,17 +418,9 @@ export default function PricingPage() {
         description: `Saathi ${planId.charAt(0).toUpperCase() + planId.slice(1)} Plan`,
         theme: { color: '#C9993A' },
         handler: () => {
-          try {
-            sessionStorage.removeItem('upgrade_return_url')
-          } catch {
-            /* noop */
-          }
-          try {
-            sessionStorage.removeItem('upgrade_trigger')
-          } catch {
-            /* noop */
-          }
-          window.location.replace('/chat?upgraded=true')
+          try { sessionStorage.removeItem('upgrade_return_url') } catch { /* noop */ }
+          try { sessionStorage.removeItem('upgrade_trigger') } catch { /* noop */ }
+          setShowWaModal(true)
         },
         modal: { ondismiss: () => setIsLoading(false) },
       })
@@ -643,6 +775,18 @@ export default function PricingPage() {
               onClose={() => setShowFoundingModal(false)}
               returnUrl={foundingReturnUrl}
               userEmail={userEmail}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* ── WhatsApp post-payment modal ───────────────────────────── */}
+        <AnimatePresence>
+          {showWaModal && (
+            <WaPostPaymentModal
+              onDone={() => {
+                setShowWaModal(false)
+                window.location.replace('/chat?upgraded=true')
+              }}
             />
           )}
         </AnimatePresence>
