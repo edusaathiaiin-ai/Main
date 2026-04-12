@@ -34,7 +34,7 @@ const EDUSAATHI_PROS = [
   'Indian curriculum + regional exam patterns',
   'Exam-mode with high-yield topic structure',
   'Saathi Check-ins + study rhythm tracking',
-  '₹99/mo for first 6 months (then ₹199) — less than a pizza delivery',
+  'Only ₹99/month — less than a pizza delivery',
   'Built exclusively for Indian students',
 ]
 
@@ -515,26 +515,9 @@ export default function PricingPage() {
                     >
                       EdUsaathiAI Plus
                     </p>
-                    <div className="flex items-baseline gap-1.5">
-                      <p
-                        className="text-xs font-bold"
-                        style={{ color: '#E5B86A' }}
-                      >
-                        ₹99/mo
-                      </p>
-                      <p
-                        className="text-xs line-through"
-                        style={{ color: 'rgba(255,255,255,0.3)' }}
-                      >
-                        ₹199
-                      </p>
-                      <p
-                        className="text-xs"
-                        style={{ color: 'rgba(255,255,255,0.35)' }}
-                      >
-                        first 6 mo
-                      </p>
-                    </div>
+                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      <span className="line-through opacity-50">₹199</span> ₹99 / month
+                    </p>
                   </div>
                 </div>
                 <ul className="space-y-2.5">
@@ -569,7 +552,7 @@ export default function PricingPage() {
                       className="rounded-full px-3 py-1 text-sm font-bold"
                       style={{ background: '#C9993A', color: '#060F1D' }}
                     >
-                      Save ₹1,451/mo
+                      Save ₹1,551/mo
                     </span>
                   </div>
                 </div>

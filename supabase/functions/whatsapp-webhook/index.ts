@@ -6,7 +6,6 @@
  * responds via Claude Haiku within 3 seconds.
  */
 
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { captureError } from '../_shared/sentry.ts';
 import { checkRateLimit } from '../_shared/rateLimit.ts';
@@ -112,7 +111,7 @@ type Message = {
 
 // ── Serve ──────────────────────────────────────────────────────────────────────
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   // ── GET: Meta webhook verification ──────────────────
   if (req.method === 'GET') {
     const url = new URL(req.url);
@@ -186,7 +185,7 @@ serve(async (req) => {
   try {
     await handleMessage(from, waPhone, userText);
   } catch (err) {
-    console.error('Handler error:', err);
+    console.error('[whatsapp-webhook] Handler error:', err instanceof Error ? err.message : err);
     captureError(err instanceof Error ? err : new Error(String(err)), {
       tags: { function: 'whatsapp-webhook' },
       extra: { from, waPhone },
@@ -208,12 +207,26 @@ async function handleMessage(from: string, waPhone: string, text: string) {
     .single();
 
   if (!session) {
-    const { data: newSession } = await admin
+    const { data: newSession, error: insertErr } = await admin
       .from('whatsapp_sessions')
       .insert({ wa_phone: waPhone })
       .select()
       .single();
+    if (insertErr) {
+      console.error('[whatsapp-webhook] session insert error:', insertErr.message);
+    }
     session = newSession;
+  }
+
+  // Guard: insert failed — use in-memory fallback so the handler doesn't crash
+  if (!session) {
+    session = {
+      wa_phone: waPhone,
+      user_id: null,
+      messages: [],
+      message_count_today: 0,
+      last_reset_date: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }),
+    };
   }
 
   // Reset daily count if new day (IST)
@@ -240,15 +253,15 @@ async function handleMessage(from: string, waPhone: string, text: string) {
     .eq('wa_phone', waPhone)
     .single();
 
+
   // ── A3: Ban / suspension early gate ──────────────────
-  // Check before any processing — banned users get silence,
-  // suspended users get a one-line message then we stop.
   if (profile?.is_banned) {
-    console.log('[whatsapp-webhook] Banned user ignored:', waPhone);
-    return; // Silently ignore — no response to banned users
+    console.log('[handleMessage] BLOCKED — banned user:', waPhone);
+    return;
   }
 
   if (profile?.suspension_status === 'suspended') {
+    console.log('[handleMessage] BLOCKED — suspended user:', waPhone);
     await sendWhatsAppMessage(
       from,
       'Your account is temporarily suspended. Contact support@edusaathiai.in for help.',
@@ -394,7 +407,7 @@ async function sendSaathiList(from: string) {
   if (!saathis || saathis.length === 0) return;
 
   const list = saathis
-    .slice(0, 24)
+    .slice(0, 30)
     .map((s: VerticalRow, i: number) => `${i + 1}. ${s.emoji} *${s.name}*\n    _${s.tagline}_`)
     .join('\n\n');
 

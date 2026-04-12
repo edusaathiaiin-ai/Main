@@ -52,7 +52,7 @@ interface RawSoul {
   flame_stage: string | null
 }
 
-const WA_NUMBER = '919XXXXXXXXX' // Replace with actual WhatsApp Business number
+const WA_NUMBER = '919825593204'
 
 interface ProfileTabProps {
   profile: Profile
