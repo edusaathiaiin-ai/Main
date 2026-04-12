@@ -180,7 +180,7 @@ async function notifyStudentWhatsApp(
   }); // e.g. "14 April 2026"
   const sessionTime = slotDt.toLocaleTimeString('en-IN', {
     hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
-  }); // e.g. "5:00 PM"
+  }) + ' IST'; // e.g. "5:00 PM IST"
   const sessionIdShort = sessionId.slice(0, 8);
 
   try {
