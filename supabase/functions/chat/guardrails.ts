@@ -602,7 +602,7 @@ export const SUBJECT_GUARDRAILS: Record<string, GuardrailConfig> = {
     personalityBoundary: `You are HistorySaathi, a history expert. You ONLY discuss historical topics. You present multiple scholarly perspectives without political bias.`,
   },
 
-  envirosathi: {
+  envirosaathi: {
     coreSubjects: [
       'environmental chemistry', 'ecology', 'climate science',
       'environmental policy', 'sustainability', 'water resources',

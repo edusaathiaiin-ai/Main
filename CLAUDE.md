@@ -6,6 +6,36 @@
 
 ---
 
+## ⚠️ SLUG TEST — MANDATORY BEFORE EVERY DEPLOY
+
+```bash
+cd website && npm run test:saathis
+```
+
+**13/13 must pass.** A failing test = do not deploy. Revert or fix first.
+
+The test audits all 30 canonical slugs against every surface where drift has
+historically caused silent bugs:
+
+| Surface | What it catches |
+|---------|-----------------|
+| Website `SAATHIS` (`src/constants/saathis.ts`) | Missing slugs, typos, deprecated slugs |
+| Expo root `SAATHIS` (`/constants/saathis.ts`) | Same, for when the mobile app launches |
+| `SLUG_TO_UUID` (`src/constants/verticalIds.ts`) | Missing mappings, duplicate UUIDs, UUID format |
+| `SUBJECT_GUARDRAILS` (`supabase/functions/chat/guardrails.ts`) | Missing subject boundary = jailbreak risk |
+| `saathiPersonalities` (`supabase/functions/_shared/saathiPersonalities.ts`) | Deprecated slug keys = slot-1 personality never loads |
+| `globals.css` (`website/src/app/globals.css`) | Deprecated `[data-saathi="…"]` selectors = no Saathi theme |
+
+Deprecated slugs the test explicitly rejects: `physisaathi`, `aerosaathi`,
+`envirosathi`, `chemenggsaathi`, `chemengg saathi`, `chemengg_saathi`.
+
+Each of these has caused a real production bug in the April 2026 audit.
+Do not re-introduce them under any circumstance. If the test catches a new
+drift, add the offending slug to `DEPRECATED_SLUGS` in the test file so it
+can never return.
+
+---
+
 ## 1. What is EdUsaathiAI?
 
 EdUsaathiAI (edusaathiai.in) is an AI-first education platform built for India.

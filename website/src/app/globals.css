@@ -207,7 +207,7 @@
   --saathi-bg:       rgba(29,78,216,0.05); --saathi-text:  #1E3A8A;
   --sidebar-bg:      #EFF6FF; --bg-base:      #EFF6FF;
 }
-[data-saathi="envirosathi"] {
+[data-saathi="envirosaathi"] {
   --saathi-primary:  #365314; --saathi-dark:  #1A2E05; --saathi-light: #D9F99D;
   --saathi-mid:      #4D7C0F; --saathi-border:rgba(54,83,20,0.18);
   --saathi-bg:       rgba(54,83,20,0.05); --saathi-text:  #1A2E05;
