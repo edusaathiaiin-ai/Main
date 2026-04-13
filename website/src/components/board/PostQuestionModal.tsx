@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
+import { trackBoardPosted } from '@/lib/analytics'
 import type { Profile } from '@/types'
 
 // ── Per-Saathi topic tags ──────────────────────────────────────────────────────
@@ -192,6 +193,9 @@ export function PostQuestionModal({
       },
       body: JSON.stringify({ questionId: q.id, saathiId: saathiSlug }),
     }).catch(() => {})
+
+    // Analytics: fires only after the insert succeeded (board post is live)
+    trackBoardPosted(saathiSlug, 'question')
 
     // Notify parent to refresh feed
     onPosted(q.id)

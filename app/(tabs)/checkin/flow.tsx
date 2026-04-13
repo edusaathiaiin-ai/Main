@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSaathi } from '@/hooks/useSaathi';
 import { useSoul } from '@/hooks/useSoul';
 import { supabase } from '@/lib/supabase';
+import { trackCheckinCompleted } from '@/lib/analytics';
 
 type QuestionType = 'mcq' | 'open' | 'conversation';
 
@@ -319,6 +320,20 @@ export default function CheckinFlowScreen() {
 
       if (insertError) {
         Sentry.captureException(insertError, { tags: { action: 'checkin_results_insert' } });
+      } else {
+        // Analytics: fire checkin_completed only on successful insert.
+        // flame_stage isn't in useSoul's select list — fetch inline so we can
+        // attach it as a property without widening the hook.
+        const { data: flameRow } = await supabase
+          .from('student_soul')
+          .select('flame_stage')
+          .eq('user_id', user.id)
+          .eq('vertical_id', currentSaathiId)
+          .maybeSingle();
+        trackCheckinCompleted(currentSaathiId, {
+          checkin_score: Math.round(avgScore * 100),
+          flame_stage: (flameRow?.flame_stage as string | undefined) ?? undefined,
+        });
       }
 
       const mergedStruggles = Array.from(

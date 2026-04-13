@@ -98,8 +98,15 @@ export function trackWaLinkClicked(source: 'login' | 'chat_tip' | 'post_payment'
   capture('wa_link_clicked', { source })
 }
 
-export function trackCheckinCompleted(saathi_slug: string, score: number, type: string) {
-  capture('checkin_completed', { saathi_slug, score, type })
+export function trackCheckinCompleted(
+  saathi_slug: string,
+  opts?: { checkin_score?: number; flame_stage?: string },
+) {
+  capture('checkin_completed', {
+    saathi_slug,
+    ...(typeof opts?.checkin_score === 'number' ? { checkin_score: opts.checkin_score } : {}),
+    ...(opts?.flame_stage ? { flame_stage: opts.flame_stage } : {}),
+  })
 }
 
 export function trackBoardPosted(saathi_slug: string, type: 'question' | 'answer') {
