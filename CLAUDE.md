@@ -86,6 +86,12 @@ UPSTASH_REDIS_REST_TOKEN=
 SENTRY_DSN=
 SENTRY_AUTH_TOKEN=
 
+# ANALYTICS (PostHog — product analytics, see Section 25)
+NEXT_PUBLIC_POSTHOG_KEY=
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+POSTHOG_API_KEY=                     # server-side capture (edge functions)
+POSTHOG_HOST=https://us.i.posthog.com
+
 # VERCEL
 VERCEL_TOKEN=
 VERCEL_ORG_ID=
@@ -667,6 +673,135 @@ The bot never:
 
 **Final line in every system prompt, every bot, every Saathi — unchanged forever:**
 > "You are not just answering questions. You are shaping a future."
+
+---
+
+## 25. Analytics — PostHog
+
+Product analytics for EdUsaathiAI. Complements Sentry (which only tracks errors)
+and Supabase raw tables (which require ad-hoc SQL).
+
+### Tool
+PostHog Cloud (US region). Free tier: 1M events/month. Upgrade path: self-host or paid.
+
+### Architecture
+
+```
+┌─ Web (Next.js) ─────┐     ┌─ Edge Functions ────┐     ┌─ Future: Expo ──┐
+│ posthog-js          │     │ posthog-node        │     │ posthog-react-  │
+│ - page views (auto) │     │ - payment_succeeded │     │   native        │
+│ - signup_started    │     │ - plan_upgraded     │     │ - mobile events │
+│ - chat_sent         │     │ - flame_advanced    │     │                 │
+│ - pricing_viewed    │     │ - wa_message_*      │     │                 │
+└──────────┬──────────┘     └──────────┬──────────┘     └────────┬────────┘
+           │                           │                          │
+           └───────────────────────────┴──────────────────────────┘
+                                       ▼
+                          ┌─ PostHog Cloud ──────────┐
+                          │ - funnels / retention    │
+                          │ - user properties        │
+                          │ - dashboards             │
+                          └──────────────────────────┘
+```
+
+### What we instrument
+
+**Client-side (automatic):** `$pageview`, `$pageleave` via PostHog's Next.js SDK.
+
+**Client-side (manual) — core events:**
+```
+signup_started      { method: 'google' | 'email' | 'wa' }
+signup_completed    { method, duration_s }
+saathi_selected     { saathi_slug, is_primary }
+chat_sent           { saathi_slug, bot_slot, message_len }
+pricing_viewed      { source: 'upgrade_modal' | 'sidebar' | 'direct' }
+upgrade_clicked     { plan_id, source }
+wa_link_clicked     { source: 'login' | 'chat_tip' | 'post_payment' }
+checkin_completed   { saathi_slug, score, type }
+board_posted        { saathi_slug, type: 'question' | 'answer' }
+error_reported      { saathi_slug }
+```
+
+**Server-side (edge functions) — revenue/engagement truth:**
+```
+payment_succeeded   { plan_id, amount_paise, razorpay_order_id }   ← razorpay-webhook
+plan_upgraded       { from_plan, to_plan }                         ← subscription-lifecycle
+plan_cancelled      { plan_id, reason }                            ← subscription-lifecycle
+flame_advanced      { from, to, saathi_slug }                      ← soul-update
+shell_broken        { saathi_slug, sessions_at_break }             ← soul-update
+wa_message_received { saathi_slug }                                ← whatsapp-webhook
+wa_user_onboarded   { saathi_slug }                                ← whatsapp-webhook
+quota_hit           { surface: 'web' | 'wa', plan_id }             ← chat, whatsapp-webhook
+cooling_triggered   { plan_id, surface }                           ← chat, whatsapp-webhook
+```
+
+### User identification
+
+- `distinctId` = Supabase `auth.users.id` (UUID — not PII)
+- Anonymous PostHog ID before login; call `posthog.identify(userId)` on auth
+  callback. PostHog auto-merges the anonymous session.
+- **Never** send chat message content, email, phone, or full_name to PostHog.
+  Event metadata only.
+
+### User properties (set via `posthog.people.set`)
+
+Set once on signup, updated whenever the underlying field changes:
+```
+plan_id              free | trial | plus-monthly | plus-annual | unlimited
+role                 student | faculty | public | institution | global_guest
+primary_saathi_id    slug, not UUID
+academic_level       school | bachelor | masters | phd
+city                 string (not a district/address — just city)
+is_global_guest      boolean
+signup_date          ISO date
+flame_stage          cold | spark | ember | fire | wings
+session_count_total  integer (updated by soul-update)
+```
+
+### Files
+
+```
+website/src/lib/analytics.ts           ← client wrapper (track, identify, reset)
+website/src/app/providers.tsx          ← PostHogProvider mounted in root
+supabase/functions/_shared/posthog.ts  ← server wrapper for edge functions
+```
+
+### Privacy rules — non-negotiable
+
+- No autocapture of form inputs (students type emails/questions — never capture).
+- Respect DPDP opt-out: if `consent_log.posthog = false` for user, call `posthog.opt_out_capturing()`.
+- No chat message content in event properties — ever. Only `message_len`.
+- No faculty names or contact details in event properties.
+- Session replay: OFF at launch. Enable per-user later with explicit consent only.
+- On account deletion (DPDP flow), call PostHog's `/capture/{distinctId}` DELETE.
+
+### Feature flags (future — Phase 2)
+
+PostHog ships feature flags we can use for gradual rollouts:
+- New chat UI A/B
+- Pricing experiment (₹199 vs ₹149)
+- Saathi discovery redesign
+
+Not enabled at launch — call out when we're ready to wire up.
+
+### When to add a new event
+
+Ask: does this answer a question we're not answering today?
+- ✅ "What % of Plus trialists convert to paid?" → add `trial_expired`, `trial_converted`
+- ❌ "How many times did user click the avatar?" → noise, skip.
+
+Don't instrument for curiosity. Instrument for decisions.
+
+### Where dashboards live
+
+PostHog → `Dashboards` → pinned boards:
+1. **Acquisition funnel**: signup_started → signup_completed → saathi_selected → first chat_sent
+2. **Revenue funnel**: pricing_viewed → upgrade_clicked → payment_succeeded
+3. **WhatsApp adoption**: wa_link_clicked → wa_user_onboarded → wa_message_received (D7)
+4. **Soul engagement**: flame_stage distribution over time; shell_broken cohort retention
+5. **Quota pressure**: quota_hit events by plan → conversion rate to upgrade within 24h
+
+Dashboards are created in PostHog UI after data starts flowing — not in code.
 
 ---
 

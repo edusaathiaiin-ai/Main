@@ -11,6 +11,7 @@ import * as Application from 'expo-application';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types';
 import { checkConversionShouldShow, markConversionShown } from '@/hooks/useConversionTrigger';
+import { identify, resetAnalytics } from '@/lib/analytics';
 
 // Required for iOS to properly close the auth session after redirect
 WebBrowser.maybeCompleteAuthSession();
@@ -162,6 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         wasLoggedIn.current = false;
         setProfile(null);
+        resetAnalytics();
         setIsLoading(false);
       } else {
         setIsLoading(false);
@@ -201,10 +203,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (registerRes.profile) {
           setProfile(registerRes.profile);
           if (token) void callSessionRegister(token);
+          const np = registerRes.profile;
+          identify(authUser.id, {
+            plan_id: (np.plan_id as 'free' | 'trial' | 'plus-monthly' | 'plus-annual' | 'unlimited') ?? 'free',
+            role: np.role as 'student' | 'faculty' | 'public' | 'institution' | 'global_guest',
+            primary_saathi_id: np.primary_saathi_id ?? '',
+            is_global_guest: np.is_global_guest ?? false,
+            signup_date: np.created_at ?? new Date().toISOString(),
+          });
         }
       } else if (data) {
         const p = data as Profile;
         setProfile(p);
+
+        identify(authUser.id, {
+          plan_id: (p.plan_id as 'free' | 'trial' | 'plus-monthly' | 'plus-annual' | 'unlimited') ?? 'free',
+          role: p.role as 'student' | 'faculty' | 'public' | 'institution' | 'global_guest',
+          primary_saathi_id: p.primary_saathi_id ?? '',
+          academic_level: p.academic_level as 'school' | 'bachelor' | 'masters' | 'phd' | undefined,
+          city: p.city ?? undefined,
+          is_global_guest: p.is_global_guest ?? false,
+          signup_date: p.created_at ?? undefined,
+          flame_stage: p.flame_stage as 'cold' | 'spark' | 'ember' | 'fire' | 'wings' | undefined,
+          session_count_total: p.session_count_total ?? undefined,
+        });
 
         // ── Session enforcement (fire-and-forget) ────────────────────────
         if (accessToken) void callSessionRegister(accessToken);

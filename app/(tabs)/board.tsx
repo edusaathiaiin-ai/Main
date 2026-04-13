@@ -14,6 +14,7 @@ import { SAATHIS } from '@/constants/saathis';
 import { useAuth } from '@/hooks/useAuth';
 import { useSaathi } from '@/hooks/useSaathi';
 import { supabase } from '@/lib/supabase';
+import { trackBoardPosted } from '@/lib/analytics';
 
 type QuestionRow = {
   id: string;
@@ -350,6 +351,7 @@ export default function BoardScreen() {
         Sentry.captureException(error, { tags: { action: 'board_auto_answer_trigger' } });
       }
 
+      trackBoardPosted(currentSaathiId ?? '', 'question');
       setModalVisible(false);
       setTitle('');
       setSelectedTopic('');

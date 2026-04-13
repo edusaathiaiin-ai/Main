@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
 
 import { useAuth } from '@/hooks/useAuth';
+import { trackSignupStarted } from '@/lib/analytics';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -30,12 +31,14 @@ export default function LoginScreen() {
 
   async function handleGoogleSignIn() {
     clearError();
+    trackSignupStarted('google');
     await signInWithGoogle();
   }
 
   async function handleSendOTP() {
     if (!email.trim()) return;
     setOtpSending(true);
+    trackSignupStarted('email');
     try {
       await signInWithEmailOTP(email.trim());
       // Navigate to OTP verify screen on success

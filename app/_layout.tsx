@@ -16,7 +16,10 @@ import {
   DMSans_700Bold,
 } from '@expo-google-fonts/dm-sans';
 
+import { PostHogProvider } from 'posthog-react-native';
+
 import { initializeSentryWithDsn } from '@/lib/sentry';
+import { initAnalytics } from '@/lib/analytics';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 
 // Keep native splash screen visible until fonts + auth are ready
@@ -108,10 +111,16 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
-    <AuthProvider>
-      <AuthRedirect />
-      <Stack screenOptions={{ headerShown: false }} />
-    </AuthProvider>
+    <PostHogProvider
+      apiKey={process.env.EXPO_PUBLIC_POSTHOG_KEY!}
+      options={{ host: process.env.EXPO_PUBLIC_POSTHOG_HOST }}
+      onReady={(client) => initAnalytics(client)}
+    >
+      <AuthProvider>
+        <AuthRedirect />
+        <Stack screenOptions={{ headerShown: false }} />
+      </AuthProvider>
+    </PostHogProvider>
   );
 }
 

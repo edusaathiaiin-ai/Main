@@ -5,7 +5,7 @@
  * Unlimited card has dark navy background, fire badge, zero-cooling highlight.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -27,6 +27,7 @@ import {
   isPaymentsActive,
   type PlanId as RzpPlanId,
 } from '@/lib/razorpay';
+import { trackPricingViewed, trackUpgradeClicked } from '@/lib/analytics';
 
 const NAVY  = '#0B1F3A';
 const GOLD  = '#C9993A';
@@ -203,7 +204,12 @@ export default function PricingScreen() {
 
   const [loadingPlan, setLoadingPlan] = useState<RazorpayPlanId | null>(null);
 
+  useEffect(() => {
+    trackPricingViewed('direct');
+  }, []);
+
   const handleUpgrade = async (planId: RazorpayPlanId) => {
+    trackUpgradeClicked(planId, 'pricing_screen');
     if (!isPaymentsActive()) {
       Alert.alert(
         'Payments coming soon',

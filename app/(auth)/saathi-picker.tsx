@@ -14,6 +14,7 @@ import { SAATHIS } from '@/constants/saathis';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import type { Saathi } from '@/types';
+import { trackSaathiSelected } from '@/lib/analytics';
 
 export default function SaathiPickerScreen() {
   const router = useRouter();
@@ -60,6 +61,7 @@ export default function SaathiPickerScreen() {
 
       if (updateError) throw updateError;
 
+      trackSaathiSelected(selected, true);
       await refreshProfile();
       router.replace('/(auth)/profile-setup');
     } catch (err) {

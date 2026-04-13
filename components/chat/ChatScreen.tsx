@@ -37,6 +37,7 @@ import type { NudgeMessage } from '@/constants/nudges';
 import type { TriggerType } from '@/constants/copy';
 
 import { useSubscription } from '@/hooks/useSubscription';
+import { trackChatSent, trackUpgradeClicked } from '@/lib/analytics';
 
 import type { ChatMessage } from '@/types';
 
@@ -137,6 +138,8 @@ export function ChatScreen() {
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
     setStreamingId(assistantId);
     scrollToBottom();
+
+    trackChatSent(currentSaathiId, activeBot.slot, text.length);
 
     // Optimistic local quota decrement for immediate UI feedback
     await consumeOne();
@@ -493,6 +496,7 @@ export function ChatScreen() {
         }}
         onCta={async () => {
           if (user?.id) await markConversionActedOn(user.id, conversionTrigger);
+          trackUpgradeClicked('plus-monthly', conversionTrigger);
           setConversionNudge(null);
           router.push('/(tabs)/pricing');
         }}
