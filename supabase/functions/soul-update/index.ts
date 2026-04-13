@@ -599,9 +599,12 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    // Track session_count_total person property every session
+    // Track session_count_total + current flame_stage every session — ensures
+    // Flame Stage Distribution insight in PostHog reflects every user's
+    // current stage, not just those who progressed in the last N days.
     await posthogSetPersonProps(user.id, {
       session_count_total: existingCount + 1,
+      flame_stage: newFlame,
     })
 
     return new Response(
