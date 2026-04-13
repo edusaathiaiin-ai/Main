@@ -28,8 +28,8 @@ type FacultyData = {
     former_institution: string | null
     badge_type: string | null
     session_bio: string | null
-    expertise_tags: string[]
-    research_areas: string | null
+    speciality_areas: string[]
+    current_research: string | null
     session_active: boolean
     session_fee_doubt: number
     session_fee_research: number
@@ -46,6 +46,7 @@ type FacultyData = {
     years_experience: number
     response_rate: number
     avg_response_hours: number
+    affiliations: { org: string; role: string; year: string }[]
   } | null
 }
 
@@ -141,12 +142,12 @@ export default function FacultyProfilePage() {
           `id, full_name, city, primary_saathi_id, faculty_profiles (
           institution_name, department, designation, verification_status,
           employment_status, is_emeritus, retirement_year, former_institution, badge_type,
-          session_bio, expertise_tags, research_areas, session_active,
+          session_bio, speciality_areas, current_research, session_active,
           session_fee_doubt, session_fee_research, session_fee_deepdive,
           offers_doubt_session, offers_research_session, offers_deepdive_session,
           total_sessions_completed, average_rating, total_reviews,
           open_to_research, availability_note, faculty_slug, years_experience,
-          response_rate, avg_response_hours
+          response_rate, avg_response_hours, affiliations
         )`
         )
         .eq('role', 'faculty')
@@ -517,7 +518,7 @@ export default function FacultyProfilePage() {
                 </p>
               )}
               <div className="flex flex-wrap gap-1.5">
-                {fp.expertise_tags?.map((t) => (
+                {fp.speciality_areas?.map((t) => (
                   <span
                     key={t}
                     className="rounded-lg px-2.5 py-1 text-[10px]"
@@ -534,7 +535,7 @@ export default function FacultyProfilePage() {
             </motion.div>
 
             {/* Research areas */}
-            {fp.research_areas && (
+            {fp.current_research && (
               <div
                 className="mb-6 rounded-xl p-5"
                 style={{
@@ -549,7 +550,70 @@ export default function FacultyProfilePage() {
                   className="text-xs leading-relaxed"
                   style={{ color: 'rgba(255,255,255,0.5)' }}
                 >
-                  {fp.research_areas}
+                  {fp.current_research}
+                </p>
+              </div>
+            )}
+
+            {/* Affiliations & Designations */}
+            {fp.affiliations?.length > 0 && (
+              <div
+                className="mb-6 rounded-xl p-5"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '0.5px solid rgba(255,255,255,0.08)',
+                }}
+              >
+                <h3
+                  className="mb-4 text-sm font-semibold"
+                  style={{ color: '#C9993A' }}
+                >
+                  {'\u2726'} Affiliations &amp; Designations
+                </h3>
+                <div className="flex flex-col">
+                  {fp.affiliations.map((a, ai) => (
+                    <div key={ai}>
+                      {ai > 0 && (
+                        <div
+                          className="my-3"
+                          style={{
+                            height: '0.5px',
+                            background: 'rgba(201,153,58,0.12)',
+                          }}
+                        />
+                      )}
+                      <div className="flex items-start gap-3">
+                        <span className="mt-0.5 text-base">
+                          {a.role?.toLowerCase().includes('alumni')
+                            ? '\u{1F3DB}\u{FE0F}'
+                            : a.role?.toLowerCase().includes('chairman') ||
+                                a.role?.toLowerCase().includes('director') ||
+                                a.role?.toLowerCase().includes('member')
+                              ? '\u{1F3E2}'
+                              : '\u{1F3C5}'}
+                        </span>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">
+                            {a.org}
+                          </p>
+                          <p
+                            className="text-xs"
+                            style={{ color: 'rgba(255,255,255,0.45)' }}
+                          >
+                            {a.role}
+                            {a.year ? ` \u00B7 ${a.year}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p
+                  className="mt-3 text-[10px]"
+                  style={{ color: 'rgba(255,255,255,0.2)' }}
+                >
+                  Self-declared — EdUsaathiAI does not independently verify
+                  affiliations
                 </p>
               </div>
             )}

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback, type ReactNode } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useCallback, useEffect, type ReactNode } from 'react'
+import { motion, AnimatePresence, Reorder } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { SAATHIS } from '@/constants/saathis'
 import { toVerticalUuid } from '@/constants/verticalIds'
@@ -11,7 +11,14 @@ import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type EmploymentStatus = 'active' | 'retired' | 'independent'
+type EmploymentStatus = 'active' | 'retired' | 'independent' | 'professional'
+
+type Affiliation = {
+  id:   string
+  org:  string
+  role: string
+  year: string
+}
 
 type FacultyFormData = {
   // Identity
@@ -40,6 +47,8 @@ type FacultyFormData = {
   researchArea:          string
   linkedin:              string
   googleScholar:         string
+  // Affiliations
+  affiliations:          Affiliation[]
   // Saathis
   primarySaathiSlug:     string
   additionalSaathiSlugs: string[]
@@ -50,7 +59,7 @@ type FacultyFormData = {
   agreedDPDP:            boolean
 }
 
-type Step = 'employment' | 'profile' | 'saathi' | 'invitation' | 'agreement'
+type Step = 'employment' | 'profile' | 'affiliations' | 'saathi' | 'invitation' | 'agreement'
 
 type Props = {
   profile:    { id: string; role: string | null }
@@ -100,12 +109,18 @@ function suggestSaathi(department: string): string {
   return ''
 }
 
+const PERSONAL_EMAIL_DOMAINS = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'rediffmail.com', 'ymail.com']
+function isPersonalEmailDomain(email: string): boolean {
+  const domain = email.split('@')[1]?.toLowerCase() ?? ''
+  return PERSONAL_EMAIL_DOMAINS.includes(domain)
+}
+
 // ─── Shared tokens ────────────────────────────────────────────────────────────
 
 const GREEN   = '#4ADE80'
 const GOLD    = '#C9993A'
 const NAVY    = '#060F1D'
-const CARD_BG = 'rgba(255,255,255,0.03)'
+const CARD_BG = 'rgba(255,255,255,0.04)'
 const BORDER  = '0.5px solid rgba(255,255,255,0.08)'
 
 const inp = {
@@ -114,7 +129,7 @@ const inp = {
   color:        '#fff',
   borderRadius: '12px',
   padding:      '12px 16px',
-  fontSize:     '14px',
+  fontSize:     '16px',
   width:        '100%',
   outline:      'none',
   fontFamily:   'DM Sans, sans-serif',
@@ -128,8 +143,8 @@ const CITIES = [
 
 // ─── Step indicator ───────────────────────────────────────────────────────────
 
-const STEPS: Step[]    = ['employment', 'profile', 'saathi', 'invitation', 'agreement']
-const STEP_LABELS      = ['You', 'Profile', 'Saathis', 'How it works', 'Begin']
+const STEPS: Step[]    = ['employment', 'profile', 'affiliations', 'saathi', 'invitation', 'agreement']
+const STEP_LABELS      = ['You', 'Profile', 'Standing', 'Saathis', 'How it works', 'Begin']
 
 function StepDots({ current }: { current: Step }) {
   const idx = STEPS.indexOf(current)
@@ -205,6 +220,13 @@ function EmploymentStep({
       desc:  'Practitioner, consultant, or researcher outside an institution',
       color: '#60A5FA',
     },
+    {
+      id:    'professional' as const,
+      emoji: '💼',
+      title: 'Working professional',
+      desc:  'Industry expert, corporate trainer, or domain specialist with hands-on field experience',
+      color: '#A78BFA',
+    },
   ]
 
   return (
@@ -257,7 +279,7 @@ function EmploymentStep({
                 }}>
                   {opt.title}
                 </p>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
                   {opt.desc}
                 </p>
               </div>
@@ -292,11 +314,11 @@ function EmploymentStep({
           <p style={{ fontSize: '14px', fontFamily: 'Playfair Display, serif', fontWeight: 700, color: '#C9993A', margin: '0 0 10px' }}>
             Your role is not to explain the subject.
           </p>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', margin: '0 0 10px', lineHeight: 1.7 }}>
+          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.75)', margin: '0 0 10px', lineHeight: 1.7 }}>
             Your role is to show students what it opens.
             The Saathi handles the curriculum. You handle the possibility.
           </p>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.6 }}>
             ✦ No institutional email needed. Your career speaks for itself.
             We verify retired faculty via a retirement letter, pension slip, or
             appointment letter — uploaded after you complete this form.
@@ -321,7 +343,9 @@ function EmploymentStep({
           ? 'teaching faculty'
           : value === 'retired'
             ? 'retired professor'
-            : 'independent professional'} →
+            : value === 'professional'
+              ? 'working professional'
+              : 'independent professional'} →
       </motion.button>
     </div>
   )
@@ -330,20 +354,23 @@ function EmploymentStep({
 // ─── Step 2: Professional profile ────────────────────────────────────────────
 
 function ProfileStep({
-  form, set, onNext, onBack,
+  form, set, onNext, onBack, userEmail,
 }: {
-  form:   FacultyFormData
-  set:    (k: keyof FacultyFormData, v: unknown) => void
-  onNext: () => void
-  onBack: () => void
+  form:      FacultyFormData
+  set:       (k: keyof FacultyFormData, v: unknown) => void
+  onNext:    () => void
+  onBack:    () => void
+  userEmail: string
 }) {
   const [tagInput,    setTagInput]    = useState('')
   const [error,       setError]       = useState('')
   const [nameTouched, setNameTouched] = useState(false)
 
-  const isActive      = form.employment === 'active'
-  const isRetired     = form.employment === 'retired'
-  const isIndependent = form.employment === 'independent'
+  const isActive        = form.employment === 'active'
+  const isRetired       = form.employment === 'retired'
+  const isIndependent   = form.employment === 'independent'
+  const isPersonalEmail = isPersonalEmailDomain(userEmail)
+  const linkedinValue   = (isIndependent ? form.independentLinkedin : form.linkedin).trim()
 
   const nameTyped = form.fullName.trim().length > 0
   const { valid: nameValid, error: nameValidationError } = nameTyped
@@ -366,6 +393,7 @@ function ProfileStep({
     if (isActive && !form.department.trim())           return 'Please enter your department'
     if (isRetired && !form.formerInstitution.trim())   return 'Please enter your former institution'
     if (isIndependent && !form.credentials.trim())     return 'Please describe your credentials'
+    if (isPersonalEmail && !linkedinValue)             return 'LinkedIn URL is required when using a personal email address'
     return ''
   }
 
@@ -392,7 +420,7 @@ function ProfileStep({
   const Label = ({ children }: { children: ReactNode }) => (
     <label style={{
       display: 'block', marginBottom: '6px',
-      fontSize: '11px', fontWeight: 600,
+      fontSize: '13px', fontWeight: 600,
       letterSpacing: '0.06em', textTransform: 'uppercase',
       color: 'rgba(255,255,255,0.35)',
     }}>
@@ -410,7 +438,7 @@ function ProfileStep({
         }}>
           Your professional profile
         </h2>
-        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
           Students see this when they find you on Faculty Finder. Make it yours.
         </p>
       </motion.div>
@@ -443,7 +471,7 @@ function ProfileStep({
               )}
             </div>
             {showNameError && (
-              <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#F87171' }}>
+              <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#F87171' }}>
                 {nameValidationError}
               </p>
             )}
@@ -457,7 +485,7 @@ function ProfileStep({
             >
               <option value="">Select city</option>
               {CITIES.map((c) => (
-                <option key={c} value={c} style={{ background: '#0B1F3A' }}>{c}</option>
+                <option key={c} value={c} style={{ background: '#0D1B2A' }}>{c}</option>
               ))}
             </select>
           </div>
@@ -488,7 +516,7 @@ function ProfileStep({
                   {['Professor', 'Associate Professor', 'Assistant Professor',
                     'Lecturer', 'Senior Lecturer', 'Visiting Faculty',
                     'Research Fellow', 'Adjunct Faculty'].map((d) => (
-                    <option key={d} value={d} style={{ background: '#0B1F3A' }}>{d}</option>
+                    <option key={d} value={d} style={{ background: '#0D1B2A' }}>{d}</option>
                   ))}
                 </select>
               </div>
@@ -502,7 +530,7 @@ function ProfileStep({
                   <option value="">Select</option>
                   {['PhD', 'M.Phil', 'Masters', 'Post-Doctoral',
                     'Professional (MD/LLM/MBA/CA)'].map((q) => (
-                    <option key={q} value={q} style={{ background: '#0B1F3A' }}>{q}</option>
+                    <option key={q} value={q} style={{ background: '#0D1B2A' }}>{q}</option>
                   ))}
                 </select>
               </div>
@@ -619,7 +647,7 @@ function ProfileStep({
                   <button key={s}
                     onClick={() => set('specialities', form.specialities.filter((x) => x !== s))}
                     style={{
-                      fontSize: '11px', fontWeight: 600, color: GREEN,
+                      fontSize: '13px', fontWeight: 600, color: GREEN,
                       padding: '3px 10px',
                       background: 'rgba(74,222,128,0.1)',
                       border: '0.5px solid rgba(74,222,128,0.3)',
@@ -649,20 +677,62 @@ function ProfileStep({
 
         {/* Academic links */}
         <div>
-          <Label>Academic links (optional — speeds up verification)</Label>
+          <Label>
+            Academic links{isPersonalEmail ? '' : ' (optional — speeds up verification)'}
+          </Label>
+
+          {/* Personal email warning */}
+          {isPersonalEmail && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                padding: '10px 14px', borderRadius: '10px', marginBottom: '10px',
+                background: 'rgba(245,158,11,0.08)',
+                border: '0.5px solid rgba(245,158,11,0.35)',
+              }}
+            >
+              <p style={{ fontSize: '13px', color: '#FCD34D', margin: 0, lineHeight: 1.6 }}>
+                ⚠️ Personal email detected. LinkedIn URL is required for verification. You can add it below.
+              </p>
+            </motion.div>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <input
-              value={isIndependent ? form.independentLinkedin : form.linkedin}
-              onChange={(e) => set(isIndependent ? 'independentLinkedin' : 'linkedin', e.target.value)}
-              placeholder="LinkedIn URL"
-              style={inp}
-              onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-              onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
-            />
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '5px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                  LinkedIn URL{isPersonalEmail ? '' : ' (optional)'}
+                </span>
+                {isPersonalEmail && (
+                  <span style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 700 }}>*</span>
+                )}
+              </div>
+              {isPersonalEmail && (
+                <p style={{ fontSize: '10px', color: 'rgba(245,158,11,0.6)', margin: '0 0 6px', lineHeight: 1.5 }}>
+                  Required if using a personal email address
+                </p>
+              )}
+              <input
+                value={isIndependent ? form.independentLinkedin : form.linkedin}
+                onChange={(e) => set(isIndependent ? 'independentLinkedin' : 'linkedin', e.target.value)}
+                placeholder="https://linkedin.com/in/your-profile"
+                style={{
+                  ...inp,
+                  borderColor: isPersonalEmail && !linkedinValue
+                    ? 'rgba(245,158,11,0.45)'
+                    : 'rgba(255,255,255,0.1)',
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
+                onBlur={(e)  => (e.currentTarget.style.borderColor = isPersonalEmail && !linkedinValue
+                  ? 'rgba(245,158,11,0.45)'
+                  : 'rgba(255,255,255,0.1)')}
+              />
+            </div>
             <input
               value={isIndependent ? form.independentScholar : form.googleScholar}
               onChange={(e) => set(isIndependent ? 'independentScholar' : 'googleScholar', e.target.value)}
-              placeholder="Google Scholar URL"
+              placeholder="Google Scholar URL (optional)"
               style={inp}
               onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
               onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
@@ -724,7 +794,7 @@ function ProfileStep({
         {error && (
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             style={{
-              fontSize: '12px', color: '#FCA5A5',
+              fontSize: '13px', color: '#FCA5A5',
               padding: '10px 14px', borderRadius: '10px',
               background: 'rgba(239,68,68,0.08)',
               border: '0.5px solid rgba(239,68,68,0.25)',
@@ -759,7 +829,173 @@ function ProfileStep({
   )
 }
 
-// ─── Step 3: Saathi selection ─────────────────────────────────────────────────
+// ─── Step 3: Affiliations ────────────────────────────────────────────────────
+
+function AffiliationsStep({
+  form, set, onNext, onBack,
+}: {
+  form:   FacultyFormData
+  set:    (k: keyof FacultyFormData, v: unknown) => void
+  onNext: () => void
+  onBack: () => void
+}) {
+  function updateAffiliation(idx: number, field: 'org' | 'role' | 'year', value: string) {
+    set('affiliations', form.affiliations.map((a, i) => i === idx ? { ...a, [field]: value } : a))
+  }
+
+  function removeAffiliation(idx: number) {
+    const next = form.affiliations.filter((_, i) => i !== idx)
+    set('affiliations', next.length > 0 ? next : [{ id: `aff-${Date.now()}`, org: '', role: '', year: '' }])
+  }
+
+  return (
+    <div style={{ maxWidth: '560px', margin: '0 auto', padding: '32px 24px' }}>
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{ marginBottom: '28px' }}
+      >
+        <h2 style={{
+          fontFamily: 'Playfair Display, serif',
+          fontSize: 'clamp(28px, 4vw, 40px)',
+          fontWeight: 800, color: '#fff', margin: '0 0 8px',
+        }}>
+          <span style={{ color: GOLD }}>✦</span> Your Professional Standing
+        </h2>
+        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', margin: '0 0 6px', lineHeight: 1.6 }}>
+          Add memberships, fellowships, alumni status, or council positions.
+          These build trust with students instantly.
+        </p>
+        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.25)', margin: 0 }}>
+          Optional — skip if not applicable
+        </p>
+      </motion.div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <Reorder.Group
+          axis="y"
+          values={form.affiliations}
+          onReorder={(newOrder) => set('affiliations', newOrder)}
+          as="div"
+          style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+        >
+          {form.affiliations.map((aff, idx) => (
+            <Reorder.Item key={aff.id} value={aff} as="div">
+              <div style={{
+                display: 'flex', gap: '10px', alignItems: 'flex-start',
+                padding: '14px 16px', borderRadius: '12px',
+                background: CARD_BG,
+                border: BORDER,
+              }}>
+                {/* Drag handle */}
+                <div style={{
+                  cursor: 'grab', color: 'rgba(255,255,255,0.18)',
+                  fontSize: '18px', paddingTop: '10px', flexShrink: 0,
+                  userSelect: 'none', lineHeight: 1,
+                }}>
+                  ⠿
+                </div>
+
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <input
+                    value={aff.org}
+                    onChange={(e) => updateAffiliation(idx, 'org', e.target.value.slice(0, 100))}
+                    placeholder="Organisation / Body name e.g. IIM Ahmedabad, ICAI, Ministry of Science"
+                    style={inp}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
+                    onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                  />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 112px', gap: '6px' }}>
+                    <input
+                      value={aff.role}
+                      onChange={(e) => updateAffiliation(idx, 'role', e.target.value.slice(0, 80))}
+                      placeholder="Your role e.g. Alumni, Fellow (FCA), Chairman"
+                      style={inp}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
+                      onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                    />
+                    <input
+                      value={aff.year}
+                      onChange={(e) => updateAffiliation(idx, 'year', e.target.value.slice(0, 10))}
+                      placeholder="Year or Current"
+                      style={inp}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
+                      onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => removeAffiliation(idx)}
+                  style={{
+                    background: 'transparent', border: 'none',
+                    color: 'rgba(255,255,255,0.2)', fontSize: '20px',
+                    cursor: 'pointer', padding: '4px 2px', flexShrink: 0,
+                    lineHeight: 1, marginTop: '6px', fontFamily: 'sans-serif',
+                    transition: 'color 0.15s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#F87171')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.2)')}
+                  aria-label="Remove affiliation"
+                >
+                  ×
+                </button>
+              </div>
+            </Reorder.Item>
+          ))}
+        </Reorder.Group>
+
+        {form.affiliations.length < 6 && (
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => set('affiliations', [
+              ...form.affiliations,
+              { id: `aff-${Date.now()}`, org: '', role: '', year: '' },
+            ])}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '12px 16px', borderRadius: '10px',
+              background: 'rgba(255,255,255,0.03)',
+              border: '0.5px dashed rgba(255,255,255,0.15)',
+              color: 'rgba(255,255,255,0.4)', fontSize: '14px',
+              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+              width: '100%', justifyContent: 'center',
+            }}
+          >
+            + Add another affiliation
+          </motion.button>
+        )}
+
+        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '4px', lineHeight: 1.5 }}>
+          Self-declared — EdUsaathiAI does not independently verify affiliations
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
+        <button onClick={onBack}
+          style={{
+            padding: '14px 20px', borderRadius: '12px',
+            background: 'rgba(255,255,255,0.04)', border: BORDER,
+            color: 'rgba(255,255,255,0.4)', fontSize: '14px',
+            cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+          }}>
+          ← Back
+        </button>
+        <motion.button whileTap={{ scale: 0.98 }} onClick={onNext}
+          style={{
+            flex: 1, padding: '14px', borderRadius: '12px',
+            background: GOLD, color: NAVY,
+            fontSize: '15px', fontWeight: 700,
+            border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+          }}>
+          {form.affiliations.some(a => a.org.trim()) ? 'Continue →' : 'Skip for now →'}
+        </motion.button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Step 4: Saathi selection ─────────────────────────────────────────────────
 
 function SaathiStep({
   form, set, onNext, onBack,
@@ -804,7 +1040,7 @@ function SaathiStep({
         }}>
           Your teaching Saathis
         </h2>
-        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.6 }}>
           Your knowledge spans disciplines. Choose your{' '}
           <strong style={{ color: '#fff' }}>primary Saathi</strong> and up to{' '}
           <strong style={{ color: GOLD }}>2 additional Saathis</strong> — free.
@@ -825,7 +1061,7 @@ function SaathiStep({
         >
           {primarySaathi && (
             <span style={{
-              fontSize: '12px', fontWeight: 700, color: GOLD,
+              fontSize: '13px', fontWeight: 700, color: GOLD,
               padding: '4px 12px',
               background: 'rgba(201,153,58,0.12)',
               border: '0.5px solid rgba(201,153,58,0.35)',
@@ -836,7 +1072,7 @@ function SaathiStep({
           )}
           {additionalSaathis.map((s) => (
             <span key={s.id} style={{
-              fontSize: '12px', fontWeight: 600, color: GREEN,
+              fontSize: '13px', fontWeight: 600, color: GREEN,
               padding: '4px 12px',
               background: 'rgba(74,222,128,0.08)',
               border: '0.5px solid rgba(74,222,128,0.25)',
@@ -846,7 +1082,7 @@ function SaathiStep({
             </span>
           ))}
           {additionalSaathis.length < 2 && (
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>
               {2 - additionalSaathis.length} more additional Saathi
               {additionalSaathis.length < 1 ? 's' : ''} available
             </span>
@@ -921,7 +1157,7 @@ function SaathiStep({
                 {s.emoji}
               </span>
               <p style={{
-                fontSize: '11px', fontWeight: 700, color: '#fff',
+                fontSize: '12px', fontWeight: 700, color: '#fff',
                 margin: '0 0 2px', lineHeight: 1.2,
                 fontFamily: 'Playfair Display, serif',
               }}>
@@ -938,7 +1174,7 @@ function SaathiStep({
         })}
       </div>
 
-      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', marginBottom: '20px', textAlign: 'center' }}>
+      <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.2)', marginBottom: '20px', textAlign: 'center' }}>
         Click to set primary · click another to add · click again to remove
       </p>
 
@@ -1008,7 +1244,7 @@ function InvitationStep({ onNext, onBack }: { onNext: () => void; onBack: () => 
         }}>
           How EdUsaathiAI works with you
         </h2>
-        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
           Three ways students reach you. One platform that handles everything else.
         </p>
       </motion.div>
@@ -1024,11 +1260,11 @@ function InvitationStep({ onNext, onBack }: { onNext: () => void; onBack: () => 
             <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '24px', flexShrink: 0, marginTop: '2px' }}>{f.icon}</span>
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: '14px', fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>
+                <p style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>
                   {f.title}
                 </p>
                 {f.desc ? (
-                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.6 }}>
+                  <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.6 }}>
                     {f.desc}
                   </p>
                 ) : (
@@ -1062,7 +1298,7 @@ function InvitationStep({ onNext, onBack }: { onNext: () => void; onBack: () => 
                         <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', margin: 0 }}>from every ₹500 session</p>
                       </div>
                     </div>
-                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: 0, lineHeight: 1.6 }}>
+                    <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', margin: 0, lineHeight: 1.6 }}>
                       You set your session price. We handle payments, receipts, and transfers.
                       Any changes to the earnings model are communicated{' '}
                       <strong style={{ color: 'rgba(255,255,255,0.6)' }}>30 days in advance</strong>{' '}
@@ -1149,11 +1385,11 @@ function AgreementStep({
         {form[field] ? '✓' : ''}
       </motion.div>
       <div>
-        <p style={{ fontSize: '14px', fontWeight: 600, color: '#fff', margin: '0 0 3px' }}>
+        <p style={{ fontSize: '15px', fontWeight: 600, color: '#fff', margin: '0 0 3px' }}>
           {label}
         </p>
         {sub && (
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.5 }}>
             {sub}
           </p>
         )}
@@ -1172,7 +1408,7 @@ function AgreementStep({
         }}>
           One last step
         </h2>
-        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
           Four agreements. All transparent. No surprises.
         </p>
       </motion.div>
@@ -1206,10 +1442,10 @@ function AgreementStep({
         background: 'rgba(201,153,58,0.06)',
         border: '0.5px solid rgba(201,153,58,0.2)',
       }}>
-        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', margin: '0 0 10px', fontWeight: 600 }}>
+        <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.6)', margin: '0 0 12px', fontWeight: 600 }}>
           ✦ What happens after you submit
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {[
             ['Immediately',       'Your profile is created. You can access the faculty dashboard.'],
             ['Within 48 hours',   'Our team reviews your profile and issues your Faculty Verified badge.'],
@@ -1217,12 +1453,12 @@ function AgreementStep({
           ].map(([time, desc]) => (
             <div key={time} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
               <span style={{
-                fontSize: '10px', fontWeight: 700, color: GOLD,
-                minWidth: '112px', paddingTop: '2px',
+                fontSize: '12px', fontWeight: 700, color: GOLD,
+                minWidth: '116px', paddingTop: '2px',
               }}>
                 {time}
               </span>
-              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
+              <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
                 {desc}
               </span>
             </div>
@@ -1233,7 +1469,7 @@ function AgreementStep({
       {error && (
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           style={{
-            fontSize: '12px', color: '#FCA5A5',
+            fontSize: '13px', color: '#FCA5A5',
             padding: '10px 14px', borderRadius: '10px', marginBottom: '16px',
             background: 'rgba(239,68,68,0.08)',
             border: '0.5px solid rgba(239,68,68,0.25)',
@@ -1291,9 +1527,17 @@ function AgreementStep({
 // ─── Main FacultyOnboardFlow ──────────────────────────────────────────────────
 
 export function FacultyOnboardFlow({ profile, onComplete }: Props) {
-  const [step,   setStep]   = useState<Step>('employment')
-  const [saving, setSaving] = useState(false)
-  const [error,  setError]  = useState('')
+  const [step,      setStep]      = useState<Step>('employment')
+  const [saving,    setSaving]    = useState(false)
+  const [error,     setError]     = useState('')
+  const [userEmail, setUserEmail] = useState('')
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) setUserEmail(user.email)
+    })
+  }, [])
 
   const [form, setFormState] = useState<FacultyFormData>({
     fullName: '', city: '', employment: 'active',
@@ -1302,6 +1546,7 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
     credentials: '', independentFirm: '', independentLinkedin: '', independentScholar: '',
     resumeFile: null, resumeUrl: '',
     specialities: [], researchArea: '',
+    affiliations: [{ id: 'aff-0', org: '', role: '', year: '' }],
     linkedin: '', googleScholar: '',
     primarySaathiSlug: '', additionalSaathiSlugs: [],
     agreedTerms: false, agreedEarnings: false, agreedContent: false, agreedDPDP: false,
@@ -1324,6 +1569,14 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
       // Verify session is still live
       const { data: { user } } = await supabase.auth.getUser()
       if (!user?.email) throw new Error('Session expired. Please sign in again.')
+
+      // Personal email + no LinkedIn guard
+      if (isPersonalEmailDomain(user.email)) {
+        const linkedinFilled = (form.linkedin || form.independentLinkedin).trim()
+        if (!linkedinFilled) {
+          throw new Error('LinkedIn URL is required for personal email accounts. Please go back and add your LinkedIn profile.')
+        }
+      }
 
       // Email domain validation
       const validation = await validateFacultyEmail(user.email, form.employment, supabase)
@@ -1402,6 +1655,9 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
         badge_type:             autoVerified ? 'faculty_verified' : 'pending',
         ...(autoVerified ? { verified_at: new Date().toISOString() } : {}),
         additional_saathi_ids:  additionalUuids,
+        affiliations: form.affiliations
+          .filter(a => a.org.trim() && a.role.trim())
+          .map(a => ({ org: a.org.trim(), role: a.role.trim(), year: a.year.trim() })),
         agreed_terms:           true,
         agreed_earnings:        true,
         agreed_content:         true,
@@ -1482,7 +1738,7 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(180deg, #060F1D 0%, #0B1F3A 55%, #060F1D 100%)',
+      background: '#0D1B2A',
       position: 'relative',
     }}>
       {/* Ambient glow */}
@@ -1525,7 +1781,13 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
           {step === 'profile' && (
             <motion.div key="profile" variants={slideVariants}
               initial="enter" animate="center" exit="exit">
-              <ProfileStep form={form} set={set} onNext={next} onBack={back} />
+              <ProfileStep form={form} set={set} onNext={next} onBack={back} userEmail={userEmail} />
+            </motion.div>
+          )}
+          {step === 'affiliations' && (
+            <motion.div key="affiliations" variants={slideVariants}
+              initial="enter" animate="center" exit="exit">
+              <AffiliationsStep form={form} set={set} onNext={next} onBack={back} />
             </motion.div>
           )}
           {step === 'saathi' && (

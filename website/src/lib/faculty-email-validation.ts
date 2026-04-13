@@ -34,7 +34,7 @@ export type EmailValidationResult = {
 
 export async function validateFacultyEmail(
   email: string,
-  employment_status: 'active' | 'retired' | 'independent',
+  employment_status: 'active' | 'retired' | 'independent' | 'professional',
   supabase: SupabaseBrowser
 ): Promise<EmailValidationResult> {
   // Retired: skip email validation entirely — any email accepted
@@ -48,6 +48,15 @@ export async function validateFacultyEmail(
   }
 
   const domain = email.split('@')[1]?.toLowerCase() ?? ''
+
+  // Working professional or independent: personal email allowed with LinkedIn verification
+  if (employment_status === 'professional') {
+    return {
+      allowed: true,
+      status: 'pending_review',
+      message: 'Your application will be reviewed by our team within 48 hours.',
+    }
+  }
 
   // Independent: block only obvious generic domains
   // Personal email + custom domain both fine for consultants

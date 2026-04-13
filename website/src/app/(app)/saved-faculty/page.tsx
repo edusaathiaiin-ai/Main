@@ -29,8 +29,9 @@ type SavedFaculty = {
   offers_doubt_session: boolean
   offers_research_session: boolean
   offers_deepdive_session: boolean
-  expertise_tags: string[]
+  speciality_areas: string[]
   is_emeritus: boolean
+  affiliations: { org: string; role: string; year: string }[]
 }
 
 function formatFee(paise: number): string {
@@ -67,7 +68,7 @@ export default function SavedFacultyPage() {
             faculty_slug, average_rating, total_reviews, years_experience,
             session_fee_doubt, session_fee_research, session_fee_deepdive,
             offers_doubt_session, offers_research_session, offers_deepdive_session,
-            expertise_tags, is_emeritus
+            speciality_areas, is_emeritus, affiliations
           )
         )
       `
@@ -104,8 +105,9 @@ export default function SavedFacultyPage() {
               (fp.offers_research_session as boolean) ?? false,
             offers_deepdive_session:
               (fp.offers_deepdive_session as boolean) ?? false,
-            expertise_tags: (fp.expertise_tags as string[]) ?? [],
+            speciality_areas: (fp.speciality_areas as string[]) ?? [],
             is_emeritus: (fp.is_emeritus as boolean) ?? false,
+            affiliations: (fp.affiliations as { org: string; role: string; year: string }[]) ?? [],
           }
         })
         setSaved(rows)
@@ -264,6 +266,37 @@ export default function SavedFacultyPage() {
                       </p>
                     )}
 
+                    {/* Affiliations — max 2 on card */}
+                    {f.affiliations?.length > 0 && (
+                      <div className="mb-2 flex flex-wrap gap-1.5">
+                        {f.affiliations.slice(0, 2).map((a, ai) => (
+                          <span
+                            key={ai}
+                            className="rounded-full px-2 py-0.5 text-[9px] font-semibold"
+                            style={{
+                              background: 'rgba(201,153,58,0.1)',
+                              border: '0.5px solid rgba(201,153,58,0.25)',
+                              color: '#C9993A',
+                            }}
+                          >
+                            {a.role?.toLowerCase().includes('alumni')
+                              ? '\u{1F3DB}\u{FE0F}'
+                              : '\u{1F3C5}'}{' '}
+                            {a.org}
+                            {a.role ? ` ${a.role}` : ''}
+                          </span>
+                        ))}
+                        {f.affiliations.length > 2 && (
+                          <span
+                            className="rounded-full px-2 py-0.5 text-[9px]"
+                            style={{ color: 'rgba(201,153,58,0.5)' }}
+                          >
+                            +{f.affiliations.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     <div className="mb-2 flex flex-wrap gap-1.5">
                       {f.is_emeritus && (
                         <span
@@ -301,9 +334,9 @@ export default function SavedFacultyPage() {
                       )}
                     </div>
 
-                    {f.expertise_tags?.length > 0 && (
+                    {f.speciality_areas?.length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {f.expertise_tags.slice(0, 3).map((t) => (
+                        {f.speciality_areas.slice(0, 3).map((t) => (
                           <span
                             key={t}
                             className="rounded-full px-2 py-0.5 text-[9px]"

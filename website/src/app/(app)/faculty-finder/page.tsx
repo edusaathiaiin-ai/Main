@@ -21,7 +21,7 @@ type FacultyProfile = {
   designation: string | null
   verification_status: string
   session_bio: string | null
-  expertise_tags: string[]
+  speciality_areas: string[]
   session_active: boolean
   session_fee_doubt: number
   session_fee_research: number
@@ -41,6 +41,8 @@ type FacultyProfile = {
   employment_status: string | null
   former_institution: string | null
   retirement_year: number | null
+  affiliations: { org: string; role: string; year: string }[]
+  highest_qualification: string | null
 }
 
 type FacultyListing = FacultyRow & { faculty_profiles: FacultyProfile | null }
@@ -55,6 +57,15 @@ function getMinFee(fp: FacultyProfile): number {
     fp.offers_research_session ? fp.session_fee_research : Infinity,
     fp.offers_deepdive_session ? fp.session_fee_deepdive : Infinity
   )
+}
+
+function buildCredibilityLine(fp: FacultyProfile): string {
+  const parts: string[] = []
+  const currentAffil = fp.affiliations?.find((a) => a.year?.toLowerCase() === 'current')
+  if (currentAffil) parts.push(`${currentAffil.role} at ${currentAffil.org}`)
+  if (fp.highest_qualification) parts.push(fp.highest_qualification)
+  if (fp.years_experience > 0) parts.push(`${fp.years_experience} yrs experience`)
+  return parts.slice(0, 2).join(' \u00B7 ')
 }
 
 export default function FacultyFinderPage() {
@@ -75,12 +86,13 @@ export default function FacultyFinderPage() {
       .select(
         `id, full_name, city, primary_saathi_id, faculty_profiles (
         institution_name, department, designation, verification_status,
-        session_bio, expertise_tags, session_active,
+        session_bio, speciality_areas, session_active,
         session_fee_doubt, session_fee_research, session_fee_deepdive,
         offers_doubt_session, offers_research_session, offers_deepdive_session,
         total_sessions_completed, average_rating, total_reviews,
         open_to_research, availability_note, faculty_slug, years_experience, response_rate,
-        is_emeritus, employment_status, former_institution, retirement_year
+        is_emeritus, employment_status, former_institution, retirement_year,
+        affiliations, highest_qualification
       )`
       )
       .eq('role', 'faculty')
@@ -102,7 +114,12 @@ export default function FacultyFinderPage() {
           f.full_name.toLowerCase().includes(q) ||
           fp.institution_name?.toLowerCase().includes(q) ||
           fp.department?.toLowerCase().includes(q) ||
-          fp.expertise_tags?.some((t) => t.toLowerCase().includes(q))
+          fp.speciality_areas?.some((t) => t.toLowerCase().includes(q)) ||
+          fp.affiliations?.some(
+            (a) =>
+              a.org?.toLowerCase().includes(q) ||
+              a.role?.toLowerCase().includes(q)
+          )
         if (!matches) return false
       }
       if (
@@ -436,9 +453,9 @@ export default function FacultyFinderPage() {
                         {fp.years_experience}+ years experience
                       </span>
                     </div>
-                    {fp.expertise_tags?.length > 0 && (
+                    {fp.speciality_areas?.length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {fp.expertise_tags.slice(0, 3).map((t) => (
+                        {fp.speciality_areas.slice(0, 3).map((t) => (
                           <span
                             key={t}
                             className="rounded-full px-2 py-0.5 text-[9px]"
@@ -556,7 +573,7 @@ export default function FacultyFinderPage() {
                               className="text-[11px]"
                               style={{ color: 'rgba(255,255,255,0.4)' }}
                             >
-                              {fp.designation}
+                              {buildCredibilityLine(fp) || fp.designation}
                             </p>
                           </div>
                         </div>
@@ -586,6 +603,37 @@ export default function FacultyFinderPage() {
                         {'\u{1F3DB}\u{FE0F}'} {fp.institution_name}
                         {f.city ? ` \u00B7 ${f.city}` : ''}
                       </p>
+
+                      {/* Affiliations — max 2 on card */}
+                      {fp.affiliations?.length > 0 && (
+                        <div className="mb-2.5 flex flex-wrap gap-1.5">
+                          {fp.affiliations.slice(0, 2).map((a, ai) => (
+                            <span
+                              key={ai}
+                              className="rounded-lg px-2.5 py-0.5 text-[10px] font-semibold"
+                              style={{
+                                background: 'rgba(201,153,58,0.1)',
+                                border: '0.5px solid rgba(201,153,58,0.25)',
+                                color: '#C9993A',
+                              }}
+                            >
+                              {a.role?.toLowerCase().includes('alumni')
+                                ? '\u{1F3DB}\u{FE0F}'
+                                : '\u{1F3C5}'}{' '}
+                              {a.org}
+                              {a.role ? ` ${a.role}` : ''}
+                            </span>
+                          ))}
+                          {fp.affiliations.length > 2 && (
+                            <span
+                              className="rounded-lg px-2 py-0.5 text-[10px]"
+                              style={{ color: 'rgba(201,153,58,0.5)' }}
+                            >
+                              +{fp.affiliations.length - 2} more
+                            </span>
+                          )}
+                        </div>
+                      )}
 
                       {/* Badges */}
                       <div className="mb-3 flex flex-wrap gap-1.5">
@@ -637,7 +685,7 @@ export default function FacultyFinderPage() {
 
                       {/* Tags */}
                       <div className="mb-3 flex flex-wrap gap-1.5">
-                        {fp.expertise_tags?.slice(0, 4).map((t) => (
+                        {fp.speciality_areas?.slice(0, 4).map((t) => (
                           <span
                             key={t}
                             className="rounded-lg px-2 py-0.5 text-[10px]"
