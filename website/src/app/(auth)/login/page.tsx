@@ -333,7 +333,7 @@ function LoginForm() {
         />
       </div>
       <a
-        href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER ?? '919XXXXXXXXX'}?text=Hi`}
+        href={`https://wa.me/919825593204?text=${encodeURIComponent('Hi! I want to join EdUsaathiAI. Please send me a registration link.')}`}
         target="_blank"
         rel="noopener noreferrer"
         style={{
@@ -366,7 +366,7 @@ function LoginForm() {
           marginTop: '8px',
         }}
       >
-        No account needed &bull; Just message and start
+        Message us to get your registration link
       </p>
 
       {/* Mobile magic link tip */}
