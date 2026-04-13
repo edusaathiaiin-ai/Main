@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import ForcedLogoutScreen from '@/components/ui/ForcedLogoutScreen'
+import { trackSignupStarted, trackWaLinkClicked } from '@/lib/analytics'
 
 // ── Google icon ───────────────────────────────────────────────────────────────
 function GoogleIcon() {
@@ -64,6 +65,7 @@ function LoginForm() {
   async function handleGoogle() {
     setGoogleLoading(true)
     setError('')
+    trackSignupStarted('google')
 
     // Store role/saathi in sessionStorage — query params on redirectTo
     // cause Google OAuth 400 (redirect_uri mismatch). Callback reads these.
@@ -91,6 +93,7 @@ function LoginForm() {
     if (!email.trim()) return
     setMagicLoading(true)
     setError('')
+    trackSignupStarted('email')
 
     // Store role/saathi in sessionStorage (same reason as Google OAuth above)
     const role = searchParams.get('role')
@@ -336,6 +339,7 @@ function LoginForm() {
         href={`https://wa.me/919825593204?text=${encodeURIComponent('Hi! I want to join EdUsaathiAI. Please send me a registration link.')}`}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => trackWaLinkClicked('login')}
         style={{
           display: 'flex',
           alignItems: 'center',

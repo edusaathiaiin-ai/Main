@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAuthStore } from '@/stores/authStore'
+import { trackWaLinkClicked } from '@/lib/analytics'
 
 const DISMISSED_KEY = 'wa_link_tip_dismissed'
 
@@ -37,6 +38,7 @@ export function WaLinkTip() {
         Link your WhatsApp in{' '}
         <Link
           href="/profile"
+          onClick={() => trackWaLinkClicked('chat_tip')}
           className="font-semibold underline underline-offset-2"
           style={{ color: 'var(--gold, #B8860B)' }}
         >

@@ -9,6 +9,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { captureError } from '../_shared/sentry.ts';
 import { checkRateLimit } from '../_shared/rateLimit.ts';
+import { posthogCapture } from '../_shared/posthog.ts';
 import { SUBJECT_GUARDRAILS } from '../chat/guardrails.ts';
 import { detectViolation } from '../_shared/violations.ts';
 import { checkSuspension, recordViolationAndCheck } from '../_shared/suspensions.ts';
@@ -355,6 +356,11 @@ async function handleMessage(from: string, waPhone: string, text: string) {
         from,
         `\u23F8 Your Saathi is resting.\n\nYour next session opens at *${opensAt} IST*.\n\nThis cooling period helps your learning consolidate \u2014 come back refreshed!${isUpgradeable ? '\n\nUpgrade to Pro for 24hr cooling \u2192 edusaathiai.in/pricing' : ''}`,
       );
+      // Analytics: cooling_triggered (reflects upgrade pressure on WA surface)
+      await posthogCapture(profile.id, 'cooling_triggered', {
+        plan_id: profile.plan_id ?? 'free',
+        surface: 'wa',
+      });
       return;
     }
   }
@@ -368,8 +374,19 @@ async function handleMessage(from: string, waPhone: string, text: string) {
       from,
       `\u{23F3} *Daily limit reached*\n\nYou've used all ${quota} messages today on the ${planName}.\n\nYour Saathi will be back at *midnight IST* \u{1F319}\n\nWant unlimited learning?\n\u{1F449} edusaathiai.in/pricing\n\n_EdUsaathiAI \u2014 Study smarter, not harder_`,
     );
+    // Analytics: quota_hit on WA surface
+    await posthogCapture(profile.id, 'quota_hit', {
+      plan_id: profile.plan_id ?? 'free',
+      surface: 'wa',
+    });
     return;
   }
+
+  // Analytics: wa_message_received (only for registered, active users — the
+  // meaningful DAU signal for WhatsApp Saathi).
+  await posthogCapture(profile.id, 'wa_message_received', {
+    saathi_id: profile.wa_saathi_id,
+  });
 
   // ── Main chat ────────────────────────────────────────
   await handleChat(from, waPhone, text, profile, session as SessionRow);
@@ -525,6 +542,12 @@ async function handleSaathiSelection(
       wa_phone: waPhone,
       wa_registered_at: profile.wa_registered_at ?? new Date().toISOString(),
     }).eq('id', profile.id);
+
+    // Analytics: wa_user_onboarded — fires once when a user picks their Saathi
+    // on WhatsApp. This marks the real activation moment on the WA surface.
+    await posthogCapture(profile.id, 'wa_user_onboarded', {
+      saathi_slug: selectedSaathi.slug,
+    });
 
     // Create soul row if missing
     const { data: existingSoul } = await admin

@@ -22,6 +22,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { SAATHI_PHILOSOPHY } from '../_shared/saathiPhilosophy.ts';
 import { getHorizonNudge } from '../_shared/horizonNudge.ts';
 import { checkRateLimit } from '../_shared/rateLimit.ts';
+import { posthogCapture } from '../_shared/posthog.ts';
 import { getRandomPersonality, getPersonalityById, buildPersonalityPrompt } from '../_shared/saathiPersonalities.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -1840,6 +1841,11 @@ Deno.serve(async (req: Request) => {
     if (quotaRow.cooling_until) {
       const coolingUntil = new Date(quotaRow.cooling_until);
       if (coolingUntil > new Date()) {
+        // Analytics: cooling_triggered on web surface
+        posthogCapture(userId, 'cooling_triggered', {
+          plan_id: rawPlanId,
+          surface: 'web',
+        });
         return new Response(
           JSON.stringify({ error: 'cooling', coolingUntil: quotaRow.cooling_until }),
           {
@@ -1860,6 +1866,11 @@ Deno.serve(async (req: Request) => {
     }
 
     if (quotaRow.message_count >= dailyQuota) {
+      // Analytics: quota_hit on web surface
+      posthogCapture(userId, 'quota_hit', {
+        plan_id: rawPlanId,
+        surface: 'web',
+      });
       return new Response(JSON.stringify({ error: 'quota_exhausted', remaining: 0 }), {
         status: 429,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Session } from '@supabase/supabase-js'
+import { trackSignupCompleted } from '@/lib/analytics'
 
 // ── Welcome email with retry ─────────────────────────────────────────────────
 // Profile row may not exist yet when the callback fires (DB trigger race).
@@ -73,7 +74,7 @@ async function ensureProfile(
   email: string,
   roleParam: DbUserRole | null,
   accessToken: string,
-): Promise<{ isActive: boolean; role: DbUserRole }> {
+): Promise<{ isActive: boolean; role: DbUserRole; wasCreated: boolean }> {
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('id, is_active, role')
@@ -104,12 +105,13 @@ async function ensureProfile(
     // Firing it here would miss the name and Saathi since the profile
     // is created by the handle_new_user DB trigger before this callback runs.
 
-    return { isActive: false, role: resolvedRole }
+    return { isActive: false, role: resolvedRole, wasCreated: true }
   }
 
   return {
     isActive: profile.is_active ?? false,
     role: (profile.role as DbUserRole) ?? 'student',
+    wasCreated: false,
   }
 }
 
@@ -188,13 +190,21 @@ function CallbackInner() {
         sessionStorage.removeItem('pending_saathi')
 
         // ── Ensure profile row exists before any further DB calls ─────────────
-        const { isActive, role } = await ensureProfile(
+        const { isActive, role, wasCreated } = await ensureProfile(
           supabase,
           resolvedSession.user.id,
           resolvedSession.user.email ?? '',
           roleParam,
           resolvedSession.access_token,
         )
+
+        // ── Analytics: signup_completed fires only for genuinely new users ──
+        if (wasCreated) {
+          const method = resolvedSession.user.app_metadata?.provider === 'google'
+            ? 'google'
+            : 'email'
+          trackSignupCompleted(method, 0)
+        }
 
         // ── Saathi instant bonding ────────────────────────────────────────────
         // primary_saathi_id is UUID FK → verticals(id). Resolve slug → UUID before saving.

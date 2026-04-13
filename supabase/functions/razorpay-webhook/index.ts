@@ -18,6 +18,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { captureError, captureEvent } from '../_shared/sentry.ts';
 import { sanitize } from '../_shared/validate.ts';
+import { posthogCapture, posthogSetPersonProps } from '../_shared/posthog.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -655,6 +656,14 @@ async function handlePaymentCaptured(
     raw_webhook: rawPayload,
   }).eq('id', sub.id);
 
+  // Capture current plan (for plan_upgraded event) before overwriting
+  const { data: prevProfile } = await admin
+    .from('profiles')
+    .select('plan_id')
+    .eq('id', sub.user_id)
+    .maybeSingle();
+  const fromPlan = (prevProfile?.plan_id as string | null) ?? 'free';
+
   // Activate user's profile
   const { error: profileUpdateError } = await admin.from('profiles').update({
     plan_id: sub.plan_id,
@@ -692,6 +701,21 @@ async function handlePaymentCaptured(
 
   if (waPhone) {
     await sendWhatsAppActivation(waPhone, firstName, waPlanLabel, expiresAt);
+  }
+
+  // ── Analytics: payment_succeeded + plan_upgraded (fire-and-forget) ────────
+  await posthogCapture(sub.user_id, 'payment_succeeded', {
+    plan_id: sub.plan_id,
+    amount_paise: (payment as { amount?: number }).amount ?? 0,
+    razorpay_order_id: orderId,
+    razorpay_payment_id: paymentId ?? null,
+  });
+  if (fromPlan !== sub.plan_id) {
+    await posthogCapture(sub.user_id, 'plan_upgraded', {
+      from_plan: fromPlan,
+      to_plan: sub.plan_id,
+    });
+    await posthogSetPersonProps(sub.user_id, { plan_id: sub.plan_id });
   }
 }
 
@@ -752,6 +776,14 @@ async function handleSubscriptionCancelled(
 
   const sub = subRow as { id: string; user_id: string };
 
+  // Capture prior plan for analytics before the downgrade overwrite
+  const { data: priorProfile } = await admin
+    .from('profiles')
+    .select('plan_id')
+    .eq('id', sub.user_id)
+    .maybeSingle();
+  const cancelledFromPlan = (priorProfile?.plan_id as string | null) ?? 'plus-monthly';
+
   await admin.from('subscriptions').update({
     status: 'cancelled',
     webhook_event: 'subscription.cancelled',
@@ -765,6 +797,13 @@ async function handleSubscriptionCancelled(
     subscription_expires_at: null,
     razorpay_subscription_id: null,
   }).eq('id', sub.user_id);
+
+  // Analytics: plan_cancelled (fire-and-forget)
+  await posthogCapture(sub.user_id, 'plan_cancelled', {
+    plan_id: cancelledFromPlan,
+    reason: 'user_requested',
+  });
+  await posthogSetPersonProps(sub.user_id, { plan_id: 'free' });
 
   // Send cancellation email (fire-and-forget)
   const { data: cancelProfile } = await admin

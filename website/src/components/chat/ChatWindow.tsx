@@ -16,6 +16,7 @@ import { todayIST } from '@/lib/quota'
 import { getSaathiTheme } from '@/lib/saathiThemes'
 import { useThemeStore } from '@/stores/themeStore'
 import { useFontStore, getChatFontStyle } from '@/stores/fontStore'
+import { trackChatSent } from '@/lib/analytics'
 // ── Always-visible — eager ────────────────────────────────────────────────────
 import { ChatWatermark } from './ChatWatermark'
 import { SaathiHeader } from './SaathiHeader'
@@ -587,6 +588,12 @@ export function ChatWindow() {
       setInputValue('')
       setErrorBanner(null)
       setStreaming(true)
+
+      trackChatSent(
+        saathiId,
+        activeBotSlot as 1 | 2 | 3 | 4 | 5,
+        text.length,
+      )
 
       try {
         const history = messages

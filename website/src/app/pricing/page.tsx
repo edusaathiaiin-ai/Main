@@ -12,6 +12,7 @@ import PricingCard from '@/components/pricing/PricingCard'
 import ComparisonTable from '@/components/pricing/ComparisonTable'
 import PricingFAQ from '@/components/pricing/PricingFAQ'
 import { ImmersiveFuture } from '@/components/pricing/ImmersiveFuture'
+import { trackPricingViewed, trackUpgradeClicked } from '@/lib/analytics'
 
 // ── Env flag — set NEXT_PUBLIC_PAYMENTS_ACTIVE=true when Razorpay is live ─────
 const PAYMENTS_ACTIVE = process.env.NEXT_PUBLIC_PAYMENTS_ACTIVE === 'true'
@@ -308,6 +309,12 @@ export default function PricingPage() {
       setIsLoggedIn(!!session)
       setUserEmail(session?.user?.email ?? '')
     })
+    // Analytics: distinguish how user reached /pricing
+    const source =
+      sessionStorage.getItem('upgrade_return_url') === null
+        ? 'direct'
+        : 'upgrade_modal'
+    trackPricingViewed(source)
   }, [])
 
   function ensureRazorpayLoaded(): Promise<void> {
@@ -348,6 +355,8 @@ export default function PricingPage() {
   async function handleUpgrade(planId: string) {
     if (isCreatingOrder.current) return
     isCreatingOrder.current = true
+
+    trackUpgradeClicked(planId, 'pricing_page')
 
     const returnUrl = sessionStorage.getItem('upgrade_return_url') ?? '/chat'
     setPaymentError('')

@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Playfair_Display, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
+import { PostHogProvider } from '@/components/PostHogProvider'
+import { AnalyticsIdentifier } from '@/components/AnalyticsIdentifier'
 
 import { CookieBanner } from '@/components/ui/CookieBanner'
 
@@ -77,7 +79,12 @@ export default function RootLayout({
         <a href="#chat-main" className="skip-to-content">
           Skip to chat
         </a>
-        <AuthProvider>{children}</AuthProvider>
+        <PostHogProvider>
+          <AuthProvider>
+            <AnalyticsIdentifier />
+            {children}
+          </AuthProvider>
+        </PostHogProvider>
         <CookieBanner />
       </body>
     </html>

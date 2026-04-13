@@ -19,6 +19,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { isUUID } from '../_shared/validate.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 import { checkRateLimit } from '../_shared/rateLimit.ts'
+import { posthogCapture, posthogSetPersonProps } from '../_shared/posthog.ts'
 
 const SUPABASE_URL          = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -565,6 +566,14 @@ Deno.serve(async (req: Request) => {
         p_plan_id:     (profile as { plan_id?: string } | null)?.plan_id ?? 'free',
         p_metadata:    { from: existingFlame, to: newFlame },
       }).then(() => {}).catch(() => {})
+
+      // Analytics: flame_advanced
+      await posthogCapture(user.id, 'flame_advanced', {
+        from: existingFlame,
+        to: newFlame,
+        saathi_id: saathiId,
+      })
+      await posthogSetPersonProps(user.id, { flame_stage: newFlame })
     }
 
     // ── Award shell-broken points ─────────────────────────────────────────────
@@ -582,7 +591,18 @@ Deno.serve(async (req: Request) => {
         p_plan_id:     (profile as { plan_id?: string } | null)?.plan_id ?? 'free',
         p_metadata:    { first_time: true },
       }).then(() => {}).catch(() => {})
+
+      // Analytics: shell_broken (rare, high-signal event)
+      await posthogCapture(user.id, 'shell_broken', {
+        saathi_id: saathiId,
+        sessions_at_break: existingCount + 1,
+      })
     }
+
+    // Track session_count_total person property every session
+    await posthogSetPersonProps(user.id, {
+      session_count_total: existingCount + 1,
+    })
 
     return new Response(
       JSON.stringify({
