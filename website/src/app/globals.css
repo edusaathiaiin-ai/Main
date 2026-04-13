@@ -201,7 +201,7 @@
   --saathi-bg:       rgba(194,65,12,0.05); --saathi-text:  #9A3412;
   --sidebar-bg:      #FFF7ED; --bg-base:      #FFF7ED;
 }
-[data-saathi="chemenggsaathi"] {
+[data-saathi="chemengg-saathi"] {
   --saathi-primary:  #1D4ED8; --saathi-dark:  #1E3A8A; --saathi-light: #DBEAFE;
   --saathi-mid:      #2563EB; --saathi-border:rgba(29,78,216,0.18);
   --saathi-bg:       rgba(29,78,216,0.05); --saathi-text:  #1E3A8A;

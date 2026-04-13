@@ -10,6 +10,14 @@
 
 import { SAATHIS } from '../constants/saathis'
 import { SLUG_TO_UUID } from '../constants/verticalIds'
+// Also audit the Expo-app SAATHIS array at repo root — it must use the
+// same canonical slugs because both the website and Expo app resolve against
+// the same Supabase `verticals.slug` column. A drift here would break Expo
+// routing/UI once the mobile app launches.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { SAATHIS: SAATHIS_EXPO } = require('../../../constants/saathis') as {
+  SAATHIS: Array<{ id: string; name: string }>
+}
 
 // Single source of truth — 30 canonical slugs (DB authoritative)
 const CANONICAL_SLUGS = [
@@ -100,6 +108,24 @@ describe('Saathi slug consistency', () => {
   test('every SAATHI slug has a UUID mapping', () => {
     for (const saathi of SAATHIS) {
       expect(SLUG_TO_UUID).toHaveProperty(saathi.id)
+    }
+  })
+
+  // ── Expo-app root constants must match website + DB ──────────────────
+  test('Expo SAATHIS has exactly 30 entries', () => {
+    expect(SAATHIS_EXPO).toHaveLength(30)
+  })
+
+  test('Expo SAATHIS slugs match canonical list exactly', () => {
+    const actual = SAATHIS_EXPO.map((s) => s.id).sort()
+    const expected = [...CANONICAL_SLUGS].sort()
+    expect(actual).toEqual(expected)
+  })
+
+  test('Expo SAATHIS contains no deprecated slugs', () => {
+    const slugs = SAATHIS_EXPO.map((s) => s.id)
+    for (const bad of DEPRECATED_SLUGS) {
+      expect(slugs).not.toContain(bad)
     }
   })
 })

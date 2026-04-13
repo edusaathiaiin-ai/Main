@@ -13,7 +13,7 @@ export const SAATHIS: Saathi[] = [
   { id: 'civilsaathi', name: 'CivilSaathi', emoji: '🏗️', tagline: 'Structures that stand the test of time', primary: '#3A2800', accent: '#F59E0B', bg: '#FFF3E0', has3D: true },
   { id: 'elecsaathi', name: 'ElecSaathi', emoji: '⚡', tagline: 'Current knowledge, grounded thinking', primary: '#003A5C', accent: '#06B6D4', bg: '#E0F0FA', has3D: true },
   { id: 'compsaathi', name: 'CompSaathi', emoji: '💻', tagline: 'Code, conquer, create', primary: '#1C1C5C', accent: '#6366F1', bg: '#EEEEF8' },
-  { id: 'envirosathi', name: 'EnviroSaathi', emoji: '🌍', tagline: 'Engineering a sustainable tomorrow', primary: '#0F3A1A', accent: '#84CC16', bg: '#E4F5E8' },
+  { id: 'envirosaathi', name: 'EnviroSaathi', emoji: '🌍', tagline: 'Engineering a sustainable tomorrow', primary: '#0F3A1A', accent: '#84CC16', bg: '#E4F5E8' },
   { id: 'bizsaathi', name: 'BizSaathi', emoji: '📈', tagline: 'Business thinking, sharpened daily', primary: '#1A3A00', accent: '#65A30D', bg: '#EEF8E4' },
   { id: 'finsaathi', name: 'FinSaathi', emoji: '💰', tagline: 'Money matters, demystified', primary: '#1A3A2A', accent: '#059669', bg: '#E4F5EE' },
   { id: 'mktsaathi', name: 'MktSaathi', emoji: '📣', tagline: 'From insight to influence', primary: '#5C1A00', accent: '#F97316', bg: '#FFF0E8' },
@@ -22,7 +22,7 @@ export const SAATHIS: Saathi[] = [
   { id: 'historysaathi', name: 'HistorySaathi', emoji: '🏺', tagline: 'Every era has a lesson', primary: '#5C3A00', accent: '#B45309', bg: '#FFF0E0' },
   { id: 'econsaathi', name: 'EconSaathi', emoji: '📊', tagline: 'Markets explained, policies demystified', primary: '#2C4A00', accent: '#4D7C0F', bg: '#EEF6E0' },
   // ── New Saathis (migration 047) ─────────────────────────────────────────────
-  { id: 'chemengg saathi',  name: 'ChemEnggSaathi',    emoji: '⚗️',  tagline: 'Where chemistry meets industry',             primary: '#7C2D12', accent: '#EA580C', bg: '#FFF1E6' },
+  { id: 'chemengg-saathi',  name: 'ChemEnggSaathi',    emoji: '⚗️',  tagline: 'Where chemistry meets industry',             primary: '#7C2D12', accent: '#EA580C', bg: '#FFF1E6' },
   { id: 'biotechsaathi',    name: 'BioTechSaathi',     emoji: '🦠',  tagline: 'Engineering life, one cell at a time',        primary: '#064E3B', accent: '#14B8A6', bg: '#CCFBF1' },
   { id: 'aerospacesaathi',  name: 'AerospaceSaathi',   emoji: '✈️',  tagline: 'From ground to orbit, engineered',            primary: '#0C4A6E', accent: '#0284C7', bg: '#E0F2FE', has3D: true },
   { id: 'electronicssaathi',name: 'ElectronicsSaathi', emoji: '📡',  tagline: 'Signals, systems, and beyond',               primary: '#312E81', accent: '#7C3AED', bg: '#F5F3FF', has3D: true },

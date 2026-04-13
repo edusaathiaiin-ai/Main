@@ -69,7 +69,7 @@ const SAATHIS = [
   { id: 'archsaathi',         name: 'ArchSaathi'        },
   { id: 'historysaathi',      name: 'HistorySaathi'     },
   { id: 'econsaathi',         name: 'EconSaathi'        },
-  { id: 'chemengg saathi',    name: 'ChemEnggSaathi'    },
+  { id: 'chemengg-saathi',    name: 'ChemEnggSaathi'    },
   { id: 'biotechsaathi',      name: 'BioTechSaathi'     },
   { id: 'aerospacesaathi',    name: 'AerospaceSaathi'   },
   { id: 'electronicssaathi',  name: 'ElectronicsSaathi' },
