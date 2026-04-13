@@ -6,14 +6,13 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { Resend } from 'https://esm.sh/resend@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { sendWhatsAppTemplate } from '../_shared/whatsapp.ts'
 
-const SUPABASE_URL      = Deno.env.get('SUPABASE_URL')!
-const SERVICE_KEY       = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const RESEND_API_KEY    = Deno.env.get('RESEND_API_KEY')!
-const ADMIN_EMAIL       = 'admin@edusaathiai.in'
-const ADMIN_PHONE       = '919825593262'   // Jaydeep's personal WhatsApp (91 prefix, no +)
-const WHATSAPP_TOKEN    = Deno.env.get('WHATSAPP_ACCESS_TOKEN')
-const WHATSAPP_PHONE_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID')
+const SUPABASE_URL   = Deno.env.get('SUPABASE_URL')!
+const SERVICE_KEY    = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
+const ADMIN_EMAIL    = 'admin@edusaathiai.in'
+const ADMIN_PHONE    = '919374075275'   // Jaydeep's personal WhatsApp for admin alerts
 
 const TYPE_LABELS: Record<string, string> = {
   bug:        '\u{1F41B} Bug report',
@@ -179,38 +178,23 @@ serve(async (req: Request) => {
       `,
     })
 
-    // ── Send WhatsApp ─────────────────────────────────────────────────────────
+    // ── Send WhatsApp admin alert — T15 edusaathiai_admin_alert ──────────────
+    // {{1}} alert type, {{2}} detail, {{3}} info string
 
-    if (WHATSAPP_TOKEN && WHATSAPP_PHONE_ID) {
-      const shortMessage = fb.message.length > 200
-        ? fb.message.slice(0, 200) + '\u2026'
-        : fb.message
+    const shortMessage = fb.message.length > 100
+      ? fb.message.slice(0, 100) + '\u2026'
+      : fb.message
 
-      const waBody = `${statusEmoji} *${typeLabel}*\n\n` +
-        `*Student:* ${studentName} (${studentPlan})\n` +
-        `*Page:* ${pageUrl.replace('https://edusaathiai.in', '') || '/'}\n` +
-        `*Saathi:* ${saathiName}\n` +
-        `*Device:* ${fb.browser_info ?? 'Unknown'}\n\n` +
-        `*Message:*\n${shortMessage}\n\n` +
-        `_${timeIST} IST_`
-
-      await fetch(
-        `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_ID}/messages`,
-        {
-          method:  'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization:  `Bearer ${WHATSAPP_TOKEN}`,
-          },
-          body: JSON.stringify({
-            messaging_product: 'whatsapp',
-            to:                ADMIN_PHONE,
-            type:              'text',
-            text:              { body: waBody },
-          }),
-        }
-      )
-    }
+    void sendWhatsAppTemplate({
+      templateName: 'edusaathiai_admin_alert',
+      to: ADMIN_PHONE,
+      params: [
+        `${statusEmoji} ${typeLabel}`,
+        `${studentName} (${studentPlan}) — ${pageUrl.replace('https://edusaathiai.in', '') || '/'}`,
+        shortMessage,
+      ],
+      logPrefix: 'send-feedback-alert',
+    })
 
     // Mark feedback as notified
     await supabase

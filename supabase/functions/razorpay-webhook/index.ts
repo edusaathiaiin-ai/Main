@@ -19,6 +19,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { captureError, captureEvent } from '../_shared/sentry.ts';
 import { sanitize } from '../_shared/validate.ts';
 import { posthogCapture, posthogSetPersonProps } from '../_shared/posthog.ts';
+import { sendWhatsAppTemplate } from '../_shared/whatsapp.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -103,6 +104,25 @@ async function sendWhatsAppActivation(
     // Never block payment flow for WhatsApp failure
     console.error('razorpay-webhook: WhatsApp activation failed', err instanceof Error ? err.message : err);
   }
+}
+
+// ── WhatsApp: T15 admin alert ────────────────────────────────────────────────
+
+const ADMIN_WA_PHONE = '919374075275'; // Jaydeep personal — admin alerts
+
+async function sendAdminAlert(
+  alertType: string,
+  detail: string,
+  info: string,
+): Promise<void> {
+  // T15 — edusaathiai_admin_alert
+  // {{1}} alert type, {{2}} detail, {{3}} info string
+  void sendWhatsAppTemplate({
+    templateName: 'edusaathiai_admin_alert',
+    to: ADMIN_WA_PHONE,
+    params: [alertType, detail, info],
+    logPrefix: 'razorpay-webhook',
+  });
 }
 
 // ── Refund confirmation email ──────────────────────────────────────────────
@@ -717,6 +737,13 @@ async function handlePaymentCaptured(
     });
     await posthogSetPersonProps(sub.user_id, { plan_id: sub.plan_id });
   }
+
+  // T15 — admin alert: new payment captured
+  void sendAdminAlert(
+    '💰 Payment captured',
+    `${fullName ?? 'Unknown'} — ${PLAN_LABELS[sub.plan_id] ?? sub.plan_id}`,
+    `order=${orderId?.slice(0, 12) ?? 'n/a'} user=${sub.user_id.slice(0, 8)}`,
+  );
 }
 
 async function handlePaymentFailed(

@@ -14,13 +14,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { captureError } from '../_shared/sentry.ts';
+import { sendWhatsAppTemplate, stripPhone, firstName, fmtPaise } from '../_shared/whatsapp.ts';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const SUPABASE_ANON_KEY         = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY') ?? '';
-const WA_TOKEN                  = Deno.env.get('WHATSAPP_TOKEN') ?? '';
-const PHONE_NUMBER_ID           = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID') ?? '';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -258,25 +257,6 @@ async function sendDeclineEmail(
   });
 }
 
-// ─── WhatsApp ─────────────────────────────────────────────────────────────────
-
-async function sendWhatsApp(waPhone: string, body: string): Promise<void> {
-  if (!WA_TOKEN || !PHONE_NUMBER_ID) return;
-  await fetch(`https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${WA_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      to: waPhone,
-      type: 'text',
-      text: { body, preview_url: false },
-    }),
-  });
-}
-
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
@@ -357,17 +337,24 @@ Deno.serve(async (req: Request) => {
       // Decline notifications
       const declineReason = reason || (lr.decline_reason as string | null) || 'The faculty is unavailable at this time.';
 
-      await Promise.allSettled([
+      const waDeclineTasks: Promise<unknown>[] = [
         studentEmail
           ? sendDeclineEmail(studentEmail, studentName, facultyName, subject, declineReason)
           : Promise.resolve(),
-        studentWa
-          ? sendWhatsApp(
-              studentWa,
-              `✦ *EdUsaathiAI* — Session Request Update\n\nHi ${studentName.split(' ')[0]}, ${facultyName} is unable to take the session on *${subject}* at the moment.\n\n_"${declineReason}"_\n\nYou can find another faculty on EdUsaathiAI: https://www.edusaathiai.in/faculty/finder`,
-            )
-          : Promise.resolve(),
-      ]);
+      ];
+      if (studentWa) {
+        // T04 — edusaathiai_lecture_declined
+        // {{1}} student firstName, {{2}} faculty name, {{3}} subject, {{4}} decline reason
+        waDeclineTasks.push(
+          sendWhatsAppTemplate({
+            templateName: 'edusaathiai_lecture_declined',
+            to: stripPhone(studentWa),
+            params: [firstName(studentName), facultyName, subject, declineReason],
+            logPrefix: 'notify-lecture-proposal',
+          }),
+        );
+      }
+      await Promise.allSettled(waDeclineTasks);
     } else {
       // Proposal notifications
       const slots         = (lr.proposed_slots     as Array<{ start: string; end: string; label?: string }> | null) ?? [];
@@ -379,20 +366,35 @@ Deno.serve(async (req: Request) => {
         .map((s, i) => `  ${i + 1}. ${s.label ?? fmtSlot(s.start, s.end)}`)
         .join('\n');
 
-      await Promise.allSettled([
+      const waProposalTasks: Promise<unknown>[] = [
         studentEmail
           ? sendProposalEmail(
               studentEmail, studentName, facultyName, subject,
               slots, feePaise, durationMin, proposalMsg,
             )
           : Promise.resolve(),
-        studentWa
-          ? sendWhatsApp(
-              studentWa,
-              `✦ *EdUsaathiAI* — Session Proposed!\n\nHi ${studentName.split(' ')[0]}! *${facultyName}* has responded to your request for *${subject}*.\n\n📅 *Available Slots:*\n${slotLines}\n\n💰 Fee: ₹${(feePaise / 100).toLocaleString('en-IN')} · ⏱ ${durationMin} min\n${proposalMsg ? `\n_"${proposalMsg}"_\n` : ''}\nLog in to confirm your slot: https://www.edusaathiai.in/faculty/finder`,
-            )
-          : Promise.resolve(),
-      ]);
+      ];
+      if (studentWa) {
+        // T03 — edusaathiai_lecture_proposal
+        // {{1}} student firstName, {{2}} faculty name, {{3}} subject,
+        // {{4}} fee as ₹500, {{5}} duration minutes, {{6}} request ID slice(0,8)
+        waProposalTasks.push(
+          sendWhatsAppTemplate({
+            templateName: 'edusaathiai_lecture_proposal',
+            to: stripPhone(studentWa),
+            params: [
+              firstName(studentName),
+              facultyName,
+              subject,
+              fmtPaise(feePaise),
+              String(durationMin),
+              lr.id.slice(0, 8),
+            ],
+            logPrefix: 'notify-lecture-proposal',
+          }),
+        );
+      }
+      await Promise.allSettled(waProposalTasks);
     }
 
     return new Response(

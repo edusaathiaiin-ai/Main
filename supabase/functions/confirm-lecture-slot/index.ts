@@ -24,6 +24,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { captureError } from '../_shared/sentry.ts';
+import { sendWhatsAppTemplate, stripPhone, firstName, fmtDate, fmtTime, fmtPaise } from '../_shared/whatsapp.ts';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -223,6 +224,36 @@ async function notifyStudentWhatsApp(
   }
 }
 
+// ─── Faculty WhatsApp: student paid ──────────────────────────────────────────
+
+async function notifyFacultyWhatsAppPaid(
+  waPhone:      string,
+  facFirstName: string,
+  studentName:  string,
+  topic:        string,
+  slotStart:    string,
+  feePaise:     number,
+): Promise<void> {
+  // T11 — edusaathiai_faculty_student_paid
+  // {{1}} faculty firstName, {{2}} student name, {{3}} topic,
+  // {{4}} date as 14 April 2026, {{5}} time as 5:00 PM,
+  // {{6}} earnings = fee * 0.8 formatted as ₹400
+  const earningsPaise = Math.round(feePaise * 0.8);
+  await sendWhatsAppTemplate({
+    templateName: 'edusaathiai_faculty_student_paid',
+    to: stripPhone(waPhone),
+    params: [
+      facFirstName,
+      studentName,
+      topic,
+      fmtDate(slotStart),
+      fmtTime(slotStart),
+      fmtPaise(earningsPaise),
+    ],
+    logPrefix: 'confirm-lecture-slot',
+  });
+}
+
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
@@ -415,6 +446,14 @@ Deno.serve(async (req: Request) => {
       facultyEmail, facultyWa, facultyName,
       studentName, subject, slotLabel, sessionId,
     );
+
+    // T11 — notify faculty via WA that student has paid
+    if (facultyWa) {
+      void notifyFacultyWhatsAppPaid(
+        facultyWa, firstName(facultyName), studentName,
+        subject, chosenSlot.start, feePaise,
+      );
+    }
 
     if (studentWa) {
       void notifyStudentWhatsApp(

@@ -14,13 +14,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { captureError } from '../_shared/sentry.ts';
+import { sendWhatsAppTemplate, stripPhone, firstName, fmtDate, fmtTime } from '../_shared/whatsapp.ts';
 
-const SUPABASE_URL             = Deno.env.get('SUPABASE_URL') ?? '';
+const SUPABASE_URL              = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-const SUPABASE_ANON_KEY        = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-const RESEND_API_KEY           = Deno.env.get('RESEND_API_KEY') ?? '';
-const WA_TOKEN                 = Deno.env.get('WHATSAPP_TOKEN') ?? '';
-const PHONE_NUMBER_ID          = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID') ?? '';
+const SUPABASE_ANON_KEY         = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY') ?? '';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -110,24 +109,32 @@ async function sendEmail(
   });
 }
 
-async function sendWhatsApp(waPhone: string, studentName: string, sessionTitle: string, meetingLink: string): Promise<void> {
-  if (!WA_TOKEN || !PHONE_NUMBER_ID) return;
+async function sendMeetingLinkWA(
+  waPhone:      string,
+  studentName:  string,
+  sessionTitle: string,
+  scheduledAt:  string | null,
+  facultyName:  string,
+  meetingLink:  string,
+): Promise<void> {
+  // T — edusaathiai_meeting_link_ready
+  // {{1}} student firstName, {{2}} session topic, {{3}} session date,
+  // {{4}} session time, {{5}} faculty name, {{6}} meeting link (also URL button var)
+  const sessionDate = scheduledAt ? fmtDate(scheduledAt) : 'TBD';
+  const sessionTime = scheduledAt ? fmtTime(scheduledAt) : 'TBD';
 
-  const firstName = studentName.split(' ')[0];
-  const msg = `✦ *EdUsaathiAI* — Meeting Link Ready\n\nHey ${firstName}! Your faculty just shared the link for *${sessionTitle}*.\n\n🔗 Join here:\n${meetingLink}\n\n_Save this link. See you in session!_`;
-
-  await fetch(`https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${WA_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      to: waPhone,
-      type: 'text',
-      text: { body: msg, preview_url: true },
-    }),
+  await sendWhatsAppTemplate({
+    templateName: 'edusaathiai_meeting_link_ready',
+    to: stripPhone(waPhone),
+    params: [
+      firstName(studentName),
+      sessionTitle,
+      sessionDate,
+      sessionTime,
+      facultyName,
+      meetingLink,
+    ],
+    logPrefix: 'notify-meeting-link',
   });
 }
 
@@ -174,7 +181,7 @@ Deno.serve(async (req: Request) => {
     // ── Verify caller owns this session ───────────────────────────────────────
     const { data: session, error: sessErr } = await admin
       .from('live_sessions')
-      .select('id, title, faculty_id')
+      .select('id, title, faculty_id, faculty:profiles!live_sessions_faculty_id_fkey(full_name)')
       .eq('id', sessionId)
       .single();
 
@@ -235,13 +242,15 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const facultyName = ((session.faculty as Record<string, unknown> | null)?.full_name as string | null) ?? 'Your Faculty';
+
     // ── Notify each student — parallel, failures are swallowed ───────────────
     let notified = 0;
     await Promise.allSettled(
       profiles.map(async (p) => {
-        const name = (p.full_name as string | null) ?? 'Student';
-        const email = p.email as string | null;
-        const wa = p.wa_phone as string | null;
+        const name  = (p.full_name as string | null) ?? 'Student';
+        const email = p.email    as string | null;
+        const wa    = p.wa_phone as string | null;
 
         const tasks: Promise<void>[] = [];
 
@@ -249,7 +258,7 @@ Deno.serve(async (req: Request) => {
           tasks.push(sendEmail(email, name, session.title, meetingLink, scheduledAt));
         }
         if (wa) {
-          tasks.push(sendWhatsApp(wa, name, session.title, meetingLink));
+          tasks.push(sendMeetingLinkWA(wa, name, session.title, scheduledAt, facultyName, meetingLink));
         }
 
         if (tasks.length > 0) {

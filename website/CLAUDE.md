@@ -465,18 +465,87 @@ Apply at: onboarding, profile edit, auth-register Edge Function.
 API Number:       +91 98255 93204 (no personal WhatsApp)
 Phone Number ID:  1010533742151361
 Business Acct ID: 934629882802473
-Admin receives:   +91 93740 75275 (personal)
-Templates:        7 submitted to Meta, 4 Active, 3 In review
+Admin receives:   +91 98255 93262 (Jaydeep personal — NOT the business number)
+Templates:        10 submitted to Meta (see Whatsapp.txt in repo root)
 ```
 
-**Templates approved (Active — Quality pending):**
+**Supabase secrets (already set — never recreate):**
 ```
-edusaathiai_session_booked
-edusaathiai_meeting_link_ready
-new_lecture_request
-faculty_accepted_your_request
-hello_world
+WHATSAPP_TOKEN            (same value as WHATSAPP_ACCESS_TOKEN)
+WHATSAPP_ACCESS_TOKEN
+WHATSAPP_PHONE_NUMBER_ID  = 1010533742151361
+WHATSAPP_APP_SECRET
+WHATSAPP_VERIFY_TOKEN
+WHATSAPP_BUSINESS_ACCOUNT_ID = 934629882802473
 ```
+
+**Vercel env vars needed (server-side, for /api/whatsapp-verify):**
+```
+WHATSAPP_TOKEN
+WHATSAPP_PHONE_NUMBER_ID
+```
+
+**Templates — full list in Whatsapp.txt:**
+```
+T01  hello_world                          Active (Meta built-in, used for OTP verify)
+T02  edusaathiai_session_booked           Active — wired to confirm-lecture-slot ✓
+T03  edusaathiai_meeting_link_ready       Active
+T04  new_lecture_request                  Active
+T05  faculty_accepted_your_request        Active
+T06  edusaathiai_subscription_activated   Wired to razorpay-webhook ✓ (pending Meta approval)
+T16  edusaathiai_renewal_reminder         Submitted — pending approval
+T17  edusaathiai_plan_expired             Submitted — pending approval
+T18  edusaathiai_come_back                Submitted — pending approval (MARKETING)
+```
+
+**Templates NOT YET wired (need Edge Functions built):**
+```
+T16 → subscription-lifecycle Edge Function (fires 3 days before expiry)
+T17 → subscription-lifecycle Edge Function (fires on expiry day)
+T18 → inactivity-nudge Edge Function (fires after 7 days inactive) — TO BUILD
+```
+
+**WhatsApp Saathi rules (CRITICAL — do not change without product sign-off):**
+
+1. **Cooling period** — enforced in whatsapp-webhook before quota check:
+   - Free / Plus: 48hr between sessions (checked via `whatsapp_sessions.last_message_at`)
+   - Pro: 24hr
+   - Unlimited / Institution: no cooling
+   - Response: "⏸ Your Saathi is resting. Opens at [time] IST."
+
+2. **Saathi lock — permanent on WhatsApp**
+   - Once `profiles.wa_saathi_id` is set, it cannot be changed via WhatsApp
+   - SWITCH command does NOT exist — removed
+   - Any attempt to re-pick triggers: "✦ Your Saathi is *[name]*. One student, one soul, one Saathi."
+   - Only unlock: admin resets `profiles.wa_saathi_id = NULL` via web `/profile`
+
+3. **wa_phone storage format:** always `+919825593262` (with + prefix)
+   Meta API calls strip the + before sending: `waPhone.replace(/^\+/, '')`
+
+**DB columns on `profiles` table for WhatsApp:**
+```
+wa_phone          text UNIQUE    — stored as +91XXXXXXXXXX
+wa_saathi_id      uuid FK        — permanent Saathi choice, null until first pick
+wa_state          text           — 'new' | 'selecting_saathi' | 'active'
+wa_registered_at  timestamptz
+```
+
+**`whatsapp_sessions` table:**
+```
+wa_phone             text PK
+user_id              uuid FK profiles (nullable — unregistered users)
+messages             jsonb        — last 10 messages [{role, content}]
+message_count_today  int          — resets at midnight IST
+last_reset_date      text         — YYYY-MM-DD IST
+last_message_at      timestamptz  — used for cooling period check
+```
+
+**OTP verification flow (`/api/whatsapp-verify`):**
+- POST `{ phone: '919825593262' }` — full number, no +
+- Sends `hello_world` template server-side
+- Returns `{ success: true }` or `{ error: string }`
+- DB write only after user confirms receipt on frontend ("Yes/No")
+- Used in: `/profile` WhatsApp field + `/pricing` post-payment modal
 
 **Phone number issue:** +91 98255 93204 still has active personal
 WhatsApp account. Must delete before Cloud API registration completes.

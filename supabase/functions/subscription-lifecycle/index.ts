@@ -13,6 +13,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendWhatsAppTemplate, stripPhone, fmtDate } from '../_shared/whatsapp.ts';
 
 const SUPABASE_URL         = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -132,7 +133,7 @@ Deno.serve(async (_req: Request) => {
 
     const { data: soonExpiring } = await admin
       .from('profiles')
-      .select('id, email, display_name, plan_id, subscription_expires_at')
+      .select('id, email, full_name, display_name, plan_id, subscription_expires_at, wa_phone')
       .eq('subscription_status', 'active')
       .neq('plan_id', 'free')
       .not('subscription_expires_at', 'is', null)
@@ -141,8 +142,9 @@ Deno.serve(async (_req: Request) => {
 
     for (const row of (soonExpiring ?? [])) {
       const profile = row as {
-        id: string; email: string; display_name: string | null;
-        plan_id: string; subscription_expires_at: string;
+        id: string; email: string; full_name: string | null;
+        display_name: string | null; plan_id: string;
+        subscription_expires_at: string; wa_phone: string | null;
       };
 
       // Check if reminder already sent for this expiry period
@@ -157,7 +159,7 @@ Deno.serve(async (_req: Request) => {
       if (alreadySent) continue;
 
       const planLabel = PLAN_LABELS[profile.plan_id] ?? profile.plan_id;
-      const name = profile.display_name?.split(' ')[0] ?? 'Student';
+      const name      = (profile.full_name ?? profile.display_name ?? 'Student').split(' ')[0];
 
       const sent = await sendRenewalReminder(
         profile.email,
@@ -165,6 +167,17 @@ Deno.serve(async (_req: Request) => {
         planLabel,
         profile.subscription_expires_at,
       );
+
+      // T16 — edusaathiai_renewal_reminder
+      // {{1}} firstName, {{2}} plan label, {{3}} expiry date as "14 April 2026"
+      if (profile.wa_phone) {
+        void sendWhatsAppTemplate({
+          templateName: 'edusaathiai_renewal_reminder',
+          to: stripPhone(profile.wa_phone),
+          params: [name, planLabel, fmtDate(profile.subscription_expires_at)],
+          logPrefix: 'subscription-lifecycle',
+        });
+      }
 
       if (sent) {
         await admin.from('renewal_reminders_sent').insert({
@@ -181,7 +194,7 @@ Deno.serve(async (_req: Request) => {
     // ── 2. Expire overdue subscriptions ─────────────────────────────────────
     const { data: expired } = await admin
       .from('profiles')
-      .select('id, email, display_name, plan_id, subscription_expires_at')
+      .select('id, email, full_name, display_name, plan_id, subscription_expires_at, wa_phone')
       .eq('subscription_status', 'active')
       .neq('plan_id', 'free')
       .not('subscription_expires_at', 'is', null)
@@ -189,8 +202,9 @@ Deno.serve(async (_req: Request) => {
 
     for (const row of (expired ?? [])) {
       const profile = row as {
-        id: string; email: string; display_name: string | null;
-        plan_id: string; subscription_expires_at: string;
+        id: string; email: string; full_name: string | null;
+        display_name: string | null; plan_id: string;
+        subscription_expires_at: string; wa_phone: string | null;
       };
 
       // Downgrade to free — soul data preserved
@@ -200,7 +214,7 @@ Deno.serve(async (_req: Request) => {
         subscription_expires_at: null,
       }).eq('id', profile.id);
 
-      // Check if expiry email already sent
+      // Check if expiry notifications already sent
       const { data: alreadySent } = await admin
         .from('renewal_reminders_sent')
         .select('id')
@@ -211,9 +225,20 @@ Deno.serve(async (_req: Request) => {
 
       if (!alreadySent) {
         const planLabel = PLAN_LABELS[profile.plan_id] ?? profile.plan_id;
-        const name = profile.display_name?.split(' ')[0] ?? 'Student';
+        const name      = (profile.full_name ?? profile.display_name ?? 'Student').split(' ')[0];
 
         const sent = await sendExpiredEmail(profile.email, name, planLabel, profile.subscription_expires_at);
+
+        // T17 — edusaathiai_plan_expired
+        // {{1}} firstName, {{2}} expiry date as "14 April 2026"
+        if (profile.wa_phone) {
+          void sendWhatsAppTemplate({
+            templateName: 'edusaathiai_plan_expired',
+            to: stripPhone(profile.wa_phone),
+            params: [name, fmtDate(profile.subscription_expires_at)],
+            logPrefix: 'subscription-lifecycle',
+          });
+        }
 
         if (sent) {
           await admin.from('renewal_reminders_sent').insert({

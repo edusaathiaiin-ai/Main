@@ -11,6 +11,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
+import { sendWhatsAppTemplate, stripPhone } from '../_shared/whatsapp.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -74,7 +75,7 @@ serve(async (req: Request) => {
     // ── Fetch profile + Saathi name ─────────────────────────────
     const { data: profile } = await admin
       .from('profiles')
-      .select('full_name, email, role, welcome_email_sent, primary_saathi_id, verticals(name)')
+      .select('full_name, email, role, welcome_email_sent, primary_saathi_id, wa_phone, verticals(name)')
       .eq('id', userId)
       .single();
 
@@ -148,6 +149,18 @@ serve(async (req: Request) => {
 
     // ── Mark as sent ────────────────────────────────────────────
     await admin.from('profiles').update({ welcome_email_sent: true }).eq('id', userId);
+
+    // T01 — edusaathiai_welcome → only if wa_phone is set
+    // {{1}} firstName, {{2}} Saathi name, {{3}} plan label ("Free Trial" for new users)
+    const waPhone = (profile as { wa_phone?: string | null }).wa_phone ?? null;
+    if (waPhone) {
+      void sendWhatsAppTemplate({
+        templateName: 'edusaathiai_welcome',
+        to: stripPhone(waPhone),
+        params: [name, saathiName ?? 'EdUsaathiAI', 'Free Trial'],
+        logPrefix: 'send-welcome-email',
+      });
+    }
 
     return new Response(JSON.stringify({ sent: true, to: email }), {
       status: 200,
