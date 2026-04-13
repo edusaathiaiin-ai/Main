@@ -26,6 +26,7 @@ import { EmptyState } from './EmptyState'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
 import { FreePlanBar } from './FreePlanBar'
+import { WaLinkTip } from './WaLinkTip'
 import { Sidebar } from '@/components/layout/Sidebar'
 // ── Below-fold / conditional — lazy ───────────────────────────────────────────
 const DidYouKnow            = dynamic(() => import('./DidYouKnow').then(m => ({ default: m.DidYouKnow })), { ssr: false })
@@ -1004,6 +1005,10 @@ export function ChatWindow() {
             isLegalTheme={isLegalTheme}
           />
         )}
+
+        {/* Post-first-chat WhatsApp nudge — renders only after a real
+            exchange, never on empty chat. Self-hides if dismissed or linked. */}
+        <WaLinkTip />
       </main>
 
       {/* Mobile bottom nav */}

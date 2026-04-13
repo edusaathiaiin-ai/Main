@@ -107,6 +107,9 @@ type SessionRow = {
   // Guest support: when a user messages without a linked profile we still
   // let them pick a Saathi and chat. The chosen Saathi is stored here.
   wa_saathi_id: string | null;
+  // Session-level state — used by the guest linking flow when there is no
+  // profile to write wa_state to. Values: 'active' | 'linking'.
+  wa_state: string | null;
 };
 
 type Message = {
@@ -342,6 +345,16 @@ async function handleMessage(from: string, waPhone: string, text: string) {
   const sessRow = session as SessionRow;
   const effectiveSaathiId = profile?.wa_saathi_id ?? sessRow.wa_saathi_id;
 
+  // ── Account linking state (guest just picked a Saathi, we asked for email) ──
+  // wa_state lives on profile for registered users, on session for guests.
+  // If their last message was the linking prompt, treat current text as
+  // either an email (link account) or a chat message (skip linking).
+  const linkingState = profile?.wa_state === 'linking' || sessRow.wa_state === 'linking';
+  if (linkingState) {
+    await handleAccountLink(from, waPhone, text, profile, sessRow);
+    return;
+  }
+
   // ── New user / unset Saathi ──────────────────────────
   if (!effectiveSaathiId) {
     await handleNewUser(from, waPhone, text, profile, sessRow);
@@ -412,6 +425,106 @@ async function handleMessage(from: string, waPhone: string, text: string) {
 
   // ── Main chat ────────────────────────────────────────
   await handleChat(from, waPhone, text, profile, sessRow, effectiveSaathiId);
+}
+
+// ── Account linking flow (guest → registered) ─────────────────────────────────
+//
+// Triggered on the message immediately after we asked "if you're already on
+// edusaathiai.in, reply with your registered email". The user can:
+//   1. Reply with an email           → look up profile, link if possible
+//   2. Reply with anything else      → treat as a normal chat message
+// Either way, we exit the 'linking' state — never trap the user.
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function clearLinkingState(profile: ProfileRow | null, session: SessionRow, waPhone: string) {
+  if (profile) {
+    await admin.from('profiles').update({ wa_state: 'active' }).eq('id', profile.id);
+  }
+  await admin.from('whatsapp_sessions').update({ wa_state: 'active' }).eq('wa_phone', waPhone);
+  session.wa_state = 'active';
+}
+
+async function handleAccountLink(
+  from: string,
+  waPhone: string,
+  text: string,
+  profile: ProfileRow | null,
+  session: SessionRow,
+) {
+  const candidate = text.trim().toLowerCase();
+
+  // Not an email → user wants to skip linking. Reset state and treat as chat.
+  if (!EMAIL_RE.test(candidate)) {
+    await clearLinkingState(profile, session, waPhone);
+    // Resume normal flow with the same message
+    const effectiveSaathiId = profile?.wa_saathi_id ?? session.wa_saathi_id;
+    if (effectiveSaathiId) {
+      await handleChat(from, waPhone, text, profile, session, effectiveSaathiId);
+    }
+    return;
+  }
+
+  // Look up by email
+  const { data: target } = await admin
+    .from('profiles')
+    .select('id, full_name, plan_id, wa_phone, primary_saathi_id')
+    .eq('email', candidate)
+    .maybeSingle();
+
+  // No matching account
+  if (!target) {
+    await sendWhatsAppMessage(
+      from,
+      `I couldn't find an account with that email. No worries \u2014 you can register at *edusaathiai.in* later, or just continue chatting here as a guest. \u{1F393}`,
+    );
+    await clearLinkingState(profile, session, waPhone);
+    return;
+  }
+
+  // Email matches but already linked to a different number
+  if (target.wa_phone && target.wa_phone !== waPhone) {
+    await sendWhatsAppMessage(
+      from,
+      `That account is already linked to a different WhatsApp number. To change it, visit *edusaathiai.in/profile* and update from there.`,
+    );
+    await clearLinkingState(profile, session, waPhone);
+    return;
+  }
+
+  // Successful link: bind this phone to the web profile, prefer the user's
+  // existing primary Saathi over whatever they picked here on WhatsApp
+  // ("one student, one soul").
+  const targetSaathiId = target.primary_saathi_id ?? session.wa_saathi_id;
+  await admin.from('profiles').update({
+    wa_phone:         waPhone,
+    wa_saathi_id:     targetSaathiId,
+    wa_state:         'active',
+    wa_registered_at: new Date().toISOString(),
+  }).eq('id', target.id);
+
+  // Re-attach the existing session row to the now-linked user_id and clear
+  // the session's own state markers (profile is the source of truth now).
+  await admin.from('whatsapp_sessions').update({
+    user_id:      target.id,
+    wa_saathi_id: null,           // profile.wa_saathi_id wins from now on
+    wa_state:     'active',
+  }).eq('wa_phone', waPhone);
+  session.user_id = target.id;
+  session.wa_state = 'active';
+
+  // Look up the bound Saathi name + plan label for the success message
+  const [{ data: sa }, { data: profilePlan }] = await Promise.all([
+    admin.from('verticals').select('name, emoji').eq('id', targetSaathiId).maybeSingle(),
+    admin.from('profiles').select('plan_id').eq('id', target.id).maybeSingle(),
+  ]);
+  const planName = getPlanName((profilePlan as { plan_id?: string } | null)?.plan_id ?? null);
+  const firstName = (target.full_name as string | null)?.split(' ')[0] ?? 'Student';
+
+  await sendWhatsAppMessage(
+    from,
+    `\u2705 *Linked, ${firstName}!*\n\nYour soul memory and ${planName} are now active here. Your Saathi is ${sa?.emoji ?? '\u2728'} *${sa?.name ?? 'ready'}*.\n\nAsk anything \u2014 your journey continues from where you left off on the web. \u{1F393}`,
+  );
 }
 
 // ── New user onboarding ────────────────────────────────────────────────────────
@@ -634,20 +747,35 @@ async function handleSaathiSelection(
       }, { onConflict: 'user_id,vertical_id' });
     }
   } else {
-    // Guest path: persist the Saathi choice on the session row so the next
-    // message from this phone goes straight to chat, not the picker.
+    // Guest path: persist the Saathi choice on the session row AND set
+    // wa_state='linking' so the next message can either link to an existing
+    // edusaathiai.in account or be treated as a normal chat.
     await admin.from('whatsapp_sessions')
-      .update({ wa_saathi_id: selectedSaathi.id })
+      .update({ wa_saathi_id: selectedSaathi.id, wa_state: 'linking' })
       .eq('wa_phone', waPhone);
-    if (session) session.wa_saathi_id = selectedSaathi.id;
+    if (session) {
+      session.wa_saathi_id = selectedSaathi.id;
+      session.wa_state = 'linking';
+    }
   }
 
   const name = profile?.full_name?.split(' ')[0];
 
+  // Saathi-ready greeting
   await sendWhatsAppMessage(
     from,
-    `${selectedSaathi.emoji} *${selectedSaathi.name} is ready!*\n\n${name ? `Hello ${name}! ` : ''}I'm your ${selectedSaathi.name} \u2014 ${selectedSaathi.tagline}.\n\nAsk me anything about your subject. I'll remember our conversation and personalise every answer to you.${profile ? '' : '\n\n_Tip: Sign up at edusaathiai.in to unlock deep Soul memory across all your devices._'}\n\n_Type *HELP* to see what I can do_`,
+    `${selectedSaathi.emoji} *${selectedSaathi.name} is ready!*\n\n${name ? `Hello ${name}! ` : ''}I'm your ${selectedSaathi.name} \u2014 ${selectedSaathi.tagline}.\n\nAsk me anything about your subject. I'll remember our conversation and personalise every answer to you.\n\n_Type *HELP* to see what I can do_`,
   );
+
+  // For guests only — invite them to link their existing web account so soul
+  // memory + plan carry over. Always optional; next message is treated as a
+  // chat if it doesn't look like an email.
+  if (!profile) {
+    await sendWhatsAppMessage(
+      from,
+      `\u2728 *One more thing* \u2014 if you're already on edusaathiai.in, reply with your registered email to carry your soul memory and plan here.\n\nOr just start fresh \u2014 your Saathi is ready either way! \u{1F393}`,
+    );
+  }
 }
 
 // ── Main chat handler ──────────────────────────────────────────────────────────

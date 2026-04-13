@@ -453,7 +453,7 @@ export default function ProfileTab({
               WhatsApp Number
             </label>
             <p className="mt-0.5 text-[11px]" style={{ color: 'var(--text-tertiary, #7A7570)' }}>
-              For session reminders and Saathi updates
+              Your Saathi remembers you across web and WhatsApp — one soul, every device.
             </p>
           </div>
           {profile.wa_phone && !waEditing && (

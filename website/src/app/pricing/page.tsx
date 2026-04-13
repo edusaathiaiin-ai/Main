@@ -212,10 +212,10 @@ function WaPostPaymentModal({ onDone }: { onDone: () => void }) {
           </div>
           <div>
             <p className="text-sm font-bold" style={{ color: '#1A1814' }}>
-              Add your WhatsApp to receive your plan confirmation instantly
+              Your Plus plan works on WhatsApp too
             </p>
             <p className="mt-0.5 text-xs" style={{ color: '#7A7570' }}>
-              10-digit Indian mobile number
+              Add your number to continue with your Saathi anywhere.
             </p>
           </div>
         </div>

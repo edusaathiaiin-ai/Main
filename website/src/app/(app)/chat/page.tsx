@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server'
 import { ChatWindow } from '@/components/chat/ChatWindow'
 import { ChatWelcomeGate } from '@/components/chat/WelcomeOverlay'
 import { DailyChallengeWidget } from '@/components/chat/DailyChallengeWidget'
-import { WaLinkTip } from '@/components/chat/WaLinkTip'
 import { toSlug } from '@/constants/verticalIds'
 
 export const metadata = {
@@ -44,7 +43,8 @@ export default async function ChatPage() {
 
   return (
     <>
-      <WaLinkTip />
+      {/* WaLinkTip moved into ChatWindow (renders below the chat input
+          after the student has actually had a chat exchange) */}
       <ChatWelcomeGate
         userId={user.id}
         profileName={profile.full_name ?? user.email ?? 'Student'}
