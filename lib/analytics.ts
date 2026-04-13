@@ -106,6 +106,13 @@ export function trackBoardPosted(saathi_slug: string, type: 'question' | 'answer
   ph()?.capture('board_posted', { saathi_slug, type });
 }
 
-export function trackErrorReported(saathi_slug: string) {
-  ph()?.capture('error_reported', { saathi_slug });
+export function trackErrorReported(
+  saathi_slug: string,
+  opts: { error_type?: string | null; surface: 'web' | 'expo' },
+) {
+  ph()?.capture('error_reported', {
+    saathi_slug,
+    ...(opts.error_type ? { error_type: opts.error_type } : {}),
+    surface: opts.surface,
+  });
 }

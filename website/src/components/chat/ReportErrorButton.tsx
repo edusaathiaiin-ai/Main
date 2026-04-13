@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
+import { trackErrorReported } from '@/lib/analytics'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,14 @@ export function ReportErrorButton({
 
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Submission failed')
+
+      // Analytics: fires only after a successful server ACK.
+      // `topic` is the user's self-classification of the error and is the
+      // closest thing we have to an error_type today (may be empty).
+      trackErrorReported(verticalSlug, {
+        error_type: topic.trim() || null,
+        surface: 'web',
+      })
 
       setState('submitted')
     } catch (err) {
