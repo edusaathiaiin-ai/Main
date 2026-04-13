@@ -502,6 +502,15 @@ Points buy:        access, depth, human connection
 - New account board restriction: accounts under 24 hours old cannot post to board.
 - API spend alert: Sentry alert if daily Claude API cost exceeds ₹500.
 - Injection attempt logging: all detected injection attempts stored in moderation_flags.
+- **Third-party webhook functions MUST set `verify_jwt = false` in `supabase/config.toml`.**
+  Any Edge Function that receives posts from an external service (Meta WhatsApp,
+  Razorpay, Stripe, GitHub, etc.) verifies that caller itself via HMAC
+  (`x-hub-signature-256`, `x-razorpay-signature`, etc.) — NOT a Supabase JWT.
+  Without `verify_jwt = false`, the Supabase gateway rejects every webhook
+  post with 401 before the function's signature check runs. This has broken
+  the WhatsApp webhook once already (April 2026, silent 1-day outage — zero
+  student messages reached the handler). Add the config entry the moment the
+  function is created, not after the first deploy.
 
 ---
 
