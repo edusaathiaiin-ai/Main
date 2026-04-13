@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { SAATHIS } from '@/constants/saathis'
 import { SLUG_TO_UUID, toSlug } from '@/constants/verticalIds'
 import { useAuthStore } from '@/stores/authStore'
+import { trackSaathiSelected } from '@/lib/analytics'
 import {
   ACADEMIC_LEVEL_CARDS,
   instantCalibrate,
@@ -1373,6 +1374,7 @@ function OnboardInner() {
       .update({ primary_saathi_id: uuid })
       .eq('id', profile!.id)
     setLocalProfile((p) => (p ? { ...p, primary_saathi_id: uuid } : p))
+    trackSaathiSelected(saathiId, true)
     setSaving(false)
     setStep('profile')
   }
