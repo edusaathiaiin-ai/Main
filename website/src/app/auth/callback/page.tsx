@@ -134,13 +134,19 @@ function CallbackInner() {
 
     async function handleCallback() {
       try {
-        // Give Supabase a moment to exchange the PKCE code
+        // Give Supabase a moment to exchange the PKCE code.
+        // We use refreshSession() NOT getSession() — getSession() can return
+        // a session whose access_token is malformed/undefined when the
+        // @supabase/ssr cookie chunks are still being written. That token
+        // then fails at the Supabase gateway with 401 "Invalid JWT" when
+        // we try to call edge functions (send-welcome-email, etc).
+        // refreshSession() always returns a fully-hydrated, valid session.
         let resolvedSession: Session | null = null
 
         const {
           data: { session },
           error,
-        } = await supabase.auth.getSession()
+        } = await supabase.auth.refreshSession()
 
         if (error || !session) {
           // Session may not be ready yet — wait 800ms and retry once
@@ -148,7 +154,7 @@ function CallbackInner() {
           const {
             data: { session: retrySession },
             error: retryError,
-          } = await supabase.auth.getSession()
+          } = await supabase.auth.refreshSession()
 
           if (retryError || !retrySession) {
             const isExpired =

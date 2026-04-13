@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
+import { toVerticalUuid } from '@/constants/verticalIds'
 
 type SaathiStats = {
   total_students: number
@@ -71,14 +72,18 @@ export function SaathiCommunityBanner({
   }, [stats])
 
   async function fetchStats() {
+    // saathiId from ChatWindow is a slug (via toSlug()); vertical_id on the
+    // stats table is a UUID FK to verticals(id). Resolve before querying.
+    const uuid = toVerticalUuid(saathiId)
+    if (!uuid) return
     const supabase = createClient()
     const { data } = await supabase
       .from('saathi_stats_cache')
       .select(
         'total_students,active_students,community_label,top_topics,avg_depth,last_refreshed_at'
       )
-      .eq('vertical_id', saathiId)
-      .single()
+      .eq('vertical_id', uuid)
+      .maybeSingle()
     if (data) setStats(data as SaathiStats)
   }
 

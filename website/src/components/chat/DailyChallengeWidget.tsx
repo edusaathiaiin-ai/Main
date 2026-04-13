@@ -53,7 +53,9 @@ export function DailyChallengeWidget({
     setLoading(true)
     try {
       const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
+      // refreshSession() not getSession() — @supabase/ssr cookie chunks can
+      // be incomplete on fresh page load, causing gateway to reject the JWT
+      const { data: { session } } = await supabase.auth.refreshSession()
       if (!session?.access_token) return
 
       const res = await fetch(
@@ -99,7 +101,9 @@ export function DailyChallengeWidget({
     setSubmitting(true)
     try {
       const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
+      // refreshSession() not getSession() — @supabase/ssr cookie chunks can
+      // be incomplete on fresh page load, causing gateway to reject the JWT
+      const { data: { session } } = await supabase.auth.refreshSession()
       if (!session?.access_token) return
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/daily-challenge`,
