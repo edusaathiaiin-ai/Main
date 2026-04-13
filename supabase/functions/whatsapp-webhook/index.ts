@@ -104,6 +104,9 @@ type SessionRow = {
   message_count_today: number;
   last_reset_date: string;
   last_message_at: string | null;
+  // Guest support: when a user messages without a linked profile we still
+  // let them pick a Saathi and chat. The chosen Saathi is stored here.
+  wa_saathi_id: string | null;
 };
 
 type Message = {
@@ -332,64 +335,83 @@ async function handleMessage(from: string, waPhone: string, text: string) {
     return;
   }
 
-  // ── New user ─────────────────────────────────────────
-  if (!profile || !profile.wa_saathi_id) {
-    await handleNewUser(from, waPhone, text, profile, session as SessionRow);
+  // ── Resolve the effective Saathi ─────────────────────
+  // Registered users: profile.wa_saathi_id (persisted across sessions).
+  // Unregistered guests: session.wa_saathi_id (stored on whatsapp_sessions).
+  // If neither is set, we still need to onboard them (pick a Saathi).
+  const sessRow = session as SessionRow;
+  const effectiveSaathiId = profile?.wa_saathi_id ?? sessRow.wa_saathi_id;
+
+  // ── New user / unset Saathi ──────────────────────────
+  if (!effectiveSaathiId) {
+    await handleNewUser(from, waPhone, text, profile, sessRow);
     return;
   }
 
-  // ── Saathi selection state ───────────────────────────
-  if (profile.wa_state === 'selecting_saathi') {
-    await handleSaathiSelection(from, waPhone, text, profile);
+  // ── Saathi selection state (registered users mid-picker) ─────
+  if (profile?.wa_state === 'selecting_saathi') {
+    await handleSaathiSelection(from, waPhone, text, profile, sessRow);
     return;
   }
 
-  // ── Cooling period check ─────────────────────────────
-  const coolingHours = getCoolingHours(profile.plan_id);
-  const sess = session as SessionRow;
-  if (coolingHours > 0 && sess.last_message_at) {
-    const expires = coolingExpiresAt(sess.last_message_at, coolingHours);
-    if (Date.now() < expires.getTime()) {
-      const opensAt = formatCoolingTime(expires);
-      const isUpgradeable = !profile.plan_id || profile.plan_id === 'free' || profile.plan_id.startsWith('plus');
-      await sendWhatsAppMessage(
-        from,
-        `\u23F8 Your Saathi is resting.\n\nYour next session opens at *${opensAt} IST*.\n\nThis cooling period helps your learning consolidate \u2014 come back refreshed!${isUpgradeable ? '\n\nUpgrade to Pro for 24hr cooling \u2192 edusaathiai.in/pricing' : ''}`,
-      );
-      // Analytics: cooling_triggered (reflects upgrade pressure on WA surface)
-      await posthogCapture(profile.id, 'cooling_triggered', {
-        plan_id: profile.plan_id ?? 'free',
-        surface: 'wa',
-      });
-      return;
+  // Resolved context — works for both registered users and guests
+  const resolvedPlanId = profile?.plan_id ?? 'free';
+  const resolvedUserId = profile?.id ?? null;
+
+  // ── Cooling period check (registered users only — guests don't cool) ──
+  if (profile) {
+    const coolingHours = getCoolingHours(resolvedPlanId);
+    if (coolingHours > 0 && sessRow.last_message_at) {
+      const expires = coolingExpiresAt(sessRow.last_message_at, coolingHours);
+      if (Date.now() < expires.getTime()) {
+        const opensAt = formatCoolingTime(expires);
+        const isUpgradeable = !resolvedPlanId || resolvedPlanId === 'free' || resolvedPlanId.startsWith('plus');
+        await sendWhatsAppMessage(
+          from,
+          `\u23F8 Your Saathi is resting.\n\nYour next session opens at *${opensAt} IST*.\n\nThis cooling period helps your learning consolidate \u2014 come back refreshed!${isUpgradeable ? '\n\nUpgrade to Pro for 24hr cooling \u2192 edusaathiai.in/pricing' : ''}`,
+        );
+        if (resolvedUserId) {
+          await posthogCapture(resolvedUserId, 'cooling_triggered', {
+            plan_id: resolvedPlanId,
+            surface: 'wa',
+          });
+        }
+        return;
+      }
     }
   }
 
   // ── Quota check ──────────────────────────────────────
-  const quota = getQuotaLimit(profile.plan_id);
+  // Guests always use the free-tier quota (5/day).
+  const quota = getQuotaLimit(resolvedPlanId);
 
-  if (sess.message_count_today >= quota) {
-    const planName = getPlanName(profile.plan_id);
+  if (sessRow.message_count_today >= quota) {
+    const planName = profile ? getPlanName(resolvedPlanId) : 'guest tier';
+    const cta = profile
+      ? `Want unlimited learning?\n\u{1F449} edusaathiai.in/pricing`
+      : `Sign up for more messages + persistent memory:\n\u{1F449} edusaathiai.in`;
     await sendWhatsAppMessage(
       from,
-      `\u{23F3} *Daily limit reached*\n\nYou've used all ${quota} messages today on the ${planName}.\n\nYour Saathi will be back at *midnight IST* \u{1F319}\n\nWant unlimited learning?\n\u{1F449} edusaathiai.in/pricing\n\n_EdUsaathiAI \u2014 Study smarter, not harder_`,
+      `\u{23F3} *Daily limit reached*\n\nYou've used all ${quota} messages today on the ${planName}.\n\nYour Saathi will be back at *midnight IST* \u{1F319}\n\n${cta}\n\n_EdUsaathiAI \u2014 Study smarter, not harder_`,
     );
-    // Analytics: quota_hit on WA surface
-    await posthogCapture(profile.id, 'quota_hit', {
-      plan_id: profile.plan_id ?? 'free',
-      surface: 'wa',
-    });
+    if (resolvedUserId) {
+      await posthogCapture(resolvedUserId, 'quota_hit', {
+        plan_id: resolvedPlanId,
+        surface: 'wa',
+      });
+    }
     return;
   }
 
-  // Analytics: wa_message_received (only for registered, active users — the
-  // meaningful DAU signal for WhatsApp Saathi).
-  await posthogCapture(profile.id, 'wa_message_received', {
-    saathi_id: profile.wa_saathi_id,
-  });
+  // Analytics: wa_message_received (registered users only — meaningful DAU)
+  if (resolvedUserId) {
+    await posthogCapture(resolvedUserId, 'wa_message_received', {
+      saathi_id: effectiveSaathiId,
+    });
+  }
 
   // ── Main chat ────────────────────────────────────────
-  await handleChat(from, waPhone, text, profile, session as SessionRow);
+  await handleChat(from, waPhone, text, profile, sessRow, effectiveSaathiId);
 }
 
 // ── New user onboarding ────────────────────────────────────────────────────────
@@ -426,8 +448,8 @@ async function handleNewUser(
     return;
   }
 
-  // In selection flow — try to match saathi
-  await handleSaathiSelection(from, waPhone, text, profile);
+  // In selection flow — try to match saathi (pass session so guest saves work)
+  await handleSaathiSelection(from, waPhone, text, profile, session);
 }
 
 // ── Welcome message ────────────────────────────────────────────────────────────
@@ -456,23 +478,92 @@ async function sendWelcome(from: string, profile: ProfileRow | null) {
 }
 
 // ── Saathi selection list ──────────────────────────────────────────────────────
+// Display order is grouped by category so a student sees "Law" near other law
+// subjects, not 20 rows after AccountSaathi. The SAME order is used by
+// handleSaathiSelection() when resolving a reply like "3" → Saathi, so the
+// display numbers and selection numbers never drift apart.
 
-async function sendSaathiList(from: string) {
-  const { data: saathis } = await admin
+const SAATHI_CATEGORIES: { title: string; slugs: string[] }[] = [
+  {
+    title: '📚 SCIENCE & ENGINEERING',
+    slugs: [
+      'maathsaathi', 'physicsaathi', 'chemsaathi', 'biosaathi', 'biotechsaathi',
+      'compsaathi', 'mechsaathi', 'civilsaathi', 'elecsaathi', 'electronicssaathi',
+      'aerospacesaathi', 'chemengg-saathi', 'envirosaathi', 'agrisaathi',
+    ],
+  },
+  {
+    title: '🏥 MEDICAL & HEALTH',
+    slugs: ['medicosaathi', 'pharmasaathi', 'nursingsaathi'],
+  },
+  {
+    title: '⚖️ LAW & SOCIAL STUDIES',
+    slugs: ['kanoonsaathi', 'historysaathi', 'psychsaathi', 'polscisaathi', 'geosaathi', 'archsaathi'],
+  },
+  {
+    title: '💼 BUSINESS & COMMERCE',
+    slugs: ['econsaathi', 'accountsaathi', 'finsaathi', 'bizsaathi', 'mktsaathi', 'hrsaathi', 'statssaathi'],
+  },
+];
+
+// Returns saathis in stable category order. Any live saathi whose slug isn't
+// in a category (shouldn't happen if constants are kept in sync) is appended.
+function orderSaathisByCategory(saathis: VerticalRow[]): VerticalRow[] {
+  const bySlug = new Map(saathis.map(s => [s.slug, s] as const));
+  const seen = new Set<string>();
+  const ordered: VerticalRow[] = [];
+  for (const cat of SAATHI_CATEGORIES) {
+    for (const slug of cat.slugs) {
+      const s = bySlug.get(slug);
+      if (s && !seen.has(s.id)) {
+        ordered.push(s);
+        seen.add(s.id);
+      }
+    }
+  }
+  for (const s of saathis) if (!seen.has(s.id)) ordered.push(s);
+  return ordered;
+}
+
+async function fetchAllSaathis(): Promise<VerticalRow[]> {
+  const { data } = await admin
     .from('verticals')
-    .select('id, name, emoji, tagline')
+    .select('id, name, emoji, slug, tagline')
     .eq('is_live', true)
     .eq('is_active', true)
     .order('name');
+  return (data ?? []) as VerticalRow[];
+}
 
-  if (!saathis || saathis.length === 0) return;
+async function sendSaathiList(from: string) {
+  const ordered = orderSaathisByCategory(await fetchAllSaathis());
+  if (ordered.length === 0) return;
 
-  const list = saathis
-    .slice(0, 30)
-    .map((s: VerticalRow, i: number) => `${i + 1}. ${s.emoji} *${s.name}*\n    _${s.tagline}_`)
-    .join('\n\n');
+  const categoryOf: Record<string, string> = {};
+  for (const cat of SAATHI_CATEGORIES) {
+    for (const slug of cat.slugs) categoryOf[slug] = cat.title;
+  }
 
-  await sendWhatsAppMessage(from, `${list}\n\n_Or type your subject directly e.g. "Law" or "Physics"_`);
+  let msg = '';
+  let currentHeader = '';
+  let idx = 1;
+  for (const s of ordered) {
+    const header = categoryOf[s.slug] ?? '📘 OTHER';
+    if (header !== currentHeader) {
+      if (currentHeader !== '') msg += '\n';
+      msg += `*${header}*\n`;
+      currentHeader = header;
+    }
+    // Two-space indent on number so 2-digit numbers align visually
+    const num = idx.toString().padStart(2, ' ');
+    msg += `${num}. ${s.emoji} ${s.name}\n`;
+    idx++;
+  }
+
+  await sendWhatsAppMessage(
+    from,
+    `${msg.trim()}\n\n👉 *Reply with a number* (1-${ordered.length})\n💬 Or type the subject, e.g. "Law" or "Physics"`,
+  );
 }
 
 // ── Handle saathi selection ────────────────────────────────────────────────────
@@ -482,8 +573,9 @@ async function handleSaathiSelection(
   waPhone: string,
   text: string,
   profile: ProfileRow | null,
+  session: SessionRow | null = null,
 ) {
-  // ── Saathi lock: once set, permanent on WhatsApp ──────
+  // ── Saathi lock for registered users: once set, permanent on WhatsApp ─
   if (profile?.wa_saathi_id) {
     const { data: currentSaathi } = await admin
       .from('verticals')
@@ -500,14 +592,11 @@ async function handleSaathiSelection(
     return;
   }
 
-  const { data: saathis } = await admin
-    .from('verticals')
-    .select('id, name, emoji, slug, tagline')
-    .eq('is_live', true)
-    .eq('is_active', true)
-    .order('name');
+  // Use the SAME category-grouped order as sendSaathiList, so reply "3" maps
+  // to the 3rd Saathi as displayed on the user's screen.
+  const saathis = orderSaathisByCategory(await fetchAllSaathis());
 
-  if (!saathis || saathis.length === 0) return;
+  if (saathis.length === 0) return;
 
   let selectedSaathi: VerticalRow | null = null;
 
@@ -534,7 +623,7 @@ async function handleSaathiSelection(
     return;
   }
 
-  // Save saathi selection
+  // Save saathi selection — to profile if registered, to session if guest
   if (profile) {
     await admin.from('profiles').update({
       wa_saathi_id: selectedSaathi.id,
@@ -574,13 +663,20 @@ async function handleSaathiSelection(
         exam_mode: false,
       }, { onConflict: 'user_id,vertical_id' });
     }
+  } else {
+    // Guest path: persist the Saathi choice on the session row so the next
+    // message from this phone goes straight to chat, not the picker.
+    await admin.from('whatsapp_sessions')
+      .update({ wa_saathi_id: selectedSaathi.id })
+      .eq('wa_phone', waPhone);
+    if (session) session.wa_saathi_id = selectedSaathi.id;
   }
 
   const name = profile?.full_name?.split(' ')[0];
 
   await sendWhatsAppMessage(
     from,
-    `${selectedSaathi.emoji} *${selectedSaathi.name} is ready!*\n\n${name ? `Hello ${name}! ` : ''}I'm your ${selectedSaathi.name} \u2014 ${selectedSaathi.tagline}.\n\nAsk me anything about your subject. I'll remember our conversation and personalise every answer to you.\n\n_Type *HELP* to see what I can do_`,
+    `${selectedSaathi.emoji} *${selectedSaathi.name} is ready!*\n\n${name ? `Hello ${name}! ` : ''}I'm your ${selectedSaathi.name} \u2014 ${selectedSaathi.tagline}.\n\nAsk me anything about your subject. I'll remember our conversation and personalise every answer to you.${profile ? '' : '\n\n_Tip: Sign up at edusaathiai.in to unlock deep Soul memory across all your devices._'}\n\n_Type *HELP* to see what I can do_`,
   );
 }
 
@@ -590,28 +686,33 @@ async function handleChat(
   from: string,
   waPhone: string,
   text: string,
-  profile: ProfileRow,
+  profile: ProfileRow | null,
   session: SessionRow,
+  saathiId: string,
 ) {
-  // Get soul data
-  const { data: soul } = await admin
-    .from('student_soul')
-    .select(`
-      display_name, academic_level,
-      depth_calibration, peer_mode,
-      exam_mode, flame_stage,
-      top_topics, struggle_topics,
-      future_research_area, enrolled_subjects,
-      career_discovery_stage, session_count
-    `)
-    .eq('user_id', profile.id)
-    .eq('vertical_id', profile.wa_saathi_id!)
-    .single();
+  // Fetch soul data only for registered users
+  let soul: SoulRow | null = null;
+  if (profile) {
+    const { data } = await admin
+      .from('student_soul')
+      .select(`
+        display_name, academic_level,
+        depth_calibration, peer_mode,
+        exam_mode, flame_stage,
+        top_topics, struggle_topics,
+        future_research_area, enrolled_subjects,
+        career_discovery_stage, session_count
+      `)
+      .eq('user_id', profile.id)
+      .eq('vertical_id', saathiId)
+      .single();
+    soul = data as SoulRow | null;
+  }
 
   const { data: saathi } = await admin
     .from('verticals')
     .select('name, slug, emoji')
-    .eq('id', profile.wa_saathi_id!)
+    .eq('id', saathiId)
     .single();
 
   const saathiSlug = saathi?.slug ?? '';
@@ -619,39 +720,40 @@ async function handleChat(
   // ── Guardrail: sanitise + enforce message length ────────
   const sanitized = text.replace(/<[^>]*>/g, '').trim().slice(0, 2000);
 
-  // ── Suspension check ──────────────────────────────────
-  const suspension = await checkSuspension(admin, profile.id);
-  if (suspension.isSuspended) {
-    const msg = suspension.isBanned
-      ? `\u{1F6AB} Your account has been permanently suspended. Contact support@edusaathiai.in`
-      : suspension.until
-      ? `\u{23F8}\u{FE0F} Your account is temporarily suspended until ${suspension.until.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST.\n\n${suspension.reason ?? ''}\n\nYou can still browse News and Board on edusaathiai.in`
-      : `\u{23F8}\u{FE0F} Your account is suspended. Contact support@edusaathiai.in`;
-    await sendWhatsAppMessage(from, msg);
-    return;
-  }
-
-  // ── Violation detection with suspension system ────────
-  const violation = detectViolation(sanitized);
-  if (violation) {
-    const { shouldSuspend } = await recordViolationAndCheck(
-      admin, profile.id, violation.type, violation.severity, sanitized, saathiSlug, 'whatsapp',
-    );
-    if (shouldSuspend) {
-      await sendWhatsAppMessage(from,
-        `\u{23F8}\u{FE0F} *Account temporarily suspended*\n\nDue to repeated policy violations, your account has been suspended for 24 hours.\n\nCheck your email for details.\n\n_Appeal: support@edusaathiai.in_`);
+  // ── Suspension + violation checks (registered users only; guests have no
+  //    profile to suspend/track) ─────────────────────────────────────────
+  if (profile) {
+    const suspension = await checkSuspension(admin, profile.id);
+    if (suspension.isSuspended) {
+      const msg = suspension.isBanned
+        ? `\u{1F6AB} Your account has been permanently suspended. Contact support@edusaathiai.in`
+        : suspension.until
+        ? `\u{23F8}\u{FE0F} Your account is temporarily suspended until ${suspension.until.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST.\n\n${suspension.reason ?? ''}\n\nYou can still browse News and Board on edusaathiai.in`
+        : `\u{23F8}\u{FE0F} Your account is suspended. Contact support@edusaathiai.in`;
+      await sendWhatsAppMessage(from, msg);
       return;
     }
-    // Just warn
-    await sendWhatsAppMessage(from, violation.response);
-    return;
+
+    const violation = detectViolation(sanitized);
+    if (violation) {
+      const { shouldSuspend } = await recordViolationAndCheck(
+        admin, profile.id, violation.type, violation.severity, sanitized, saathiSlug, 'whatsapp',
+      );
+      if (shouldSuspend) {
+        await sendWhatsAppMessage(from,
+          `\u{23F8}\u{FE0F} *Account temporarily suspended*\n\nDue to repeated policy violations, your account has been suspended for 24 hours.\n\nCheck your email for details.\n\n_Appeal: support@edusaathiai.in_`);
+        return;
+      }
+      await sendWhatsAppMessage(from, violation.response);
+      return;
+    }
   }
 
   // Build conversation history — keep last 6 for context
   const history = (session.messages ?? []).slice(-6);
 
   // Build WhatsApp-optimised system prompt (with per-Saathi subject boundaries)
-  const systemPrompt = buildWhatsAppPrompt(soul as SoulRow | null, profile, saathi as VerticalRow | null);
+  const systemPrompt = buildWhatsAppPrompt(soul, profile, saathi as VerticalRow | null);
 
   // Call Claude Haiku — fast + cheap for WhatsApp
   const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -674,9 +776,13 @@ async function handleChat(
 
   // Send response — append one-time nudge on first message only
   const isFirstMessage = session.message_count_today === 0;
-  const finalResponse = isFirstMessage
-    ? `${response}\n\n_✦ Like your Saathi? Continue at edusaathiai.in — ₹99/month_`
-    : response;
+  const guestNudge = !profile
+    ? '\n\n_✦ Sign up at edusaathiai.in to remember your journey across sessions_'
+    : '';
+  const memberNudge = profile && isFirstMessage
+    ? '\n\n_✦ Like your Saathi? Continue at edusaathiai.in — ₹99/month_'
+    : '';
+  const finalResponse = response + guestNudge + memberNudge;
   await sendWhatsAppMessage(from, finalResponse);
 
   // Update session — keep last 10 messages
@@ -690,16 +796,16 @@ async function handleChat(
     messages: newMessages,
     message_count_today: session.message_count_today + 1,
     last_message_at: new Date().toISOString(),
-    user_id: profile.id,
+    user_id: profile?.id ?? null,
   }).eq('wa_phone', waPhone);
 
-  // Update soul session count
-  if (soul) {
+  // Update soul session count (registered users only)
+  if (soul && profile) {
     await admin.from('student_soul').update({
-      session_count: (soul as SoulRow).session_count + 1,
+      session_count: soul.session_count + 1,
     })
       .eq('user_id', profile.id)
-      .eq('vertical_id', profile.wa_saathi_id!);
+      .eq('vertical_id', saathiId);
   }
 }
 
@@ -707,10 +813,10 @@ async function handleChat(
 
 function buildWhatsAppPrompt(
   soul: SoulRow | null,
-  profile: ProfileRow,
+  profile: ProfileRow | null,
   saathi: VerticalRow | null,
 ): string {
-  const name = soul?.display_name ?? profile.full_name ?? 'Student';
+  const name = soul?.display_name ?? profile?.full_name ?? 'Student';
   const depth = soul?.depth_calibration ?? 38;
 
   let depthGuide: string;
@@ -728,7 +834,7 @@ function buildWhatsAppPrompt(
 Name: ${name}
 Academic level: ${soul?.academic_level ?? 'bachelor'}
 Depth: ${depth}/100
-City: ${profile.city ?? 'India'}
+City: ${profile?.city ?? 'India'}
 Current subjects: ${(soul?.enrolled_subjects ?? []).join(', ') || 'not specified'}
 Dream: ${soul?.future_research_area ?? 'not shared yet'}
 
