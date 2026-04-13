@@ -426,3 +426,14 @@ verify_jwt = false
 
 [functions.subscription-lifecycle]
 verify_jwt = false
+
+# Meta WhatsApp webhook — Meta doesn't send a Supabase JWT; auth is done
+# via HMAC (x-hub-signature-256) verified inside the function. If verify_jwt
+# is true the Supabase gateway rejects every Meta webhook POST with 401.
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+# Razorpay webhook — same reason. Razorpay signs with x-razorpay-signature,
+# not a JWT. Gateway verify_jwt must be false or Razorpay posts fail.
+[functions.razorpay-webhook]
+verify_jwt = false
