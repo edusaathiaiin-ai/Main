@@ -37,6 +37,9 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 
     posthog.init(key, {
       api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com',
+      // Only create person profiles after identify() — anonymous marketing
+      // traffic doesn't burn quota on profiles we'll never use
+      person_profiles: 'identified_only',
       capture_pageview: false, // we handle pageviews manually for App Router
       capture_pageleave: true,
       autocapture: {
