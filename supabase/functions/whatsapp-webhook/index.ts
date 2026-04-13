@@ -478,83 +478,53 @@ async function sendWelcome(from: string, profile: ProfileRow | null) {
 }
 
 // ── Saathi selection list ──────────────────────────────────────────────────────
-// Display order is grouped by category so a student sees "Law" near other law
-// subjects, not 20 rows after AccountSaathi. The SAME order is used by
-// handleSaathiSelection() when resolving a reply like "3" → Saathi, so the
-// display numbers and selection numbers never drift apart.
+// Order + category come from the DB (verticals.display_order, verticals.category).
+// sendSaathiList() and handleSaathiSelection() both sort by display_order, so
+// the number a student sees on screen is the number they reply with — and that
+// number stays stable across deploys. Adding a new Saathi is a DB-only change:
+// insert a row with display_order = (MAX + 10). See CLAUDE.md §18.
+//
+// Category labels (including emoji) are code-defined because changing the
+// header wording is a content change, not a config change.
 
-const SAATHI_CATEGORIES: { title: string; slugs: string[] }[] = [
-  {
-    title: '📚 SCIENCE & ENGINEERING',
-    slugs: [
-      'maathsaathi', 'physicsaathi', 'chemsaathi', 'biosaathi', 'biotechsaathi',
-      'compsaathi', 'mechsaathi', 'civilsaathi', 'elecsaathi', 'electronicssaathi',
-      'aerospacesaathi', 'chemengg-saathi', 'envirosaathi', 'agrisaathi',
-    ],
-  },
-  {
-    title: '🏥 MEDICAL & HEALTH',
-    slugs: ['medicosaathi', 'pharmasaathi', 'nursingsaathi'],
-  },
-  {
-    title: '⚖️ LAW & SOCIAL STUDIES',
-    slugs: ['kanoonsaathi', 'historysaathi', 'psychsaathi', 'polscisaathi', 'geosaathi', 'archsaathi'],
-  },
-  {
-    title: '💼 BUSINESS & COMMERCE',
-    slugs: ['econsaathi', 'accountsaathi', 'finsaathi', 'bizsaathi', 'mktsaathi', 'hrsaathi', 'statssaathi'],
-  },
-];
+const CATEGORY_LABELS: Record<string, string> = {
+  stem:     '📚 SCIENCE & ENGINEERING',
+  medical:  '🏥 MEDICAL & HEALTH',
+  social:   '⚖️ LAW & SOCIAL STUDIES',
+  commerce: '💼 BUSINESS & COMMERCE',
+};
+const CATEGORY_FALLBACK = '📘 OTHER';
 
-// Returns saathis in stable category order. Any live saathi whose slug isn't
-// in a category (shouldn't happen if constants are kept in sync) is appended.
-function orderSaathisByCategory(saathis: VerticalRow[]): VerticalRow[] {
-  const bySlug = new Map(saathis.map(s => [s.slug, s] as const));
-  const seen = new Set<string>();
-  const ordered: VerticalRow[] = [];
-  for (const cat of SAATHI_CATEGORIES) {
-    for (const slug of cat.slugs) {
-      const s = bySlug.get(slug);
-      if (s && !seen.has(s.id)) {
-        ordered.push(s);
-        seen.add(s.id);
-      }
-    }
-  }
-  for (const s of saathis) if (!seen.has(s.id)) ordered.push(s);
-  return ordered;
-}
+type OrderedVerticalRow = VerticalRow & {
+  display_order: number;
+  category: string | null;
+};
 
-async function fetchAllSaathis(): Promise<VerticalRow[]> {
+async function fetchOrderedSaathis(): Promise<OrderedVerticalRow[]> {
   const { data } = await admin
     .from('verticals')
-    .select('id, name, emoji, slug, tagline')
+    .select('id, name, emoji, slug, tagline, display_order, category')
     .eq('is_live', true)
     .eq('is_active', true)
-    .order('name');
-  return (data ?? []) as VerticalRow[];
+    .order('display_order', { ascending: true });
+  return (data ?? []) as OrderedVerticalRow[];
 }
 
 async function sendSaathiList(from: string) {
-  const ordered = orderSaathisByCategory(await fetchAllSaathis());
+  const ordered = await fetchOrderedSaathis();
   if (ordered.length === 0) return;
-
-  const categoryOf: Record<string, string> = {};
-  for (const cat of SAATHI_CATEGORIES) {
-    for (const slug of cat.slugs) categoryOf[slug] = cat.title;
-  }
 
   let msg = '';
   let currentHeader = '';
   let idx = 1;
   for (const s of ordered) {
-    const header = categoryOf[s.slug] ?? '📘 OTHER';
+    const header = CATEGORY_LABELS[s.category ?? ''] ?? CATEGORY_FALLBACK;
     if (header !== currentHeader) {
       if (currentHeader !== '') msg += '\n';
       msg += `*${header}*\n`;
       currentHeader = header;
     }
-    // Two-space indent on number so 2-digit numbers align visually
+    // padStart so 2-digit numbers align visually with 1-digit ones
     const num = idx.toString().padStart(2, ' ');
     msg += `${num}. ${s.emoji} ${s.name}\n`;
     idx++;
@@ -592,9 +562,9 @@ async function handleSaathiSelection(
     return;
   }
 
-  // Use the SAME category-grouped order as sendSaathiList, so reply "3" maps
-  // to the 3rd Saathi as displayed on the user's screen.
-  const saathis = orderSaathisByCategory(await fetchAllSaathis());
+  // Use the SAME display_order as sendSaathiList, so reply "3" maps to the
+  // 3rd Saathi shown on the user's screen. DB-driven, stable across deploys.
+  const saathis = await fetchOrderedSaathis();
 
   if (saathis.length === 0) return;
 

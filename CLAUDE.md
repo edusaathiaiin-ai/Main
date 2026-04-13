@@ -511,6 +511,19 @@ Points buy:        access, depth, human connection
   the WhatsApp webhook once already (April 2026, silent 1-day outage — zero
   student messages reached the handler). Add the config entry the moment the
   function is created, not after the first deploy.
+- **Adding a new Saathi: DB-only change, no code deploy required.**
+  Student-facing numbering on the WhatsApp picker (1 → 30) is driven by
+  `verticals.display_order`. Grouping labels come from `verticals.category`.
+  To add a new Saathi:
+  1. Insert the row with `display_order = (SELECT MAX(display_order) FROM verticals) + 10`
+     and `category` set to one of: `stem`, `medical`, `social`, `commerce`.
+  2. That's it. Existing students who memorised "18 = KanoonSaathi" still see
+     18 = KanoonSaathi because nothing shifted.
+  Never renumber existing rows — `display_order` gaps of 10 exist specifically
+  so new entries can slot in without disturbing anyone. If you genuinely need
+  to insert mid-list (rare), document it in the release notes so students
+  aren't surprised. Never hardcode the order in TypeScript again — that was
+  the April 2026 mistake that prompted this column.
 
 ---
 
