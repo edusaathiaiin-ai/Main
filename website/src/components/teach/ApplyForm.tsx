@@ -308,42 +308,49 @@ export function ApplyForm() {
         <div className="md:col-span-2">
           <Field label="Additional subjects (optional)">
             <p style={{ ...hintStyle, marginTop: 0, marginBottom: '12px' }}>
-              Tick up to a few more subjects you&rsquo;re comfortable teaching.
+              Tick up to 5 more subjects you&rsquo;re comfortable teaching.
             </p>
             <div className="flex flex-wrap gap-2">
               {sortedSaathis.map((s) => {
                 const isPrimary = s.id === form.primary_saathi_slug
                 const isChecked = form.additional_saathi_slugs.includes(s.id)
+                const atMax     = form.additional_saathi_slugs.length >= 5
+                const isDisabled = isPrimary || (atMax && !isChecked)
                 return (
                   <button
                     key={s.id}
                     type="button"
-                    disabled={isPrimary}
+                    disabled={isDisabled}
                     onClick={() => toggleAdditional(s.id)}
                     className="transition-all"
                     style={{
                       background: isChecked
-                        ? 'rgba(201, 153, 58, 0.18)'
-                        : FIELD_BG,
+                        ? 'rgba(201,153,58,0.15)'
+                        : 'rgba(255,255,255,0.04)',
                       border: isChecked
-                        ? `1px solid ${GOLD}`
-                        : `1px solid ${FIELD_BRD}`,
+                        ? `1.5px solid ${GOLD}`
+                        : '1px solid rgba(255,255,255,0.12)',
                       color:      isPrimary
                                     ? TEXT_GHOST
-                                    : isChecked ? GOLD_LIGHT : TEXT_MID,
+                                    : isChecked ? GOLD : 'rgba(255,255,255,0.55)',
                       borderRadius:'999px',
                       padding:    '6px 12px',
                       fontSize:   '12.5px',
-                      fontWeight: 500,
-                      cursor:     isPrimary ? 'not-allowed' : 'pointer',
-                      opacity:    isPrimary ? 0.35 : 1,
+                      fontWeight: isChecked ? 600 : 500,
+                      cursor:     isDisabled ? 'not-allowed' : 'pointer',
+                      opacity:    isPrimary ? 0.35 : (isDisabled ? 0.4 : 1),
                     }}
                   >
-                    {s.emoji} {s.name}
+                    {isChecked && '✓ '}{s.emoji} {s.name}
                   </button>
                 )
               })}
             </div>
+            <p style={{ ...hintStyle, marginTop: '10px' }}>
+              {form.additional_saathi_slugs.length} subject
+              {form.additional_saathi_slugs.length === 1 ? '' : 's'} selected
+              {' '}(max 5)
+            </p>
           </Field>
         </div>
 
