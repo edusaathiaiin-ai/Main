@@ -159,10 +159,12 @@ const ROLE_CONTENT: Record<RoleId, RoleContent> = {
     subheading:
       'EdUsaathiAI gives verified faculty a platform to teach, earn, and reach students far beyond their classroom walls.',
     bullets: [
-      'Earn ₹800–₹4,000 per 1:1 student session',
+      'Set your own fee — students pay what you decide',
       'Announce lectures — students book seats and pay upfront',
       'Teach a series of 3–5 lectures, earn per session completed',
-      'Your expertise reaches students across India — not just your college',
+      "Your knowledge doesn't retire when you do — reach students across India",
+      'Post research intern opportunities — find motivated students directly',
+      'Answer student questions on the Board — your verified badge builds your reputation',
       'Faculty Verified ✓ badge on every answer',
       'AI tools — question paper generator, study material creator, analytics',
       'Retired? Our Emeritus programme welcomes you back to the classroom',
@@ -171,7 +173,7 @@ const ROLE_CONTENT: Record<RoleId, RoleContent> = {
     ctaLink: '/teach',
     ctaColor: '#C9993A',
     ctaTextColor: '#060F1D',
-    note: 'Faculty badge verified within 48 hours.',
+    note: "We review every application personally. You'll hear from us within 48 hours.",
     spotlightCard: (
       <div
         style={{
