@@ -475,3 +475,13 @@ verify_jwt = false
 # Auth via Bearer SUPABASE_CRON_SECRET — no user JWT.
 [functions.mark-payout-completed]
 verify_jwt = false
+
+# Admin action: verify a faculty profile, send T14 WhatsApp + email.
+# Auth via Bearer SUPABASE_SERVICE_ROLE_KEY from admin dashboard server action.
+[functions.faculty-verify]
+verify_jwt = false
+
+# Admin action: reject a pending faculty profile, send rejection email.
+# Auth via Bearer SUPABASE_SERVICE_ROLE_KEY from admin dashboard server action.
+[functions.faculty-reject]
+verify_jwt = false
