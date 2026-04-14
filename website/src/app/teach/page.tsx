@@ -29,7 +29,8 @@ export default function TeachLandingPage() {
       <Pillars />
       <HowItWorks />
       <WhoTeachesHere />
-      {/* Future sections 5–6 land below this line */}
+      <ExpertiseBeyondSubject />
+      {/* Future section 6 (form) lands below this line and exposes id="apply" */}
     </main>
   )
 }
@@ -647,5 +648,160 @@ function QuoteCard({ quote }: { quote: Quote }) {
         </span>
       </figcaption>
     </figure>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Section 5 — Expertise is more than a subject
+// ──────────────────────────────────────────────────────────────────────
+//
+// The softest, most poetic section on the page. Lots of whitespace, a
+// small ambient gold node-graph hint in the background to allude to the
+// knowledge-graph idea without being literal. Three cross-disciplinary
+// examples with the unexpected half lifted in gold so the reader sees
+// the crossover at a glance.
+
+type CrossOver = {
+  subject:   string         // "A pharmacist"
+  connector: string         // "who knows"
+  unexpected:string         // "patent law"
+  trailing?: string         // e.g. " that changes lives"
+}
+
+const CROSSOVERS: CrossOver[] = [
+  {
+    subject:    'A pharmacist',
+    connector:  'who knows',
+    unexpected: 'patent law',
+  },
+  {
+    subject:    'A CA',
+    connector:  'who gives',
+    unexpected: 'career advice',
+    trailing:   ' that changes lives',
+  },
+  {
+    subject:    'A physicist',
+    connector:  'who moonlights in',
+    unexpected: 'science communication',
+  },
+]
+
+function ExpertiseBeyondSubject() {
+  return (
+    <section
+      className="relative overflow-hidden"
+      style={{ paddingTop: '110px', paddingBottom: '130px' }}
+    >
+      {/* Faint knowledge-graph motif — three barely-visible nodes connected
+          by hairlines, floating behind the text. Decorative only. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute hidden md:block"
+        style={{
+          top:    '22%',
+          right:  '6%',
+          width:  '260px',
+          height: '180px',
+          opacity: 0.35,
+        }}
+      >
+        <svg width="260" height="180" viewBox="0 0 260 180" fill="none">
+          <line x1="50"  y1="40"  x2="200" y2="60"  stroke={`${GOLD}44`} strokeWidth="0.8" />
+          <line x1="200" y1="60"  x2="120" y2="140" stroke={`${GOLD}44`} strokeWidth="0.8" />
+          <line x1="50"  y1="40"  x2="120" y2="140" stroke={`${GOLD}44`} strokeWidth="0.8" />
+          <circle cx="50"  cy="40"  r="3" fill={GOLD} />
+          <circle cx="200" cy="60"  r="3" fill={GOLD} />
+          <circle cx="120" cy="140" r="3" fill={GOLD} />
+        </svg>
+      </div>
+
+      <div
+        className="mx-auto px-6 md:px-10 relative"
+        style={{ maxWidth: '900px' }}
+      >
+        {/* Eyebrow */}
+        <p
+          className="uppercase"
+          style={{
+            color:         GOLD,
+            fontSize:      '11px',
+            letterSpacing: '0.24em',
+            fontWeight:    600,
+            marginBottom:  '36px',
+          }}
+        >
+          Your knowledge doesn&rsquo;t fit a box
+        </p>
+
+        {/* Three crossover lines — poetic rhythm, unexpected half in gold */}
+        <div
+          style={{
+            display:       'flex',
+            flexDirection: 'column',
+            gap:           '18px',
+            marginBottom:  '64px',
+          }}
+        >
+          {CROSSOVERS.map((c, i) => (
+            <p
+              key={i}
+              style={{
+                fontFamily:    'var(--font-teach-display), Georgia, serif',
+                fontSize:      'clamp(22px, 3.2vw, 30px)',
+                fontWeight:    400,
+                lineHeight:    1.3,
+                letterSpacing: '-0.01em',
+                color:         TEXT_HIGH,
+              }}
+            >
+              {c.subject} {c.connector}{' '}
+              <span style={{ color: GOLD, fontStyle: 'italic' }}>
+                {c.unexpected}
+              </span>
+              {c.trailing ?? ''}.
+            </p>
+          ))}
+        </div>
+
+        {/* Framing statement — the thesis of the section */}
+        <p
+          style={{
+            fontFamily:    'var(--font-teach-display), Georgia, serif',
+            color:         TEXT_HIGH,
+            fontSize:      'clamp(18px, 2.3vw, 22px)',
+            lineHeight:    1.55,
+            fontWeight:    400,
+            maxWidth:      '620px',
+            marginBottom:  '40px',
+          }}
+        >
+          EdUsaathiAI lets you teach{' '}
+          <span style={{ fontStyle: 'italic', color: GOLD_LIGHT }}>
+            everything
+          </span>{' '}
+          you know &mdash; not just what your degree says.
+        </p>
+
+        {/* Secondary CTA — quieter than the hero button; scrolls to the
+            application form in Section 6 via anchor (id="apply"). */}
+        <a
+          href="#apply"
+          className="inline-flex items-center gap-2 transition-all duration-200"
+          style={{
+            color:          GOLD,
+            fontSize:       '15px',
+            fontWeight:     600,
+            letterSpacing:  '0.01em',
+            textDecoration: 'none',
+            borderBottom:   `1px solid ${GOLD}55`,
+            paddingBottom:  '4px',
+          }}
+        >
+          Tell us what you really know
+          <span aria-hidden="true" style={{ fontSize: '16px' }}>&rarr;</span>
+        </a>
+      </div>
+    </section>
   )
 }
