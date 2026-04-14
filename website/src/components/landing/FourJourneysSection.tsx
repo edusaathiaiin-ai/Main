@@ -34,7 +34,7 @@ const ROLE_CONTENT: Record<RoleId, RoleContent> = {
     subheading:
       'EdUsaathiAI is the only AI that remembers who you are — not just what you asked. Every session builds on the last.',
     bullets: [
-      '24 specialist Saathis — Law, NEET, UPSC, CS, Finance, and more',
+      '30 specialist Saathis — Law, NEET, UPSC, CS, Finance, and more',
       'Soul memory — your Saathi knows your name, semester, subjects, and dream',
       'Exam preparation + career discovery in the same platform',
       'Book live lectures from verified professors — pay per seat, learn live',
@@ -219,7 +219,7 @@ const ROLE_CONTENT: Record<RoleId, RoleContent> = {
     subheading:
       "You don't need to be enrolled anywhere to learn something profound today. EdUsaathiAI welcomes everyone.",
     bullets: [
-      'Explore any of 24 subjects — completely free, no enrollment needed',
+      'Explore any of 30 subjects — completely free, no enrollment needed',
       "Ask freely, read today's research headlines, join the community board",
       'No syllabus pressure. No deadlines. Just curiosity.',
     ],
