@@ -516,6 +516,22 @@ a:focus-visible               { outline: 2px solid var(--saathi-primary, #C9993A
   }
 }
 
+/* ── Horizon sidebar CTA breathing animation ────────────────────────────── */
+@keyframes horizon-breathe {
+  0%, 100% { opacity: 0.70; }
+  50%      { opacity: 1.00; }
+}
+.horizon-breathe { animation: horizon-breathe 2.8s ease-in-out infinite; }
+
+/* Horizon scroll container — subtle scrollbar on dark surface */
+.horizon-scroll::-webkit-scrollbar { width: 6px; }
+.horizon-scroll::-webkit-scrollbar-track { background: transparent; }
+.horizon-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+.horizon-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); }
+
 /* ── Scrollbar ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

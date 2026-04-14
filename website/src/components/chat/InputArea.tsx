@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { QuotaState } from '@/types'
 import { VoiceInput } from './VoiceInput'
 
@@ -30,6 +30,8 @@ export function InputArea({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [pendingImage, setPendingImage] = useState<string | null>(null)  // base64 data URL
+  const [isReceivingPrompt, setIsReceivingPrompt] = useState(false)
+  const [showHint, setShowHint]                   = useState(false)
   const isCooling = quota.isCooling
   const isOut = quota.remaining === 0 && !isCooling
 
@@ -40,6 +42,47 @@ export function InputArea({
     el.style.height = 'auto'
     el.style.height = Math.min(el.scrollHeight, 120) + 'px'
   }, [inputValue])
+
+  // ── Horizon → Chat handoff ─────────────────────────────────────────────
+  // HorizonCard dispatches `horizon:prompt` after its click animation
+  // settles. We type the prompt in (≈400ms total), focus the textarea,
+  // glow the send button, and show a 3-second hint. This is the
+  // "you chose a dream — now let's begin" moment.
+  useEffect(() => {
+    function onHorizonPrompt(e: Event) {
+      const text = (e as CustomEvent).detail?.prompt as string | undefined
+      if (!text || isCooling || isOut) return
+
+      setIsReceivingPrompt(true)
+      setShowHint(false)
+      setInputValue('')
+
+      const totalMs = 400
+      const stepMs  = Math.max(8, Math.floor(totalMs / Math.max(text.length, 1)))
+      let i = 0
+
+      const interval = window.setInterval(() => {
+        i += 1
+        setInputValue(text.slice(0, i))
+        if (i >= text.length) {
+          window.clearInterval(interval)
+          setIsReceivingPrompt(false)
+          const el = textareaRef.current
+          if (el) {
+            el.focus()
+            try { el.setSelectionRange(text.length, text.length) } catch { /* ignore */ }
+          }
+          setShowHint(true)
+          window.setTimeout(() => setShowHint(false), 3000)
+        }
+      }, stepMs)
+    }
+
+    window.addEventListener('horizon:prompt', onHorizonPrompt)
+    return () => window.removeEventListener('horizon:prompt', onHorizonPrompt)
+    // setInputValue is stable from parent; intentionally omitted.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCooling, isOut])
 
   function sanitise(raw: string): string {
     return raw.replace(/[<>]/g, '').slice(0, MAX_CHARS)
@@ -138,22 +181,28 @@ export function InputArea({
           placeholder={placeholder}
           disabled={disabled}
           rows={1}
-          className="flex-1 resize-none rounded-xl px-4 py-3 text-sm transition-all outline-none"
+          className="flex-1 resize-none rounded-xl px-4 py-3 text-sm outline-none"
           style={{
             background: 'var(--bg-surface)',
-            border: '1.5px solid var(--border-medium)',
+            border:     isReceivingPrompt
+              ? '1.5px solid var(--saathi-primary)'
+              : '1.5px solid var(--border-medium)',
+            boxShadow:  isReceivingPrompt
+              ? '0 0 0 4px rgba(184,134,11,0.18)'
+              : 'none',
             color: 'var(--text-primary)',
             fontFamily: 'var(--font-body)',
             lineHeight: '1.5',
             maxHeight: 120,
             opacity: disabled ? 0.5 : 1,
+            transition: 'border-color 280ms ease, box-shadow 280ms ease',
           }}
-          onFocus={(e) =>
-            (e.currentTarget.style.borderColor = 'var(--saathi-primary)')
-          }
-          onBlur={(e) =>
-            (e.currentTarget.style.borderColor = 'var(--border-medium)')
-          }
+          onFocus={(e) => {
+            if (!isReceivingPrompt) e.currentTarget.style.borderColor = 'var(--saathi-primary)'
+          }}
+          onBlur={(e) => {
+            if (!isReceivingPrompt) e.currentTarget.style.borderColor = 'var(--border-medium)'
+          }}
         />
 
         {/* Sketch / image upload */}
@@ -193,7 +242,23 @@ export function InputArea({
           onClick={handleSend}
           disabled={disabled || !inputValue.trim()}
           whileTap={!disabled ? { scale: 0.92 } : {}}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+          animate={
+            showHint
+              ? {
+                  boxShadow: [
+                    `0 0 0 0   ${primaryColor}00`,
+                    `0 0 14px 4px ${primaryColor}80`,
+                    `0 0 0 0   ${primaryColor}00`,
+                  ],
+                }
+              : { boxShadow: `0 0 0 0 ${primaryColor}00` }
+          }
+          transition={
+            showHint
+              ? { duration: 1.4, repeat: Infinity, ease: 'easeInOut' }
+              : { duration: 0.25 }
+          }
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl disabled:cursor-not-allowed disabled:opacity-40"
           style={{ background: primaryColor }}
         >
           {isStreaming ? (
@@ -215,6 +280,22 @@ export function InputArea({
           )}
         </motion.button>
       </div>
+
+      {/* Horizon hint — fades in below input for 3s after a Horizon prompt lands */}
+      <AnimatePresence>
+        {showHint && (
+          <motion.p
+            initial={{ opacity: 0, y: -2 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -2 }}
+            transition={{ duration: 0.25 }}
+            className="px-5 pt-1 text-[11px]"
+            style={{ color: 'var(--saathi-primary)', fontWeight: 500 }}
+          >
+            Your Saathi is ready — press Enter to begin ✦
+          </motion.p>
+        )}
+      </AnimatePresence>
 
       {/* Status row */}
       <div className="flex items-center justify-between gap-4 px-5 pb-3">

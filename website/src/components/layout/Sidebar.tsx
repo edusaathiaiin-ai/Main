@@ -29,6 +29,7 @@ const SIDEBAR_CTA_META: Record<string, { desc: string; color?: string }> = {
   'board':                 { desc: 'Ask the community. Get AI answers plus replies from fellow students.' },
   'news':                  { desc: "Today's education news curated for your Saathi and subjects." },
   'my-progress':           { desc: 'Your learning journey — sessions, streaks, Saathi Points, flame stage.' },
+  'your-horizon':          { desc: 'Career destinations worth aiming at — and the first prompt to start today.', color: 'var(--saathi-primary)' },
   'flashcards':            { desc: 'Save key concepts from chat as flashcards. Review anytime.' },
   'explore-beyond':        { desc: 'Books, journals, tools and channels for deeper learning.', color: 'var(--saathi-primary)' },
   'profile':               { desc: 'Edit your subjects, university, academic level and preferences.' },
@@ -55,19 +56,27 @@ function ExpandableSidebarItem({
   badge,
   onClick,
   accentColor,
+  description,
+  iconClassName,
 }: {
-  id:           string
-  icon:         ReactNode
-  label:        string
-  href?:        string
-  isActive?:    boolean
-  badge?:       ReactNode
-  onClick?:     () => void
-  accentColor?: string
+  id:             string
+  icon:           ReactNode
+  label:          string
+  href?:          string
+  isActive?:      boolean
+  badge?:         ReactNode
+  onClick?:       () => void
+  accentColor?:   string
+  description?:   string
+  iconClassName?: string
 }) {
   const [hovered, setHovered] = useState(false)
   const meta = SIDEBAR_CTA_META[id]
   const accent = accentColor ?? meta?.color ?? 'var(--saathi-primary)'
+  const desc   = description ?? meta?.desc
+
+  const activeStripe = `inset 2px 0 0 ${accent}`
+  const hoverShadow  = 'var(--shadow-xs)'
 
   const baseStyle: CSSProperties = {
     display:        'flex',
@@ -82,7 +91,7 @@ function ExpandableSidebarItem({
     textDecoration: 'none',
     background:     isActive ? 'var(--saathi-light)' : hovered ? 'var(--bg-elevated)' : 'transparent',
     border:         isActive ? '1px solid var(--saathi-border)' : hovered ? '1px solid var(--border-medium)' : '1px solid transparent',
-    boxShadow:      hovered && !isActive ? 'var(--shadow-xs)' : 'none',
+    boxShadow:      isActive ? activeStripe : hovered ? hoverShadow : 'none',
   }
 
   const inner = (
@@ -92,16 +101,21 @@ function ExpandableSidebarItem({
       onMouseLeave={() => setHovered(false)}
       onClick={href ? undefined : onClick}
     >
-      {/* Icon */}
-      <span style={{
-        fontSize:   '16px',
-        flexShrink: 0,
-        marginTop:  '2px',
-        lineHeight: 1,
-        opacity:    isActive || hovered ? 1 : 0.6,
-        transition: 'opacity 200ms ease, color 200ms ease',
-        color:      isActive || hovered ? accent : 'var(--text-tertiary)',
-      }}>
+      {/* Icon — opacity ceded to keyframe animation when iconClassName is set */}
+      <span
+        className={iconClassName}
+        style={{
+          fontSize:   '16px',
+          flexShrink: 0,
+          marginTop:  '2px',
+          lineHeight: 1,
+          ...(iconClassName
+            ? {}
+            : { opacity: isActive || hovered ? 1 : 0.6 }),
+          transition: 'color 200ms ease',
+          color:      isActive || hovered ? accent : 'var(--text-tertiary)',
+        }}
+      >
         {icon}
       </span>
 
@@ -122,7 +136,7 @@ function ExpandableSidebarItem({
         </div>
 
         {/* Description — always visible */}
-        {meta?.desc && (
+        {desc && (
           <p style={{
             fontSize:   'var(--text-xs)',
             color:      hovered ? 'var(--text-secondary)' : 'var(--text-tertiary)',
@@ -130,7 +144,7 @@ function ExpandableSidebarItem({
             margin:     '3px 0 0',
             transition: 'color 200ms ease',
           }}>
-            {meta.desc}
+            {desc}
           </p>
         )}
       </div>
@@ -280,6 +294,7 @@ export function Sidebar({
 }: Props) {
   const pathname     = usePathname()
   const [bookmarkCount, setBookmarkCount] = useState(0)
+  const [horizonCount, setHorizonCount]   = useState(0)
   const [exploreOpen, setExploreOpen] = useState(false)
 
   useEffect(() => {
@@ -291,6 +306,17 @@ export function Sidebar({
       .eq('student_id', profile.id)
       .then(({ count }) => setBookmarkCount(count ?? 0))
   }, [profile])
+
+  useEffect(() => {
+    if (!activeSaathi?.id) return
+    const supabase = createClient()
+    supabase
+      .from('saathi_horizons')
+      .select('id', { count: 'exact', head: true })
+      .eq('saathi_slug', activeSaathi.id)
+      .eq('is_active', true)
+      .then(({ count }) => setHorizonCount(count ?? 0))
+  }, [activeSaathi?.id])
 
   return (
     <aside
@@ -392,6 +418,32 @@ export function Sidebar({
             href="/progress"
             isActive={pathname === '/progress'}
             accentColor="#34D399"
+          />
+          <ExpandableSidebarItem
+            id="your-horizon"
+            icon="✦"
+            iconClassName="horizon-breathe"
+            label="Your Horizon"
+            description={`What ${activeSaathi.name} students achieve`}
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('horizon:open'))
+              const el = document.getElementById('saathi-horizon-panel')
+              el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }}
+            accentColor="var(--saathi-primary)"
+            badge={
+              horizonCount > 0 ? (
+                <span style={{
+                  fontSize:     'var(--text-xs)',
+                  fontWeight:   600,
+                  color:        'var(--saathi-primary)',
+                  flexShrink:   0,
+                  whiteSpace:   'nowrap',
+                }}>
+                  {horizonCount} paths →
+                </span>
+              ) : undefined
+            }
           />
           <ExpandableSidebarItem
             id="flashcards"

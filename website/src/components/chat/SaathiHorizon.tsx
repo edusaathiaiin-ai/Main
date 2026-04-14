@@ -1,33 +1,29 @@
 'use client'
 
 /**
- * SaathiHorizon
+ * SaathiHorizon — floating, draggable career-pathways panel.
  *
- * Aspirational career panel docked below the chat input. Gives the student
- * a real destination (UN role, certification, crossover field, startup,
- * research path) plus a one-tap prompt that drops today_prompt into the
- * chat input — they're already in chat, no separate "How to start" page.
+ * Key behaviours:
+ *   • Fixed-position, floats over chat. Draggable by the header. Position
+ *     persists in localStorage. Double-click header = reset to default
+ *     (bottom-right of viewport).
+ *   • Collapsible (chevron) + dismissible (circular × button). Dismissed
+ *     state is session-only; sidebar "✦ Your Horizon" CTA re-opens it via
+ *     the `horizon:open` window event.
+ *   • Cards area scrolls internally (max-height 420px) — any filter
+ *     combination lays out without clipping.
+ *   • Accent colour follows the active Saathi (var(--saathi-primary) on
+ *     the dark panel surface — adapts for every Saathi theme).
+ *   • Academic-level scoped: self-fetches student_soul.academic_level,
+ *     hides rows whose `academic_levels` excludes the student.
  *
- * Placement: below <InputArea />, always present during a chat session.
- * Default state: collapsed on mobile, expanded on desktop.
- *
- * Visual: intentionally a dark island inside the light chat surface, so
- * the Horizon moment feels distinct from the conversation itself.
- *
- * Filtering:
- *   • saathi_slug = current Saathi
- *   • is_active = true
- *   • student's academic_level ∈ row.academic_levels (null academic_levels
- *     on a row = visible to everyone)
- *   • Category pill filter (client-side, all by default)
- *
- * Two-layer content model (migration 116):
- *   • Layer 1 (evergreen): title, description, inspiration — shown always
- *   • Layer 2 (refreshable): deadlines, external_links — suppressed when
- *     `needs_verification = true` (weekly cron flips this after 90 days)
+ * Content model (migration 116):
+ *   Layer 1 (evergreen): title, description, inspiration — always shown
+ *   Layer 2 (refreshable): deadlines, external_links — suppressed when
+ *     `needs_verification = true`.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 
@@ -65,7 +61,6 @@ type Props = {
   saathiSlug: string
   saathiName: string
   onPromptSelect: (prompt: string) => void
-  /** If provided, skips the self-fetch for academic_level. */
   academicLevel?: string | null
 }
 
@@ -80,15 +75,45 @@ const PILLS: { id: Category; emoji: string; label: string }[] = [
 
 type Filter = 'all' | Category
 
-// ── Palette (self-contained dark island) ─────────────────────────────────
+// ── Palette (dark island; accents use per-Saathi CSS vars) ───────────────
 const BG_SURFACE = '#0F1923'
 const BG_CARD    = 'rgba(255, 255, 255, 0.03)'
 const BRD_SOFT   = 'rgba(255, 255, 255, 0.08)'
 const TEXT_HIGH  = '#FFFFFF'
 const TEXT_MID   = 'rgba(255, 255, 255, 0.60)'
 const TEXT_LOW   = 'rgba(255, 255, 255, 0.35)'
-const GOLD       = '#C9993A'
-const GOLD_LIGHT = '#E5B86A'
+
+// ── Layout constants ─────────────────────────────────────────────────────
+const PANEL_WIDTH           = 420
+const DEFAULT_OFFSET_PX     = 20
+const POSITION_STORAGE_KEY  = 'horizon_panel_position'
+
+type Pos = { x: number; y: number }
+
+function readStoredPos(): Pos | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(POSITION_STORAGE_KEY)
+    if (!raw) return null
+    const p = JSON.parse(raw) as Pos
+    if (typeof p?.x === 'number' && typeof p?.y === 'number') return p
+    return null
+  } catch {
+    return null
+  }
+}
+
+function defaultPos(): Pos {
+  if (typeof window === 'undefined') return { x: 0, y: 0 }
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  // Bottom-right corner, clamped to viewport.
+  const w = Math.min(PANEL_WIDTH, vw - DEFAULT_OFFSET_PX * 2)
+  return {
+    x: Math.max(DEFAULT_OFFSET_PX, vw - w - DEFAULT_OFFSET_PX),
+    y: Math.max(DEFAULT_OFFSET_PX, vh - 560), // leaves ~540px of panel height room
+  }
+}
 
 // ── Component ────────────────────────────────────────────────────────────
 export function SaathiHorizon({
@@ -97,23 +122,55 @@ export function SaathiHorizon({
   onPromptSelect,
   academicLevel,
 }: Props) {
-  const [horizons, setHorizons]   = useState<Horizon[] | null>(null)
-  const [level, setLevel]         = useState<string | null>(academicLevel ?? null)
-  const [loading, setLoading]     = useState(true)
-  const [filter, setFilter]       = useState<Filter>('all')
-  const [isOpen, setIsOpen]       = useState<boolean>(() => {
-    if (typeof window === 'undefined') return true
-    return window.matchMedia('(min-width: 768px)').matches
-  })
+  const [horizons, setHorizons] = useState<Horizon[] | null>(null)
+  const [level, setLevel]       = useState<string | null>(academicLevel ?? null)
+  const [loading, setLoading]   = useState(true)
+  const [filter, setFilter]     = useState<Filter>('all')
 
-  // Data fetch — horizons + (if needed) academic_level
+  // Expanded = body visible. Dismissed = panel entirely hidden.
+  const [isOpen, setIsOpen]           = useState<boolean>(true)
+  const [isDismissed, setIsDismissed] = useState<boolean>(false)
+
+  // Fixed position — initialised on mount to avoid SSR mismatch.
+  const [pos, setPos] = useState<Pos | null>(null)
+  const dragRef = useRef<{ startX: number; startY: number; panelX: number; panelY: number } | null>(null)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  // Reset scroll to top whenever the filter changes — so the first
+  // card of the chosen category is always visible (no perceived clip).
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0
+  }, [filter])
+
+  // ── Initial position + viewport-default collapse ──────────────────────
+  useEffect(() => {
+    setPos(readStoredPos() ?? defaultPos())
+    if (typeof window !== 'undefined') {
+      setIsOpen(window.matchMedia('(min-width: 768px)').matches)
+    }
+  }, [])
+
+  // ── Sidebar CTA listener: `horizon:open` event ────────────────────────
+  useEffect(() => {
+    function handleOpen() {
+      setIsDismissed(false)
+      setIsOpen(true)
+      // Snap back to default so it's on-screen, then scroll header into view
+      const p = defaultPos()
+      setPos(p)
+      try {
+        window.localStorage.removeItem(POSITION_STORAGE_KEY)
+      } catch { /* ignore */ }
+    }
+    window.addEventListener('horizon:open', handleOpen)
+    return () => window.removeEventListener('horizon:open', handleOpen)
+  }, [])
+
+  // ── Data fetch ────────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false
-
     async function load() {
       const supabase = createClient()
-
-      // Horizons (the main payload)
       const horizonsP = supabase
         .from('saathi_horizons')
         .select('*')
@@ -121,7 +178,6 @@ export function SaathiHorizon({
         .eq('is_active', true)
         .order('difficulty', { ascending: true })
 
-      // Academic level — only fetch if the parent didn't pass one in
       const levelP =
         academicLevel !== undefined
           ? Promise.resolve({ data: null })
@@ -132,32 +188,74 @@ export function SaathiHorizon({
               .maybeSingle()
 
       const [{ data: horizonRows, error }, { data: soulRow }] = await Promise.all([
-        horizonsP,
-        levelP,
+        horizonsP, levelP,
       ])
 
       if (cancelled) return
-
       if (error) {
         console.error('[SaathiHorizon] load failed:', error.message)
         setHorizons([])
       } else {
         setHorizons((horizonRows ?? []) as Horizon[])
       }
-
       if (academicLevel === undefined && soulRow && 'academic_level' in soulRow) {
         setLevel((soulRow as { academic_level: string | null }).academic_level ?? null)
       }
-
       setLoading(false)
     }
-
     load()
     return () => { cancelled = true }
   }, [saathiSlug, academicLevel])
 
-  // Apply academic_level filter first — do NOT hide rows that have no
-  // academic_levels constraint (null/empty = visible to everyone).
+  // ── Drag handlers (pointer events — mouse + touch) ────────────────────
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!pos) return
+    // Don't start drag when clicking a button inside the header
+    const target = e.target as HTMLElement
+    if (target.closest('button')) return
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      panelX: pos.x,
+      panelY: pos.y,
+    }
+  }, [pos])
+
+  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag) return
+    const dx = e.clientX - drag.startX
+    const dy = e.clientY - drag.startY
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const panelWidth = Math.min(PANEL_WIDTH, vw - 16)
+    const nextX = Math.min(Math.max(0, drag.panelX + dx), vw - panelWidth)
+    const nextY = Math.min(Math.max(0, drag.panelY + dy), vh - 80) // keep header in viewport
+    setPos({ x: nextX, y: nextY })
+  }, [])
+
+  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag) return
+    dragRef.current = null
+    ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+    // Persist only if the pointer actually moved (ignore plain clicks)
+    const moved = Math.abs(e.clientX - drag.startX) + Math.abs(e.clientY - drag.startY) > 4
+    if (moved && pos) {
+      try {
+        window.localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(pos))
+      } catch { /* ignore */ }
+    }
+  }, [pos])
+
+  // Header double-click: reset to default, clear storage
+  function handleHeaderDoubleClick() {
+    setPos(defaultPos())
+    try { window.localStorage.removeItem(POSITION_STORAGE_KEY) } catch { /* ignore */ }
+  }
+
+  // ── Derived data ──────────────────────────────────────────────────────
   const scoped = useMemo(() => {
     if (!horizons) return []
     if (!level) return horizons
@@ -177,46 +275,86 @@ export function SaathiHorizon({
     return scoped.filter((h) => h.category === filter)
   }, [scoped, filter])
 
-  if (loading) return null
+  // ── Early exits ───────────────────────────────────────────────────────
+  if (loading || !pos || isDismissed) return null
   if (scoped.length === 0) return null
+
+  const panelWidthStyle =
+    typeof window !== 'undefined' && window.innerWidth < PANEL_WIDTH + 32
+      ? `calc(100vw - 16px)`
+      : `${PANEL_WIDTH}px`
 
   return (
     <section
+      id="saathi-horizon-panel"
       style={{
-        margin:       '16px auto',
-        maxWidth:     '760px',
-        background:   BG_SURFACE,
-        borderRadius: '16px',
-        fontFamily:   'var(--font-body, "Plus Jakarta Sans"), sans-serif',
-        overflow:     'hidden',
+        position:      'fixed',
+        left:          pos.x,
+        top:           pos.y,
+        width:         panelWidthStyle,
+        zIndex:        45,
+        background:    BG_SURFACE,
+        borderRadius:  '16px',
+        boxShadow:     '0 24px 60px rgba(0, 0, 0, 0.45)',
+        fontFamily:    'var(--font-body, "Plus Jakarta Sans"), sans-serif',
+        overflow:      'visible', // let the close-button overflow
       }}
     >
-      {/* Header / toggle */}
+      {/* Prominent close × (dismiss) */}
       <button
         type="button"
-        onClick={() => setIsOpen((v) => !v)}
-        aria-expanded={isOpen}
+        onClick={() => setIsDismissed(true)}
+        aria-label="Dismiss Horizon panel"
         style={{
-          display:        'flex',
-          width:          '100%',
-          alignItems:     'center',
-          justifyContent: 'space-between',
-          gap:            '12px',
-          padding:        '14px 20px',
-          background:     'transparent',
-          border:         'none',
+          position:       'absolute',
+          top:            '-10px',
+          right:          '-10px',
+          width:          '28px',
+          height:         '28px',
+          borderRadius:   '50%',
+          background:     '#FFFFFF',
+          color:          '#0F1923',
+          border:         '1px solid rgba(0,0,0,0.12)',
+          boxShadow:      '0 4px 12px rgba(0,0,0,0.25)',
+          fontSize:       '14px',
+          fontWeight:     700,
           cursor:         'pointer',
-          fontFamily:     'inherit',
-          textAlign:      'left',
+          display:        'flex',
+          alignItems:     'center',
+          justifyContent: 'center',
+          lineHeight:     1,
+          padding:        0,
+          zIndex:         2,
         }}
       >
-        <div>
+        ×
+      </button>
+
+      {/* Header — drag handle + title + collapse chevron */}
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onDoubleClick={handleHeaderDoubleClick}
+        style={{
+          display:       'flex',
+          alignItems:    'center',
+          justifyContent:'space-between',
+          gap:           '12px',
+          padding:       '14px 20px',
+          cursor:        'grab',
+          userSelect:    'none',
+          touchAction:   'none',
+          borderBottom:  isOpen ? `1px solid ${BRD_SOFT}` : 'none',
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
           <div
             style={{
               display:       'flex',
               alignItems:    'center',
               gap:           '8px',
-              color:         GOLD,
+              color:         'var(--saathi-primary, #C9993A)',
               fontSize:      '11px',
               fontWeight:    700,
               letterSpacing: '1.8px',
@@ -228,24 +366,44 @@ export function SaathiHorizon({
           </div>
           <p
             style={{
-              margin:    '2px 0 0',
-              fontSize:  '13px',
-              color:     TEXT_MID,
-              lineHeight:1.4,
+              margin:     '2px 0 0',
+              fontSize:   '13px',
+              color:      TEXT_MID,
+              lineHeight: 1.4,
+              whiteSpace: 'nowrap',
+              overflow:   'hidden',
+              textOverflow:'ellipsis',
             }}
           >
             What{' '}
-            <strong style={{ color: TEXT_HIGH, fontWeight: 600 }}>
-              {saathiName}
-            </strong>{' '}
+            <strong style={{ color: TEXT_HIGH, fontWeight: 600 }}>{saathiName}</strong>{' '}
             students achieve
           </p>
         </div>
 
-        <Chevron open={isOpen} />
-      </button>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setIsOpen((v) => !v) }}
+          aria-label={isOpen ? 'Collapse' : 'Expand'}
+          aria-expanded={isOpen}
+          style={{
+            background:    'rgba(255,255,255,0.06)',
+            border:        `1px solid ${BRD_SOFT}`,
+            color:         'var(--saathi-primary, #C9993A)',
+            borderRadius:  '8px',
+            padding:       '4px 10px',
+            fontSize:      '12px',
+            fontWeight:    700,
+            cursor:        'pointer',
+            fontFamily:    'inherit',
+            flexShrink:    0,
+          }}
+        >
+          {isOpen ? '▲' : '▼'}
+        </button>
+      </div>
 
-      {/* Collapsible body */}
+      {/* Body */}
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
@@ -256,7 +414,7 @@ export function SaathiHorizon({
             transition={{ duration: 0.25, ease: 'easeOut' }}
             style={{ overflow: 'hidden' }}
           >
-            <div style={{ padding: '4px 20px 20px' }}>
+            <div style={{ padding: '14px 20px 20px' }}>
               {/* Filter pills */}
               {availablePills.length > 0 && (
                 <div
@@ -264,7 +422,7 @@ export function SaathiHorizon({
                     display:      'flex',
                     flexWrap:     'wrap',
                     gap:          '8px',
-                    marginBottom: '16px',
+                    marginBottom: '14px',
                   }}
                 >
                   <FilterPill
@@ -285,8 +443,20 @@ export function SaathiHorizon({
                 </div>
               )}
 
-              {/* Cards */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Scrollable cards container — max 420px, internal scroll */}
+              <div
+                ref={scrollRef}
+                className="horizon-scroll"
+                style={{
+                  maxHeight:      '420px',
+                  overflowY:      'auto',
+                  scrollBehavior: 'smooth',
+                  display:        'flex',
+                  flexDirection:  'column',
+                  gap:            '10px',
+                  paddingRight:   '4px',
+                }}
+              >
                 {visible.map((h) => (
                   <HorizonCard
                     key={h.id}
@@ -317,32 +487,26 @@ export function SaathiHorizon({
 
 // ── Filter pill ──────────────────────────────────────────────────────────
 function FilterPill({
-  emoji,
-  label,
-  active,
-  onClick,
-}: {
-  emoji: string
-  label: string
-  active: boolean
-  onClick: () => void
-}) {
+  emoji, label, active, onClick,
+}: { emoji: string; label: string; active: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
       style={{
-        background:    active ? 'rgba(201, 153, 58, 0.15)' : BG_CARD,
-        border:        active ? `1px solid ${GOLD}` : `1px solid ${BRD_SOFT}`,
-        color:         active ? GOLD : TEXT_MID,
-        borderRadius:  '999px',
-        padding:       '6px 13px',
-        fontSize:      '12.5px',
-        fontWeight:    active ? 600 : 500,
-        fontFamily:    'inherit',
-        cursor:        'pointer',
-        transition:    'all 160ms ease',
-        whiteSpace:    'nowrap',
+        background:   active ? 'var(--saathi-bg, rgba(201,153,58,0.15))' : BG_CARD,
+        border:       active
+          ? `1px solid var(--saathi-primary, #C9993A)`
+          : `1px solid ${BRD_SOFT}`,
+        color:        active ? 'var(--saathi-primary, #C9993A)' : TEXT_MID,
+        borderRadius: '999px',
+        padding:      '6px 13px',
+        fontSize:     '12.5px',
+        fontWeight:   active ? 600 : 500,
+        fontFamily:   'inherit',
+        cursor:       'pointer',
+        transition:   'all 160ms ease',
+        whiteSpace:   'nowrap',
       }}
     >
       {emoji && <span style={{ marginRight: '5px' }}>{emoji}</span>}
@@ -351,58 +515,80 @@ function FilterPill({
   )
 }
 
-// ── Chevron ──────────────────────────────────────────────────────────────
-function Chevron({ open }: { open: boolean }) {
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        display:     'inline-block',
-        transform:   open ? 'rotate(180deg)' : 'rotate(0deg)',
-        transition:  'transform 180ms ease',
-        color:       GOLD,
-        fontSize:    '14px',
-        flexShrink:  0,
-        lineHeight:  1,
-      }}
-    >
-      ▾
-    </span>
-  )
-}
-
 // ── Card ─────────────────────────────────────────────────────────────────
 function HorizonCard({
-  horizon,
-  onPromptSelect,
-}: {
-  horizon: Horizon
-  onPromptSelect: (prompt: string) => void
-}) {
-  const [expanded, setExpanded] = useState(false)
+  horizon, onPromptSelect,
+}: { horizon: Horizon; onPromptSelect: (prompt: string) => void }) {
+  const [expanded, setExpanded]     = useState(false)
+  const [clicked,  setClicked]      = useState(false)   // 0–300ms button transform
+  const [confirming, setConfirming] = useState(false)   // 300–2300ms card dim + badge
   const stale = horizon.needs_verification
-
   const freshDeadline = stale ? undefined : horizon.deadlines?.[0]
   const freshLink     = stale ? undefined : horizon.external_links?.[0]
 
   function handleClick() {
+    if (clicked || confirming) return
     const prompt = horizon.today_prompt?.trim() || horizon.today_action.trim()
-    if (prompt) onPromptSelect(prompt)
+    if (!prompt) return
+
+    setClicked(true)
+
+    // Moment 1 → Moment 2: button settles, then prompt is delivered.
+    window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('horizon:prompt', { detail: { prompt } }))
+      // Keep the prop call as a fallback for any consumer that wires it
+      // without listening to the event (e.g. tests).
+      try { onPromptSelect(prompt) } catch { /* swallow */ }
+      setClicked(false)
+      setConfirming(true)
+      window.setTimeout(() => setConfirming(false), 2000)
+    }, 280)
   }
 
   return (
     <article
       style={{
+        position:     'relative',
         background:   BG_CARD,
         border:       `1px solid ${BRD_SOFT}`,
         borderRadius: '12px',
-        padding:      '16px 18px',
+        padding:      '14px 16px',
+        opacity:      confirming ? 0.6 : 1,
+        transition:   'opacity 240ms ease',
       }}
     >
+      {/* Confirmation badge — fades in over the dimmed card for 2s */}
+      <AnimatePresence>
+        {confirming && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position:     'absolute',
+              top:          '10px',
+              right:        '12px',
+              background:   'var(--saathi-primary, #C9993A)',
+              color:        '#0F1923',
+              fontSize:     '10.5px',
+              fontWeight:   700,
+              letterSpacing:'0.4px',
+              padding:      '4px 8px',
+              borderRadius: '999px',
+              boxShadow:    '0 4px 12px rgba(0,0,0,0.25)',
+              pointerEvents:'none',
+              zIndex:       1,
+            }}
+          >
+            ✓ Added to chat
+          </motion.div>
+        )}
+      </AnimatePresence>
       <h4
         style={{
           margin:     '0 0 6px',
-          fontSize:   '15px',
+          fontSize:   '14.5px',
           fontWeight: 700,
           color:      TEXT_HIGH,
           lineHeight: 1.35,
@@ -417,7 +603,7 @@ function HorizonCard({
             margin:     '0 0 10px',
             fontSize:   '12.5px',
             fontStyle:  'italic',
-            color:      GOLD_LIGHT,
+            color:      'var(--saathi-primary, #C9993A)',
             lineHeight: 1.5,
           }}
         >
@@ -427,14 +613,14 @@ function HorizonCard({
 
       <p
         style={{
-          margin:              '0 0 12px',
-          fontSize:            '13px',
-          color:               TEXT_MID,
-          lineHeight:          1.6,
-          display:             expanded ? 'block' : '-webkit-box',
-          WebkitBoxOrient:     'vertical' as const,
-          WebkitLineClamp:     expanded ? 'unset' : 2,
-          overflow:            expanded ? 'visible' : 'hidden',
+          margin:          '0 0 10px',
+          fontSize:        '12.5px',
+          color:           TEXT_MID,
+          lineHeight:      1.6,
+          display:         expanded ? 'block' : '-webkit-box',
+          WebkitBoxOrient: 'vertical' as const,
+          WebkitLineClamp: expanded ? 'unset' : 2,
+          overflow:        expanded ? 'visible' : 'hidden',
         }}
       >
         {horizon.description}
@@ -445,15 +631,15 @@ function HorizonCard({
           type="button"
           onClick={() => setExpanded((v) => !v)}
           style={{
-            background:    'transparent',
-            border:        'none',
-            color:         TEXT_LOW,
-            fontSize:      '11.5px',
-            padding:       0,
-            margin:        '0 0 12px',
-            cursor:        'pointer',
-            fontFamily:    'inherit',
-            textDecoration:'underline',
+            background:     'transparent',
+            border:         'none',
+            color:          TEXT_LOW,
+            fontSize:       '11px',
+            padding:        0,
+            margin:         '0 0 10px',
+            cursor:         'pointer',
+            fontFamily:     'inherit',
+            textDecoration: 'underline',
           }}
         >
           {expanded ? 'Show less' : 'Show more'}
@@ -465,9 +651,9 @@ function HorizonCard({
           style={{
             display:      'flex',
             flexWrap:     'wrap',
-            gap:          '12px',
-            marginBottom: '12px',
-            fontSize:     '11.5px',
+            gap:          '10px',
+            marginBottom: '10px',
+            fontSize:     '11px',
             color:        TEXT_LOW,
           }}
         >
@@ -483,9 +669,9 @@ function HorizonCard({
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                color:          GOLD,
+                color:          'var(--saathi-primary, #C9993A)',
                 textDecoration: 'none',
-                borderBottom:   `1px dotted ${GOLD}`,
+                borderBottom:   `1px dotted var(--saathi-primary, #C9993A)`,
               }}
             >
               {freshLink.label ?? 'Learn more'} ↗
@@ -497,8 +683,8 @@ function HorizonCard({
       {stale && (
         <p
           style={{
-            margin:    '0 0 12px',
-            fontSize:  '11.5px',
+            margin:    '0 0 10px',
+            fontSize:  '11px',
             color:     TEXT_LOW,
             fontStyle: 'italic',
           }}
@@ -507,32 +693,44 @@ function HorizonCard({
         </p>
       )}
 
-      <button
+      <motion.button
         type="button"
         onClick={handleClick}
+        disabled={clicked || confirming}
+        animate={
+          clicked
+            ? {
+                scale:     0.96,
+                boxShadow: [
+                  '0 0 0 0   var(--saathi-primary, #C9993A)',
+                  '0 0 0 10px rgba(201,153,58,0)',
+                  '0 0 0 0   rgba(201,153,58,0)',
+                ],
+              }
+            : { scale: 1, boxShadow: '0 0 0 0 rgba(201,153,58,0)' }
+        }
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        whileHover={!clicked && !confirming ? { opacity: 0.88 } : {}}
         style={{
-          background:    GOLD,
+          background:    'var(--saathi-primary, #C9993A)',
           color:         '#0F1923',
           border:        'none',
           borderRadius:  '10px',
-          padding:       '9px 16px',
-          fontSize:      '13px',
+          padding:       '8px 14px',
+          fontSize:      '12.5px',
           fontWeight:    700,
           fontFamily:    'inherit',
-          cursor:        'pointer',
-          transition:    'opacity 150ms ease',
+          cursor:        clicked || confirming ? 'default' : 'pointer',
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.88' }}
-        onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
       >
-        Start this conversation →
-      </button>
+        {clicked ? 'Opening…' : 'Start this conversation →'}
+      </motion.button>
 
       {horizon.author_display_name && (
         <p
           style={{
-            margin:     '12px 0 0',
-            fontSize:   '11px',
+            margin:     '10px 0 0',
+            fontSize:   '10.5px',
             color:      TEXT_LOW,
             lineHeight: 1.45,
           }}
