@@ -437,3 +437,31 @@ verify_jwt = false
 # not a JWT. Gateway verify_jwt must be false or Razorpay posts fail.
 [functions.razorpay-webhook]
 verify_jwt = false
+
+# Cron-triggered functions — auth via x-cron-secret header, not JWT.
+[functions.rss-fetch]
+verify_jwt = false
+
+[functions.health-monitor]
+verify_jwt = false
+
+[functions.quota-reset]
+verify_jwt = false
+
+[functions.send-session-reminders]
+verify_jwt = false
+
+[functions.inactivity-nudge]
+verify_jwt = false
+
+[functions.process-dpdp-request]
+verify_jwt = false
+
+[functions.weekly-letter]
+verify_jwt = false
+
+[functions.eval-flagged]
+verify_jwt = false
+
+[functions.refresh-saathi-stats]
+verify_jwt = false
