@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ApplyForm } from '@/components/teach/ApplyForm'
+import { HeroApplyButton } from '@/components/teach/HeroApplyButton'
 
 export const metadata: Metadata = {
   title:       'Teach on EdUsaathiAI — Faculty Partner Programme',
@@ -164,27 +165,11 @@ function Hero() {
           replace.
         </p>
 
-        {/* Primary CTA — gold button */}
+        {/* Primary CTA — smooth-scrolls to Section 6's #apply form */}
         <div className="flex flex-col items-start gap-5">
-          <Link
-            href="/login?role=faculty"
-            className="inline-flex items-center gap-2 transition-all duration-200"
-            style={{
-              background:   GOLD,
-              color:        '#0F1923',
-              padding:      '18px 36px',
-              borderRadius: '14px',
-              fontSize:     '16px',
-              fontWeight:   700,
-              boxShadow:    '0 12px 40px rgba(201,153,58,0.25)',
-              textDecoration: 'none',
-            }}
-          >
-            Apply to join our faculty
-            <span aria-hidden="true" style={{ fontSize: '18px' }}>&rarr;</span>
-          </Link>
+          <HeroApplyButton />
 
-          {/* Secondary link — sign in */}
+          {/* Secondary link — sign in (for already-registered faculty) */}
           <p style={{ color: TEXT_LOW, fontSize: '13px', marginTop: '4px' }}>
             Already a faculty partner?{' '}
             <Link
