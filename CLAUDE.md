@@ -385,6 +385,32 @@ dpdp_requests       — data deletion + export requests
 consent_log         — consent audit trail
 ```
 
+### ⚠️ Schema quirk: `proposed_slots` has TWO shapes
+
+Two different tables both have a `proposed_slots` JSONB column, and they
+store **different shapes**. Producer and consumer within each flow agree,
+but do NOT mix them when refactoring.
+
+| Table | Shape | Producer | Consumer |
+|-------|-------|----------|----------|
+| `lecture_requests.proposed_slots` | `[{start, end, label}]` objects | `/faculty/requests` (faculty proposes) | `confirm-lecture-slot` edge function + `/requests/[id]` (student) |
+| `faculty_sessions.proposed_slots` | `string[]` of ISO timestamps | `/faculty-finder/[slug]` (student proposes) | `/faculty/sessions` (faculty picks) |
+
+Each shape is internally consistent. The two parallel booking flows were
+introduced at different times — `faculty_sessions` for direct 1:1 booking
+via Faculty Finder, `lecture_requests` for the public board + upvoted
+requests. Unifying them is a ~4 hour refactor; until then:
+
+- When reading `proposed_slots` → check the table first to know the shape
+- When writing → match the shape the consumer expects
+- Never copy a consumer pattern from one table to code that reads the other
+- Never assume `s.start` exists on a `faculty_sessions.proposed_slots` item
+- Never assume a `lecture_requests.proposed_slots` entry can be fed to
+  `new Date(s)` directly — it's an object, not a string
+
+If you unify them later: pick the object shape (`{start, end, label}`) —
+it's richer, and `label` is already useful for UI.
+
 ---
 
 ## 11. User Roles & Access
