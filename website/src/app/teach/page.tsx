@@ -27,7 +27,8 @@ export default function TeachLandingPage() {
     <main>
       <Hero />
       <Pillars />
-      {/* Future sections 3–6 land below this line */}
+      <HowItWorks />
+      {/* Future sections 4–6 land below this line */}
     </main>
   )
 }
@@ -294,5 +295,184 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
         })}
       </div>
     </article>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Section 3 — How it works
+// ──────────────────────────────────────────────────────────────────────
+
+type Step = {
+  title: string
+  lines: string[]
+}
+
+const STEPS: Step[] = [
+  {
+    title: 'Apply',
+    lines: [
+      'Fill your profile in 5 minutes.',
+      'Tell us what you know — beyond just your degree.',
+    ],
+  },
+  {
+    title: 'Get verified',
+    lines: [
+      'We review within 48 hours.',
+      'Verification badge appears on your profile.',
+    ],
+  },
+  {
+    title: 'Get discovered',
+    lines: [
+      'Students find you on Faculty Finder.',
+      'Your expertise, your fee, your terms.',
+    ],
+  },
+  {
+    title: 'Teach & earn',
+    lines: [
+      'Session confirmed → you teach → payout Sunday.',
+      'Simple. Transparent. Yours.',
+    ],
+  },
+]
+
+function HowItWorks() {
+  return (
+    <section
+      style={{ paddingTop: '100px', paddingBottom: '120px' }}
+    >
+      <div
+        className="mx-auto px-6 md:px-10"
+        style={{ maxWidth: '1120px' }}
+      >
+        {/* Eyebrow */}
+        <p
+          className="uppercase"
+          style={{
+            color:          GOLD,
+            fontSize:       '11px',
+            letterSpacing:  '0.24em',
+            fontWeight:     600,
+            marginBottom:   '16px',
+          }}
+        >
+          How it works
+        </p>
+
+        {/* Section headline */}
+        <h2
+          style={{
+            fontFamily:    'var(--font-teach-display), Georgia, serif',
+            color:         TEXT_HIGH,
+            fontSize:      'clamp(28px, 4vw, 40px)',
+            lineHeight:    1.15,
+            fontWeight:    500,
+            letterSpacing: '-0.015em',
+            marginBottom:  '56px',
+            maxWidth:      '620px',
+          }}
+        >
+          From application to first payout &mdash;
+          <br />
+          <span style={{ color: TEXT_MID }}>four simple steps.</span>
+        </h2>
+
+        {/* Steps grid: 4 cols desktop, 1 col mobile. Grid lets the
+            connector line span correctly on desktop without collapsing. */}
+        <ol
+          className="grid gap-10 md:gap-0 grid-cols-1 md:grid-cols-4 relative"
+          style={{ listStyle: 'none', padding: 0, margin: 0 }}
+        >
+          {/* Desktop-only horizontal connector line sitting behind the
+              numbers, stopping short of the first and last step so the
+              sequence reads as a journey, not a cage. */}
+          <span
+            aria-hidden="true"
+            className="hidden md:block absolute pointer-events-none"
+            style={{
+              top:        '28px',   // align with vertical centre of the numbers
+              left:       '12%',
+              right:      '12%',
+              height:     '1px',
+              background: `linear-gradient(90deg, transparent, ${GOLD}33 15%, ${GOLD}33 85%, transparent)`,
+            }}
+          />
+
+          {STEPS.map((step, i) => (
+            <StepCard key={step.title} step={step} index={i + 1} />
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}
+
+function StepCard({ step, index }: { step: Step; index: number }) {
+  return (
+    <li
+      className="relative"
+      style={{
+        paddingLeft:  '8px',
+        paddingRight: '16px',
+      }}
+    >
+      {/* Number bubble — gold, raised above the connector line so it
+          visually "sits on" the journey, not inside it. */}
+      <div
+        aria-hidden="true"
+        className="relative"
+        style={{
+          width:       '56px',
+          height:      '56px',
+          borderRadius:'50%',
+          background:  '#0F1923',
+          border:      `1px solid ${GOLD}`,
+          display:     'flex',
+          alignItems:  'center',
+          justifyContent: 'center',
+          color:       GOLD,
+          fontFamily:  'var(--font-teach-display), Georgia, serif',
+          fontSize:    '22px',
+          fontWeight:  500,
+          marginBottom:'24px',
+          boxShadow:   '0 0 0 6px #0F1923',
+        }}
+      >
+        {index}
+      </div>
+
+      {/* Title */}
+      <h3
+        style={{
+          fontFamily:    'var(--font-teach-display), Georgia, serif',
+          color:         TEXT_HIGH,
+          fontSize:      '20px',
+          fontWeight:    500,
+          lineHeight:    1.2,
+          letterSpacing: '-0.01em',
+          marginBottom:  '12px',
+        }}
+      >
+        {step.title}
+      </h3>
+
+      {/* Body lines */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {step.lines.map((line, i) => (
+          <p
+            key={i}
+            style={{
+              color:      i === 0 ? TEXT_MID : TEXT_LOW,
+              fontSize:   '13.5px',
+              lineHeight: 1.55,
+            }}
+          >
+            {line}
+          </p>
+        ))}
+      </div>
+    </li>
   )
 }
