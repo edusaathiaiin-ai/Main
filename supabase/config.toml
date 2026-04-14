@@ -465,3 +465,13 @@ verify_jwt = false
 
 [functions.refresh-saathi-stats]
 verify_jwt = false
+
+# Cron: weekly faculty payout release (Sunday 9 AM IST).
+# Auth via x-cron-secret header — no user JWT.
+[functions.auto-release-payments]
+verify_jwt = false
+
+# Admin action: flip a payout from pending → completed after UPI transfer.
+# Auth via Bearer SUPABASE_CRON_SECRET — no user JWT.
+[functions.mark-payout-completed]
+verify_jwt = false
