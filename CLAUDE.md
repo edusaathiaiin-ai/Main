@@ -883,6 +883,38 @@ Dashboards are created in PostHog UI after data starts flowing — not in code.
 
 ---
 
+## 26. Known Gaps
+
+Surfaced but intentionally deferred. When the triggering event happens,
+revisit these. Listing here keeps them from becoming forgotten bugs.
+
+### 1:1 session reminders — not wired
+
+`send-session-reminders` (edge function) covers `live_lectures` (group
+broadcasts). `faculty_sessions` (1:1 direct bookings via Faculty Finder)
+have **no reminders today** — students and faculty will not receive T07,
+T08, or T12 for 1:1 sessions.
+
+When the first paid 1:1 session lands, add:
+
+```sql
+ALTER TABLE faculty_sessions
+  ADD COLUMN reminder_sent_24h BOOLEAN DEFAULT false,
+  ADD COLUMN reminder_sent_1h  BOOLEAN DEFAULT false;
+```
+
+Then extend `send-session-reminders/index.ts` with two more passes (24h
+and 1h windows against `faculty_sessions.confirmed_slot`), reusing the
+same templates already approved:
+- T07 `edusaathiai_session_reminder_24h` → student
+- T08 `edusaathiai_session_reminder_1h` → student
+- T12 `edusaathiai_faculty_session_reminder` → faculty
+
+Estimated build: ~1 hour. Deferred April 2026 because zero
+`faculty_sessions` rows exist — fixing empty data is premature.
+
+---
+
 *EdUsaathiAI — Unified Soul Partnership*
 *Indo American Education Society (IAES), Ahmedabad*
 *Version 1.0 — March 2026*
