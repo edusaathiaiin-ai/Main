@@ -40,6 +40,7 @@ function LoginForm() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [magicLoading, setMagicLoading] = useState(false)
   const [magicSent, setMagicSent] = useState(false)
+  const [resendCountdown, setResendCountdown] = useState(60)
   const [error, setError] = useState('')
   const isForced = searchParams.get('forced') === '1'
 
@@ -56,6 +57,13 @@ function LoginForm() {
     }
     run()
   }, [searchParams])
+
+  // Countdown timer for resend button
+  useEffect(() => {
+    if (!magicSent || resendCountdown <= 0) return
+    const timer = setTimeout(() => setResendCountdown((c) => c - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [magicSent, resendCountdown])
 
   // Show kicked-out screen if redirected from ChatWindow after forced logout
   if (isForced) {
@@ -114,6 +122,26 @@ function LoginForm() {
       setError(otpError.message)
     } else {
       setMagicSent(true)
+      setResendCountdown(60)
+    }
+  }
+
+  async function handleResend() {
+    if (resendCountdown > 0 || !email.trim()) return
+    setMagicLoading(true)
+    const supabase = createClient()
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: email.trim().toLowerCase(),
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        shouldCreateUser: true,
+      },
+    })
+    setMagicLoading(false)
+    if (otpError) {
+      setError(otpError.message)
+    } else {
+      setResendCountdown(60)
     }
   }
 
@@ -188,29 +216,65 @@ function LoginForm() {
               animate={{ opacity: 1, scale: 1 }}
               className="py-4 text-center"
             >
-              <div className="mb-4 text-3xl">📬</div>
-              <p className="font-playfair mb-2 text-xl font-semibold text-white">
-                Check your email ✓
-              </p>
-              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                We sent a magic link to
+              <div className="mb-3 text-3xl">✉️</div>
+              <p className="font-playfair mb-1 text-xl font-semibold text-white">
+                Magic link sent to
               </p>
               <p
-                className="mt-1 text-sm font-medium"
+                className="text-sm font-medium"
                 style={{ color: '#C9993A' }}
               >
                 {email}
               </p>
-              <button
-                onClick={() => {
-                  setMagicSent(false)
-                  setEmail('')
-                }}
-                className="mt-6 text-xs underline underline-offset-2"
-                style={{ color: 'rgba(255,255,255,0.3)' }}
+
+              <p
+                className="mt-4 text-sm leading-relaxed"
+                style={{ color: 'rgba(255,255,255,0.5)' }}
               >
-                Use a different email
-              </button>
+                Check your inbox — it usually arrives within 2 minutes.
+              </p>
+
+              <div
+                className="mx-auto mt-4 max-w-xs rounded-xl px-4 py-3 text-left text-xs leading-relaxed"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  color: 'rgba(255,255,255,0.35)',
+                }}
+              >
+                <p className="mb-1 font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  Using a corporate or institutional email?
+                </p>
+                <p>
+                  Links may take up to 15 minutes due to mail server filtering.
+                  Check your spam folder too.
+                </p>
+              </div>
+
+              <div className="mt-5 flex flex-col items-center gap-2">
+                <button
+                  onClick={handleResend}
+                  disabled={resendCountdown > 0 || magicLoading}
+                  className="text-sm font-medium transition-all disabled:opacity-40"
+                  style={{ color: resendCountdown > 0 ? 'rgba(255,255,255,0.25)' : '#C9993A' }}
+                >
+                  {magicLoading
+                    ? 'Sending…'
+                    : resendCountdown > 0
+                      ? `Resend link → (${resendCountdown}s)`
+                      : 'Resend link →'}
+                </button>
+                <button
+                  onClick={() => {
+                    setMagicSent(false)
+                    setEmail('')
+                  }}
+                  className="text-xs underline underline-offset-2"
+                  style={{ color: 'rgba(255,255,255,0.3)' }}
+                >
+                  Try a different email instead →
+                </button>
+              </div>
             </motion.div>
           ) : (
             <motion.div key="form">
