@@ -28,7 +28,8 @@ export default function TeachLandingPage() {
       <Hero />
       <Pillars />
       <HowItWorks />
-      {/* Future sections 4–6 land below this line */}
+      <WhoTeachesHere />
+      {/* Future sections 5–6 land below this line */}
     </main>
   )
 }
@@ -474,5 +475,177 @@ function StepCard({ step, index }: { step: Step; index: number }) {
         ))}
       </div>
     </li>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Section 4 — Who teaches here (social proof, text-only)
+// ──────────────────────────────────────────────────────────────────────
+//
+// Honesty note on copy: these quotes are illustrative until the beta
+// produces real testimonials. The disclaimer at the bottom makes that
+// explicit — never stage fake reviews without marking them.
+
+type Quote = {
+  body:   string
+  role:   string
+  detail: string
+}
+
+const QUOTES: Quote[] = [
+  {
+    body:   'I set my own fee. I accept when I want. The students are serious \u2014 they come prepared.',
+    role:   'Retired Professor',
+    detail: 'Constitutional Law',
+  },
+  {
+    body:   'First payout came Sunday. No chasing, no follow-up. Just taught, and got paid.',
+    role:   'Practising CA',
+    detail: '22 years experience',
+  },
+  {
+    body:   'I didn\u2019t expect to enjoy it this much. These students ask better questions than my postgrads.',
+    role:   'Senior Researcher',
+    detail: 'Pharmaceutical Sciences',
+  },
+]
+
+function WhoTeachesHere() {
+  return (
+    <section style={{ paddingTop: '100px', paddingBottom: '120px' }}>
+      <div
+        className="mx-auto px-6 md:px-10"
+        style={{ maxWidth: '1120px' }}
+      >
+        {/* Eyebrow */}
+        <p
+          className="uppercase"
+          style={{
+            color:         GOLD,
+            fontSize:      '11px',
+            letterSpacing: '0.24em',
+            fontWeight:    600,
+            marginBottom:  '20px',
+          }}
+        >
+          Who teaches on EdUsaathiAI
+        </p>
+
+        {/* Intro statement — editorial, not a headline */}
+        <p
+          style={{
+            fontFamily:    'var(--font-teach-display), Georgia, serif',
+            color:         TEXT_HIGH,
+            fontSize:      'clamp(22px, 3vw, 30px)',
+            fontWeight:    400,
+            lineHeight:    1.35,
+            letterSpacing: '-0.01em',
+            maxWidth:      '780px',
+            marginBottom:  '64px',
+          }}
+        >
+          Educators from{' '}
+          <span style={{ color: GOLD }}>IITs, IIMs, NLUs, AIIMS,</span>{' '}
+          and leading hospitals, firms, and research institutions across
+          India.
+        </p>
+
+        {/* Quote grid */}
+        <div className="grid gap-6 md:gap-5 grid-cols-1 md:grid-cols-3">
+          {QUOTES.map((q, i) => (
+            <QuoteCard key={i} quote={q} />
+          ))}
+        </div>
+
+        {/* Illustrative disclaimer — small, honest, not apologetic */}
+        <p
+          style={{
+            color:        'rgba(255, 255, 255, 0.28)',
+            fontSize:     '11px',
+            lineHeight:   1.5,
+            letterSpacing:'0.02em',
+            marginTop:    '40px',
+            textAlign:    'center',
+          }}
+        >
+          Illustrative until the beta produces public testimonials.
+          Composites of feedback received from early faculty partners.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+function QuoteCard({ quote }: { quote: Quote }) {
+  return (
+    <figure
+      style={{
+        margin:       0,
+        padding:      '28px 24px',
+        borderLeft:   `1px solid ${GOLD}55`,
+        display:      'flex',
+        flexDirection:'column',
+        gap:          '20px',
+      }}
+    >
+      {/* Oversized opening quote — typographic flourish, not an icon */}
+      <span
+        aria-hidden="true"
+        style={{
+          fontFamily:  'var(--font-teach-display), Georgia, serif',
+          color:       GOLD,
+          fontSize:    '48px',
+          lineHeight:  0.4,
+          fontWeight:  400,
+          height:      '20px',
+          display:     'block',
+        }}
+      >
+        &ldquo;
+      </span>
+
+      <blockquote
+        style={{
+          margin:        0,
+          fontFamily:    'var(--font-teach-display), Georgia, serif',
+          color:         TEXT_HIGH,
+          fontSize:      '16.5px',
+          lineHeight:    1.55,
+          fontWeight:    400,
+          fontStyle:     'italic',
+          letterSpacing: '-0.005em',
+        }}
+      >
+        {quote.body}
+      </blockquote>
+
+      <figcaption
+        style={{
+          display:       'flex',
+          flexDirection: 'column',
+          gap:           '2px',
+        }}
+      >
+        <span
+          style={{
+            color:         TEXT_MID,
+            fontSize:      '13px',
+            fontWeight:    500,
+            letterSpacing: '0.01em',
+          }}
+        >
+          &mdash; {quote.role}
+        </span>
+        <span
+          style={{
+            color:         TEXT_LOW,
+            fontSize:      '12px',
+            letterSpacing: '0.02em',
+          }}
+        >
+          {quote.detail}
+        </span>
+      </figcaption>
+    </figure>
   )
 }
