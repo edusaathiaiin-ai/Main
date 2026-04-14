@@ -26,7 +26,8 @@ export default function TeachLandingPage() {
   return (
     <main>
       <Hero />
-      {/* Future sections 2–6 land below this line */}
+      <Pillars />
+      {/* Future sections 3–6 land below this line */}
     </main>
   )
 }
@@ -170,5 +171,128 @@ function Hero() {
         }}
       />
     </section>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Section 2 — Three value pillars
+// ──────────────────────────────────────────────────────────────────────
+
+type Pillar = {
+  icon:  string
+  title: string
+  lines: string[]
+}
+
+const PILLARS: Pillar[] = [
+  {
+    icon:  '✦',
+    title: 'Teach on your terms',
+    lines: [
+      'Set your subject, fee, and availability.',
+      'Accept only the sessions that fit your schedule.',
+      'No minimum commitment.',
+    ],
+  },
+  {
+    icon:  '₹',
+    title: 'Earn from every session',
+    lines: [
+      '80% of every session fee goes directly to you.',
+      'Paid weekly — every Sunday, directly to your UPI.',
+    ],
+  },
+  {
+    icon:  '🎓',
+    title: 'Shape the next generation',
+    lines: [
+      'Your expertise — live, personal, remembered.',
+      'Not a recording. A real conversation that changes a student\u2019s trajectory.',
+    ],
+  },
+]
+
+function Pillars() {
+  return (
+    <section
+      style={{ paddingTop: '40px', paddingBottom: '120px' }}
+    >
+      <div
+        className="mx-auto px-6 md:px-10"
+        style={{ maxWidth: '1120px' }}
+      >
+        <div className="grid gap-6 md:gap-5 grid-cols-1 md:grid-cols-3">
+          {PILLARS.map((p) => (
+            <PillarCard key={p.title} pillar={p} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function PillarCard({ pillar }: { pillar: Pillar }) {
+  return (
+    <article
+      className="relative"
+      style={{
+        background:   'rgba(255, 255, 255, 0.02)',
+        border:       `1px solid rgba(201, 153, 58, 0.18)`,
+        borderRadius: '18px',
+        padding:      '32px 28px',
+        minHeight:    '260px',
+        display:      'flex',
+        flexDirection:'column',
+        gap:          '16px',
+      }}
+    >
+      {/* Icon — gold, generous size */}
+      <div
+        aria-hidden="true"
+        style={{
+          color:       GOLD,
+          fontSize:    '28px',
+          lineHeight:  1,
+          fontWeight:  500,
+          marginBottom:'4px',
+        }}
+      >
+        {pillar.icon}
+      </div>
+
+      {/* Title — Fraunces, warm */}
+      <h3
+        style={{
+          fontFamily:    'var(--font-teach-display), Georgia, serif',
+          color:         TEXT_HIGH,
+          fontSize:      '22px',
+          fontWeight:    500,
+          lineHeight:    1.25,
+          letterSpacing: '-0.01em',
+        }}
+      >
+        {pillar.title}
+      </h3>
+
+      {/* Body lines — each on its own, subtly spaced so the reader can
+          breathe. Final line gets slightly softer colour for hierarchy. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {pillar.lines.map((line, i) => {
+          const isLast = i === pillar.lines.length - 1
+          return (
+            <p
+              key={i}
+              style={{
+                color:      isLast && pillar.lines.length > 1 ? TEXT_LOW : TEXT_MID,
+                fontSize:   '14.5px',
+                lineHeight: 1.55,
+              }}
+            >
+              {line}
+            </p>
+          )
+        })}
+      </div>
+    </article>
   )
 }
