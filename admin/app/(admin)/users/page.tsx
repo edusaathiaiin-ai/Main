@@ -57,7 +57,7 @@ export default async function UsersPage({
   let query = admin
     .from('profiles')
     .select(
-      'id, full_name, email, role, primary_saathi_id, country_code, created_at, plan_id, subscription_status, verticals(slug)',
+      'id, full_name, email, role, primary_saathi_id, country_code, created_at, plan_id, subscription_status, verticals!profiles_primary_saathi_id_fkey(slug)',
       { count: 'exact' }
     )
     .order('created_at', { ascending: false })
@@ -73,7 +73,7 @@ export default async function UsersPage({
   // Per-Saathi counts for the filter pills
   const { data: saathiCounts } = await admin
     .from('profiles')
-    .select('primary_saathi_id, verticals(slug)')
+    .select('primary_saathi_id, verticals!profiles_primary_saathi_id_fkey(slug)')
     .not('primary_saathi_id', 'is', null)
 
   const countBySaathi: Record<string, number> = {}
