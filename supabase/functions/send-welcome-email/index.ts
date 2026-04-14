@@ -75,7 +75,7 @@ serve(async (req: Request) => {
     // ── Fetch profile + Saathi name ─────────────────────────────
     const { data: profile } = await admin
       .from('profiles')
-      .select('full_name, email, role, welcome_email_sent, primary_saathi_id, wa_phone, verticals(name)')
+      .select('full_name, email, role, welcome_email_sent, primary_saathi_id, wa_phone, verticals!profiles_primary_saathi_id_fkey(name)')
       .eq('id', userId)
       .single();
 
