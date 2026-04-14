@@ -38,6 +38,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Intelligence',
     items: [
       { href: '/saathi-stats',      label: 'Saathi Stats',      emoji: '📊' },
+      { href: '/horizons',          label: 'Horizons',          emoji: '🌅' },
       { href: '/nudge-centre',      label: 'Nudge Centre',      emoji: '🔔' },
       { href: '/fact-corrections',  label: 'Fact Corrections',  emoji: '🔬' },
       { href: '/platform-health',   label: 'Platform Health',   emoji: '⚙️' },

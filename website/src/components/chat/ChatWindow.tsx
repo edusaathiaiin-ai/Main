@@ -34,6 +34,7 @@ const CompanionshipCard     = dynamic(() => import('./CompanionshipCard').then(m
 const ConversionModal       = dynamic(() => import('./ConversionModal').then(m => ({ default: m.ConversionModal })), { ssr: false })
 const SuspensionScreen      = dynamic(() => import('./SuspensionScreen').then(m => ({ default: m.SuspensionScreen })), { ssr: false })
 const SaathiCommunityBanner = dynamic(() => import('./SaathiCommunityBanner').then(m => ({ default: m.SaathiCommunityBanner })), { ssr: false })
+const SaathiHorizon         = dynamic(() => import('./SaathiHorizon').then(m => ({ default: m.SaathiHorizon })), { ssr: false })
 const MobileNav             = dynamic(() => import('@/components/layout/MobileNav').then(m => ({ default: m.MobileNav })), { ssr: false })
 const UpgradeBanner         = dynamic(() => import('@/components/ui/UpgradeBanner').then(m => ({ default: m.UpgradeBanner })), { ssr: false })
 import type { UpgradeTrigger } from '@/components/ui/UpgradeBanner'
@@ -1005,6 +1006,14 @@ export function ChatWindow() {
             isLegalTheme={isLegalTheme}
           />
         )}
+
+        {/* Horizon — career pathways panel, always docked below the
+            input. Default collapsed on mobile, expanded on desktop. */}
+        <SaathiHorizon
+          saathiSlug={saathiId}
+          saathiName={activeSaathi.name}
+          onPromptSelect={handleStarterClick}
+        />
 
         {/* Post-first-chat WhatsApp nudge — renders only after a real
             exchange, never on empty chat. Self-hides if dismissed or linked. */}
