@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { ApplyForm } from '@/components/teach/ApplyForm'
 
 export const metadata: Metadata = {
   title:       'Teach on EdUsaathiAI — Faculty Partner Programme',
@@ -30,8 +31,58 @@ export default function TeachLandingPage() {
       <HowItWorks />
       <WhoTeachesHere />
       <ExpertiseBeyondSubject />
-      {/* Future section 6 (form) lands below this line and exposes id="apply" */}
+      <ApplySection />
     </main>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Section 6 — Application form (id="apply" so Section 5's anchor lands)
+// ──────────────────────────────────────────────────────────────────────
+
+function ApplySection() {
+  return (
+    <section
+      id="apply"
+      style={{ paddingTop: '100px', paddingBottom: '140px' }}
+    >
+      <div
+        className="mx-auto px-6 md:px-10"
+        style={{ maxWidth: '960px' }}
+      >
+        {/* Eyebrow */}
+        <p
+          className="uppercase"
+          style={{
+            color:         GOLD,
+            fontSize:      '11px',
+            letterSpacing: '0.24em',
+            fontWeight:    600,
+            marginBottom:  '18px',
+          }}
+        >
+          Apply to teach
+        </p>
+
+        {/* Section headline */}
+        <h2
+          style={{
+            fontFamily:    'var(--font-teach-display), Georgia, serif',
+            color:         TEXT_HIGH,
+            fontSize:      'clamp(28px, 4vw, 40px)',
+            fontWeight:    500,
+            lineHeight:    1.15,
+            letterSpacing: '-0.015em',
+            marginBottom:  '40px',
+            maxWidth:      '620px',
+          }}
+        >
+          Tell us who you are &mdash; and what you really know.
+        </h2>
+
+        <ApplyForm />
+      </div>
+    </section>
   )
 }
 
