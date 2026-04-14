@@ -16,6 +16,7 @@ type RoleContent = {
   cta: string
   ctaLink: string
   ctaColor: string
+  ctaTextColor?: string          // optional override; defaults to navy #0B1F3A
   note: string
   spotlightCard?: ReactNode
 }
@@ -167,8 +168,9 @@ const ROLE_CONTENT: Record<RoleId, RoleContent> = {
       'Retired? Our Emeritus programme welcomes you back to the classroom',
     ],
     cta: 'Join as Faculty — Start Earning →',
-    ctaLink: '/login?role=faculty',
-    ctaColor: '#4ADE80',
+    ctaLink: '/teach',
+    ctaColor: '#C9993A',
+    ctaTextColor: '#060F1D',
     note: 'Faculty badge verified within 48 hours.',
     spotlightCard: (
       <div
@@ -438,7 +440,7 @@ export function FourJourneysSection() {
                 alignItems: 'center',
                 gap: '8px',
                 background: content.ctaColor,
-                color: '#0B1F3A',
+                color: content.ctaTextColor ?? '#0B1F3A',
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: '15px',
                 fontWeight: '600',
