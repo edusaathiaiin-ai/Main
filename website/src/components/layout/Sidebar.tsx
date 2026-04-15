@@ -4,12 +4,8 @@ import { useState, useEffect } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { SaathiPointsBar } from '@/components/chat/SaathiPointsBar'
-import { CompanionshipCard } from '@/components/chat/CompanionshipCard'
 import { getPlanTier } from '@/constants/plans'
-import { toVerticalUuid } from '@/constants/verticalIds'
 import { createClient } from '@/lib/supabase/client'
-import { WorldEducationExplorerCTA } from '@/components/explore/WorldEducationExplorer'
 import { ExploreBeyond } from '@/components/chat/ExploreBeyond'
 import type { Saathi, Profile, QuotaState } from '@/types'
 
@@ -199,88 +195,26 @@ function UpgradePill({ sessionCount }: { sessionCount: number }) {
   )
 }
 
-// ─── Digest button ────────────────────────────────────────────────────────────
+// ─── Section helpers ─────────────────────────────────────────────────────────
 
-function DigestButton({
-  verticalId,
-  saathiName,
-}: {
-  verticalId:  string
-  saathiName:  string
-}) {
-  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
-
-  async function sendDigest() {
-    if (state === 'sending' || state === 'sent') return
-    setState('sending')
-    try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Not logged in')
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-session-digest`,
-        {
-          method:  'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization:  `Bearer ${session.access_token}`,
-            apikey:         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-          },
-          body: JSON.stringify({ verticalId }),
-        }
-      )
-      const data = await res.json()
-      if (!res.ok || data.sent === 0) {
-        setState('error')
-        setTimeout(() => setState('idle'), 3000)
-      } else {
-        setState('sent')
-        setTimeout(() => setState('idle'), 4000)
-      }
-    } catch {
-      setState('error')
-      setTimeout(() => setState('idle'), 3000)
-    }
-  }
-
-  const labels = {
-    idle:    `📧 Email today's ${saathiName} chat`,
-    sending: 'Sending…',
-    sent:    '✓ Digest sent to your email',
-    error:   'No session today — chat first',
-  }
-
+function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <button
-      onClick={sendDigest}
-      disabled={state === 'sending'}
-      style={{
-        display:      'flex',
-        alignItems:   'center',
-        gap:          '8px',
-        width:        '100%',
-        padding:      '11px 16px',
-        borderRadius: '0',
-        background:   'var(--saathi-bg)',
-        border:       'none',
-        borderTop:    '1px solid var(--saathi-border)',
-        borderBottom: '1px solid var(--saathi-border)',
-        color:        state === 'sent'    ? 'var(--success)'
-                    : state === 'error'   ? 'var(--error)'
-                    : state === 'sending' ? 'var(--text-ghost)'
-                    : 'var(--saathi-primary)',
-        fontSize:   'var(--text-sm)',
-        fontWeight: state === 'sent' ? 600 : 500,
-        cursor:     state === 'sending' ? 'not-allowed' : 'pointer',
-        transition: 'all 0.18s',
-        textAlign:  'left',
-        fontFamily: 'var(--font-body)',
-      }}
-    >
-      {labels[state]}
-    </button>
+    <p style={{
+      fontSize:       'var(--text-xs)',
+      fontWeight:     700,
+      letterSpacing:  '0.1em',
+      textTransform:  'uppercase',
+      color:          'var(--text-ghost)',
+      padding:        '10px 22px 4px',
+      margin:         0,
+    }}>
+      {children}
+    </p>
   )
+}
+
+function Divider() {
+  return <div style={{ height: '1px', background: 'var(--border-subtle)', margin: '6px 16px' }} />
 }
 
 // ─── Main sidebar ─────────────────────────────────────────────────────────────
@@ -292,31 +226,8 @@ export function Sidebar({
   onSignOut,
   sessionCount = 0,
 }: Props) {
-  const pathname     = usePathname()
-  const [bookmarkCount, setBookmarkCount] = useState(0)
-  const [horizonCount, setHorizonCount]   = useState(0)
+  const pathname = usePathname()
   const [exploreOpen, setExploreOpen] = useState(false)
-
-  useEffect(() => {
-    if (!profile) return
-    const supabase = createClient()
-    supabase
-      .from('faculty_bookmarks')
-      .select('id', { count: 'exact', head: true })
-      .eq('student_id', profile.id)
-      .then(({ count }) => setBookmarkCount(count ?? 0))
-  }, [profile])
-
-  useEffect(() => {
-    if (!activeSaathi?.id) return
-    const supabase = createClient()
-    supabase
-      .from('saathi_horizons')
-      .select('id', { count: 'exact', head: true })
-      .eq('saathi_slug', activeSaathi.id)
-      .eq('is_active', true)
-      .then(({ count }) => setHorizonCount(count ?? 0))
-  }, [activeSaathi?.id])
 
   return (
     <aside
@@ -354,260 +265,87 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Session digest — students only */}
-      {profile.role === 'student' && profile.primary_saathi_id && (
-        <DigestButton
-          verticalId={profile.primary_saathi_id}
-          saathiName={activeSaathi.name}
-        />
-      )}
-
-      {/* Saathi Points bar */}
-      <SaathiPointsBar
-        profile={profile}
-        primaryColor={activeSaathi.primary}
-      />
-
-      <div style={{ height: '6px' }} />
-
       {/* Scrollable zone */}
       <div className="flex-1 min-h-0 overflow-y-auto">
 
-        {/* Companionship card — students only */}
-        {profile.role === 'student' && toVerticalUuid(activeSaathi.id) && (
-          <div className="px-3 pt-2">
-            <CompanionshipCard
-              profile={profile}
-              verticalId={toVerticalUuid(activeSaathi.id)!}
-              location="sidebar"
-              primaryColor={activeSaathi.primary}
-            />
-          </div>
-        )}
-
-        {/* ── Primary nav ── */}
-        <nav style={{ padding: '8px 0' }}>
-          <ExpandableSidebarItem
-            id="chat"
-            icon="💬"
-            label="Chat"
-            href="/chat"
-            isActive={pathname === '/chat'}
-            accentColor="#C9993A"
-          />
-          <ExpandableSidebarItem
-            id="board"
-            icon="🏛️"
-            label="Board"
-            href="/board"
-            isActive={pathname === '/board'}
-            accentColor="#818CF8"
-          />
-          <ExpandableSidebarItem
-            id="news"
-            icon="📡"
-            label="News"
-            href="/news"
-            isActive={pathname === '/news'}
-            accentColor="#38BDF8"
-          />
-          <ExpandableSidebarItem
-            id="my-progress"
-            icon="📊"
-            label="My Progress"
-            href="/progress"
-            isActive={pathname === '/progress'}
-            accentColor="#34D399"
-          />
-          <ExpandableSidebarItem
-            id="your-horizon"
-            icon="✦"
-            iconClassName="horizon-breathe"
-            label="Your Horizon"
-            description={`What ${activeSaathi.name} students achieve`}
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent('horizon:open'))
-              const el = document.getElementById('saathi-horizon-panel')
-              el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-            }}
-            accentColor="var(--saathi-primary)"
-            badge={
-              horizonCount > 0 ? (
-                <span style={{
-                  fontSize:     'var(--text-xs)',
-                  fontWeight:   600,
-                  color:        'var(--saathi-primary)',
-                  flexShrink:   0,
-                  whiteSpace:   'nowrap',
-                }}>
-                  {horizonCount} paths →
-                </span>
-              ) : undefined
-            }
-          />
-          <ExpandableSidebarItem
-            id="flashcards"
-            icon="🃏"
-            label="Flashcards"
-            href="/flashcards"
-            isActive={pathname === '/flashcards'}
-            accentColor="#FBBF24"
-          />
-          <div>
-            <ExpandableSidebarItem
-              id="explore-beyond"
-              icon="🔭"
-              label="Explore Beyond"
-              onClick={() => setExploreOpen(p => !p)}
-              isActive={exploreOpen}
-              accentColor="#A78BFA"
-            />
-            <div style={{
-              maxHeight:  exploreOpen ? '600px' : '0px',
-              overflow:   'hidden',
-              transition: 'max-height 0.3s ease',
-            }}>
-              <ExploreBeyond saathiSlug={activeSaathi.id} />
-            </div>
-          </div>
-          <ExpandableSidebarItem
-            id="profile"
-            icon="⚙️"
-            label="Profile"
-            href="/profile"
-            isActive={pathname === '/profile'}
-            accentColor="#FB923C"
-          />
-        </nav>
-
-        <div style={{ height: '1px', background: 'var(--border-subtle)', margin: '4px 16px' }} />
-
-        {/* ── Student CTAs ── */}
-        {profile.role === 'student' && (
-          <>
-            <ExpandableSidebarItem
-              id="add-extra-saathi"
-              icon="✦"
-              label="Add Extra Saathi"
-              href="/profile?tab=profile#my-saathis"
-              accentColor="var(--saathi-primary)"
-              badge={
-                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-ghost)', flexShrink: 0 }}>
-                  ₹99/mo
-                </span>
-              }
-            />
-            <ExpandableSidebarItem
-              id="declare-what-you-want"
-              icon="🎯"
-              label="Declare What You Want"
-              href="/learn"
-              isActive={pathname === '/learn'}
-              accentColor="#4ADE80"
-            />
-            <ExpandableSidebarItem
-              id="internships-research"
-              icon="🎓"
-              label="Internships & Research"
-              href="/internships"
-              isActive={pathname === '/internships'}
-              accentColor="#818CF8"
-            />
-          </>
-        )}
-
-        {/* ── Faculty CTAs ── */}
-        {profile.role === 'faculty' && (
-          <ExpandableSidebarItem
-            id="research-interns"
-            icon="🔬"
-            label="Research Interns"
-            href="/faculty/research"
-            isActive={pathname === '/faculty/research'}
-            accentColor="#C084FC"
-          />
-        )}
-
-        {/* ── Shared CTAs ── */}
+        {/* ── YOUR BOARDS ── */}
+        <SectionLabel>Your Boards</SectionLabel>
         <ExpandableSidebarItem
-          id="faculty-finder"
-          icon="👨‍🏫"
-          label="Faculty Finder"
-          href="/faculty-finder"
-          isActive={pathname === '/faculty-finder'}
+          id="chat"
+          icon="💬"
+          label="General"
+          href="/chat"
+          isActive={pathname === '/chat'}
           accentColor="var(--saathi-primary)"
+          description="Chat with your Saathi. Ask anything — it remembers you."
         />
-
-        {bookmarkCount > 0 && (
+        <div style={{ opacity: 0.4, cursor: 'not-allowed' }}>
           <ExpandableSidebarItem
-            id="saved-faculty"
-            icon="🔖"
-            label="Saved Faculty"
-            href="/saved-faculty"
-            isActive={pathname === '/saved-faculty'}
-            accentColor="var(--saathi-primary)"
-            badge={
-              <span style={{
-                fontSize:     'var(--text-xs)',
-                fontWeight:   700,
-                minWidth:     '18px',
-                height:       '18px',
-                borderRadius: '9px',
-                background:   'var(--saathi-light)',
-                color:        'var(--saathi-primary)',
-                display:      'flex',
-                alignItems:   'center',
-                justifyContent: 'center',
-                padding:      '0 5px',
-                flexShrink:   0,
-                border:       '1px solid var(--saathi-border)',
-              }}>
-                {bookmarkCount}
-              </span>
-            }
+            id="new-board"
+            icon="+"
+            label="New Board"
+            description="Coming soon"
           />
-        )}
-
-        <ExpandableSidebarItem
-          id="live-sessions"
-          icon="🎙️"
-          label="Live Sessions"
-          href="/live"
-          isActive={pathname === '/live'}
-          accentColor="#DC2626"
-          badge={
-            <span style={{
-              width: 7, height: 7, borderRadius: '50%',
-              background: '#DC2626', flexShrink: 0,
-              animation: 'pulse 2s ease infinite',
-            }} />
-          }
-        />
-
-        <ExpandableSidebarItem
-          id="request-lecture"
-          icon="✉️"
-          label="Request a Lecture"
-          href="/requests"
-          isActive={pathname === '/requests'}
-          accentColor="var(--saathi-primary)"
-        />
-
-        <ExpandableSidebarItem
-          id="whatsapp-saathi"
-          icon="💚"
-          label="WhatsApp Saathi"
-          onClick={() => window.open(
-            `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER ?? '919XXXXXXXXX'}?text=Hi`,
-            '_blank'
-          )}
-          accentColor="#16A34A"
-        />
-
-        {/* World Education Explorer */}
-        <div style={{ margin: '4px 8px 8px' }}>
-          <WorldEducationExplorerCTA primaryColor={activeSaathi.primary} />
         </div>
+
+        <Divider />
+
+        {/* ── EXPLORE ── */}
+        <SectionLabel>Explore</SectionLabel>
+        <ExpandableSidebarItem
+          id="board"
+          icon="🌐"
+          label="Community Board"
+          href="/board"
+          isActive={pathname === '/board'}
+          accentColor="#818CF8"
+        />
+        <ExpandableSidebarItem
+          id="news"
+          icon="📰"
+          label="News"
+          href="/news"
+          isActive={pathname === '/news'}
+          accentColor="#38BDF8"
+        />
+        <div>
+          <ExpandableSidebarItem
+            id="explore-beyond"
+            icon="📚"
+            label="Explore Beyond"
+            onClick={() => setExploreOpen(p => !p)}
+            isActive={exploreOpen}
+            accentColor="#A78BFA"
+          />
+          <div style={{
+            maxHeight:  exploreOpen ? '600px' : '0px',
+            overflow:   'hidden',
+            transition: 'max-height 0.3s ease',
+          }}>
+            <ExploreBeyond saathiSlug={activeSaathi.id} />
+          </div>
+        </div>
+
+        <Divider />
+
+        {/* ── YOUR GROWTH ── */}
+        <SectionLabel>Your Growth</SectionLabel>
+        <ExpandableSidebarItem
+          id="my-progress"
+          icon="📊"
+          label="My Progress"
+          href="/progress"
+          isActive={pathname === '/progress'}
+          accentColor="#34D399"
+        />
+        <ExpandableSidebarItem
+          id="profile"
+          icon="👤"
+          label="Profile"
+          href="/profile"
+          isActive={pathname === '/profile'}
+          accentColor="#FB923C"
+        />
 
         {/* Upgrade pill — free plan only */}
         {getPlanTier(profile.plan_id) === 'free' && (
@@ -616,85 +354,52 @@ export function Sidebar({
 
       </div>{/* end scrollable zone */}
 
-      {/* Daily quota strip */}
-      <div style={{ padding: '8px 16px', borderTop: '1px solid var(--border-subtle)' }}>
+      {/* ── Footer: quota + streak + sign out ── */}
+      <div style={{ borderTop: '1px solid var(--border-subtle)', padding: '10px 16px 6px' }}>
         {quota.isCooling ? (
-          <p style={{ fontSize: 'var(--text-xs)', fontWeight: 500, color: 'var(--warning)', margin: 0 }}>
+          <p style={{ fontSize: 'var(--text-xs)', fontWeight: 500, color: 'var(--warning)', margin: '0 0 6px' }}>
             ☕ Cooling — chats resume soon
           </p>
         ) : (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
-              <span style={{
-                fontSize: 'var(--text-xs)', fontWeight: 600,
-                letterSpacing: '0.08em', textTransform: 'uppercase',
-                color: 'var(--text-ghost)',
-              }}>
-                Daily chats
-              </span>
-              <span style={{
-                fontSize: 'var(--text-xs)', fontWeight: 700,
-                color: quota.remaining === 0 ? 'var(--error)'
-                     : quota.remaining <= 3  ? 'var(--warning)'
-                     : 'var(--text-secondary)',
-              }}>
-                {quota.remaining} / {quota.limit} left
-              </span>
-            </div>
-            <div style={{ height: '4px', borderRadius: '100px', overflow: 'hidden', background: 'var(--bg-elevated)' }}>
-              <div style={{
-                height:       '100%',
-                borderRadius: '100px',
-                width:        `${(quota.remaining / quota.limit) * 100}%`,
-                background:   quota.remaining === 0 ? 'var(--error)'
-                            : quota.remaining <= 3  ? 'var(--warning)'
-                            : 'var(--saathi-primary)',
-                transition: 'width 0.4s ease',
-              }} />
-            </div>
-          </>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+            <span style={{ fontSize: 'var(--text-xs)' }}>💬</span>
+            <span style={{
+              fontSize: 'var(--text-xs)', fontWeight: 600,
+              color: quota.remaining === 0 ? 'var(--error)'
+                   : quota.remaining <= 3  ? 'var(--warning)'
+                   : 'var(--text-secondary)',
+            }}>
+              {quota.remaining} / {quota.limit} chats left today
+            </span>
+          </div>
         )}
-      </div>
-
-      {/* User footer */}
-      <div className="px-4 py-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-        <div className="mb-3 flex items-center gap-3">
-          <div
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold"
-            style={{ fontSize: 'var(--text-xs)', background: 'var(--saathi-primary)', color: '#FFFFFF' }}
-          >
-            {(profile.full_name ?? profile.email ?? 'U')[0].toUpperCase()}
+        {sessionCount > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <span style={{ fontSize: 'var(--text-xs)' }}>
+              {sessionCount >= 25 ? '🦋' : sessionCount >= 15 ? '💥' : sessionCount >= 8 ? '🔥' : '✨'}
+            </span>
+            <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Streak: {sessionCount} sessions
+            </span>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
-              {profile.full_name ?? 'User'}
-            </p>
-            <p className="truncate" style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-              {profile.plan_id} plan
-              {sessionCount >= 3 && (
-                <span style={{ marginLeft: '6px' }}>
-                  {sessionCount >= 25 ? '🦋' : sessionCount >= 15 ? '💥' : sessionCount >= 8 ? '🔥' : '✨'}
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
+        )}
         <button
           onClick={onSignOut}
-          className="w-full rounded-lg py-2 text-center font-medium transition-all duration-150"
+          className="w-full rounded-lg py-1.5 text-center transition-all duration-150"
           style={{
-            fontSize:   'var(--text-sm)',
-            color:      'var(--saathi-text)',
-            border:     '1px solid var(--saathi-border)',
-            background: 'var(--saathi-bg)',
+            fontSize:   'var(--text-xs)',
+            fontWeight: 500,
+            color:      'var(--text-tertiary)',
+            border:     '1px solid var(--border-subtle)',
+            background: 'transparent',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background    = 'var(--saathi-light)'
-            e.currentTarget.style.borderColor   = 'var(--saathi-mid)'
+            e.currentTarget.style.background  = 'var(--bg-elevated)'
+            e.currentTarget.style.borderColor = 'var(--border-medium)'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background    = 'var(--saathi-bg)'
-            e.currentTarget.style.borderColor   = 'var(--saathi-border)'
+            e.currentTarget.style.background  = 'transparent'
+            e.currentTarget.style.borderColor = 'var(--border-subtle)'
           }}
           aria-label="Sign out of EdUsaathiAI"
         >
