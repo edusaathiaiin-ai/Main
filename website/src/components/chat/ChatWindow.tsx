@@ -23,6 +23,7 @@ import { SaathiHeader } from './SaathiHeader'
 import { MessageBubble } from './MessageBubble'
 import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
+import { IceBreaker } from './IceBreaker'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
 import { FreePlanBar } from './FreePlanBar'
@@ -279,6 +280,7 @@ export function ChatWindow() {
   const [soulData, setSoulData] = useState<{
     sessionCount: number
     shellBroken: boolean
+    futureResearchArea: string | null
   } | null>(null)
   const [upgradeTrigger, setUpgradeTrigger] = useState<UpgradeTrigger | null>(
     null
@@ -517,7 +519,9 @@ export function ChatWindow() {
     const supabase = createClient()
     const { data } = await supabase
       .from('student_soul')
-      .select('display_name, last_session_summary, session_count, shell_broken')
+      .select(
+        'display_name, last_session_summary, session_count, shell_broken, future_research_area'
+      )
       .eq('user_id', userId)
       .eq('vertical_id', sid)
       .maybeSingle()
@@ -532,6 +536,10 @@ export function ChatWindow() {
     setSoulData({
       sessionCount: (data?.session_count as number) ?? 0,
       shellBroken: Boolean(data?.shell_broken),
+      futureResearchArea:
+        typeof data?.future_research_area === 'string'
+          ? data.future_research_area
+          : null,
     })
   }
 
@@ -909,6 +917,21 @@ export function ChatWindow() {
           <div style={{ position: 'relative', zIndex: 1 }}>
             {messages.length === 0 && !isStreaming ? (
               <>
+                {profile && (soulData?.sessionCount ?? 0) > 0 && (
+                  <IceBreaker
+                    saathi={activeSaathi}
+                    saathiSlug={saathiId}
+                    profile={profile}
+                    soul={
+                      soulData
+                        ? { future_research_area: soulData.futureResearchArea }
+                        : null
+                    }
+                    inputValue={inputValue}
+                    enabled={true}
+                    reduceMotion={reduceMotion}
+                  />
+                )}
                 <DidYouKnow
                   isLegalTheme={isLegalTheme}
                   primaryColor={activeSaathi.primary}
