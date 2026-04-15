@@ -1451,27 +1451,33 @@ async function streamClaudeWithStemFallback(
   controller: ReadableStreamDefaultController<Uint8Array>
 ): Promise<string> {
   // 1. Try Claude first (primary for STEM)
+  let startTime = Date.now();
   try {
     return await streamClaude(systemPrompt, messages, controller);
   } catch (claudeErr) {
-    console.warn(`[chat] Claude failed. Trying Gemini Flash…`);
+    const elapsed = Date.now() - startTime;
+    console.log(`[fallback] ${CLAUDE_MODEL} failed after ${elapsed}ms → trying ${GEMINI_MODEL}`);
   }
 
   // 2. Try Gemini Flash
   if (GEMINI_API_KEY) {
+    startTime = Date.now();
     try {
       return await streamGemini(systemPrompt, messages, controller);
     } catch {
-      console.warn(`[chat] Gemini failed. Trying xAI Grok…`);
+      const elapsed = Date.now() - startTime;
+      console.log(`[fallback] ${GEMINI_MODEL} failed after ${elapsed}ms → trying ${GROK_MODEL}`);
     }
   }
 
   // 3. Try xAI Grok
   if (GROK_API_KEY) {
+    startTime = Date.now();
     try {
       return await streamXaiGrok(systemPrompt, messages, controller);
     } catch {
-      console.warn(`[chat] xAI Grok failed. Emergency fallback to Groq…`);
+      const elapsed = Date.now() - startTime;
+      console.log(`[fallback] ${GROK_MODEL} failed after ${elapsed}ms → trying ${GROQ_MODEL}`);
     }
   }
 
@@ -1488,25 +1494,31 @@ async function streamGroqWithFallback(
   messages: MessageParam[],
   controller: ReadableStreamDefaultController<Uint8Array>
 ): Promise<string> {
+  let startTime = Date.now();
   try {
     return await streamGroq(systemPrompt, messages, controller);
   } catch (groqErr) {
-    console.warn(`[chat] Groq failed. Trying Gemini Flash…`);
+    let elapsed = Date.now() - startTime;
+    console.log(`[fallback] ${GROQ_MODEL} failed after ${elapsed}ms → trying ${GEMINI_MODEL}`);
 
     if (GEMINI_API_KEY) {
+      startTime = Date.now();
       try {
         return await streamGemini(systemPrompt, messages, controller);
       } catch {
-        console.warn(`[chat] Gemini failed. Trying xAI Grok…`);
+        elapsed = Date.now() - startTime;
+        console.log(`[fallback] ${GEMINI_MODEL} failed after ${elapsed}ms → trying ${GROK_MODEL}`);
       }
     }
 
     if (!GROK_API_KEY) throw groqErr;
+    startTime = Date.now();
     try {
       return await streamXaiGrok(systemPrompt, messages, controller);
     } catch {
       // xAI also failed (no credits, rate limit, etc.) — surface original Groq error
-      console.warn('[chat] xAI Grok failed. All fallbacks exhausted for non-STEM slot.');
+      elapsed = Date.now() - startTime;
+      console.log(`[fallback] ${GROK_MODEL} failed after ${elapsed}ms → all fallbacks exhausted for non-STEM slot`);
       throw groqErr;
     }
   }
@@ -1522,27 +1534,33 @@ async function streamGeminiWithFallback(
   controller: ReadableStreamDefaultController<Uint8Array>
 ): Promise<string> {
   // 1. Gemini primary
+  let startTime = Date.now();
   if (GEMINI_API_KEY) {
     try {
       return await streamGemini(systemPrompt, messages, controller);
     } catch {
-      console.warn('[chat] Gemini failed. Trying Claude…');
+      const elapsed = Date.now() - startTime;
+      console.log(`[fallback] ${GEMINI_MODEL} failed after ${elapsed}ms → trying ${CLAUDE_MODEL}`);
     }
   }
 
   // 2. Claude fallback
+  startTime = Date.now();
   try {
     return await streamClaude(systemPrompt, messages, controller);
   } catch {
-    console.warn('[chat] Claude failed. Trying xAI Grok…');
+    const elapsed = Date.now() - startTime;
+    console.log(`[fallback] ${CLAUDE_MODEL} failed after ${elapsed}ms → trying ${GROK_MODEL}`);
   }
 
   // 3. xAI Grok
   if (GROK_API_KEY) {
+    startTime = Date.now();
     try {
       return await streamXaiGrok(systemPrompt, messages, controller);
     } catch {
-      console.warn('[chat] xAI Grok failed. Emergency fallback to Groq…');
+      const elapsed = Date.now() - startTime;
+      console.log(`[fallback] ${GROK_MODEL} failed after ${elapsed}ms → trying ${GROQ_MODEL}`);
     }
   }
 
@@ -1606,8 +1624,31 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Shared rate limit — 60 requests per 60s window
-    const chatAllowed = await checkRateLimit('chat', user.id, 60, 60);
+    const userId = user.id;
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // ── Parallel pre-flight: rate limit, profile, body parse, suspension ────
+    // These 4 calls are independent after JWT verification — run concurrently.
+    type RequestBody = {
+      saathiId: string;
+      botSlot: number;
+      message: string;
+      history: MessageParam[];
+      imageBase64?: string;   // data URL — present when student uploads a sketch
+    };
+
+    const [chatAllowed, profileResult, body, suspension] = await Promise.all([
+      checkRateLimit('chat', userId, 60, 60),
+      admin
+        .from('profiles')
+        .select('role, is_geo_limited, plan_id, subscription_status, subscription_expires_at, created_at, primary_saathi_id')
+        .eq('id', userId)
+        .maybeSingle(),
+      req.json() as Promise<RequestBody>,
+      checkSuspension(admin, userId),
+    ]);
+
+    // ── Shared rate limit — 60 requests per 60s window ──────────────────────
     if (!chatAllowed) {
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded. Please slow down.' }),
@@ -1615,14 +1656,8 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const userId = user.id;
-    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    const { data: profile, error: profileError } = await admin
-      .from('profiles')
-      .select('role, is_geo_limited, plan_id, subscription_status, subscription_expires_at, created_at, primary_saathi_id')
-      .eq('id', userId)
-      .maybeSingle();
+    // ── Profile ─────────────────────────────────────────────────────────────
+    const { data: profile, error: profileError } = profileResult;
 
     if (profileError) {
       return new Response(JSON.stringify({ error: 'Failed to load profile' }), {
@@ -1658,14 +1693,7 @@ Deno.serve(async (req: Request) => {
         : GEO_LIMITED_CHAT_RATE_MAX_REQUESTS
       : CHAT_RATE_MAX_REQUESTS;
 
-    type RequestBody = {
-      saathiId: string;
-      botSlot: number;
-      message: string;
-      history: MessageParam[];
-      imageBase64?: string;   // data URL — present when student uploads a sketch
-    };
-    const body = (await req.json()) as RequestBody;
+    // ── Request body ────────────────────────────────────────────────────────
     const { saathiId, botSlot, message, history, imageBase64 } = body;
 
     if (!saathiId || !botSlot || !message) {
@@ -1689,7 +1717,6 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── Suspension check: block suspended/banned users ──────────────────────
-    const suspension = await checkSuspension(admin, userId);
     if (suspension.isSuspended) {
       const suspMsg = suspension.isBanned
         ? 'Your account has been permanently suspended due to serious policy violations. Contact support@edusaathiai.in'
@@ -1720,6 +1747,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // ── Upstash rate limit (depends on profile for rateMax) ─────────────────
     const rateKey = `rate:chat:${userId}`;
     const allowedByRateLimit = await checkUpstashRateLimit(rateKey, rateMax);
     if (!allowedByRateLimit) {
@@ -1877,8 +1905,18 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Build personalised system prompt (server-side only)
-    const baseSystemPrompt = await buildSystemPrompt(admin, userId, verticalId, botSlot, verticalSlug);
+    // ── Build system prompt + fetch fact corrections in parallel ───────────
+    // Both depend on verticalId but not on each other.
+    const [baseSystemPrompt, { data: corrections }] = await Promise.all([
+      buildSystemPrompt(admin, userId, verticalId, botSlot, verticalSlug),
+      admin
+        .from('fact_corrections')
+        .select('wrong_claim, correct_claim, topic')
+        .eq('vertical_id', verticalId)
+        .eq('status', 'verified')
+        .order('verified_at', { ascending: false })
+        .limit(20),
+    ]);
 
     // Personality mode — consistent historical figure per session (bot slot 1 only)
     let personality = null as ReturnType<typeof getRandomPersonality>;
@@ -1922,15 +1960,6 @@ Deno.serve(async (req: Request) => {
       : baseSystemPrompt;
 
     let systemPrompt = personalityPrefix + resolvedBase;
-
-    // ── Inject verified factual corrections (prepend, highest priority) ─────────
-    const { data: corrections } = await admin
-      .from('fact_corrections')
-      .select('wrong_claim, correct_claim, topic')
-      .eq('vertical_id', verticalId)
-      .eq('status', 'verified')
-      .order('verified_at', { ascending: false })
-      .limit(20);
 
     if (corrections?.length) {
       const correctionBlock = [
