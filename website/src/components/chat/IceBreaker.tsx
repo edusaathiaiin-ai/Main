@@ -11,12 +11,11 @@ import {
 } from '@/lib/profileCompleteness'
 import {
   daysUntilExam,
-  humanizeTimeToGo,
-  getTopicCoverage,
-  shouldShowCountdown,
-  getExamById,
-  type TopicCoverage,
+  getExamPhase,
+  getPhaseMessage,
+  getTopicDelta,
 } from '@/lib/examCountdown'
+import { getExamById } from '@/constants/exams'
 
 // ─── Subject family per Saathi ───────────────────────────────────────────
 // Used in the "What's on your mind about <subject> lately?" line.
@@ -66,10 +65,10 @@ type ComposerInput = {
   subject:      string
   variant:      ToneVariant
   examInfo:     {
-    name:      string
-    days:      number
-    humanized: string
-    coverage:  TopicCoverage
+    name:         string
+    days:         number
+    phaseMessage: string
+    coverage:     { covered: string[]; notTouched: string[] }
   } | null
 }
 
@@ -113,12 +112,11 @@ function composeParagraphs(ctx: ComposerInput): Paragraph[] {
   // 4b. Exam-aware paragraph — slots in BEFORE the opening question so the
   // Saathi naturally references the countdown, then asks what to focus on.
   if (ctx.examInfo) {
-    const { name, humanized, coverage } = ctx.examInfo
-    let examLine = `Your ${name} is ${humanized}.`
+    const { phaseMessage, coverage } = ctx.examInfo
+    let examLine = phaseMessage
     if (coverage.covered.length > 0 && coverage.notTouched.length > 0) {
       examLine += ` We're on track with ${coverage.covered[0]}, but we haven't touched ${coverage.notTouched[0]} yet.`
     } else if (coverage.notTouched.length > 0 && coverage.covered.length === 0) {
-      // Nothing covered yet — gentle nudge toward a starting topic
       examLine += ` Want to start with ${coverage.notTouched[0]}?`
     }
     paragraphs.push({ text: examLine })
@@ -296,16 +294,18 @@ export function IceBreaker({
   // Build examInfo if the student has a canonical exam target within range.
   const examInfo = (() => {
     const examId = profile.exam_target_id?.trim()
-    if (!examId || !shouldShowCountdown(examId)) return null
+    if (!examId) return null
     const exam = getExamById(examId)
     if (!exam) return null
-    const days = daysUntilExam(examId)
-    if (days === null) return null
-    const coverage = getTopicCoverage(exam, soul?.top_topics)
+    const days = daysUntilExam(exam.next_date)
+    if (days < 1 || days > 365) return null
+    const phase = getExamPhase(days)
+    const phaseMessage = getPhaseMessage(phase, exam.name, days)
+    const coverage = getTopicDelta(soul?.top_topics ?? [], exam.syllabus_topics)
     return {
-      name:      exam.name,
+      name: exam.name,
       days,
-      humanized: humanizeTimeToGo(days),
+      phaseMessage,
       coverage,
     }
   })()
