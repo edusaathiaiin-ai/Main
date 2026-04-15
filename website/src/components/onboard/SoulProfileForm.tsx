@@ -74,12 +74,9 @@ const CITIES = [
   'Other',
 ]
 
-// Sourced from canonical EXAM_REGISTRY (constants/exams.ts).
-// Add { id: null } as the "no specific exam" sentinel.
-const EXAM_OPTIONS: ReadonlyArray<{ id: string | null; name: string }> = [
-  ...EXAM_REGISTRY.map((e) => ({ id: e.id, name: e.name })),
-  { id: null, name: 'None' },
-]
+// Exam target selection moved to its own onboarding step. Kept the
+// EXAM_REGISTRY import because the initialiser below still derives the
+// canonical id from any free-text value inherited from earlier steps.
 
 const LEARNING_STYLES = [
   {
@@ -674,13 +671,14 @@ export function SoulProfileForm({
   const [parseConfirmed, setParseConfirmed] = useState<boolean | null>(null) // null=not asked, true=yes, false=rejected
   const [currentSubjects, setCurrentSubjects] = useState<string[]>([])
   const [interestAreas, setInterestAreas] = useState<string[]>([])
-  const [examTarget, setExamTarget] = useState(examTargetFromLevel ?? 'None')
-  const [examTargetId, setExamTargetId] = useState<string | null>(() => {
+  // Seeded from the dedicated exam step; the form itself no longer edits these.
+  const examTarget = examTargetFromLevel ?? 'None'
+  const examTargetId = (() => {
     const match = EXAM_REGISTRY.find(
       (e) => e.name.toLowerCase() === (examTargetFromLevel ?? '').toLowerCase()
     )
     return match?.id ?? null
-  })
+  })()
   const [learningStyle, setLearningStyle] = useState('')
   const [dream, setDream] = useState('')
   const [nudgePreference, setNudgePreference] = useState(true)
@@ -1355,76 +1353,7 @@ export function SoulProfileForm({
             allowCustom
           />
 
-          {/* Field 6: Exam target */}
-          <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '16px',
-                fontWeight: 600,
-                color: '#fff',
-                marginBottom: '4px',
-                fontFamily: 'var(--font-playfair, serif)',
-              }}
-            >
-              Are you preparing for any exam?
-            </label>
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-                marginTop: '12px',
-              }}
-            >
-              {EXAM_OPTIONS.map((opt) => {
-                const active = examTarget === opt.name
-                return (
-                  <motion.button
-                    key={opt.name}
-                    type="button"
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      if (active) {
-                        setExamTarget('None')
-                        setExamTargetId(null)
-                      } else {
-                        setExamTarget(opt.name)
-                        setExamTargetId(opt.id)
-                      }
-                    }}
-                    style={{
-                      padding: '8px 18px',
-                      borderRadius: '100px',
-                      fontSize: '13px',
-                      fontWeight: active ? 600 : 400,
-                      background: active
-                        ? primaryColor
-                        : 'rgba(255,255,255,0.05)',
-                      color: active ? '#060F1D' : 'rgba(255,255,255,0.7)',
-                      border: active
-                        ? 'none'
-                        : '0.5px solid rgba(255,255,255,0.12)',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {opt.name}
-                  </motion.button>
-                )
-              })}
-            </div>
-            <p
-              style={{
-                fontSize: '11px',
-                color: 'rgba(255,255,255,0.3)',
-                marginTop: '8px',
-              }}
-            >
-              Select if relevant — helps your Saathi prepare you for your
-              specific exam
-            </p>
-          </div>
+          {/* Field 6 removed — exam target is now a dedicated onboarding step */}
 
           <SectionDivider
             number="Your mind"

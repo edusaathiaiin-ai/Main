@@ -9,19 +9,9 @@ import { useAuthStore } from '@/stores/authStore'
 import { useChatStore } from '@/stores/chatStore'
 import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete'
 import { validateDisplayName } from '@/lib/validation/nameValidation'
+import { ExamPicker, type ExamPickerValue } from '@/components/shared/ExamPicker'
+import { EXAM_REGISTRY } from '@/constants/exams'
 import type { Profile, Saathi } from '@/types'
-
-const EXAM_TARGETS = [
-  'UPSC',
-  'GATE',
-  'NEET',
-  'CA',
-  'CLAT',
-  'NET',
-  'JEE',
-  'Bar Exam',
-  'None',
-]
 const ACADEMIC_LEVELS = [
   { value: 'diploma', label: '📜 Diploma / Certificate' },
   { value: 'bachelor', label: "🎓 Bachelor's Degree" },
@@ -83,7 +73,16 @@ export default function ProfileTab({
   const [academicLevel, setAcademicLevel] = useState(
     soul?.academic_level ?? 'bachelor'
   )
-  const [examTarget, setExamTarget] = useState(profile.exam_target ?? '')
+  const [examPickerValue, setExamPickerValue] = useState<ExamPickerValue>(() => {
+    const existingId = profile.exam_target_id ?? null
+    const existingText = profile.exam_target ?? ''
+    if (existingId) {
+      const match = EXAM_REGISTRY.find((e) => e.id === existingId)
+      return { examId: existingId, examName: match?.name ?? existingText }
+    }
+    return { examId: null, examName: existingText }
+  })
+  const examTarget = examPickerValue.examName.trim()
   const [learningStyle, setLearningStyle] = useState<string>('')
   const [researchArea, setResearchArea] = useState(
     soul?.future_research_area ?? ''
@@ -253,6 +252,17 @@ export default function ProfileTab({
     setSaving(true)
     try {
       const supabase = createClient()
+      const examYear = examPickerValue.examId
+        ? (() => {
+            const exam = EXAM_REGISTRY.find((e) => e.id === examPickerValue.examId)
+            if (!exam) return null
+            const d = new Date(exam.next_date + 'T00:00:00Z')
+            return d.getTime() < Date.now()
+              ? d.getUTCFullYear() + 1
+              : d.getUTCFullYear()
+          })()
+        : null
+
       await supabase
         .from('profiles')
         .update({
@@ -260,6 +270,8 @@ export default function ProfileTab({
           city: city.trim().slice(0, 100) || null,
           institution_name: institution.trim().slice(0, 200) || null,
           exam_target: examTarget || null,
+          exam_target_id: examPickerValue.examId,
+          exam_target_year: examYear,
         })
         .eq('id', profile.id)
 
@@ -1083,27 +1095,12 @@ export default function ProfileTab({
           >
             Exam target
           </label>
-          <div className="flex flex-wrap gap-2">
-            {EXAM_TARGETS.map((exam) => {
-              const active = examTarget === exam
-              return (
-                <button
-                  key={exam}
-                  onClick={() => setExamTarget(active ? '' : exam)}
-                  className="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all"
-                  style={{
-                    background: active
-                      ? 'rgba(201,153,58,0.2)'
-                      : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${active ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
-                    color: active ? '#C9993A' : 'rgba(255,255,255,0.5)',
-                  }}
-                >
-                  {exam}
-                </button>
-              )
-            })}
-          </div>
+          <ExamPicker
+            saathiSlug={toSlug(profile.primary_saathi_id) ?? undefined}
+            value={examPickerValue}
+            onChange={setExamPickerValue}
+            theme="dark"
+          />
         </div>
       </section>
 

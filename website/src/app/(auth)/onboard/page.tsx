@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { SAATHIS } from '@/constants/saathis'
 import { SLUG_TO_UUID, toSlug } from '@/constants/verticalIds'
 import { EXAM_REGISTRY } from '@/constants/exams'
+import { ExamPicker, type ExamPickerValue } from '@/components/shared/ExamPicker'
 import { useAuthStore } from '@/stores/authStore'
 import { trackSaathiSelected } from '@/lib/analytics'
 import {
@@ -30,7 +31,7 @@ import { FacultyOnboardFlow } from '@/components/onboard/FacultyOnboardFlow'
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type DbUserRole = 'student' | 'faculty' | 'public' | 'institution'
-type OnboardStep = 'loading' | 'role_extra' | 'academic' | 'saathi' | 'profile' | 'name'
+type OnboardStep = 'loading' | 'role_extra' | 'academic' | 'saathi' | 'exam' | 'profile' | 'name'
 
 type MinProfile = {
   id: string
@@ -121,9 +122,10 @@ function StepIndicator({ step }: { step: OnboardStep }) {
   const steps: Exclude<OnboardStep, 'loading'>[] = [
     'academic',
     'saathi',
+    'exam',
     'profile',
   ]
-  const labels = ['Academic Level', 'Your Saathi', 'Your Profile']
+  const labels = ['Academic Level', 'Your Saathi', 'Your Exam', 'Your Profile']
   const currentIdx = steps.indexOf(step as Exclude<OnboardStep, 'loading'>)
   return (
     <div className="flex items-center gap-2">
@@ -599,6 +601,105 @@ function SaathiStep({
           </p>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ── Exam Step — optional, after Saathi selection, before full profile ─────────
+
+function ExamStep({
+  saathiSlug,
+  value,
+  onChange,
+  onContinue,
+  onSkip,
+  onBack,
+  saving,
+}: {
+  saathiSlug: string | null
+  value: ExamPickerValue
+  onChange: (v: ExamPickerValue) => void
+  onContinue: () => void
+  onSkip: () => void
+  onBack: () => void
+  saving: boolean
+}) {
+  const hasSelection =
+    value.examId !== null || value.examName.trim().length > 0
+
+  return (
+    <div className="mx-auto max-w-xl px-4 py-10 sm:py-16">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
+        <h1
+          className="font-playfair mb-2 text-2xl font-bold text-white sm:text-3xl"
+          style={{ lineHeight: 1.25 }}
+        >
+          Are you preparing for a specific exam?
+        </h1>
+        <p
+          className="mb-8 text-sm"
+          style={{ color: 'rgba(255,255,255,0.55)' }}
+        >
+          Optional — pick if it applies, otherwise skip. You can always add this
+          later from your profile.
+        </p>
+
+        <ExamPicker
+          saathiSlug={saathiSlug ?? undefined}
+          value={value}
+          onChange={onChange}
+          theme="dark"
+        />
+
+        <div className="mt-10 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="button"
+            onClick={onBack}
+            disabled={saving}
+            className="rounded-xl px-5 py-3 text-sm font-medium transition-colors"
+            style={{
+              color: 'rgba(255,255,255,0.5)',
+              background: 'transparent',
+              border: '0.5px solid rgba(255,255,255,0.12)',
+            }}
+          >
+            ← Back
+          </button>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={onSkip}
+              disabled={saving}
+              className="rounded-xl px-5 py-3 text-sm font-medium transition-colors"
+              style={{
+                color: 'rgba(255,255,255,0.5)',
+                background: 'transparent',
+                border: '0.5px solid rgba(255,255,255,0.12)',
+              }}
+            >
+              Skip for now
+            </button>
+            <button
+              type="button"
+              onClick={onContinue}
+              disabled={saving || !hasSelection}
+              className="rounded-xl px-6 py-3 text-sm font-semibold transition-all"
+              style={{
+                background: hasSelection ? '#C9993A' : 'rgba(201,153,58,0.2)',
+                color: hasSelection ? '#060F1D' : 'rgba(201,153,58,0.5)',
+                cursor: hasSelection ? 'pointer' : 'not-allowed',
+              }}
+            >
+              {saving ? 'Saving…' : 'Continue →'}
+            </button>
+          </div>
+        </div>
+      </motion.div>
     </div>
   )
 }
@@ -1145,6 +1246,10 @@ function OnboardInner() {
   const [examTargetFromLevel, setExamTargetFromLevel] = useState<string | null>(
     null
   )
+  const [examPickerValue, setExamPickerValue] = useState<ExamPickerValue>({
+    examId: null,
+    examName: '',
+  })
 
   // Faculty-specific state
   const [facultyDesignation, setFacultyDesignation] = useState('')
@@ -1376,6 +1481,47 @@ function OnboardInner() {
       .eq('id', profile!.id)
     setLocalProfile((p) => (p ? { ...p, primary_saathi_id: uuid } : p))
     trackSaathiSelected(saathiId, true)
+    setSaving(false)
+    setStep('exam')
+  }
+
+  // ── Step 1b: Exam target (optional) ────────────────────────────────────────
+  async function handleExam(value: ExamPickerValue | null) {
+    setSaving(true)
+    const supabase = createClient()
+
+    if (value === null) {
+      // Student skipped — no DB write. Move on.
+      setSaving(false)
+      setStep('profile')
+      return
+    }
+
+    const examName = value.examName.trim()
+    const exam = value.examId
+      ? EXAM_REGISTRY.find((e) => e.id === value.examId)
+      : null
+    const year = exam
+      ? (() => {
+          const examDate = new Date(exam.next_date + 'T00:00:00Z')
+          return examDate.getTime() < Date.now()
+            ? examDate.getUTCFullYear() + 1
+            : examDate.getUTCFullYear()
+        })()
+      : null
+
+    await supabase
+      .from('profiles')
+      .update({
+        exam_target: examName || null,
+        exam_target_id: value.examId,
+        exam_target_year: year,
+      })
+      .eq('id', profile!.id)
+
+    // Seed the downstream profile form so completeness reflects it.
+    setExamTargetFromLevel(examName || null)
+    setExamPickerValue(value)
     setSaving(false)
     setStep('profile')
   }
@@ -1653,6 +1799,8 @@ function OnboardInner() {
 
   function goBack() {
     if (step === 'profile') {
+      setStep('exam')
+    } else if (step === 'exam') {
       setStep('saathi')
     } else if (step === 'saathi') {
       const skipAcademic = urlRole === 'faculty' || urlRole === 'institution'
@@ -1777,6 +1925,25 @@ function OnboardInner() {
             >
               <SaathiStep
                 onContinue={handleSaathi}
+                onBack={goBack}
+                saving={saving}
+              />
+            </motion.div>
+          )}
+          {step === 'exam' && (
+            <motion.div
+              key="exam"
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+            >
+              <ExamStep
+                saathiSlug={toSlug(profile?.primary_saathi_id) ?? null}
+                value={examPickerValue}
+                onChange={setExamPickerValue}
+                onContinue={() => handleExam(examPickerValue)}
+                onSkip={() => handleExam(null)}
                 onBack={goBack}
                 saving={saving}
               />
