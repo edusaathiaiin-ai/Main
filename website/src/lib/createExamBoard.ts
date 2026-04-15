@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { EXAM_REGISTRY } from '@/constants/exams'
+import { trackChatboardCreated } from '@/lib/analytics'
 
 // Idempotent — creates a pinned exam Board if and only if the student
 // doesn't already have one for this (user × Saathi × exam). Safe to call
@@ -36,7 +37,7 @@ export async function createExamBoardIfMissing(
 
   const year = examTargetYear ?? new Date().getFullYear() + 1
 
-  await supabase.from('chatboards').insert({
+  const { error } = await supabase.from('chatboards').insert({
     user_id:         userId,
     saathi_slug:     saathiSlug,
     name:            `${exam.name} ${year} Prep`,
@@ -47,4 +48,8 @@ export async function createExamBoardIfMissing(
     is_pinned:       true,
     position:        -1,
   })
+
+  if (!error) {
+    trackChatboardCreated('exam', saathiSlug, /* is_auto_created */ true)
+  }
 }

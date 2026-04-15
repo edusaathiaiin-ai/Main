@@ -123,3 +123,36 @@ export function trackErrorReported(
     surface: opts.surface,
   })
 }
+
+// ─── Boards (Saathi Workspaces) ──────────────────────────────────────────────
+
+export type BoardType = 'general' | 'subject' | 'exam' | 'project'
+
+export function trackChatboardCreated(
+  board_type: BoardType,
+  saathi_slug: string,
+  is_auto_created: boolean,
+) {
+  capture('chatboard_created', {
+    board_type,
+    saathi_slug,
+    is_exam_board: board_type === 'exam',
+    is_auto_created,
+  })
+}
+
+export function trackChatboardRenamed(saathi_slug: string) {
+  capture('chatboard_renamed', { saathi_slug })
+}
+
+export function trackChatboardArchived(message_count: number, age_days: number) {
+  capture('chatboard_archived', { message_count, age_days })
+}
+
+export function trackMultipaneActivated(plan_id: string | null | undefined) {
+  capture('multipane_activated', { plan_id: plan_id ?? 'unknown' })
+}
+
+export function trackChatboardSwitched(from_type: BoardType, to_type: BoardType) {
+  capture('chatboard_switched', { from_type, to_type })
+}

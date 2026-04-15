@@ -21,6 +21,7 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { EXAM_REGISTRY, inferExamYear, inferExamDate } from '../_shared/examRegistry.ts';
+import { posthogCapture } from '../_shared/posthog.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -201,7 +202,7 @@ serve(async (req: Request) => {
                 .maybeSingle();
               if (!existing) {
                 const effectiveYear = year ?? new Date().getFullYear() + 1;
-                await admin.from('chatboards').insert({
+                const { error: insertError } = await admin.from('chatboards').insert({
                   user_id:         userId,
                   saathi_slug:     saathiSlug,
                   name:            `${exam.name} ${effectiveYear} Prep`,
@@ -212,6 +213,14 @@ serve(async (req: Request) => {
                   is_pinned:       true,
                   position:        -1,
                 });
+                if (!insertError) {
+                  await posthogCapture(userId, 'chatboard_created', {
+                    board_type:      'exam',
+                    saathi_slug:     saathiSlug,
+                    is_exam_board:   true,
+                    is_auto_created: true,
+                  });
+                }
               }
             }
           }

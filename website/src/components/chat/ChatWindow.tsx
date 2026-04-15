@@ -16,7 +16,7 @@ import { todayIST } from '@/lib/quota'
 import { getSaathiTheme } from '@/lib/saathiThemes'
 import { useThemeStore } from '@/stores/themeStore'
 import { useFontStore, getChatFontStyle } from '@/stores/fontStore'
-import { trackChatSent } from '@/lib/analytics'
+import { trackChatSent, trackMultipaneActivated } from '@/lib/analytics'
 // ── Always-visible — eager ────────────────────────────────────────────────────
 import { ChatWatermark } from './ChatWatermark'
 import { SaathiHeader } from './SaathiHeader'
@@ -848,7 +848,13 @@ export function ChatWindow() {
           >
             <button
               type="button"
-              onClick={() => setSplitView((v) => !v)}
+              onClick={() =>
+                setSplitView((v) => {
+                  const next = !v
+                  if (next) trackMultipaneActivated(profile.plan_id)
+                  return next
+                })
+              }
               aria-pressed={splitView}
               title={splitView ? 'Exit Split View' : 'Open Split View'}
               className="rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors"
