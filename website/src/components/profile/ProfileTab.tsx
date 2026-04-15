@@ -11,6 +11,7 @@ import CollegeAutocomplete from '@/components/ui/CollegeAutocomplete'
 import { validateDisplayName } from '@/lib/validation/nameValidation'
 import { ExamPicker, type ExamPickerValue } from '@/components/shared/ExamPicker'
 import { EXAM_REGISTRY } from '@/constants/exams'
+import { inferExamDate } from '@/lib/examCountdown'
 import type { Profile, Saathi } from '@/types'
 const ACADEMIC_LEVELS = [
   { value: 'diploma', label: '📜 Diploma / Certificate' },
@@ -272,6 +273,9 @@ export default function ProfileTab({
           exam_target: examTarget || null,
           exam_target_id: examPickerValue.examId,
           exam_target_year: examYear,
+          exam_target_date: examPickerValue.examId
+            ? inferExamDate(examPickerValue.examId)
+            : null,
         })
         .eq('id', profile.id)
 

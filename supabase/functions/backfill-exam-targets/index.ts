@@ -20,7 +20,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
-import { EXAM_REGISTRY, inferExamYear } from '../_shared/examRegistry.ts';
+import { EXAM_REGISTRY, inferExamYear, inferExamDate } from '../_shared/examRegistry.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -163,11 +163,13 @@ serve(async (req: Request) => {
           continue;
         }
         const year = inferExamYear(result.id);
+        const date = inferExamDate(result.id);
         const { error: updateError } = await admin
           .from('profiles')
           .update({
             exam_target_id:   result.id,
             exam_target_year: year,
+            exam_target_date: date,
           })
           .eq('id', userId);
         if (updateError) {

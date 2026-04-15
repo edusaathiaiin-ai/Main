@@ -207,6 +207,17 @@ export function inferExamYear(examId: string, now: Date = new Date()): number | 
     : examDate.getUTCFullYear();
 }
 
+// Auto-populated sitting date for a canonical exam — uses registry next_date,
+// bumps to the following year if that date has already passed. Returns null
+// if the id isn't in the registry.
+export function inferExamDate(examId: string, now: Date = new Date()): string | null {
+  const exam = getExamById(examId);
+  if (!exam) return null;
+  const examDate = new Date(exam.next_date + 'T00:00:00Z');
+  if (examDate.getTime() >= now.getTime()) return exam.next_date;
+  return `${examDate.getUTCFullYear() + 1}-${exam.next_date.slice(5)}`;
+}
+
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 
 // Takes a date string directly (ISO YYYY-MM-DD). Mirrors the web util

@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { SAATHIS } from '@/constants/saathis'
 import { SLUG_TO_UUID, toSlug } from '@/constants/verticalIds'
 import { EXAM_REGISTRY } from '@/constants/exams'
+import { inferExamDate } from '@/lib/examCountdown'
 import { ExamPicker, type ExamPickerValue } from '@/components/shared/ExamPicker'
 import { useAuthStore } from '@/stores/authStore'
 import { trackSaathiSelected } from '@/lib/analytics'
@@ -1516,6 +1517,7 @@ function OnboardInner() {
         exam_target: examName || null,
         exam_target_id: value.examId,
         exam_target_year: year,
+        exam_target_date: value.examId ? inferExamDate(value.examId) : null,
       })
       .eq('id', profile!.id)
 

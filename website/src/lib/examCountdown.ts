@@ -75,5 +75,19 @@ export function getTopicDelta(
   return { covered, notTouched }
 }
 
+// Auto-populated sitting date for a canonical exam — uses registry's
+// next_date, bumps to the following year if that date has already passed.
+// Returns null if the id isn't in the registry. Caller writes this to
+// profiles.exam_target_date when the student picks (or is classified into)
+// an exam without supplying their own sitting date.
+export function inferExamDate(examId: string): string | null {
+  const exam = EXAM_REGISTRY.find((e) => e.id === examId)
+  if (!exam) return null
+  const examDate = new Date(exam.next_date + 'T00:00:00Z')
+  if (examDate.getTime() >= Date.now()) return exam.next_date
+  // Past — bump year, keep month-day from next_date string.
+  return `${examDate.getUTCFullYear() + 1}-${exam.next_date.slice(5)}`
+}
+
 // Re-export so a single import covers util + registry types for consumers.
 export { EXAM_REGISTRY, type ExamEntry }
