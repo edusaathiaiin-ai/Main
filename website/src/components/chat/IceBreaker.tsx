@@ -9,6 +9,14 @@ import {
   type CompletenessProfile,
   type CompletenessSoul,
 } from '@/lib/profileCompleteness'
+import {
+  daysUntilExam,
+  humanizeTimeToGo,
+  getTopicCoverage,
+  shouldShowCountdown,
+  getExamById,
+  type TopicCoverage,
+} from '@/lib/examCountdown'
 
 // ─── Subject family per Saathi ───────────────────────────────────────────
 // Used in the "What's on your mind about <subject> lately?" line.
@@ -57,6 +65,12 @@ type ComposerInput = {
   saathiName:   string
   subject:      string
   variant:      ToneVariant
+  examInfo:     {
+    name:      string
+    days:      number
+    humanized: string
+    coverage:  TopicCoverage
+  } | null
 }
 
 type Paragraph = { text: string; emphasis?: 'header' | 'body' | 'closing' | 'nudge' }
@@ -95,6 +109,20 @@ function composeParagraphs(ctx: ComposerInput): Paragraph[] {
   paragraphs.push({
     text: `You don't need to know what to ask yet. That's my job.`,
   })
+
+  // 4b. Exam-aware paragraph — slots in BEFORE the opening question so the
+  // Saathi naturally references the countdown, then asks what to focus on.
+  if (ctx.examInfo) {
+    const { name, humanized, coverage } = ctx.examInfo
+    let examLine = `Your ${name} is ${humanized}.`
+    if (coverage.covered.length > 0 && coverage.notTouched.length > 0) {
+      examLine += ` We're on track with ${coverage.covered[0]}, but we haven't touched ${coverage.notTouched[0]} yet.`
+    } else if (coverage.notTouched.length > 0 && coverage.covered.length === 0) {
+      // Nothing covered yet — gentle nudge toward a starting topic
+      examLine += ` Want to start with ${coverage.notTouched[0]}?`
+    }
+    paragraphs.push({ text: examLine })
+  }
 
   // 5. The opening — adapts to exam_target if known
   if (ctx.examTarget) {
@@ -147,8 +175,12 @@ type Props = {
     bg:      string
   }
   saathiSlug:   string
-  profile:      CompletenessProfile & { full_name?: string | null; exam_target?: string | null }
-  soul:         CompletenessSoul | null | undefined
+  profile:      CompletenessProfile & {
+    full_name?:      string | null
+    exam_target?:    string | null
+    exam_target_id?: string | null
+  }
+  soul:         (CompletenessSoul & { top_topics?: string[] | null }) | null | undefined
   inputValue:   string
   enabled:      boolean
   reduceMotion: boolean
@@ -261,6 +293,23 @@ export function IceBreaker({
   const firstName =
     (profile.full_name ?? '').trim().split(/\s+/)[0] || 'there'
 
+  // Build examInfo if the student has a canonical exam target within range.
+  const examInfo = (() => {
+    const examId = profile.exam_target_id?.trim()
+    if (!examId || !shouldShowCountdown(examId)) return null
+    const exam = getExamById(examId)
+    if (!exam) return null
+    const days = daysUntilExam(examId)
+    if (days === null) return null
+    const coverage = getTopicCoverage(exam, soul?.top_topics)
+    return {
+      name:      exam.name,
+      days,
+      humanized: humanizeTimeToGo(days),
+      coverage,
+    }
+  })()
+
   const paragraphs = composeParagraphs({
     firstName,
     city:        profile.city?.trim() ?? null,
@@ -269,6 +318,7 @@ export function IceBreaker({
     saathiName:  saathi.name,
     subject:     SUBJECT_FAMILY[saathiSlug] ?? 'your subject',
     variant,
+    examInfo,
   })
 
   const handleClose = (): void => {

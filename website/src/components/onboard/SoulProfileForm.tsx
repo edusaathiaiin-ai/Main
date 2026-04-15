@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { SAATHIS } from '@/constants/saathis'
 import { getSubjectChips, getInterestChips } from '@/constants/subjectChips'
+import { EXAM_REGISTRY } from '@/constants/exams'
 import {
   computeProfileCompleteness,
   getMilestoneLabel,
@@ -30,7 +31,8 @@ export type SoulProfileData = {
   educationParsed: ParsedEducation | null
   currentSubjects: string[]
   interestAreas: string[]
-  examTarget: string
+  examTarget: string                  // display string (legacy free-text)
+  examTargetId: string | null         // canonical id from EXAM_REGISTRY (or null = no specific exam / "Other")
   learningStyle: string
   dream: string
   nudgePreference: boolean
@@ -72,15 +74,11 @@ const CITIES = [
   'Other',
 ]
 
-const EXAM_TARGETS = [
-  'UPSC',
-  'GATE',
-  'NEET',
-  'CA',
-  'CLAT',
-  'NET',
-  'GRE',
-  'None',
+// Sourced from canonical EXAM_REGISTRY (constants/exams.ts).
+// Add { id: null } as the "no specific exam" sentinel.
+const EXAM_OPTIONS: ReadonlyArray<{ id: string | null; name: string }> = [
+  ...EXAM_REGISTRY.map((e) => ({ id: e.id, name: e.name })),
+  { id: null, name: 'None' },
 ]
 
 const LEARNING_STYLES = [
@@ -677,6 +675,12 @@ export function SoulProfileForm({
   const [currentSubjects, setCurrentSubjects] = useState<string[]>([])
   const [interestAreas, setInterestAreas] = useState<string[]>([])
   const [examTarget, setExamTarget] = useState(examTargetFromLevel ?? 'None')
+  const [examTargetId, setExamTargetId] = useState<string | null>(() => {
+    const match = EXAM_REGISTRY.find(
+      (e) => e.name.toLowerCase() === (examTargetFromLevel ?? '').toLowerCase()
+    )
+    return match?.id ?? null
+  })
   const [learningStyle, setLearningStyle] = useState('')
   const [dream, setDream] = useState('')
   const [nudgePreference, setNudgePreference] = useState(true)
@@ -737,6 +741,7 @@ export function SoulProfileForm({
     currentSubjects,
     interestAreas,
     examTarget,
+    examTargetId,
     learningStyle,
     dream,
     nudgePreference,
@@ -1372,14 +1377,22 @@ export function SoulProfileForm({
                 marginTop: '12px',
               }}
             >
-              {EXAM_TARGETS.map((exam) => {
-                const active = examTarget === exam
+              {EXAM_OPTIONS.map((opt) => {
+                const active = examTarget === opt.name
                 return (
                   <motion.button
-                    key={exam}
+                    key={opt.name}
                     type="button"
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setExamTarget(active ? 'None' : exam)}
+                    onClick={() => {
+                      if (active) {
+                        setExamTarget('None')
+                        setExamTargetId(null)
+                      } else {
+                        setExamTarget(opt.name)
+                        setExamTargetId(opt.id)
+                      }
+                    }}
                     style={{
                       padding: '8px 18px',
                       borderRadius: '100px',
@@ -1396,7 +1409,7 @@ export function SoulProfileForm({
                       transition: 'all 0.15s',
                     }}
                   >
-                    {exam}
+                    {opt.name}
                   </motion.button>
                 )
               })}

@@ -25,6 +25,7 @@ import { getHorizonNudge } from '../_shared/horizonNudge.ts';
 import { checkRateLimit } from '../_shared/rateLimit.ts';
 import { posthogCapture } from '../_shared/posthog.ts';
 import { getRandomPersonality, getPersonalityById, buildPersonalityPrompt } from '../_shared/saathiPersonalities.ts';
+import { buildExamContextBlock } from '../_shared/examRegistry.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -549,6 +550,8 @@ type RawProfile = {
   role: unknown;
   academic_level: unknown;
   learning_style: unknown;
+  exam_target_id: unknown;
+  exam_target_year: unknown;
 };
 
 type RawNews = { source: unknown; title: unknown };
@@ -585,7 +588,7 @@ async function buildSystemPrompt(
       .limit(7),
     admin
       .from('profiles')
-      .select('institution_name, degree_programme, current_semester, graduation_year, current_subjects, interest_areas, role, academic_level, learning_style')
+      .select('institution_name, degree_programme, current_semester, graduation_year, current_subjects, interest_areas, role, academic_level, learning_style, exam_target_id, exam_target_year')
       .eq('id', userId)
       .maybeSingle(),
     admin
@@ -865,6 +868,11 @@ ${exams.map(e => {
   return `- ${e.exam_name} — ${e.exam_date} (${daysLeft} days away): ${e.description}`;
 }).join('\n')}
 If the student's topic relates to an upcoming exam, naturally mention the deadline and suggest focused preparation.` : ''}
+
+${buildExamContextBlock(
+  typeof prof?.exam_target_id === 'string' ? prof.exam_target_id : null,
+  Array.isArray(s?.top_topics) ? (s.top_topics as string[]) : []
+)}
 
 ${NEP_2020_AWARENESS}
 

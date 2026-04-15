@@ -281,6 +281,7 @@ export function ChatWindow() {
     sessionCount: number
     shellBroken: boolean
     futureResearchArea: string | null
+    topTopics: string[]
   } | null>(null)
   const [upgradeTrigger, setUpgradeTrigger] = useState<UpgradeTrigger | null>(
     null
@@ -520,7 +521,7 @@ export function ChatWindow() {
     const { data } = await supabase
       .from('student_soul')
       .select(
-        'display_name, last_session_summary, session_count, shell_broken, future_research_area'
+        'display_name, last_session_summary, session_count, shell_broken, future_research_area, top_topics'
       )
       .eq('user_id', userId)
       .eq('vertical_id', sid)
@@ -540,6 +541,9 @@ export function ChatWindow() {
         typeof data?.future_research_area === 'string'
           ? data.future_research_area
           : null,
+      topTopics: Array.isArray(data?.top_topics)
+        ? (data?.top_topics as string[]).filter((t) => typeof t === 'string')
+        : [],
     })
   }
 
@@ -924,7 +928,10 @@ export function ChatWindow() {
                     profile={profile}
                     soul={
                       soulData
-                        ? { future_research_area: soulData.futureResearchArea }
+                        ? {
+                            future_research_area: soulData.futureResearchArea,
+                            top_topics: soulData.topTopics,
+                          }
                         : null
                     }
                     inputValue={inputValue}

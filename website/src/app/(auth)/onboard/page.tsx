@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { SAATHIS } from '@/constants/saathis'
 import { SLUG_TO_UUID, toSlug } from '@/constants/verticalIds'
+import { EXAM_REGISTRY } from '@/constants/exams'
 import { useAuthStore } from '@/stores/authStore'
 import { trackSaathiSelected } from '@/lib/analytics'
 import {
@@ -1448,6 +1449,18 @@ function OnboardInner() {
         current_semester: data.educationParsed?.year ?? null,
         academic_level: academicLevel,
         exam_target: data.examTarget || null,
+        exam_target_id: data.examTargetId,
+        exam_target_year: (() => {
+          if (!data.examTargetId) return null
+          const exam = EXAM_REGISTRY.find((e) => e.id === data.examTargetId)
+          if (!exam) return null
+          const examDate = new Date(exam.next_date + 'T00:00:00Z')
+          // If the registry's next_date already passed, the student is
+          // preparing for the *following* sitting.
+          return examDate.getTime() < Date.now()
+            ? examDate.getUTCFullYear() + 1
+            : examDate.getUTCFullYear()
+        })(),
         current_subjects: data.currentSubjects,
         interest_areas: data.interestAreas,
         learning_style: data.learningStyle || null,
