@@ -94,11 +94,11 @@ export function BoardSidebar({
               style={{
                 marginTop: '10px',
                 padding: '10px 14px',
-                background: 'rgba(201,153,58,0.06)',
-                border: '0.5px solid rgba(201,153,58,0.2)',
+                background: 'rgba(201,153,58,0.08)',
+                border: '0.5px solid rgba(201,153,58,0.25)',
                 borderRadius: '10px',
                 fontSize: '11px',
-                color: 'rgba(255,255,255,0.45)',
+                color: 'var(--text-secondary)',
                 textAlign: 'center',
                 lineHeight: 1.5,
               }}
@@ -106,7 +106,7 @@ export function BoardSidebar({
               Daily limit reached ·{' '}
               <Link
                 href="/pricing"
-                style={{ color: '#C9993A', fontWeight: '600' }}
+                style={{ color: '#B8860B', fontWeight: '600' }}
               >
                 Upgrade →
               </Link>
@@ -123,9 +123,9 @@ export function BoardSidebar({
             <div
               className="pointer-events-none absolute -top-12 left-1/2 z-10 w-56 -translate-x-1/2 rounded-xl px-3 py-2 text-center text-xs opacity-0 transition-opacity group-hover:opacity-100"
               style={{
-                background: '#0B1F3A',
+                background: '#1A1814',
                 border: '0.5px solid rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.7)',
+                color: 'rgba(255,255,255,0.85)',
               }}
             >
               Board posting available for Indian students
@@ -138,7 +138,7 @@ export function BoardSidebar({
           <div
             style={{
               fontSize: '11px',
-              color: 'rgba(255,255,255,0.35)',
+              color: 'var(--text-tertiary)',
               textAlign: 'center',
               marginTop: '8px',
             }}
@@ -151,7 +151,7 @@ export function BoardSidebar({
                 </span>
               )
             ) : (
-              <span style={{ color: '#FB923C' }}>
+              <span style={{ color: '#C2410C' }}>
                 Daily limit reached · Resets at midnight IST
               </span>
             )}
@@ -170,16 +170,21 @@ export function BoardSidebar({
         <div className="mb-2 flex items-center gap-3">
           <span className="text-2xl">{activeSaathi.emoji}</span>
           <div>
-            <p className="text-sm font-bold text-white">{activeSaathi.name}</p>
+            <p
+              className="text-sm font-bold"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              {activeSaathi.name}
+            </p>
             <p
               className="text-[10px]"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               {activeSaathi.tagline}
             </p>
           </div>
         </div>
-        <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
           Questions in this community are answered by AI and reviewed by
           faculty.
         </p>
@@ -189,13 +194,13 @@ export function BoardSidebar({
       <div
         className="rounded-2xl p-4"
         style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '0.5px solid rgba(255,255,255,0.07)',
+          background: 'var(--bg-elevated)',
+          border: '0.5px solid var(--border-subtle)',
         }}
       >
         <p
           className="mb-3 text-xs font-semibold tracking-wider uppercase"
-          style={{ color: 'rgba(255,255,255,0.35)' }}
+          style={{ color: 'var(--text-tertiary)' }}
         >
           Top Contributors
         </p>
@@ -205,22 +210,27 @@ export function BoardSidebar({
               <div
                 className="flex h-7 w-7 items-center justify-center rounded-full text-xs"
                 style={{
-                  background: 'rgba(22,163,74,0.15)',
+                  background: 'rgba(22,163,74,0.12)',
                   border: '0.5px solid rgba(22,163,74,0.3)',
                 }}
               >
                 {f.badge}
               </div>
               <div className="flex-1">
-                <p className="text-xs font-semibold text-white">{f.name}</p>
+                <p
+                  className="text-xs font-semibold"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {f.name}
+                </p>
               </div>
               {f.verified && (
                 <span
                   className="rounded-full px-1.5 py-0.5 text-[9px] font-bold"
                   style={{
-                    background: 'rgba(34,197,94,0.1)',
-                    border: '0.5px solid rgba(34,197,94,0.3)',
-                    color: '#4ADE80',
+                    background: 'rgba(22,163,74,0.12)',
+                    border: '0.5px solid rgba(22,163,74,0.35)',
+                    color: '#15803D',
                   }}
                 >
                   ✓
@@ -235,13 +245,13 @@ export function BoardSidebar({
       <div
         className="rounded-2xl p-4"
         style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '0.5px solid rgba(255,255,255,0.07)',
+          background: 'var(--bg-elevated)',
+          border: '0.5px solid var(--border-subtle)',
         }}
       >
         <p
           className="mb-3 text-xs font-semibold tracking-wider uppercase"
-          style={{ color: 'rgba(255,255,255,0.45)' }}
+          style={{ color: 'var(--text-tertiary)' }}
         >
           Trending Topics
         </p>
@@ -253,7 +263,7 @@ export function BoardSidebar({
               style={{
                 background: `${activeSaathi.primary}18`,
                 border: `0.5px solid ${activeSaathi.primary}40`,
-                color: 'rgba(255,255,255,0.72)',
+                color: 'var(--text-secondary)',
               }}
             >
               {topic}

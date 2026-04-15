@@ -52,8 +52,9 @@ export function ExamAlertCard({ exam, index }: Props) {
       transition={{ delay: index * 0.05, duration: 0.3 }}
       className="flex items-start gap-4 rounded-2xl p-5"
       style={{
-        background: isUrgent ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
-        border: `0.5px solid ${isUrgent ? 'rgba(239,68,68,0.35)' : 'rgba(245,158,11,0.4)'}`,
+        background: isUrgent ? 'rgba(239,68,68,0.06)' : 'rgba(245,158,11,0.07)',
+        border: `1px solid ${isUrgent ? 'rgba(239,68,68,0.30)' : 'rgba(245,158,11,0.35)'}`,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
       }}
     >
       {/* Calendar icon */}
@@ -61,8 +62,8 @@ export function ExamAlertCard({ exam, index }: Props) {
         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-2xl"
         style={{
           background: isUrgent
-            ? 'rgba(239,68,68,0.15)'
-            : 'rgba(245,158,11,0.15)',
+            ? 'rgba(239,68,68,0.12)'
+            : 'rgba(245,158,11,0.14)',
         }}
       >
         📅
@@ -70,16 +71,19 @@ export function ExamAlertCard({ exam, index }: Props) {
 
       {/* Content */}
       <div className="min-w-0 flex-1">
-        <h3 className="mb-1 text-sm leading-tight font-bold text-white">
+        <h3
+          className="mb-1 text-sm leading-tight font-bold"
+          style={{ color: 'var(--text-primary)' }}
+        >
           {exam.exam_name}
         </h3>
-        <p className="mb-2 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+        <p className="mb-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
           {formatDate(exam.exam_date)}
         </p>
         {exam.notes && (
           <p
             className="mb-2 line-clamp-2 text-[11px]"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             {exam.notes}
           </p>
@@ -95,10 +99,12 @@ export function ExamAlertCard({ exam, index }: Props) {
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
               className="text-[10px] font-semibold transition-colors"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+              style={{ color: 'var(--text-tertiary)' }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = 'var(--text-primary)')
+              }
               onMouseLeave={(e) =>
-                (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')
+                (e.currentTarget.style.color = 'var(--text-tertiary)')
               }
             >
               Official site ↗

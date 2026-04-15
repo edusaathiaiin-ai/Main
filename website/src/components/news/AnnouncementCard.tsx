@@ -26,25 +26,26 @@ export function AnnouncementCard({ item, index }: Props) {
       transition={{ delay: index * 0.05, duration: 0.3 }}
       className="flex flex-col gap-3 rounded-2xl p-5"
       style={{
-        background: '#060F1D',
-        border: '0.5px solid rgba(201,153,58,0.2)',
-        borderLeft: '3px solid #C9993A',
+        background: 'rgba(184,134,11,0.05)',
+        border: '1px solid rgba(184,134,11,0.20)',
+        borderLeft: '3px solid #B8860B',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
       }}
     >
       {/* Source label */}
       <div className="flex items-center gap-2">
         <span
           className="text-[10px] font-bold tracking-widest uppercase"
-          style={{ color: '#C9993A' }}
+          style={{ color: '#B8860B' }}
         >
           EdUsaathiAI
         </span>
         <span
           className="rounded-full px-2 py-0.5 text-[9px] font-bold"
           style={{
-            background: 'rgba(201,153,58,0.1)',
-            border: '0.5px solid rgba(201,153,58,0.3)',
-            color: '#C9993A',
+            background: 'rgba(184,134,11,0.10)',
+            border: '0.5px solid rgba(184,134,11,0.30)',
+            color: '#B8860B',
           }}
         >
           Announcement
@@ -52,7 +53,10 @@ export function AnnouncementCard({ item, index }: Props) {
       </div>
 
       {/* Title */}
-      <h3 className="text-sm leading-snug font-bold text-white">
+      <h3
+        className="text-sm leading-snug font-bold"
+        style={{ color: 'var(--text-primary)' }}
+      >
         {item.title}
       </h3>
 
@@ -60,14 +64,14 @@ export function AnnouncementCard({ item, index }: Props) {
       {item.summary && (
         <p
           className="text-xs leading-relaxed"
-          style={{ color: 'rgba(255,255,255,0.5)' }}
+          style={{ color: 'var(--text-secondary)' }}
         >
           {item.summary}
         </p>
       )}
 
       {/* Footer */}
-      <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.28)' }}>
+      <span className="text-[10px]" style={{ color: 'var(--text-ghost)' }}>
         {timeAgo(item.fetched_at)}
       </span>
     </motion.article>

@@ -43,38 +43,20 @@ function CardSkeleton() {
     <div
       className="animate-pulse rounded-2xl p-5"
       style={{
-        background: 'rgba(255,255,255,0.04)',
-        border: '0.5px solid rgba(255,255,255,0.06)',
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border-subtle)',
       }}
     >
       <div className="mb-3 flex justify-between">
-        <div
-          className="h-2 w-20 rounded-full"
-          style={{ background: 'rgba(255,255,255,0.08)' }}
-        />
-        <div
-          className="h-2 w-14 rounded-full"
-          style={{ background: 'rgba(255,255,255,0.05)' }}
-        />
+        <div className="h-2 w-20 rounded-full bg-black/10" />
+        <div className="h-2 w-14 rounded-full bg-black/5" />
       </div>
       <div className="mb-4 space-y-2">
-        <div
-          className="h-3 w-full rounded-full"
-          style={{ background: 'rgba(255,255,255,0.08)' }}
-        />
-        <div
-          className="h-3 w-4/5 rounded-full"
-          style={{ background: 'rgba(255,255,255,0.06)' }}
-        />
-        <div
-          className="h-3 w-3/5 rounded-full"
-          style={{ background: 'rgba(255,255,255,0.05)' }}
-        />
+        <div className="h-3 w-full rounded-full bg-black/10" />
+        <div className="h-3 w-4/5 rounded-full bg-black/[0.07]" />
+        <div className="h-3 w-3/5 rounded-full bg-black/5" />
       </div>
-      <div
-        className="h-2 w-12 rounded-full"
-        style={{ background: 'rgba(255,255,255,0.04)' }}
-      />
+      <div className="h-2 w-12 rounded-full bg-black/5" />
     </div>
   )
 }
@@ -277,11 +259,14 @@ export function NewsFeed() {
     return (
       <div
         className="flex h-screen items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div
-          className="h-8 w-8 animate-spin rounded-full border-2 border-white/10"
-          style={{ borderTopColor: '#C9993A' }}
+          className="h-8 w-8 animate-spin rounded-full"
+          style={{
+            border: '2px solid var(--border-subtle)',
+            borderTopColor: 'var(--saathi-primary, #B8860B)',
+          }}
         />
       </div>
     )
@@ -290,7 +275,7 @@ export function NewsFeed() {
   return (
     <div
       className="flex h-screen w-full overflow-hidden"
-      style={{ background: '#060F1D' }}
+      style={{ background: 'var(--bg-base)' }}
     >
       {/* App Sidebar */}
       <Sidebar
@@ -314,10 +299,13 @@ export function NewsFeed() {
           {/* Page header */}
           <div className="mb-6 flex items-start justify-between">
             <div>
-              <h1 className="font-playfair mb-1 text-3xl font-bold text-white">
+              <h1
+                className="font-playfair mb-1 text-3xl font-bold"
+                style={{ color: 'var(--text-primary)' }}
+              >
                 Today in {activeSaathi.name}
               </h1>
-              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
                 Curated for your journey
               </p>
             </div>
@@ -325,7 +313,7 @@ export function NewsFeed() {
               {lastUpdated && (
                 <span
                   className="hidden text-[11px] sm:block"
-                  style={{ color: 'rgba(255,255,255,0.3)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Updated {lastUpdatedLabel}
                 </span>
@@ -333,10 +321,11 @@ export function NewsFeed() {
               <button
                 onClick={fetchAll}
                 disabled={loading}
-                className="flex h-8 w-8 items-center justify-center rounded-xl transition-all"
+                className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:opacity-80"
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  color: 'rgba(255,255,255,0.5)',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-secondary)',
                 }}
                 title="Refresh"
               >
@@ -349,9 +338,9 @@ export function NewsFeed() {
                   disabled={adminFetching}
                   className="rounded-xl px-3 py-1.5 text-xs font-semibold transition-all"
                   style={{
-                    background: 'rgba(201,153,58,0.12)',
-                    border: '0.5px solid rgba(201,153,58,0.3)',
-                    color: '#C9993A',
+                    background: 'rgba(184,134,11,0.12)',
+                    border: '0.5px solid rgba(184,134,11,0.3)',
+                    color: '#B8860B',
                     opacity: adminFetching ? 0.6 : 1,
                   }}
                 >
@@ -364,7 +353,7 @@ export function NewsFeed() {
           {/* Filter tabs */}
           <div
             className="mb-6"
-            style={{ borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}
+            style={{ borderBottom: '1px solid var(--border-subtle)' }}
           >
             <NewsFilterTabs
               active={activeTab}
@@ -387,7 +376,7 @@ export function NewsFeed() {
                 <div className="mb-6">
                   <p
                     className="mb-3 text-xs font-semibold tracking-widest uppercase"
-                    style={{ color: 'rgba(255,255,255,0.3)' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                   >
                     📅 Upcoming Exams
                   </p>
@@ -403,7 +392,10 @@ export function NewsFeed() {
               {activeTab === 'exams' && examAlerts.length === 0 && (
                 <div className="flex flex-col items-center py-16 text-center">
                   <span className="mb-3 text-4xl">📅</span>
-                  <p className="font-playfair mb-2 text-lg text-white/40">
+                  <p
+                    className="font-playfair mb-2 text-lg"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  >
                     No upcoming exams for {activeSaathi.name}
                   </p>
                   <a
@@ -421,7 +413,7 @@ export function NewsFeed() {
                 <div className="mb-6">
                   <p
                     className="mb-3 text-xs font-semibold tracking-widest uppercase"
-                    style={{ color: 'rgba(255,255,255,0.3)' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                   >
                     📢 Platform Announcements
                   </p>
@@ -437,7 +429,10 @@ export function NewsFeed() {
               {activeTab === 'announcements' && announcements.length === 0 && (
                 <div className="flex flex-col items-center py-16 text-center">
                   <span className="mb-3 text-4xl">📢</span>
-                  <p className="font-playfair text-lg text-white/40">
+                  <p
+                    className="font-playfair text-lg"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  >
                     No announcements right now.
                   </p>
                 </div>
@@ -462,12 +457,15 @@ export function NewsFeed() {
                   /* Empty state */
                   <div className="flex flex-col items-center py-20 text-center">
                     <span className="mb-4 text-5xl">📰</span>
-                    <p className="font-playfair mb-2 text-xl text-white/40">
+                    <p
+                      className="font-playfair mb-2 text-xl"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       Today&apos;s news is being gathered.
                     </p>
                     <p
                       className="text-sm"
-                      style={{ color: 'rgba(255,255,255,0.3)' }}
+                      style={{ color: 'var(--text-tertiary)' }}
                     >
                       Check back after 6 AM IST — your Saathi fetches fresh
                       headlines every morning.

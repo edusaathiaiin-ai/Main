@@ -30,7 +30,7 @@ export function NewsFilterTabs({ active, onChange, primaryColor }: Props) {
             whileTap={{ scale: 0.96 }}
             className="relative shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-200 outline-none"
             style={{
-              color: isActive ? primaryColor : 'rgba(255,255,255,0.4)',
+              color: isActive ? primaryColor : 'var(--text-tertiary)',
               background: 'transparent',
             }}
           >
