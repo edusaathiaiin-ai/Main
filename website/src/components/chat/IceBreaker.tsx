@@ -54,7 +54,7 @@ const SUBJECT_FAMILY: Record<string, string> = {
 
 // ─── Copy composer ───────────────────────────────────────────────────────
 
-type ToneVariant = 'full' | 'soft'
+type ToneVariant = 'exam' | 'full' | 'soft'
 
 type ComposerInput = {
   firstName:    string
@@ -75,6 +75,28 @@ type ComposerInput = {
 type Paragraph = { text: string; emphasis?: 'header' | 'body' | 'closing' | 'nudge' }
 
 function composeParagraphs(ctx: ComposerInput): Paragraph[] {
+  // ── Exam-aware variant — short, direct, "let's get to work" ──────────
+  if (ctx.variant === 'exam' && ctx.examInfo) {
+    const { name, days, coverage } = ctx.examInfo
+    const examLine =
+      coverage.notTouched.length > 0
+        ? `${name} is ${days} days away. You're building well — but we haven't touched *${coverage.notTouched[0]}* yet. That's where I'd start today.`
+        : `${name} is ${days} days away. You're covering the syllabus well. Let's keep momentum.`
+
+    const locationLine = (() => {
+      if (ctx.institution && ctx.city) return `I can see you're at *${ctx.institution}* in ${ctx.city}.`
+      if (ctx.institution)             return `I can see you're at *${ctx.institution}*.`
+      if (ctx.city)                    return `I can see you're based in ${ctx.city}.`
+      return null
+    })()
+
+    const out: Paragraph[] = [{ text: `Hey ${ctx.firstName} 👋`, emphasis: 'header' }]
+    if (locationLine) out.push({ text: locationLine })
+    out.push({ text: examLine })
+    out.push({ text: 'What shall we work on today? ✦', emphasis: 'closing' })
+    return out
+  }
+
   const paragraphs: Paragraph[] = []
 
   // 1. Greeting (always)
@@ -150,6 +172,18 @@ function composeParagraphs(ctx: ComposerInput): Paragraph[] {
   return paragraphs
 }
 
+// ─── Inline emphasis renderer — converts *text* → <strong>text</strong> ─
+
+function renderInlineEmphasis(text: string): React.ReactNode {
+  const parts = text.split(/(\*[^*]+\*)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+      return <strong key={i} style={{ fontWeight: 700 }}>{part.slice(1, -1)}</strong>
+    }
+    return <span key={i}>{part}</span>
+  })
+}
+
 // ─── Mobile keyboard heuristic ───────────────────────────────────────────
 
 function isKeyboardOpen(): boolean {
@@ -199,10 +233,30 @@ export function IceBreaker({
     [profile, soul]
   )
 
+  // Compute examInfo eagerly so the variant resolver can prefer the exam
+  // variant when conditions hold. Memoised — recomputes when profile/soul
+  // ids change.
+  const examInfo = useMemo(() => {
+    const examId = profile.exam_target_id?.trim()
+    if (!examId) return null
+    const exam = getExamById(examId)
+    if (!exam) return null
+    const effectiveDate = profile.exam_target_date?.trim() || exam.next_date
+    const days = daysUntilExam(effectiveDate)
+    if (days < 1 || days > 365) return null
+    const phase = getExamPhase(days)
+    const phaseMessage = getPhaseMessage(phase, exam.name, days)
+    const coverage = getTopicDelta(soul?.top_topics ?? [], exam.syllabus_topics)
+    return { name: exam.name, days, phaseMessage, coverage }
+  }, [profile.exam_target_id, profile.exam_target_date, soul?.top_topics])
+
   const variant: ToneVariant | null = useMemo(() => {
     if (completeness < COMPLETENESS_THRESHOLDS.ICEBREAKER_MIN) return null
+    // Exam variant wins when the student has a real exam in window AND
+    // enough profile to make the line feel personal.
+    if (examInfo && completeness >= COMPLETENESS_THRESHOLDS.ICEBREAKER_EXAM) return 'exam'
     return completeness >= COMPLETENESS_THRESHOLDS.ICEBREAKER_FULL ? 'full' : 'soft'
-  }, [completeness])
+  }, [completeness, examInfo])
 
   const [phase, setPhase] = useState<'waiting' | 'showing' | 'closed'>('waiting')
 
@@ -292,26 +346,8 @@ export function IceBreaker({
   const firstName =
     (profile.full_name ?? '').trim().split(/\s+/)[0] || 'there'
 
-  // Build examInfo if the student has a canonical exam target within range.
-  const examInfo = (() => {
-    const examId = profile.exam_target_id?.trim()
-    if (!examId) return null
-    const exam = getExamById(examId)
-    if (!exam) return null
-    // Student-known sitting date overrides the registry default.
-    const effectiveDate = profile.exam_target_date?.trim() || exam.next_date
-    const days = daysUntilExam(effectiveDate)
-    if (days < 1 || days > 365) return null
-    const phase = getExamPhase(days)
-    const phaseMessage = getPhaseMessage(phase, exam.name, days)
-    const coverage = getTopicDelta(soul?.top_topics ?? [], exam.syllabus_topics)
-    return {
-      name: exam.name,
-      days,
-      phaseMessage,
-      coverage,
-    }
-  })()
+  // examInfo is hoisted to the top of the component so the variant
+  // resolver can read it.
 
   const paragraphs = composeParagraphs({
     firstName,
@@ -444,7 +480,7 @@ export function IceBreaker({
             >
               {p.emphasis === 'nudge' ? (
                 <>
-                  {p.text}{' '}
+                  {renderInlineEmphasis(p.text)}{' '}
                   <Link
                     href="/profile"
                     style={{
@@ -457,7 +493,7 @@ export function IceBreaker({
                   </Link>
                 </>
               ) : (
-                p.text
+                renderInlineEmphasis(p.text)
               )}
             </motion.p>
           ))}

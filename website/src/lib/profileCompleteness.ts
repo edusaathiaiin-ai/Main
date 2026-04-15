@@ -187,6 +187,7 @@ export function getMissingFields(
 // Calibrated thresholds — change here, every consumer follows.
 export const COMPLETENESS_THRESHOLDS = {
   ICEBREAKER_MIN:  30,
+  ICEBREAKER_EXAM: 60,   // exam-aware variant fires when student also has exam_target_id + valid days
   ICEBREAKER_FULL: 70,
   BOARD_POST:      60,
   WA_UPSELL_BELOW: 60,
