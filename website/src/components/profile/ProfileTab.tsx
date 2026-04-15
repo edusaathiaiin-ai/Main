@@ -12,6 +12,7 @@ import { validateDisplayName } from '@/lib/validation/nameValidation'
 import { ExamPicker, type ExamPickerValue } from '@/components/shared/ExamPicker'
 import { EXAM_REGISTRY } from '@/constants/exams'
 import { inferExamDate } from '@/lib/examCountdown'
+import { createExamBoardIfMissing } from '@/lib/createExamBoard'
 import type { Profile, Saathi } from '@/types'
 const ACADEMIC_LEVELS = [
   { value: 'diploma', label: '📜 Diploma / Certificate' },
@@ -278,6 +279,18 @@ export default function ProfileTab({
             : null,
         })
         .eq('id', profile.id)
+
+      if (examPickerValue.examId && profile.primary_saathi_id) {
+        const saathiSlug = toSlug(profile.primary_saathi_id)
+        if (saathiSlug) {
+          await createExamBoardIfMissing(supabase, {
+            userId:         profile.id,
+            saathiSlug,
+            examTargetId:   examPickerValue.examId,
+            examTargetYear: examYear,
+          })
+        }
+      }
 
       if (profile.primary_saathi_id) {
         await supabase.from('student_soul').upsert(

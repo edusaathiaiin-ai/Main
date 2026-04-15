@@ -9,6 +9,7 @@ import { SAATHIS } from '@/constants/saathis'
 import { SLUG_TO_UUID, toSlug } from '@/constants/verticalIds'
 import { EXAM_REGISTRY } from '@/constants/exams'
 import { inferExamDate } from '@/lib/examCountdown'
+import { createExamBoardIfMissing } from '@/lib/createExamBoard'
 import { ExamPicker, type ExamPickerValue } from '@/components/shared/ExamPicker'
 import { useAuthStore } from '@/stores/authStore'
 import { trackSaathiSelected } from '@/lib/analytics'
@@ -1520,6 +1521,18 @@ function OnboardInner() {
         exam_target_date: value.examId ? inferExamDate(value.examId) : null,
       })
       .eq('id', profile!.id)
+
+    if (value.examId && profile?.primary_saathi_id) {
+      const saathiSlug = toSlug(profile.primary_saathi_id)
+      if (saathiSlug) {
+        await createExamBoardIfMissing(supabase, {
+          userId:         profile!.id,
+          saathiSlug,
+          examTargetId:   value.examId,
+          examTargetYear: year,
+        })
+      }
+    }
 
     // Seed the downstream profile form so completeness reflects it.
     setExamTargetFromLevel(examName || null)

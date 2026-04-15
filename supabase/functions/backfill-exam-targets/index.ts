@@ -135,7 +135,7 @@ serve(async (req: Request) => {
 
     const { data: profiles, error: fetchError } = await admin
       .from('profiles')
-      .select('id, exam_target')
+      .select('id, exam_target, primary_saathi_id')
       .not('exam_target', 'is', null)
       .neq('exam_target', '')
       .neq('exam_target', 'None')
@@ -154,6 +154,7 @@ serve(async (req: Request) => {
     for (const row of profiles) {
       const userId = String(row.id);
       const raw = String(row.exam_target ?? '').trim();
+      const primarySaathiUuid = row.primary_saathi_id as string | null;
       if (!raw) continue;
 
       try {
@@ -174,8 +175,46 @@ serve(async (req: Request) => {
           .eq('id', userId);
         if (updateError) {
           errors.push({ user_id: userId, error: updateError.message });
-        } else {
-          classified++;
+          continue;
+        }
+        classified++;
+
+        // Auto-create pinned exam Board if the student has a primary Saathi
+        // set and doesn't already have a Board for this exam.
+        if (primarySaathiUuid) {
+          const { data: vertical } = await admin
+            .from('verticals')
+            .select('slug')
+            .eq('id', primarySaathiUuid)
+            .maybeSingle();
+          const saathiSlug = vertical?.slug as string | undefined;
+          if (saathiSlug) {
+            const exam = EXAM_REGISTRY.find((e) => e.id === result.id);
+            if (exam) {
+              const { data: existing } = await admin
+                .from('chatboards')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('saathi_slug', saathiSlug)
+                .eq('exam_target_id', result.id)
+                .limit(1)
+                .maybeSingle();
+              if (!existing) {
+                const effectiveYear = year ?? new Date().getFullYear() + 1;
+                await admin.from('chatboards').insert({
+                  user_id:         userId,
+                  saathi_slug:     saathiSlug,
+                  name:            `${exam.name} ${effectiveYear} Prep`,
+                  emoji:           '🎯',
+                  board_type:      'exam',
+                  exam_target_id:  result.id,
+                  focus_statement: `Focused ${exam.name} preparation. Stay on syllabus.`,
+                  is_pinned:       true,
+                  position:        -1,
+                });
+              }
+            }
+          }
         }
       } catch (err) {
         errors.push({
