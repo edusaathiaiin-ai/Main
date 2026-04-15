@@ -196,6 +196,17 @@ export function getExamById(id: string): EdgeExamEntry | undefined {
   return EXAM_REGISTRY.find((e) => e.id === id);
 }
 
+// Derive sitting year from the registry's next_date — bump to the following
+// year if next_date has already passed. Null if the id isn't in the registry.
+export function inferExamYear(examId: string, now: Date = new Date()): number | null {
+  const exam = getExamById(examId);
+  if (!exam) return null;
+  const examDate = new Date(exam.next_date + 'T00:00:00Z');
+  return examDate.getTime() < now.getTime()
+    ? examDate.getUTCFullYear() + 1
+    : examDate.getUTCFullYear();
+}
+
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 
 export function daysUntilExam(
