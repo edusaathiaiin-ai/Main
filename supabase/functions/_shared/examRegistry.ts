@@ -198,10 +198,15 @@ export function getExamById(id: string): EdgeExamEntry | undefined {
 
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 
-export function daysUntilExam(examId: string, now: Date = new Date()): number | null {
+export function daysUntilExam(
+  examId: string,
+  overrideDate: string | null = null,
+  now: Date = new Date(),
+): number | null {
   const exam = getExamById(examId);
   if (!exam) return null;
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(exam.next_date);
+  const dateStr = overrideDate ?? exam.next_date;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
   if (!m) return null;
   const target = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
   const ist = new Date(now.getTime() + IST_OFFSET_MS);
@@ -224,8 +229,12 @@ export function humanizeTimeToGo(days: number): string {
 export type ExamPhase =
   | 'preparation' | 'final_revision' | 'exam_week' | 'exam_day' | 'past';
 
-export function getExamPhase(examId: string, now: Date = new Date()): ExamPhase | null {
-  const days = daysUntilExam(examId, now);
+export function getExamPhase(
+  examId: string,
+  overrideDate: string | null = null,
+  now: Date = new Date(),
+): ExamPhase | null {
+  const days = daysUntilExam(examId, overrideDate, now);
   if (days === null) return null;
   if (days < 0) return 'past';
   if (days === 0) return 'exam_day';
@@ -239,15 +248,16 @@ export function getExamPhase(examId: string, now: Date = new Date()): ExamPhase 
 export function buildExamContextBlock(
   examTargetId: string | null | undefined,
   topTopics: ReadonlyArray<string> | null | undefined,
+  overrideDate: string | null = null,
   now: Date = new Date()
 ): string {
   if (!examTargetId) return '';
   const exam = getExamById(examTargetId);
   if (!exam) return '';
-  const days = daysUntilExam(examTargetId, now);
+  const days = daysUntilExam(examTargetId, overrideDate, now);
   if (days === null || days < 1 || days > 365) return '';
 
-  const phase = getExamPhase(examTargetId, now);
+  const phase = getExamPhase(examTargetId, overrideDate, now);
   const humanized = humanizeTimeToGo(days);
 
   const recent = (topTopics ?? [])

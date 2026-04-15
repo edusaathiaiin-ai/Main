@@ -18,6 +18,9 @@ export type Profile = {
   institution_name: string | null
   year_of_study: string | null
   exam_target: string | null
+  exam_target_id: string | null
+  exam_target_year: number | null
+  exam_target_date: string | null
   primary_saathi_id: string | null
   is_active: boolean
   created_at: string

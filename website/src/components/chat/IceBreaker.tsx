@@ -174,9 +174,10 @@ type Props = {
   }
   saathiSlug:   string
   profile:      CompletenessProfile & {
-    full_name?:      string | null
-    exam_target?:    string | null
-    exam_target_id?: string | null
+    full_name?:        string | null
+    exam_target?:      string | null
+    exam_target_id?:   string | null
+    exam_target_date?: string | null
   }
   soul:         (CompletenessSoul & { top_topics?: string[] | null }) | null | undefined
   inputValue:   string
@@ -297,7 +298,9 @@ export function IceBreaker({
     if (!examId) return null
     const exam = getExamById(examId)
     if (!exam) return null
-    const days = daysUntilExam(exam.next_date)
+    // Student-known sitting date overrides the registry default.
+    const effectiveDate = profile.exam_target_date?.trim() || exam.next_date
+    const days = daysUntilExam(effectiveDate)
     if (days < 1 || days > 365) return null
     const phase = getExamPhase(days)
     const phaseMessage = getPhaseMessage(phase, exam.name, days)

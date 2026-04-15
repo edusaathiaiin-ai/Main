@@ -552,6 +552,7 @@ type RawProfile = {
   learning_style: unknown;
   exam_target_id: unknown;
   exam_target_year: unknown;
+  exam_target_date: unknown;
 };
 
 type RawNews = { source: unknown; title: unknown };
@@ -588,7 +589,7 @@ async function buildSystemPrompt(
       .limit(7),
     admin
       .from('profiles')
-      .select('institution_name, degree_programme, current_semester, graduation_year, current_subjects, interest_areas, role, academic_level, learning_style, exam_target_id, exam_target_year')
+      .select('institution_name, degree_programme, current_semester, graduation_year, current_subjects, interest_areas, role, academic_level, learning_style, exam_target_id, exam_target_year, exam_target_date')
       .eq('id', userId)
       .maybeSingle(),
     admin
@@ -871,7 +872,8 @@ If the student's topic relates to an upcoming exam, naturally mention the deadli
 
 ${buildExamContextBlock(
   typeof prof?.exam_target_id === 'string' ? prof.exam_target_id : null,
-  Array.isArray(s?.top_topics) ? (s.top_topics as string[]) : []
+  Array.isArray(s?.top_topics) ? (s.top_topics as string[]) : [],
+  typeof prof?.exam_target_date === 'string' ? prof.exam_target_date : null
 )}
 
 ${NEP_2020_AWARENESS}

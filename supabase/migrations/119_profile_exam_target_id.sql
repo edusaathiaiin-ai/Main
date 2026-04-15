@@ -16,13 +16,17 @@
 
 ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS exam_target_id text,
-  ADD COLUMN IF NOT EXISTS exam_target_year smallint;
+  ADD COLUMN IF NOT EXISTS exam_target_year smallint,
+  ADD COLUMN IF NOT EXISTS exam_target_date date;
 
 COMMENT ON COLUMN public.profiles.exam_target_id IS
   'Canonical exam id — matches EXAM_REGISTRY[].id in website/src/constants/exams.ts. Null = no target set.';
 
 COMMENT ON COLUMN public.profiles.exam_target_year IS
   'Year the student sits the exam. Null = unspecified. LLM classifier + onboarding picker set this alongside exam_target_id.';
+
+COMMENT ON COLUMN public.profiles.exam_target_date IS
+  'Student-known sitting date override. When set, takes precedence over EXAM_REGISTRY.next_date for countdown. Useful for year-round exams (GRE/GMAT) and multi-batch exams (SSC CGL). Null = fall back to registry default.';
 
 -- Index for cron nudges ("find all students whose exam is T-180/90/30 today")
 -- and admin segmentation. Partial — null rows carry no information.
