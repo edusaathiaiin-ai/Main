@@ -9,7 +9,9 @@
  */
 
 import { useMemo, useState } from 'react'
+import Link from 'next/link'
 import { SAATHIS } from '@/constants/saathis'
+import { useEmailAvailability } from '@/hooks/useEmailAvailability'
 
 const GOLD       = '#C9993A'
 const GOLD_LIGHT = '#E5B86A'
@@ -86,6 +88,7 @@ export function ApplyForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const emailAvailability = useEmailAvailability()
 
   // Sort SAATHIS alphabetically for dropdown — easier scan than categorical
   const sortedSaathis = useMemo(
@@ -200,10 +203,30 @@ export function ApplyForm() {
             type="email"
             required
             value={form.email}
-            onChange={(e) => update('email', e.target.value)}
+            onChange={(e) => {
+              update('email', e.target.value)
+              emailAvailability.onChange(e.target.value)
+            }}
+            onBlur={(e) => emailAvailability.onBlur(e.target.value)}
             style={fieldStyle}
             placeholder="you@institution.ac.in"
           />
+          {emailAvailability.status === 'taken' && (
+            <p style={{ ...hintStyle, color: '#FCA5A5' }}>
+              This email has an account.{' '}
+              <Link
+                href="/login"
+                style={{ color: '#FCA5A5', textDecoration: 'underline', fontWeight: 600 }}
+              >
+                Sign in to complete your faculty profile →
+              </Link>
+            </p>
+          )}
+          {emailAvailability.status === 'available' && (
+            <p style={{ ...hintStyle, color: '#86EFAC' }}>
+              ✓ Good to go
+            </p>
+          )}
         </Field>
 
         {/* WhatsApp */}

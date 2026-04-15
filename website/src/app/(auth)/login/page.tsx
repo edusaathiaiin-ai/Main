@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import ForcedLogoutScreen from '@/components/ui/ForcedLogoutScreen'
 import { trackSignupStarted, trackWaLinkClicked } from '@/lib/analytics'
+import { useEmailAvailability } from '@/hooks/useEmailAvailability'
 
 // ── Google icon ───────────────────────────────────────────────────────────────
 function GoogleIcon() {
@@ -37,6 +38,7 @@ function GoogleIcon() {
 function LoginForm() {
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
+  const emailAvailability = useEmailAvailability()
   const [googleLoading, setGoogleLoading] = useState(false)
   const [magicLoading, setMagicLoading] = useState(false)
   const [magicSent, setMagicSent] = useState(false)
@@ -326,7 +328,10 @@ function LoginForm() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    emailAvailability.onChange(e.target.value)
+                  }}
                   placeholder="your@email.com"
                   required
                   disabled={magicLoading}
@@ -339,11 +344,39 @@ function LoginForm() {
                   onFocus={(e) =>
                     (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.5)')
                   }
-                  onBlur={(e) =>
-                    (e.currentTarget.style.borderColor =
-                      'rgba(255,255,255,0.1)')
-                  }
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
+                    emailAvailability.onBlur(email)
+                  }}
                 />
+
+                {/* Inline availability hint */}
+                {emailAvailability.status === 'taken' && (
+                  <p
+                    className="text-[11.5px]"
+                    style={{ color: '#FCA5A5', margin: '4px 2px 0' }}
+                  >
+                    Already registered.{' '}
+                    <Link
+                      href="/login"
+                      style={{
+                        color: '#FCA5A5',
+                        textDecoration: 'underline',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Sign in instead →
+                    </Link>
+                  </p>
+                )}
+                {emailAvailability.status === 'available' && (
+                  <p
+                    className="text-[11.5px]"
+                    style={{ color: '#86EFAC', margin: '4px 2px 0' }}
+                  >
+                    ✓ Good to go
+                  </p>
+                )}
                 <button
                   type="submit"
                   disabled={magicLoading || googleLoading || !email.trim()}
