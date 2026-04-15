@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import {
-  trackChatboardCreated,
   trackChatboardSwitched,
   trackChatboardArchived,
   trackChatboardRenamed,
 } from '@/lib/analytics'
+import { daysUntilExam, inferExamDate } from '@/lib/examCountdown'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,12 +27,20 @@ type Board = {
   created_at: string
 }
 
+export type BoardInfo = {
+  id: string
+  name: string
+  emoji: string
+  focus_statement: string | null
+  board_type: string
+}
+
 type Props = {
   userId: string
   saathiSlug: string
   saathiColor: string
   activeBoardId: string | null
-  onSelectBoard: (boardId: string | null, lastBotSlot: number) => void
+  onSelectBoard: (boardId: string | null, lastBotSlot: number, info: BoardInfo | null) => void
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -46,9 +54,6 @@ export default function BoardNavigator({
 }: Props) {
   const [boards, setBoards] = useState<Board[]>([])
   const [loading, setLoading] = useState(true)
-  const [showCreate, setShowCreate] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [creating, setCreating] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [menuId, setMenuId] = useState<string | null>(null)
@@ -56,6 +61,8 @@ export default function BoardNavigator({
   const supabase = createClient()
 
   // ── Fetch boards ─────────────────────────────────────────────────────────
+
+  const initialActivateRef = useRef(false)
 
   const fetchBoards = useCallback(async () => {
     const { data } = await supabase
@@ -66,37 +73,29 @@ export default function BoardNavigator({
       .eq('is_archived', false)
       .order('is_pinned', { ascending: false })
       .order('position', { ascending: true })
-    setBoards((data ?? []) as Board[])
+    const fetched = (data ?? []) as Board[]
+    setBoards(fetched)
     setLoading(false)
-  }, [userId, saathiSlug, supabase])
+
+    // Auto-activate first pinned exam board on initial load
+    if (!initialActivateRef.current && fetched.length > 0) {
+      initialActivateRef.current = true
+      const pinnedExam = fetched.find((b) => b.is_pinned && b.board_type === 'exam')
+      if (pinnedExam) {
+        onSelectBoard(pinnedExam.id, pinnedExam.last_bot_slot, {
+          id: pinnedExam.id,
+          name: pinnedExam.name,
+          emoji: pinnedExam.emoji,
+          focus_statement: pinnedExam.focus_statement,
+          board_type: pinnedExam.board_type,
+        })
+      }
+    }
+  }, [userId, saathiSlug, supabase, onSelectBoard])
 
   useEffect(() => {
     fetchBoards()
   }, [fetchBoards])
-
-  // ── Create board ─────────────────────────────────────────────────────────
-
-  async function handleCreate() {
-    const trimmed = newName.trim()
-    if (!trimmed || creating) return
-    setCreating(true)
-    const { data, error } = await supabase.from('chatboards').insert({
-      user_id: userId,
-      saathi_slug: saathiSlug,
-      name: trimmed,
-      emoji: '📒',
-      board_type: 'subject',
-      position: boards.length,
-    }).select('id').single()
-    setCreating(false)
-    if (!error && data) {
-      trackChatboardCreated('subject', saathiSlug, false)
-      setNewName('')
-      setShowCreate(false)
-      await fetchBoards()
-      onSelectBoard(data.id, 1)
-    }
-  }
 
   // ── Rename board ─────────────────────────────────────────────────────────
 
@@ -123,7 +122,7 @@ export default function BoardNavigator({
       .eq('user_id', userId)
     const ageMs = Date.now() - new Date(board.created_at).getTime()
     trackChatboardArchived(board.message_count, Math.round(ageMs / 86400000))
-    if (activeBoardId === board.id) onSelectBoard(null, 1)
+    if (activeBoardId === board.id) onSelectBoard(null, 1, null)
     setMenuId(null)
     fetchBoards()
   }
@@ -144,16 +143,27 @@ export default function BoardNavigator({
 
   function handleSelect(board: Board) {
     if (activeBoardId === board.id) {
-      onSelectBoard(null, 1) // deselect → general chat
+      onSelectBoard(null, 1, null) // deselect → general chat
     } else {
       const prevBoard = boards.find((b) => b.id === activeBoardId)
       trackChatboardSwitched(
         (prevBoard?.board_type ?? 'general') as 'subject' | 'exam' | 'general',
         board.board_type as 'subject' | 'exam' | 'general'
       )
-      onSelectBoard(board.id, board.last_bot_slot)
+      onSelectBoard(board.id, board.last_bot_slot, {
+        id: board.id,
+        name: board.name,
+        emoji: board.emoji,
+        focus_statement: board.focus_statement,
+        board_type: board.board_type,
+      })
     }
   }
+
+  // ── Derived lists ────────────────────────────────────────────────────────
+
+  const pinned = boards.filter((b) => b.is_pinned)
+  const unpinned = boards.filter((b) => !b.is_pinned)
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -172,70 +182,42 @@ export default function BoardNavigator({
     <div
       style={{ borderBottom: '0.5px solid var(--border-subtle, rgba(0,0,0,0.06))' }}
     >
-      {/* Header */}
-      <div
-        className="flex items-center justify-between px-3 py-2"
-      >
-        <p
-          className="text-[10px] font-bold uppercase tracking-widest"
-          style={{ color: 'var(--text-ghost)' }}
-        >
-          Boards
-        </p>
-        <button
-          onClick={() => setShowCreate((v) => !v)}
-          className="rounded px-1.5 py-0.5 text-xs font-semibold transition-colors"
-          style={{ color: saathiColor }}
-          title="New board"
-        >
-          +
-        </button>
-      </div>
+      {/* ── 📌 PINNED section ─────────────────────────────────────────── */}
+      {pinned.length > 0 && (
+        <>
+          <SectionLabel>📌 Pinned</SectionLabel>
+          {pinned.map((b) => (
+            <BoardRow
+              key={b.id}
+              board={b}
+              isActive={activeBoardId === b.id}
+              isEditing={editingId === b.id}
+              editName={editName}
+              setEditName={setEditName}
+              saathiColor={saathiColor}
+              menuId={menuId}
+              onSelect={() => handleSelect(b)}
+              onMenuToggle={() => setMenuId(menuId === b.id ? null : b.id)}
+              onStartRename={() => { setEditingId(b.id); setEditName(b.name); setMenuId(null) }}
+              onRename={() => handleRename(b.id)}
+              onTogglePin={() => handleTogglePin(b)}
+              onArchive={() => handleArchive(b)}
+            />
+          ))}
+        </>
+      )}
 
-      {/* Create form */}
-      <AnimatePresence>
-        {showCreate && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="px-3 pb-2"
-          >
-            <form
-              onSubmit={(e) => { e.preventDefault(); handleCreate() }}
-              className="flex gap-1.5"
-            >
-              <input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value.slice(0, 60))}
-                placeholder="Board name…"
-                autoFocus
-                className="flex-1 rounded-lg px-2.5 py-1.5 text-xs outline-none"
-                style={{
-                  background: 'var(--bg-surface, #fff)',
-                  border: `1px solid ${saathiColor}40`,
-                  color: 'var(--text-primary)',
-                }}
-              />
-              <button
-                type="submit"
-                disabled={!newName.trim() || creating}
-                className="rounded-lg px-2.5 py-1.5 text-xs font-semibold disabled:opacity-40"
-                style={{ background: saathiColor, color: '#fff' }}
-              >
-                {creating ? '…' : 'Create'}
-              </button>
-            </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── 📋 BOARDS section ─────────────────────────────────────────── */}
+      <SectionLabel>📋 Boards</SectionLabel>
 
-      {/* "General" — always first, no board */}
+      {/* General — always first, always visible */}
       <button
-        onClick={() => onSelectBoard(null, 1)}
+        onClick={() => onSelectBoard(null, 1, null)}
         className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors"
         style={{
-          background: activeBoardId === null ? `${saathiColor}12` : 'transparent',
+          background: activeBoardId === null
+            ? `${saathiColor}12`
+            : 'var(--bg-elevated, rgba(0,0,0,0.02))',
           borderLeft: activeBoardId === null ? `2px solid ${saathiColor}` : '2px solid transparent',
         }}
       >
@@ -248,136 +230,191 @@ export default function BoardNavigator({
         </span>
       </button>
 
-      {/* Board list */}
-      {boards.map((b) => {
-        const isActive = activeBoardId === b.id
-        const isEditing = editingId === b.id
+      {/* Other unpinned boards */}
+      {unpinned.map((b) => (
+        <BoardRow
+          key={b.id}
+          board={b}
+          isActive={activeBoardId === b.id}
+          isEditing={editingId === b.id}
+          editName={editName}
+          setEditName={setEditName}
+          saathiColor={saathiColor}
+          menuId={menuId}
+          onSelect={() => handleSelect(b)}
+          onMenuToggle={() => setMenuId(menuId === b.id ? null : b.id)}
+          onStartRename={() => { setEditingId(b.id); setEditName(b.name); setMenuId(null) }}
+          onRename={() => handleRename(b.id)}
+          onTogglePin={() => handleTogglePin(b)}
+          onArchive={() => handleArchive(b)}
+        />
+      ))}
 
-        return (
-          <div key={b.id} className="relative">
-            <button
-              onClick={() => !isEditing && handleSelect(b)}
-              className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors"
-              style={{
-                background: isActive ? `${saathiColor}12` : 'transparent',
-                borderLeft: isActive ? `2px solid ${saathiColor}` : '2px solid transparent',
-              }}
-            >
-              <span className="text-sm">{b.emoji}</span>
-              <div className="min-w-0 flex-1">
-                {isEditing ? (
-                  <form
-                    onSubmit={(e) => { e.preventDefault(); handleRename(b.id) }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <input
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value.slice(0, 60))}
-                      onBlur={() => handleRename(b.id)}
-                      autoFocus
-                      className="w-full rounded px-1.5 py-0.5 text-xs outline-none"
-                      style={{
-                        background: 'var(--bg-surface, #fff)',
-                        border: `1px solid ${saathiColor}40`,
-                        color: 'var(--text-primary)',
-                      }}
-                    />
-                  </form>
-                ) : (
-                  <span
-                    className="block truncate text-xs font-semibold"
-                    style={{ color: isActive ? saathiColor : 'var(--text-secondary)' }}
-                  >
-                    {b.is_pinned && '📌 '}{b.name}
-                  </span>
-                )}
-                {b.focus_statement && !isEditing && (
-                  <span
-                    className="block truncate text-[10px]"
-                    style={{ color: 'var(--text-ghost)' }}
-                  >
-                    {b.focus_statement}
-                  </span>
-                )}
-              </div>
-
-              {/* Context menu trigger */}
-              {!isEditing && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setMenuId(menuId === b.id ? null : b.id)
-                  }}
-                  className="shrink-0 rounded px-1 py-0.5 text-xs opacity-0 transition-opacity group-hover:opacity-100"
-                  style={{
-                    color: 'var(--text-ghost)',
-                    opacity: menuId === b.id || isActive ? 1 : undefined,
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                  onMouseLeave={(e) => {
-                    if (menuId !== b.id) e.currentTarget.style.opacity = '0'
-                  }}
-                >
-                  ⋮
-                </button>
-              )}
-            </button>
-
-            {/* Context menu */}
-            <AnimatePresence>
-              {menuId === b.id && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  className="absolute right-2 top-full z-50 rounded-lg py-1 shadow-lg"
-                  style={{
-                    background: 'var(--bg-surface, #fff)',
-                    border: '1px solid var(--border-subtle, rgba(0,0,0,0.08))',
-                    minWidth: '140px',
-                  }}
-                >
-                  <MenuBtn
-                    onClick={() => {
-                      setEditingId(b.id)
-                      setEditName(b.name)
-                      setMenuId(null)
-                    }}
-                  >
-                    ✏️ Rename
-                  </MenuBtn>
-                  <MenuBtn onClick={() => handleTogglePin(b)}>
-                    {b.is_pinned ? '📌 Unpin' : '📌 Pin'}
-                  </MenuBtn>
-                  {b.board_type !== 'general' && (
-                    <MenuBtn
-                      onClick={() => handleArchive(b)}
-                      style={{ color: '#EF4444' }}
-                    >
-                      🗑️ Archive
-                    </MenuBtn>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )
-      })}
-
-      {/* Empty state */}
-      {boards.length === 0 && (
-        <p
-          className="px-3 py-2 text-[10px]"
-          style={{ color: 'var(--text-ghost)' }}
-        >
-          No boards yet — create one to organise your study sessions.
-        </p>
-      )}
+      {/* ── + New Board — disabled for Phase B ────────────────────────── */}
+      <button
+        disabled
+        className="flex w-full items-center gap-2.5 px-3 py-2 text-left opacity-40"
+        style={{ cursor: 'not-allowed' }}
+        title="Coming soon"
+      >
+        <span className="text-sm">+</span>
+        <span className="text-xs font-medium" style={{ color: 'var(--text-ghost)' }}>
+          New Board
+        </span>
+      </button>
     </div>
   )
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p
+      className="px-3 pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-widest"
+      style={{ color: 'var(--text-ghost)' }}
+    >
+      {children}
+    </p>
+  )
+}
+
+function BoardRow({
+  board: b,
+  isActive,
+  isEditing,
+  editName,
+  setEditName,
+  saathiColor,
+  menuId,
+  onSelect,
+  onMenuToggle,
+  onStartRename,
+  onRename,
+  onTogglePin,
+  onArchive,
+}: {
+  board: { id: string; name: string; emoji: string; focus_statement: string | null; board_type: string; is_pinned: boolean; exam_target_id: string | null }
+  isActive: boolean
+  isEditing: boolean
+  editName: string
+  setEditName: (v: string) => void
+  saathiColor: string
+  menuId: string | null
+  onSelect: () => void
+  onMenuToggle: () => void
+  onStartRename: () => void
+  onRename: () => void
+  onTogglePin: () => void
+  onArchive: () => void
+}) {
+  // Exam countdown — resolve from registry
+  const examDate = b.exam_target_id ? inferExamDate(b.exam_target_id) : null
+  const examDaysLeft = examDate ? daysUntilExam(examDate) : null
+
+  return (
+    <div className="group relative">
+      <button
+        onClick={() => !isEditing && onSelect()}
+        className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors"
+        style={{
+          background: isActive
+            ? `${saathiColor}12`
+            : 'var(--bg-elevated, rgba(0,0,0,0.02))',
+          borderLeft: isActive ? `2px solid ${saathiColor}` : '2px solid transparent',
+        }}
+      >
+        <span className="text-sm">{b.emoji}</span>
+        <div className="min-w-0 flex-1">
+          {isEditing ? (
+            <form
+              onSubmit={(e) => { e.preventDefault(); onRename() }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value.slice(0, 60))}
+                onBlur={onRename}
+                autoFocus
+                className="w-full rounded px-1.5 py-0.5 text-xs outline-none"
+                style={{
+                  background: 'var(--bg-surface, #fff)',
+                  border: `1px solid ${saathiColor}40`,
+                  color: 'var(--text-primary)',
+                }}
+              />
+            </form>
+          ) : (
+            <span
+              className="block truncate text-xs font-semibold"
+              style={{ color: isActive ? saathiColor : 'var(--text-secondary)' }}
+            >
+              {b.name}
+            </span>
+          )}
+          {/* Exam countdown — e.g. "47 days left" */}
+          {examDaysLeft !== null && examDaysLeft >= 0 && !isEditing && (
+            <span
+              className="block text-[10px]"
+              style={{ color: examDaysLeft <= 7 ? '#EF4444' : 'var(--text-ghost)' }}
+            >
+              {examDaysLeft === 0 ? 'Today!' : `${examDaysLeft} day${examDaysLeft === 1 ? '' : 's'} left`}
+            </span>
+          )}
+          {b.focus_statement && !isEditing && !examDate && (
+            <span
+              className="block truncate text-[10px]"
+              style={{ color: 'var(--text-ghost)' }}
+            >
+              {b.focus_statement}
+            </span>
+          )}
+        </div>
+
+        {/* ⋮ menu trigger — visible on hover or when menu open */}
+        {!isEditing && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onMenuToggle() }}
+            className="shrink-0 rounded px-1 py-0.5 text-xs transition-opacity group-hover:opacity-100"
+            style={{
+              color: 'var(--text-ghost)',
+              opacity: menuId === b.id || isActive ? 1 : 0,
+            }}
+          >
+            ⋮
+          </button>
+        )}
+      </button>
+
+      {/* Context menu */}
+      <AnimatePresence>
+        {menuId === b.id && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="absolute right-2 top-full z-50 rounded-lg py-1 shadow-lg"
+            style={{
+              background: 'var(--bg-surface, #fff)',
+              border: '1px solid var(--border-subtle, rgba(0,0,0,0.08))',
+              minWidth: '140px',
+            }}
+          >
+            <MenuBtn onClick={onStartRename}>✏️ Rename</MenuBtn>
+            <MenuBtn onClick={onTogglePin}>
+              {b.is_pinned ? '📌 Unpin' : '📌 Pin'}
+            </MenuBtn>
+            {b.board_type !== 'general' && (
+              <MenuBtn onClick={onArchive} style={{ color: '#EF4444' }}>
+                🗑️ Archive
+              </MenuBtn>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 function MenuBtn({
   children,

@@ -21,6 +21,8 @@ export type StreamChatParams = {
   accessToken: string
   /** Base64 data URL of an uploaded sketch/image (optional) */
   imageBase64?: string
+  /** Active chatboard ID — scopes message to a board */
+  chatboardId?: string
 }
 
 const EDGE_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`
@@ -44,6 +46,7 @@ export async function* streamChat(
         content: m.content,
       })),
       ...(params.imageBase64 ? { imageBase64: params.imageBase64 } : {}),
+      ...(params.chatboardId ? { chatboardId: params.chatboardId } : {}),
     }),
   })
 

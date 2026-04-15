@@ -25,6 +25,7 @@ import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
 import { IceBreaker } from './IceBreaker'
 import { canUseSplitView } from '@/lib/canUseSplitView'
+import BoardNavigator, { type BoardInfo } from '@/components/chat/BoardNavigator'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
 import { FreePlanBar } from './FreePlanBar'
@@ -258,6 +259,7 @@ export function ChatWindow() {
     setStreaming,
     appendStreamChunk,
     commitStreamedMessage,
+    clearMessages,
   } = useChatStore()
 
   const { mode, setMode } = useThemeStore()
@@ -288,6 +290,9 @@ export function ChatWindow() {
     null
   )
   const [bannerDismissed, setBannerDismissed] = useState(false)
+  // Board state — which chatboard is active (null = General)
+  const [activeChatboardId, setActiveChatboardId] = useState<string | null>(null)
+  const [activeBoardInfo, setActiveBoardInfo] = useState<BoardInfo | null>(null)
   // Split View state — gated to Plus+ via canUseSplitView. Toggle fires
   // from the header button; actual two-pane rendering is Phase 5.
   const [splitView, setSplitView] = useState<boolean>(false)
@@ -564,6 +569,14 @@ export function ChatWindow() {
     setConversionModal({ open: true, trigger: 'plus_bot_tap', botName })
   }
 
+  // Board switch — clear client messages, set board + bot slot
+  function switchBoard(boardId: string | null, lastBotSlot: number, info: BoardInfo | null) {
+    setActiveChatboardId(boardId)
+    setActiveBoardInfo(info)
+    setActiveBotSlot((lastBotSlot ?? 1) as 1 | 2 | 3 | 4 | 5)
+    clearMessages()
+  }
+
   // Flag a message
   async function handleFlag(messageId: string) {
     const supabase = createClient()
@@ -628,6 +641,7 @@ export function ChatWindow() {
           history,
           accessToken: session.access_token,
           ...(imageBase64 ? { imageBase64 } : {}),
+          ...(activeChatboardId ? { chatboardId: activeChatboardId } : {}),
         })) {
           appendStreamChunk(delta)
         }
@@ -839,6 +853,14 @@ export function ChatWindow() {
           onLockedTap={handleLockedTap}
         />
 
+        <BoardNavigator
+          userId={profile.id}
+          saathiSlug={saathiId}
+          saathiColor={activeSaathi.primary}
+          activeBoardId={activeChatboardId}
+          onSelectBoard={switchBoard}
+        />
+
         {canUseSplitView(profile.plan_id) && (
           <div
             className="flex items-center justify-end px-4 py-1.5"
@@ -956,6 +978,34 @@ export function ChatWindow() {
           style={{ position: 'relative', ...getChatFontStyle(fontSize, fontType, fontColor, isLegalTheme, highContrast) }}
         >
           <ChatWatermark saathiSlug={saathiId} />
+
+          {/* Active board header */}
+          {activeBoardInfo && (
+            <div
+              className="mb-3 flex items-center gap-2 rounded-lg px-3 py-2"
+              style={{
+                background: 'var(--bg-elevated, rgba(0,0,0,0.03))',
+                borderLeft: `2px solid ${activeSaathi.primary}`,
+              }}
+            >
+              <span className="text-sm">{activeBoardInfo.emoji}</span>
+              <span
+                className="text-xs font-semibold"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                {activeBoardInfo.name}
+              </span>
+              {activeBoardInfo.focus_statement && (
+                <span
+                  className="text-[11px]"
+                  style={{ color: 'var(--text-ghost)', marginLeft: '4px' }}
+                >
+                  {activeBoardInfo.focus_statement}
+                </span>
+              )}
+            </div>
+          )}
+
           <div style={{ position: 'relative', zIndex: 1 }}>
             {messages.length === 0 && !isStreaming ? (
               <>

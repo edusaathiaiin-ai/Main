@@ -2078,8 +2078,9 @@ Deno.serve(async (req: Request) => {
 
     // ── Server-validated history — fetch from DB, never trust client ──────────
     // Prevents context leakage between Saathis: history is scoped to
-    // this exact (user, vertical, bot_slot) tuple.
-    const { data: dbHistory } = await admin
+    // this exact (user, vertical, bot_slot) tuple. When a chatboard is
+    // active, further scope to that board so boards don't bleed context.
+    let historyQuery = admin
       .from('chat_messages')
       .select('role, content')
       .eq('user_id', userId)
@@ -2088,6 +2089,10 @@ Deno.serve(async (req: Request) => {
       .in('role', ['user', 'assistant'])
       .order('created_at', { ascending: false })
       .limit(10);
+    if (chatboardId) {
+      historyQuery = historyQuery.eq('chatboard_id', chatboardId);
+    }
+    const { data: dbHistory } = await historyQuery;
 
     const normalizedHistory: MessageParam[] = (dbHistory ?? [])
       .reverse()  // DB returns newest first, we need chronological
