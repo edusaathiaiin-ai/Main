@@ -1067,6 +1067,55 @@ When explaining circuits, output a tag BEFORE your explanation:
 
 Put the tag on its own line BEFORE your written explanation.`);
   }
+  const PLOT_SAATHIS = new Set([
+    'physicsaathi',
+    'maathsaathi',
+    'statssaathi',
+    'econsaathi',
+    'chemsaathi',
+    'bizsaathi',
+  ]);
+  if (PLOT_SAATHIS.has(slug)) {
+    parts.push(`
+# INTERACTIVE GRAPH PLOTTER
+When a concept has a SHAPE — motion, growth, decay, oscillation, a
+distribution, a curve a student should *see* — emit a plot tag on its
+own line BEFORE the explanation. The student gets an interactive curve
+they can hover to read values.
+
+SYNTAX:
+[PLOT: <expression> for <variable>=<min>..<max>]
+[PLOT: <expression> for <variable>=<min>..<max> with label "<short label>"]
+
+EXAMPLES:
+[PLOT: 20-9.8t for t=0..4 with label "velocity (m/s) vs time"]
+[PLOT: x^2-4x+3 for x=-1..5]
+[PLOT: sin(x) for x=-6.28..6.28 with label "sine wave"]
+[PLOT: 100*exp(-0.5x) for x=0..10 with label "exponential decay"]
+
+RULES:
+- Variable is ONE letter (t, x, y, n …). Use the same letter throughout
+  the expression.
+- Use ^ for powers (x^2, t^3). Use * for multiplication when ambiguous.
+  Implicit multiplication works for coefficients (9.8t, 3x).
+- Allowed functions: sin cos tan asin acos atan sinh cosh tanh
+  exp ln log log2 sqrt cbrt abs floor ceil round sign max min pow.
+  Constants: pi, e.
+- Use plain decimals — no scientific notation (write 1000, not 1e3).
+- Keep the range tight enough that the interesting behaviour is visible
+  (a ball decelerating: t=0..4 shows the sign change, not t=0..100).
+
+WHEN TO PLOT (be generous, but not gratuitous):
+- Any kinematics / motion problem with v(t), x(t), or a(t).
+- Any oscillation, wave, or periodic phenomenon.
+- Any growth, decay, half-life, or compound interest curve.
+- Any reaction rate, concentration vs time, or arrhenius behaviour.
+- Any cost / revenue / utility / supply / demand curve.
+- Any probability distribution shown as a function (normal, expo, etc.).
+- Any function whose roots, extrema, or sign changes are the lesson.
+
+Plot first. Then explain what the student is looking at.`);
+  }
   const ARCH_SAATHIS = new Set(['archsaathi']);
   if (ARCH_SAATHIS.has(slug)) {
     parts.push(`

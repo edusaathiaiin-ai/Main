@@ -21,6 +21,7 @@ import { ArchModel3D } from './ArchModel3D'
 import { ArchTimeline } from './ArchTimeline'
 import { GoldenRatioTool } from './GoldenRatioTool'
 import { FloorPlanViewer, type FloorPlanData } from './FloorPlanViewer'
+import { GraphPlotter } from './GraphPlotter'
 import { Scene360Viewer } from './Scene360Viewer'
 import { SketchResult } from './SketchResult'
 import { ReportErrorButton } from './ReportErrorButton'
@@ -45,6 +46,14 @@ type Segment =
   | { type: 'golden_ratio'; width: number; height: number }
   | { type: 'scene360'; name: string }
   | { type: 'sketch'; content: string }
+  | {
+      type: 'plot'
+      expression: string
+      variable: string
+      min: number
+      max: number
+      label?: string
+    }
 
 // ─── Sequential segment parser ────────────────────────────────────────────────
 
@@ -219,6 +228,26 @@ function parseMessageContent(text: string): Segment[] {
           type: 'golden_ratio' as const,
           width: parseFloat(goldenRatio[1]),
           height: parseFloat(goldenRatio[2]),
+        },
+      }
+    }
+
+    // 4m. Plot tag [PLOT: <expr> for <var>=<min>..<max>[ with label "<label>"]]
+    const plotMatch =
+      /\[PLOT:\s*([^\]]+?)\s+for\s+([a-zA-Z])\s*=\s*(-?\d+(?:\.\d+)?)\s*\.\.\s*(-?\d+(?:\.\d+)?)(?:\s+with\s+label\s+"([^"]+)")?\s*\]/i.exec(
+        remaining
+      )
+    if (plotMatch && plotMatch.index < currentIndex()) {
+      earliest = {
+        index: plotMatch.index,
+        length: plotMatch[0].length,
+        segment: {
+          type: 'plot' as const,
+          expression: plotMatch[1].trim(),
+          variable: plotMatch[2],
+          min: parseFloat(plotMatch[3]),
+          max: parseFloat(plotMatch[4]),
+          label: plotMatch[5]?.trim(),
         },
       }
     }
@@ -422,6 +451,19 @@ function RenderSegments({
                 key={i}
                 initialWidth={seg.width}
                 initialHeight={seg.height}
+                saathiColor={primaryColor}
+              />
+            )
+
+          case 'plot':
+            return (
+              <GraphPlotter
+                key={i}
+                expression={seg.expression}
+                variable={seg.variable}
+                min={seg.min}
+                max={seg.max}
+                label={seg.label}
                 saathiColor={primaryColor}
               />
             )
