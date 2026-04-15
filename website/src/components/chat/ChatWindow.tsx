@@ -24,6 +24,7 @@ import { MessageBubble } from './MessageBubble'
 import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
 import { IceBreaker } from './IceBreaker'
+import { canUseSplitView } from '@/lib/canUseSplitView'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
 import { FreePlanBar } from './FreePlanBar'
@@ -287,6 +288,9 @@ export function ChatWindow() {
     null
   )
   const [bannerDismissed, setBannerDismissed] = useState(false)
+  // Split View state — gated to Plus+ via canUseSplitView. Toggle fires
+  // from the header button; actual two-pane rendering is Phase 5.
+  const [splitView, setSplitView] = useState<boolean>(false)
   const [showCelebration, setShowCelebration] = useState(false)
   const [flameTransition, setFlameTransition] = useState<{
     stage: string
@@ -834,6 +838,34 @@ export function ChatWindow() {
           onSlotChange={handleSlotChange}
           onLockedTap={handleLockedTap}
         />
+
+        {canUseSplitView(profile.plan_id) && (
+          <div
+            className="flex items-center justify-end px-4 py-1.5"
+            style={{
+              borderBottom: '0.5px solid var(--border-subtle, rgba(0,0,0,0.06))',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setSplitView((v) => !v)}
+              aria-pressed={splitView}
+              title={splitView ? 'Exit Split View' : 'Open Split View'}
+              className="rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors"
+              style={{
+                background: splitView
+                  ? `${activeSaathi.primary}1f`
+                  : 'transparent',
+                color: splitView
+                  ? activeSaathi.primary
+                  : 'var(--text-tertiary)',
+                border: `1px solid ${splitView ? `${activeSaathi.primary}55` : 'transparent'}`,
+              }}
+            >
+              ⊞ Split View
+            </button>
+          </div>
+        )}
 
         {/* Free plan ambient quota bar — always visible, hides during cooling */}
         <FreePlanBar
