@@ -159,6 +159,9 @@ export default async function RootPage() {
             <a href="#for-everyone">For everyone</a>
           </li>
           <li>
+            <Link href="/about">About Us</Link>
+          </li>
+          <li>
             <Link href="/login?role=student" className="land-nav-cta">
               Register →
             </Link>
