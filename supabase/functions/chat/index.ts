@@ -20,6 +20,7 @@ import { checkSuspension, recordViolationAndCheck } from '../_shared/suspensions
 import { captureError, captureEvent } from '../_shared/sentry.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { SAATHI_PHILOSOPHY } from '../_shared/saathiPhilosophy.ts';
+import { NEP_2020_AWARENESS, getNepRelevance } from '../_shared/nepAwareness.ts';
 import { getHorizonNudge } from '../_shared/horizonNudge.ts';
 import { checkRateLimit } from '../_shared/rateLimit.ts';
 import { posthogCapture } from '../_shared/posthog.ts';
@@ -864,6 +865,10 @@ ${exams.map(e => {
   return `- ${e.exam_name} — ${e.exam_date} (${daysLeft} days away): ${e.description}`;
 }).join('\n')}
 If the student's topic relates to an upcoming exam, naturally mention the deadline and suggest focused preparation.` : ''}
+
+${NEP_2020_AWARENESS}
+
+${getNepRelevance(saathiSlug)}
 
 # TIME OF DAY
 ${(() => {
