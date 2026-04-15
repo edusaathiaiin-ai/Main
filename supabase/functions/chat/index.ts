@@ -2073,6 +2073,7 @@ Deno.serve(async (req: Request) => {
       bot_slot: botSlot,
       role: 'user',
       content: sanitized,
+      ...(chatboardId ? { chatboard_id: chatboardId } : {}),
     });
 
     // ── Server-validated history — fetch from DB, never trust client ──────────
@@ -2161,6 +2162,7 @@ Deno.serve(async (req: Request) => {
               bot_slot: botSlot,
               role: 'assistant',
               content: assistantText,
+              ...(chatboardId ? { chatboard_id: chatboardId } : {}),
             });
             await incrementQuota(admin, userId, verticalId, botSlot, dateIst, quotaRow.message_count, dailyQuota, effectiveCoolingHours);
 
