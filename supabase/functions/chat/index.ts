@@ -562,9 +562,19 @@ async function buildSystemPrompt(
   userId: string,
   saathiId: string,
   botSlot: number,
-  saathiSlug: string
+  saathiSlug: string,
+  chatboardId: string | null
 ): Promise<string> {
-  const [personaRes, soulRes, newsRes, profileRes, examRes] = await Promise.all([
+  const chatboardPromise = chatboardId
+    ? admin
+        .from('chatboards')
+        .select('name, focus_statement')
+        .eq('id', chatboardId)
+        .eq('user_id', userId)
+        .maybeSingle()
+    : Promise.resolve({ data: null } as { data: { name: unknown; focus_statement: unknown } | null });
+
+  const [personaRes, soulRes, newsRes, profileRes, examRes, chatboardRes] = await Promise.all([
     admin
       .from('bot_personas')
       .select('name, role, tone, specialities, never_do')
@@ -600,7 +610,10 @@ async function buildSystemPrompt(
       .gte('exam_date', new Date().toISOString().split('T')[0])
       .order('exam_date', { ascending: true })
       .limit(3),
+    chatboardPromise,
   ]);
+
+  const chatboard = chatboardRes.data as { name: unknown; focus_statement: unknown } | null;
 
   const p = personaRes.data as RawPersona | null;
   const s = soulRes.data as RawSoul | null;
@@ -1174,6 +1187,16 @@ Every building → show it. Every style → timeline. Every proportion → tool.
 # ${UNIVERSAL_GUARDRAILS}
 
 ${getHorizonNudge(saathiSlug)}
+${(() => {
+  const name = typeof chatboard?.name === 'string' ? chatboard.name.trim() : '';
+  const focus = typeof chatboard?.focus_statement === 'string' ? chatboard.focus_statement.trim() : '';
+  if (!name || !focus) return '';
+  return `
+# ACTIVE BOARD
+Board: "${name}"
+Focus: ${focus}
+Gently redirect off-topic questions to the student's General board.`;
+})()}
 # FINAL RULE — never changes
 You are not just answering questions. You are shaping a future.`.trim();
 }
@@ -1696,6 +1719,7 @@ Deno.serve(async (req: Request) => {
     type RequestBody = {
       saathiId: string;
       botSlot: number;
+      chatboardId?: string;
       message: string;
       history: MessageParam[];
       imageBase64?: string;   // data URL — present when student uploads a sketch
@@ -1758,7 +1782,7 @@ Deno.serve(async (req: Request) => {
       : CHAT_RATE_MAX_REQUESTS;
 
     // ── Request body ────────────────────────────────────────────────────────
-    const { saathiId, botSlot, message, history, imageBase64 } = body;
+    const { saathiId, botSlot, chatboardId, message, history, imageBase64 } = body;
 
     if (!saathiId || !botSlot || !message) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -1972,7 +1996,7 @@ Deno.serve(async (req: Request) => {
     // ── Build system prompt + fetch fact corrections in parallel ───────────
     // Both depend on verticalId but not on each other.
     const [baseSystemPrompt, { data: corrections }] = await Promise.all([
-      buildSystemPrompt(admin, userId, verticalId, botSlot, verticalSlug),
+      buildSystemPrompt(admin, userId, verticalId, botSlot, verticalSlug, chatboardId ?? null),
       admin
         .from('fact_corrections')
         .select('wrong_claim, correct_claim, topic')
