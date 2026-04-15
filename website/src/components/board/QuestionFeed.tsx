@@ -27,22 +27,22 @@ function QuestionSkeleton() {
     <div
       className="mb-3 animate-pulse rounded-2xl p-5"
       style={{
-        background: '#0A1929',
-        border: '0.5px solid rgba(255,255,255,0.05)',
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border-subtle)',
       }}
     >
       <div className="mb-3 flex items-center gap-3">
-        <div className="h-8 w-8 rounded-full bg-white/8" />
+        <div className="h-8 w-8 rounded-full bg-black/10" />
         <div className="space-y-1.5">
-          <div className="h-2.5 w-28 rounded-full bg-white/8" />
-          <div className="h-2 w-16 rounded-full bg-white/5" />
+          <div className="h-2.5 w-28 rounded-full bg-black/10" />
+          <div className="h-2 w-16 rounded-full bg-black/5" />
         </div>
       </div>
       <div className="mb-3 space-y-1.5">
-        <div className="h-3 w-full rounded-full bg-white/8" />
-        <div className="h-3 w-3/4 rounded-full bg-white/5" />
+        <div className="h-3 w-full rounded-full bg-black/10" />
+        <div className="h-3 w-3/4 rounded-full bg-black/5" />
       </div>
-      <div className="h-2.5 w-16 rounded-full bg-white/5" />
+      <div className="h-2.5 w-16 rounded-full bg-black/5" />
     </div>
   )
 }
@@ -281,7 +281,7 @@ export function QuestionFeed() {
   return (
     <div
       className="flex h-screen w-full overflow-hidden"
-      style={{ background: isLegalTheme ? '#FFFFFF' : '#060F1D' }}
+      style={{ background: 'var(--bg-base)' }}
     >
       {/* App Sidebar */}
       <Sidebar
@@ -329,15 +329,13 @@ export function QuestionFeed() {
               <div>
                 <h1
                   className="font-playfair mb-1 text-2xl font-bold"
-                  style={{ color: isLegalTheme ? '#1A1A1A' : '#ffffff' }}
+                  style={{ color: 'var(--text-primary)' }}
                 >
                   {activeSaathi.name} Community
                 </h1>
                 <p
                   className="text-sm"
-                  style={{
-                    color: isLegalTheme ? '#888888' : 'rgba(255,255,255,0.4)',
-                  }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   {totalCount > 0 ? `${totalCount} questions` : 'Ask anything'}
                 </p>
@@ -359,12 +357,12 @@ export function QuestionFeed() {
                   style={{
                     background:
                       !canActuallyPost || (boardQuota && !boardQuota.allowed)
-                        ? 'rgba(201,153,58,0.25)'
-                        : '#C9993A',
+                        ? 'var(--saathi-light)'
+                        : 'var(--saathi-primary)',
                     color:
                       !canActuallyPost || (boardQuota && !boardQuota.allowed)
-                        ? '#C9993A'
-                        : '#060F1D',
+                        ? 'var(--saathi-primary)'
+                        : '#FFFFFF',
                     opacity:
                       !canActuallyPost || (boardQuota && !boardQuota.allowed)
                         ? 0.6
@@ -394,20 +392,21 @@ export function QuestionFeed() {
                         position: 'absolute',
                         top: 'calc(100% + 8px)',
                         right: 0,
-                        background: '#0B1F3A',
-                        border: '0.5px solid rgba(201,153,58,0.3)',
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--saathi-border)',
                         borderRadius: '10px',
                         padding: '10px 14px',
                         fontSize: '12px',
-                        color: 'rgba(255,255,255,0.7)',
+                        color: 'var(--text-secondary)',
                         whiteSpace: 'nowrap',
                         zIndex: 50,
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
                       }}
                     >
                       Limit reached ·{' '}
                       <Link
                         href="/pricing"
-                        style={{ color: '#C9993A', fontWeight: '700' }}
+                        style={{ color: 'var(--saathi-primary)', fontWeight: '700' }}
                       >
                         Upgrade →
                       </Link>{' '}
@@ -427,8 +426,8 @@ export function QuestionFeed() {
                   style={{
                     margin: '0 0 16px',
                     padding: '16px',
-                    background: 'rgba(201,153,58,0.06)',
-                    border: '0.5px solid rgba(201,153,58,0.25)',
+                    background: 'var(--saathi-bg)',
+                    border: '1px solid var(--saathi-border)',
                     borderRadius: '14px',
                   }}
                 >
@@ -436,7 +435,7 @@ export function QuestionFeed() {
                     style={{
                       fontSize: '13px',
                       fontWeight: '700',
-                      color: '#C9993A',
+                      color: 'var(--saathi-primary)',
                       margin: '0 0 4px',
                     }}
                   >
@@ -445,7 +444,7 @@ export function QuestionFeed() {
                   <p
                     style={{
                       fontSize: '12px',
-                      color: 'rgba(255,255,255,0.45)',
+                      color: 'var(--text-secondary)',
                       margin: '0 0 14px',
                       lineHeight: 1.5,
                     }}
@@ -461,8 +460,8 @@ export function QuestionFeed() {
                         flex: 1,
                         display: 'block',
                         padding: '10px',
-                        background: '#C9993A',
-                        color: '#0B1F3A',
+                        background: 'var(--saathi-primary)',
+                        color: '#FFFFFF',
                         borderRadius: '10px',
                         fontSize: '12px',
                         fontWeight: '700',
@@ -478,9 +477,9 @@ export function QuestionFeed() {
                         flex: 1,
                         padding: '10px',
                         background: 'transparent',
-                        border: '0.5px solid rgba(255,255,255,0.12)',
+                        border: '1px solid var(--border-medium)',
                         borderRadius: '10px',
-                        color: 'rgba(255,255,255,0.35)',
+                        color: 'var(--text-tertiary)',
                         fontSize: '12px',
                         cursor: 'pointer',
                       }}
@@ -492,7 +491,7 @@ export function QuestionFeed() {
                   <p
                     style={{
                       fontSize: '10px',
-                      color: 'rgba(255,255,255,0.2)',
+                      color: 'var(--text-ghost)',
                       textAlign: 'center',
                       margin: '10px 0 0',
                     }}
@@ -509,15 +508,15 @@ export function QuestionFeed() {
                   margin: '0 0 16px',
                   padding: '14px 18px',
                   borderRadius: '12px',
-                  background: 'rgba(201,153,58,0.08)',
-                  border: '1px solid rgba(201,153,58,0.25)',
+                  background: 'var(--saathi-bg)',
+                  border: '1px solid var(--saathi-border)',
                 }}
               >
                 <p
                   style={{
                     fontSize: '14px',
                     fontWeight: 600,
-                    color: '#C9993A',
+                    color: 'var(--saathi-primary)',
                     margin: '0 0 4px',
                   }}
                 >
@@ -526,7 +525,7 @@ export function QuestionFeed() {
                 <p
                   style={{
                     fontSize: '13px',
-                    color: 'rgba(255,255,255,0.5)',
+                    color: 'var(--text-secondary)',
                     margin: 0,
                     lineHeight: 1.6,
                   }}
@@ -555,15 +554,15 @@ export function QuestionFeed() {
                   margin: '0 0 16px',
                   padding: '14px 18px',
                   borderRadius: '12px',
-                  background: 'rgba(239,68,68,0.06)',
-                  border: '1px solid rgba(239,68,68,0.2)',
+                  background: 'var(--error-bg)',
+                  border: '1px solid rgba(153,27,27,0.25)',
                 }}
               >
                 <p
                   style={{
                     fontSize: '14px',
                     fontWeight: 600,
-                    color: '#F87171',
+                    color: 'var(--error)',
                     margin: '0 0 4px',
                   }}
                 >
@@ -572,7 +571,7 @@ export function QuestionFeed() {
                 <p
                   style={{
                     fontSize: '13px',
-                    color: 'rgba(255,255,255,0.5)',
+                    color: 'var(--text-secondary)',
                     margin: '0 0 10px',
                     lineHeight: 1.6,
                   }}
@@ -632,11 +631,7 @@ export function QuestionFeed() {
                   <>
                     <p
                       className="font-playfair mb-4 text-lg"
-                      style={{
-                        color: isLegalTheme
-                          ? '#888888'
-                          : 'rgba(255,255,255,0.5)',
-                      }}
+                      style={{ color: 'var(--text-secondary)' }}
                     >
                       You haven&apos;t asked any questions yet.
                     </p>
@@ -644,7 +639,7 @@ export function QuestionFeed() {
                       <button
                         onClick={() => setModalOpen(true)}
                         className="rounded-xl px-5 py-2.5 text-sm font-bold"
-                        style={{ background: '#C9993A', color: '#060F1D' }}
+                        style={{ background: 'var(--saathi-primary)', color: '#FFFFFF' }}
                       >
                         Ask your first question →
                       </button>
@@ -654,11 +649,7 @@ export function QuestionFeed() {
                   <>
                     <p
                       className="font-playfair mb-4 text-lg"
-                      style={{
-                        color: isLegalTheme
-                          ? '#888888'
-                          : 'rgba(255,255,255,0.5)',
-                      }}
+                      style={{ color: 'var(--text-secondary)' }}
                     >
                       Be the first to ask a question in {activeSaathi.name}!
                     </p>
@@ -666,7 +657,7 @@ export function QuestionFeed() {
                       <button
                         onClick={() => setModalOpen(true)}
                         className="rounded-xl px-5 py-2.5 text-sm font-bold"
-                        style={{ background: '#C9993A', color: '#060F1D' }}
+                        style={{ background: 'var(--saathi-primary)', color: '#FFFFFF' }}
                       >
                         Ask a Question
                       </button>
@@ -676,11 +667,7 @@ export function QuestionFeed() {
                   <>
                     <p
                       className="font-playfair mb-2 text-lg"
-                      style={{
-                        color: isLegalTheme
-                          ? '#888888'
-                          : 'rgba(255,255,255,0.5)',
-                      }}
+                      style={{ color: 'var(--text-secondary)' }}
                     >
                       No questions match this filter
                     </p>
@@ -713,12 +700,13 @@ export function QuestionFeed() {
                             margin: '16px 0',
                             padding: '16px 20px',
                             borderRadius: '14px',
-                            background: 'rgba(201,153,58,0.06)',
-                            border: '0.5px solid rgba(201,153,58,0.2)',
+                            background: 'var(--saathi-bg)',
+                            border: '1px solid var(--saathi-border)',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             gap: '16px',
+                            flexWrap: 'wrap',
                           }}
                         >
                           <div>
@@ -726,7 +714,7 @@ export function QuestionFeed() {
                               style={{
                                 fontSize: '13px',
                                 fontWeight: '600',
-                                color: '#fff',
+                                color: 'var(--text-primary)',
                                 margin: '0 0 3px',
                               }}
                             >
@@ -735,8 +723,9 @@ export function QuestionFeed() {
                             <p
                               style={{
                                 fontSize: '11px',
-                                color: 'rgba(255,255,255,0.4)',
+                                color: 'var(--text-secondary)',
                                 margin: 0,
+                                lineHeight: 1.5,
                               }}
                             >
                               Plus members post unlimited questions. Faculty
@@ -762,9 +751,9 @@ export function QuestionFeed() {
                               style={{
                                 padding: '8px 16px',
                                 borderRadius: '8px',
-                                background: 'rgba(201,153,58,0.2)',
-                                border: '0.5px solid rgba(201,153,58,0.4)',
-                                color: '#C9993A',
+                                background: 'var(--saathi-light)',
+                                border: '1px solid var(--saathi-border)',
+                                color: 'var(--saathi-primary)',
                                 fontSize: '12px',
                                 fontWeight: '600',
                                 textDecoration: 'none',
@@ -784,7 +773,7 @@ export function QuestionFeed() {
                               style={{
                                 background: 'none',
                                 border: 'none',
-                                color: 'rgba(255,255,255,0.25)',
+                                color: 'var(--text-ghost)',
                                 cursor: 'pointer',
                                 fontSize: '18px',
                                 padding: 0,
@@ -804,9 +793,7 @@ export function QuestionFeed() {
                 <div className="flex flex-col items-center gap-2 py-6">
                   <p
                     className="text-xs"
-                    style={{
-                      color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)',
-                    }}
+                    style={{ color: 'var(--text-ghost)' }}
                   >
                     Showing {questions.length} of {totalCount} questions
                   </p>
@@ -816,15 +803,9 @@ export function QuestionFeed() {
                       disabled={loadingMore}
                       className="rounded-xl px-5 py-2.5 text-sm font-semibold transition-all disabled:opacity-50"
                       style={{
-                        background: isLegalTheme
-                          ? '#F5F5F5'
-                          : 'rgba(255,255,255,0.05)',
-                        border: isLegalTheme
-                          ? '0.5px solid #D0D0D0'
-                          : '0.5px solid rgba(255,255,255,0.1)',
-                        color: isLegalTheme
-                          ? '#1A1A1A'
-                          : 'rgba(255,255,255,0.6)',
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-medium)',
+                        color: 'var(--text-primary)',
                       }}
                     >
                       {loadingMore ? 'Loading...' : 'Load more questions'}

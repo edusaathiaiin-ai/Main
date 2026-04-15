@@ -12,7 +12,7 @@ const jakarta = Plus_Jakarta_Sans({
   subsets:  ['latin'],
   variable: '--font-about-body',
   display:  'swap',
-  weight:   ['300', '400', '500', '600', '700'],
+  weight:   ['300', '400', '500', '600', '700', '800'],
 })
 
 export default function AboutLayout({ children }: { children: ReactNode }) {
@@ -20,8 +20,8 @@ export default function AboutLayout({ children }: { children: ReactNode }) {
     <div
       className={`${fraunces.variable} ${jakarta.variable}`}
       style={{
-        background: '#0F1923',
-        color:      '#FFFFFF',
+        background: '#FFFFFF',
+        color:      '#0A0A0A',
         minHeight:  '100vh',
         fontFamily: 'var(--font-about-body), system-ui, -apple-system, sans-serif',
       }}
