@@ -209,15 +209,11 @@ export function inferExamYear(examId: string, now: Date = new Date()): number | 
 
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 
-export function daysUntilExam(
-  examId: string,
-  overrideDate: string | null = null,
-  now: Date = new Date(),
-): number | null {
-  const exam = getExamById(examId);
-  if (!exam) return null;
-  const dateStr = overrideDate ?? exam.next_date;
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+// Takes a date string directly (ISO YYYY-MM-DD). Mirrors the web util
+// shape — callers resolve student-known date vs registry default before
+// calling this. Returns null if the string is malformed.
+export function daysUntilExam(examDate: string, now: Date = new Date()): number | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(examDate);
   if (!m) return null;
   const target = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
   const ist = new Date(now.getTime() + IST_OFFSET_MS);
@@ -238,69 +234,66 @@ export function humanizeTimeToGo(days: number): string {
 }
 
 export type ExamPhase =
-  | 'preparation' | 'final_revision' | 'exam_week' | 'exam_day' | 'past';
+  | 'early'        // >180 days — build foundations
+  | 'preparation'  // 90-180 days — structured study
+  | 'intensive'    // 30-90 days — serious focus
+  | 'final'        // 7-30 days — final stretch
+  | 'exam_week'    // 1-7 days — trust preparation
+  | 'exam_day'     // 0 days
+  | 'past';        // negative days
 
-export function getExamPhase(
-  examId: string,
-  overrideDate: string | null = null,
-  now: Date = new Date(),
-): ExamPhase | null {
-  const days = daysUntilExam(examId, overrideDate, now);
-  if (days === null) return null;
-  if (days < 0) return 'past';
-  if (days === 0) return 'exam_day';
-  if (days <= 7) return 'exam_week';
-  if (days <= 30) return 'final_revision';
-  return 'preparation';
+export function getExamPhase(daysLeft: number): ExamPhase {
+  if (daysLeft < 0)    return 'past';
+  if (daysLeft === 0)  return 'exam_day';
+  if (daysLeft <= 7)   return 'exam_week';
+  if (daysLeft <= 30)  return 'final';
+  if (daysLeft <= 90)  return 'intensive';
+  if (daysLeft <= 180) return 'preparation';
+  return 'early';
+}
+
+export function getTopicDelta(
+  soulTopics: ReadonlyArray<string>,
+  examTopics: ReadonlyArray<string>,
+): { covered: string[]; notTouched: string[] } {
+  const covered = examTopics.filter((t) =>
+    soulTopics.some((s) =>
+      s.toLowerCase().includes(t.toLowerCase().split(' ')[0]),
+    ),
+  );
+  const notTouched = examTopics.filter((t) => !covered.includes(t));
+  return { covered, notTouched };
 }
 
 // Build the # EXAM CONTEXT block injected into the chat system prompt.
-// Returns empty string if student has no exam target or it's outside [1, 365].
+// Gate: both exam_target_id AND exam_target_date required. Returns empty
+// string otherwise, or when the resolved date is outside [1, 365] days.
 export function buildExamContextBlock(
   examTargetId: string | null | undefined,
+  examTargetDate: string | null | undefined,
   topTopics: ReadonlyArray<string> | null | undefined,
-  overrideDate: string | null = null,
   now: Date = new Date()
 ): string {
-  if (!examTargetId) return '';
+  if (!examTargetId || !examTargetDate) return '';
   const exam = getExamById(examTargetId);
   if (!exam) return '';
-  const days = daysUntilExam(examTargetId, overrideDate, now);
-  if (days === null || days < 1 || days > 365) return '';
+  const daysLeft = daysUntilExam(examTargetDate, now);
+  if (daysLeft === null || daysLeft < 1 || daysLeft > 365) return '';
 
-  const phase = getExamPhase(examTargetId, overrideDate, now);
-  const humanized = humanizeTimeToGo(days);
-
-  const recent = (topTopics ?? [])
-    .map((t) => t?.trim().toLowerCase())
-    .filter((t): t is string => Boolean(t));
-  const covered: string[] = [];
-  const notTouched: string[] = [];
-  for (const topic of exam.syllabus_topics) {
-    const t = topic.toLowerCase();
-    const hit = recent.some((s) => t.includes(s) || s.includes(t));
-    if (hit) covered.push(topic); else notTouched.push(topic);
-  }
-
-  const coverageLine = covered.length > 0
-    ? `Topics covered together so far: ${covered.slice(0, 5).join(', ')}.`
-    : 'No syllabus topics have been touched together yet.';
-  const gapLine = notTouched.length > 0
-    ? `Syllabus areas not yet covered: ${notTouched.slice(0, 5).join(', ')}.`
-    : 'Full syllabus has been touched at least once.';
+  const phase = getExamPhase(daysLeft);
+  const { covered, notTouched } = getTopicDelta(topTopics ?? [], exam.syllabus_topics);
 
   return `
 # EXAM CONTEXT
-The student is preparing for: ${exam.name} (${exam.full_name})
-Days until exam: ${days} (${humanized}). Phase: ${phase}.
-${coverageLine}
-${gapLine}
+Student is preparing for: ${exam.full_name} (${exam.name})
+Days remaining: ${daysLeft}
+Current phase: ${phase}
+${covered.length > 0 ? `Topics covered so far: ${covered.slice(0, 3).join(', ')}` : 'No topics tracked yet'}
+${notTouched.length > 0 ? `Topics not yet touched: ${notTouched.slice(0, 3).join(', ')}` : ''}
 
-Calibrate your guidance to this exam: when relevant, suggest syllabus
-areas worth focusing on, reference time remaining, and naturally bridge
-today's topic to exam preparation. Do not be preachy. Do not mention the
-exam in every response — weave it in when the student's question opens
-the door. The student wakes up thinking about this exam; honour that
-without dwelling on the countdown.
+Weave exam awareness naturally into responses when relevant.
+Prioritise high-yield topics for this phase.
+If student drifts far off-topic, gently redirect.
+Never be preachy about the exam — just aware.
 `.trim();
 }

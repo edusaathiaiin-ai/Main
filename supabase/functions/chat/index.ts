@@ -872,8 +872,8 @@ If the student's topic relates to an upcoming exam, naturally mention the deadli
 
 ${buildExamContextBlock(
   typeof prof?.exam_target_id === 'string' ? prof.exam_target_id : null,
-  Array.isArray(s?.top_topics) ? (s.top_topics as string[]) : [],
-  typeof prof?.exam_target_date === 'string' ? prof.exam_target_date : null
+  typeof prof?.exam_target_date === 'string' ? prof.exam_target_date : null,
+  Array.isArray(s?.top_topics) ? (s.top_topics as string[]) : []
 )}
 
 ${NEP_2020_AWARENESS}
