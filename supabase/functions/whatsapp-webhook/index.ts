@@ -873,13 +873,15 @@ async function handleChat(
   const aiData = await aiRes.json();
   const response: string = aiData.content?.[0]?.text ?? 'I apologize, please try again.';
 
-  // Send response — append one-time nudge on first message only
+  // Send response — append one-time nudge on first message of the day only
   const isFirstMessage = session.message_count_today === 0;
+  const planId = profile?.plan_id ?? 'free';
+  const isPaidUser = planId !== 'free';
   const guestNudge = !profile
     ? '\n\n_✦ Sign up at edusaathiai.in to remember your journey across sessions_'
     : '';
-  const memberNudge = profile && isFirstMessage
-    ? '\n\n_✦ Like your Saathi? Continue at edusaathiai.in — ₹99/month_'
+  const memberNudge = profile && isFirstMessage && !isPaidUser
+    ? '\n\n_✦ Your Saathi remembers you on web and WhatsApp — one soul, every device. edusaathiai.in_'
     : '';
   const finalResponse = response + guestNudge + memberNudge;
   await sendWhatsAppMessage(from, finalResponse);
