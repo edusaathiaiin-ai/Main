@@ -84,13 +84,32 @@ export default function NominationsClient({
     }
     setLoading(nomination.id + 'wa')
 
-    const { error } = await supabase.functions.invoke(
+    const { data, error } = await supabase.functions.invoke(
       'notify-faculty-nomination-wa',
       { body: { nominationId: nomination.id } }
     )
 
     if (error) {
-      alert('WhatsApp send failed: ' + error.message)
+      if (
+        error.message?.includes('outside_window') ||
+        (data as Record<string, unknown>)?.error === 'outside_window'
+      ) {
+        alert(
+          '⚠️ Outside WhatsApp window.\n\n' +
+          'This faculty member has not messaged EdUsaathiAI before.\n\n' +
+          'Ask them to WhatsApp us at +91 98255 93204 first, ' +
+          'then retry sending.'
+        )
+      } else {
+        alert('WhatsApp send failed: ' + error.message)
+      }
+    } else if ((data as Record<string, unknown>)?.error === 'outside_window') {
+      alert(
+        '⚠️ Outside WhatsApp window.\n\n' +
+        'This faculty member has not messaged EdUsaathiAI before.\n\n' +
+        'Ask them to WhatsApp us at +91 98255 93204 first, ' +
+        'then retry sending.'
+      )
     } else {
       setList((prev) =>
         prev.map((n) =>
@@ -99,7 +118,7 @@ export default function NominationsClient({
             : n
         )
       )
-      alert('WhatsApp sent')
+      alert('WhatsApp sent ✓')
     }
     setLoading(null)
   }
