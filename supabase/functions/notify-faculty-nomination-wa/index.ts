@@ -35,7 +35,7 @@ Deno.serve(async (req: Request) => {
         *,
         student:nominated_by_user_id (
           full_name,
-          institution,
+          institution_name,
           city
         )
       `)
@@ -43,8 +43,9 @@ Deno.serve(async (req: Request) => {
       .single()
 
     if (fetchError || !nomination) {
+      console.error('[notify-faculty-nomination-wa] nominationId:', nominationId, 'fetchError:', fetchError?.message)
       return new Response(
-        JSON.stringify({ error: 'Nomination not found' }),
+        JSON.stringify({ error: 'Nomination not found', detail: fetchError?.message }),
         { status: 404, headers: { ...CORS, 'Content-Type': 'application/json' } }
       )
     }
@@ -75,10 +76,10 @@ Deno.serve(async (req: Request) => {
     }
 
     // Get nominator name
-    const student = nomination.student as { full_name?: string; institution?: string } | null
+    const student = nomination.student as { full_name?: string; institution_name?: string } | null
     const nominatorName = student?.full_name ?? 'A student'
-    const nominatorContext = student?.institution
-      ? `a student at ${student.institution}`
+    const nominatorContext = student?.institution_name
+      ? `a student at ${student.institution_name}`
       : 'one of our students'
 
     // Get faculty first name (strip title)
