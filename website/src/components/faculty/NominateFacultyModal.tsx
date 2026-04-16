@@ -138,9 +138,11 @@ export default function NominateFacultyModal({
         status: 'invited',
       }
 
-      const { error } = await supabase
+      const { data: inserted, error } = await supabase
         .from('faculty_nominations')
         .insert(payload)
+        .select('id')
+        .single()
 
       if (error) {
         // Duplicate email (unique index violation)
@@ -155,6 +157,22 @@ export default function NominateFacultyModal({
         has_phone: !!form.faculty_phone.trim(),
         has_bio: !!form.bio_note.trim(),
       })
+
+      // Fire invitation email (fire-and-forget — don't block success)
+      if (inserted?.id) {
+        const { data: { session } } = await supabase.auth.getSession()
+        fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notify-faculty-nomination`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session?.access_token ?? ''}`,
+            },
+            body: JSON.stringify({ nominationId: inserted.id }),
+          },
+        ).catch((e) => console.error('Nomination email error:', e))
+      }
 
       setState('success')
 
