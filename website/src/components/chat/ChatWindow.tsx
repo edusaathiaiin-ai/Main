@@ -452,6 +452,14 @@ export function ChatWindow() {
     }
   }, [saathiId])
 
+  // Apply day/night mode to body so CSS [data-mode] selectors respond
+  useEffect(() => {
+    document.body.setAttribute('data-mode', mode === 'light' ? 'day' : 'night')
+    return () => {
+      document.body.removeAttribute('data-mode')
+    }
+  }, [mode])
+
   // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })

@@ -277,7 +277,7 @@ export function Sidebar({
           href="/chat"
           isActive={pathname === '/chat'}
           accentColor="var(--saathi-primary)"
-          description="Chat with your Saathi. Ask anything — it remembers you."
+          description="Your main chat — ask anything."
         />
         <ExpandableSidebarItem
           id="new-board"
@@ -286,6 +286,7 @@ export function Sidebar({
           href="/chat"
           onClick={() => window.dispatchEvent(new CustomEvent('board:new'))}
           accentColor="var(--saathi-primary)"
+          description="Create a focused study space — separate boards for each topic keep your learning organised."
         />
 
         <Divider />

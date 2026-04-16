@@ -243,7 +243,7 @@ export function ChatColumn({
               {board.emoji} {board.name}
             </span>
           </div>
-          <p style={{ fontSize: '11px', color: 'var(--text-ghost)', margin: '2px 0 0', lineHeight: 1.3 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '2px 0 0', lineHeight: 1.3 }}>
             {saathi.tagline}
           </p>
         </div>
@@ -274,7 +274,7 @@ export function ChatColumn({
             <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px', textAlign: 'center' }}>
               {board.name}
             </p>
-            <p style={{ fontSize: '12px', color: 'var(--text-ghost)', margin: '0 0 20px', textAlign: 'center' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '0 0 20px', textAlign: 'center' }}>
               {saathi.tagline}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', maxWidth: '320px' }}>
