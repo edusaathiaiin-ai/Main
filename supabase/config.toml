@@ -481,6 +481,9 @@ verify_jwt = false
 [functions.notify-faculty-nomination]
 verify_jwt = false
 
+[functions.notify-faculty-nomination-wa]
+verify_jwt = false
+
 [functions.fire-nomination-reward]
 verify_jwt = false
 
