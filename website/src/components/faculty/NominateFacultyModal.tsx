@@ -389,26 +389,69 @@ export default function NominateFacultyModal({
           fontFamily: 'var(--font-display, Fraunces, serif)',
           fontSize: '20px',
           color: 'var(--text-primary)',
-          marginBottom: '6px',
+          marginBottom: '8px',
         }}>
           {nominatorType === 'faculty'
             ? 'Suggest a Colleague'
             : 'Suggest a Faculty or Professional'}
         </h2>
-        <p style={{
-          fontSize: '13px',
-          color: 'var(--text-secondary)',
-          lineHeight: '1.5',
-        }}>
-          {nominatorType === 'faculty'
-            ? 'Your peer recommendation carries more weight than any cold outreach. Who should be teaching here?'
-            : 'You know great people. Help us find them.'}
-          {nominatorType === 'student' && (
-            <span style={{ color: 'var(--text-tertiary)' }}>
-              {' '}You can nominate up to 10 faculty members.
-            </span>
-          )}
-        </p>
+
+        {nominatorType === 'faculty' ? (
+          <p style={{
+            fontSize: '13px',
+            color: 'var(--text-secondary)',
+            lineHeight: '1.5',
+          }}>
+            Your peer recommendation carries more weight than any
+            cold outreach. Who should be teaching here?
+          </p>
+        ) : (
+          <div style={{
+            fontSize: '13px',
+            color: 'var(--text-secondary)',
+            lineHeight: '1.7',
+          }}>
+            <p style={{ margin: '0 0 10px' }}>
+              Your favourite teacher can now conduct <strong>live 1:1
+              sessions</strong>, answer board questions with a verified
+              badge, and mentor students across India — all on EdUsaathiAI.
+            </p>
+            <p style={{ margin: '0 0 10px' }}>
+              A teacher you already know and trust will give you a far
+              better session than one matched by an algorithm. That is
+              why your suggestion matters.
+            </p>
+            <div style={{
+              background: 'var(--bg-elevated)',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              borderLeft: '3px solid var(--gold, #B8860B)',
+              margin: '0 0 6px',
+            }}>
+              <p style={{
+                margin: '0 0 4px',
+                fontSize: '12px',
+                fontWeight: 700,
+                color: 'var(--gold, #B8860B)',
+                letterSpacing: '0.04em',
+              }}>
+                YOUR REWARD
+              </p>
+              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
+                When your nominated faculty gets verified: <strong>₹50
+                wallet credit</strong> + <strong>50 Saathi Points</strong> +
+                a <strong>Faculty Connector</strong> badge on your profile.
+              </p>
+            </div>
+            <p style={{
+              margin: '6px 0 0',
+              fontSize: '11px',
+              color: 'var(--text-ghost)',
+            }}>
+              You can nominate up to 10 faculty members.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Form fields */}
