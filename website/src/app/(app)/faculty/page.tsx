@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { VerificationBanner } from '@/components/faculty/VerificationBanner'
 import { FacultyBadge } from '@/components/faculty/FacultyBadge'
 import { getFacultyBadgeType } from '@/lib/faculty-badge'
+import NominateFacultyModal from '@/components/faculty/NominateFacultyModal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -134,6 +135,7 @@ export default function FacultyPage() {
   const [draftingAi, setDraftingAi] = useState<string | null>(null)
   const [expandedAi, setExpandedAi] = useState<Set<string>>(new Set())
   const [upiEdit, setUpiEdit] = useState<string | null>(null) // null = not editing
+  const [nominateOpen, setNominateOpen] = useState(false)
   const [upiSaving, setUpiSaving] = useState(false)
   const [upiToast, setUpiToast] = useState<string | null>(null)
 
@@ -400,6 +402,19 @@ export default function FacultyPage() {
               {item.label}
             </Link>
           ))}
+          <button
+            onClick={() => setNominateOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all"
+            style={{
+              background: 'rgba(22,163,74,0.1)',
+              border: '0.5px solid rgba(22,163,74,0.3)',
+              color: 'rgba(22,163,74,0.8)',
+              cursor: 'pointer',
+            }}
+          >
+            <span>👨‍🏫</span>
+            Suggest a Colleague
+          </button>
         </div>
       </div>
 
@@ -852,6 +867,16 @@ export default function FacultyPage() {
           </div>
         )}
       </div>
+      {/* Suggest a Colleague modal */}
+      {nominateOpen && profile && (
+        <NominateFacultyModal
+          isOpen={nominateOpen}
+          onClose={() => setNominateOpen(false)}
+          nominatorName={profile.full_name ?? 'there'}
+          nominatorType="faculty"
+          nominatorId={profile.id}
+        />
+      )}
     </main>
   )
 }
