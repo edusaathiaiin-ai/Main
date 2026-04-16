@@ -22,6 +22,7 @@ type Props = {
   createdAt?:    string | null
   onSlotChange:  (slot: 1 | 2 | 3 | 4 | 5) => void
   onLockedTap:   (botName: string) => void
+  onSuggestFaculty?: () => void
 }
 
 export function SaathiHeader({
@@ -35,6 +36,7 @@ export function SaathiHeader({
   createdAt,
   onSlotChange,
   onLockedTap,
+  onSuggestFaculty,
 }: Props) {
   const { mode, toggleMode } = useThemeStore()
   const { fontSize, setFontSize } = useFontStore()
@@ -231,6 +233,59 @@ export function SaathiHeader({
             </button>
           )
         })}
+
+        {/* Suggest a Faculty — after bot slots */}
+        {onSuggestFaculty && (
+          <div style={{ position: 'relative', flexShrink: 0 }} className="group">
+            <button
+              onClick={onSuggestFaculty}
+              style={{
+                display:      'flex',
+                alignItems:   'center',
+                gap:          '5px',
+                padding:      '5px 12px',
+                borderRadius: '100px',
+                border:       '1px solid var(--border-subtle)',
+                background:   'transparent',
+                color:        'var(--text-tertiary)',
+                fontSize:     '12px',
+                fontWeight:   500,
+                cursor:       'pointer',
+                whiteSpace:   'nowrap',
+                transition:   'all 0.18s',
+                fontFamily:   'DM Sans, sans-serif',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#16A34A'
+                e.currentTarget.style.color       = '#16A34A'
+                e.currentTarget.style.background  = 'rgba(22,163,74,0.08)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-subtle)'
+                e.currentTarget.style.color       = 'var(--text-tertiary)'
+                e.currentTarget.style.background  = 'transparent'
+              }}
+            >
+              <span style={{ fontSize: '13px' }}>👨‍🏫</span>
+              Suggest a Faculty
+            </button>
+            {/* Hover tooltip */}
+            <div
+              className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 rounded-lg px-3 py-2 opacity-0 transition-opacity group-hover:opacity-100"
+              style={{
+                background:  'var(--text-primary)',
+                color:       'var(--bg-surface)',
+                fontSize:    '11px',
+                lineHeight:  '1.4',
+                width:       '200px',
+                textAlign:   'center',
+                boxShadow:   '0 4px 12px rgba(0,0,0,0.15)',
+              }}
+            >
+              Know a great teacher? Nominate them to join EdUsaathiAI and earn rewards when they get verified.
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

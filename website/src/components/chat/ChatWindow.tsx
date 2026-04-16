@@ -32,6 +32,7 @@ import { ColumnResizer } from '@/components/chat/ColumnResizer'
 import { getColumnLimit } from '@/lib/columnLimit'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
+import NominateFacultyModal from '@/components/faculty/NominateFacultyModal'
 import { FreePlanBar } from './FreePlanBar'
 import { WaLinkTip } from './WaLinkTip'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -298,6 +299,7 @@ export function ChatWindow() {
   const [activeChatboardId, setActiveChatboardId] = useState<string | null>(null)
   const [activeBoardInfo, setActiveBoardInfo] = useState<BoardInfo | null>(null)
   const [showNewBoardModal, setShowNewBoardModal] = useState(false)
+  const [showNominateModal, setShowNominateModal] = useState(false)
   const [boardRefreshKey, setBoardRefreshKey] = useState(0)
 
   // Mobile detection — single column only on small screens
@@ -1006,6 +1008,7 @@ export function ChatWindow() {
           createdAt={profile.created_at}
           onSlotChange={handleSlotChange}
           onLockedTap={handleLockedTap}
+          onSuggestFaculty={() => setShowNominateModal(true)}
         />
 
         <BoardNavigator
@@ -1016,8 +1019,6 @@ export function ChatWindow() {
           onSelectBoard={switchBoard}
           onNewBoard={() => setShowNewBoardModal(true)}
           refreshKey={boardRefreshKey}
-          nominatorName={profile.full_name ?? 'there'}
-          nominatorType={profile.role === 'faculty' ? 'faculty' : 'student'}
         />
 
         {canUseSplitView(profile.plan_id) && (
@@ -1428,6 +1429,17 @@ export function ChatWindow() {
           }
         }}
       />
+
+      {/* Nominate Faculty modal */}
+      {showNominateModal && (
+        <NominateFacultyModal
+          isOpen={showNominateModal}
+          onClose={() => setShowNominateModal(false)}
+          nominatorName={profile.full_name ?? 'there'}
+          nominatorType={profile.role === 'faculty' ? 'faculty' : 'student'}
+          nominatorId={profile.id}
+        />
+      )}
 
       {/* Conversion modal */}
       <ConversionModal

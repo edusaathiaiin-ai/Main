@@ -9,7 +9,6 @@ import {
   trackChatboardRenamed,
 } from '@/lib/analytics'
 import { daysUntilExam, inferExamDate } from '@/lib/examCountdown'
-import NominateFacultyModal from '@/components/faculty/NominateFacultyModal'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,8 +43,6 @@ type Props = {
   onSelectBoard: (boardId: string | null, lastBotSlot: number, info: BoardInfo | null) => void
   onNewBoard: () => void
   refreshKey?: number
-  nominatorName: string
-  nominatorType: 'student' | 'faculty'
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -58,15 +55,12 @@ export default function BoardNavigator({
   onSelectBoard,
   onNewBoard,
   refreshKey,
-  nominatorName,
-  nominatorType,
 }: Props) {
   const [boards, setBoards] = useState<Board[]>([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [menuId, setMenuId] = useState<string | null>(null)
-  const [nominateOpen, setNominateOpen] = useState(false)
 
   const supabase = createClient()
 
@@ -278,42 +272,6 @@ export default function BoardNavigator({
         </span>
       </button>
 
-      {/* ── Suggest a Faculty ────────────────────────────────────────── */}
-      <button
-        onClick={() => setNominateOpen(true)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '8px 12px',
-          width: '100%',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'var(--text-secondary)',
-          fontSize: '13px',
-          borderRadius: '8px',
-          textAlign: 'left',
-        }}
-      >
-        <span>👨‍🏫</span>
-        <div>
-          <div style={{ fontWeight: 500 }}>Suggest a Faculty</div>
-          <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
-            Know someone great? Bring them on board.
-          </div>
-        </div>
-      </button>
-
-      {nominateOpen && (
-        <NominateFacultyModal
-          isOpen={nominateOpen}
-          onClose={() => setNominateOpen(false)}
-          nominatorType={nominatorType}
-          nominatorId={userId}
-          nominatorName={nominatorName}
-        />
-      )}
     </div>
   )
 }
