@@ -659,7 +659,9 @@ Deno.serve(async (req: Request) => {
   console.log('SUPABASE_URL set:', !!SUPABASE_URL);
 
   // Build slug → UUID map using the slug column directly
-  const { data: verticalRows } = await admin.from('verticals').select('id, name, slug');
+  const { data: verticalRows } = await admin
+    .from('verticals')
+    .select('id, name, slug, last_rss_fetch_at');
   const verticalUUIDs: Record<string, string> = {};
   for (const v of (verticalRows ?? [])) {
     // Primary: use slug column as-is (matches RSS_FEEDS keys)
@@ -670,13 +672,44 @@ Deno.serve(async (req: Request) => {
   }
   // Handle typo: RSS_FEEDS uses 'envirosaathi', DB has 'EnviroSaathi' → slug 'envirosathi'
   if (verticalUUIDs['envirosathi']) verticalUUIDs['envirosaathi'] = verticalUUIDs['envirosathi'];
-  console.log('[rss-fetch] Vertical UUID map:', JSON.stringify(verticalUUIDs));
+
+  // ── Queue: pick which vertical(s) to process this run ────────────────────────
+  // Optional ?vertical=slug query param forces processing of a specific saathi
+  // (manual trigger / admin / re-run). Otherwise pick the one with the oldest
+  // last_rss_fetch_at (NULL = never fetched, takes priority).
+  const url = new URL(req.url);
+  const requestedVertical = url.searchParams.get('vertical');
+
+  const allFeedSlugs = Object.keys(RSS_FEEDS);
+  let queuedSlugs: string[] = [];
+
+  if (requestedVertical && allFeedSlugs.includes(requestedVertical)) {
+    queuedSlugs = [requestedVertical];
+  } else {
+    // Map slug → last_rss_fetch_at; sort with NULL first, then oldest
+    const fetchedAtBySlug = new Map<string, string | null>();
+    for (const v of (verticalRows ?? [])) {
+      fetchedAtBySlug.set(v.slug as string, (v.last_rss_fetch_at as string | null) ?? null);
+    }
+    const sorted = allFeedSlugs.slice().sort((a, b) => {
+      const ta = fetchedAtBySlug.get(a) ?? null;
+      const tb = fetchedAtBySlug.get(b) ?? null;
+      if (ta === null && tb === null) return 0;
+      if (ta === null) return -1; // never-fetched first
+      if (tb === null) return 1;
+      return ta.localeCompare(tb); // oldest ISO string first
+    });
+    queuedSlugs = [sorted[0]]; // process exactly one per run — fits well under 150s
+  }
+  console.log('[rss-fetch] Processing vertical(s):', queuedSlugs.join(', '));
 
   const failedFeeds: { vertical: string; url: string; source: string; reason: string }[] = [];
   const results: Record<string, { inserted: number; skipped: number; rejected: number; errors: string[] }> = {};
   let totalInserted = 0;
 
-  for (const [verticalId, feeds] of Object.entries(RSS_FEEDS)) {
+  for (const verticalId of queuedSlugs) {
+    const feeds = RSS_FEEDS[verticalId];
+    if (!feeds) continue;
     results[verticalId] = { inserted: 0, skipped: 0, rejected: 0, errors: [] };
     let professorNotesGenerated = 0;
 
@@ -758,6 +791,18 @@ Deno.serve(async (req: Request) => {
 
       // 200ms between fetches to avoid rate limiting from RSS providers
       await new Promise(r => setTimeout(r, 200));
+    }
+
+    // ── Mark this vertical as just-fetched so the queue advances ─────────────
+    // Even on partial failure (some feeds 503), update the timestamp — otherwise
+    // a permanently-broken feed would stall the queue forever. Health table
+    // already captures failures separately for admin visibility.
+    const verticalUuid = verticalUUIDs[verticalId];
+    if (verticalUuid) {
+      await admin
+        .from('verticals')
+        .update({ last_rss_fetch_at: new Date().toISOString() })
+        .eq('id', verticalUuid);
     }
   }
 

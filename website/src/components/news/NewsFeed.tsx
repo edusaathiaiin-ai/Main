@@ -148,15 +148,15 @@ export function NewsFeed() {
     const supabase = createClient()
     const today = new Date().toISOString()
 
-    const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-
+    // No date cutoff — keep showing the latest 30 active items even if
+    // the cron lags. The rss-fetch function deactivates items older than
+    // 7 days, so .eq('is_active', true) is the freshness guarantee.
     const [newsRes, examRes] = await Promise.all([
       supabase
         .from('news_items')
         .select('*')
         .eq('vertical_id', verticalUuid)
         .eq('is_active', true)
-        .gte('fetched_at', cutoff24h)
         .order('fetched_at', { ascending: false })
         .range(0, 29),
       supabase
