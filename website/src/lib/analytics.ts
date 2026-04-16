@@ -172,3 +172,18 @@ export function trackColumnResized(column_count: number) {
 export function trackUpgradeNudgeShown(current_plan: string | null | undefined, attempted_columns: number) {
   capture('upgrade_nudge_shown', { trigger: 'column_limit', current_plan: current_plan ?? 'unknown', attempted_columns })
 }
+
+// ─── Faculty Nominations ────────────────────────────────────────────────────
+
+export function trackFacultyNominated(
+  expertise_area: string,
+  nominator_type: 'student' | 'faculty',
+  opts: { has_phone: boolean; has_bio: boolean },
+) {
+  capture('faculty_nomination_submitted', {
+    expertise_area,
+    nominator_type,
+    has_phone: opts.has_phone,
+    has_bio: opts.has_bio,
+  })
+}

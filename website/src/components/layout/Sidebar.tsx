@@ -406,6 +406,7 @@ export function Sidebar({
           Sign out
         </button>
       </div>
+
     </aside>
   )
 }

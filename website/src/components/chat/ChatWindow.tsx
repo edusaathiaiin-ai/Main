@@ -1016,6 +1016,8 @@ export function ChatWindow() {
           onSelectBoard={switchBoard}
           onNewBoard={() => setShowNewBoardModal(true)}
           refreshKey={boardRefreshKey}
+          nominatorName={profile.full_name ?? 'there'}
+          nominatorType={profile.role === 'faculty' ? 'faculty' : 'student'}
         />
 
         {canUseSplitView(profile.plan_id) && (
