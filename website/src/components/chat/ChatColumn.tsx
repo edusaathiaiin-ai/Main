@@ -265,7 +265,7 @@ export function ChatColumn({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* ── Input ── */}
+      {/* ── Input + action icons ── */}
       <div style={{ borderTop: '1px solid var(--border-subtle)', padding: '10px 14px', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
           <textarea
@@ -303,6 +303,68 @@ export function ChatColumn({
           >
             {isStreaming ? '…' : '↑'}
           </button>
+        </div>
+        {/* Action icons — 🎤 Mic · 📱 Send to Phone · ⚠️ Report Error */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', paddingLeft: '2px' }}>
+          <button
+            onClick={() => {
+              if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return
+              const SR = (window as unknown as Record<string, unknown>).SpeechRecognition ?? (window as unknown as Record<string, unknown>).webkitSpeechRecognition
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const recognition = new (SR as any)()
+              recognition.lang = 'en-IN'
+              recognition.interimResults = false
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              recognition.onresult = (e: any) => {
+                const transcript = e.results?.[0]?.[0]?.transcript
+                if (transcript) setInput((prev) => prev ? `${prev} ${transcript}` : transcript)
+              }
+              recognition.start()
+            }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: '16px', padding: '2px', color: 'var(--text-ghost)',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = saathi.primary)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-ghost)')}
+            title="Voice input"
+          >
+            🎤
+          </button>
+          <button
+            onClick={() => onEmailDigest(board.id, board.name)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: '16px', padding: '2px', color: 'var(--text-ghost)',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#16A34A')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-ghost)')}
+            title="Send to WhatsApp"
+          >
+            📱
+          </button>
+          <button
+            onClick={() => {
+              const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant')
+              if (lastAssistant) handleFlag(lastAssistant.id)
+            }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: '14px', padding: '2px', color: 'var(--text-ghost)',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#EF4444')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-ghost)')}
+            title="Report an error"
+          >
+            ⚠️
+          </button>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: '10px', color: 'var(--text-ghost)' }}>
+            Enter to send
+          </span>
         </div>
       </div>
     </div>
