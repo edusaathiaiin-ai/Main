@@ -391,14 +391,18 @@ export default function NominateFacultyModal({
           color: 'var(--text-primary)',
           marginBottom: '6px',
         }}>
-          Suggest a Faculty or Professional
+          {nominatorType === 'faculty'
+            ? 'Suggest a Colleague'
+            : 'Suggest a Faculty or Professional'}
         </h2>
         <p style={{
           fontSize: '13px',
           color: 'var(--text-secondary)',
           lineHeight: '1.5',
         }}>
-          You know great people. Help us find them.
+          {nominatorType === 'faculty'
+            ? 'Your peer recommendation carries more weight than any cold outreach. Who should be teaching here?'
+            : 'You know great people. Help us find them.'}
           {nominatorType === 'student' && (
             <span style={{ color: 'var(--text-tertiary)' }}>
               {' '}You can nominate up to 10 faculty members.
