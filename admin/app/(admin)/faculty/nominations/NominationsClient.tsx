@@ -84,41 +84,40 @@ export default function NominationsClient({
     }
     setLoading(nomination.id + 'wa')
 
-    const { data, error } = await supabase.functions.invoke(
-      'notify-faculty-nomination-wa',
-      { body: { nominationId: nomination.id } }
-    )
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notify-faculty-nomination-wa`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nominationId: nomination.id }),
+        }
+      )
+      const body = await res.json().catch(() => ({})) as Record<string, unknown>
 
-    if (error) {
-      if (
-        error.message?.includes('outside_window') ||
-        (data as Record<string, unknown>)?.error === 'outside_window'
-      ) {
+      if (body.error === 'outside_window') {
         alert(
           '⚠️ Outside WhatsApp window.\n\n' +
           'This faculty member has not messaged EdUsaathiAI before.\n\n' +
           'Ask them to WhatsApp us at +91 98255 93204 first, ' +
           'then retry sending.'
         )
+      } else if (!res.ok) {
+        alert('WhatsApp send failed: ' + (body.error ?? res.statusText))
+      } else if (body.skipped) {
+        alert('Already sent — skipped.')
       } else {
-        alert('WhatsApp send failed: ' + error.message)
-      }
-    } else if ((data as Record<string, unknown>)?.error === 'outside_window') {
-      alert(
-        '⚠️ Outside WhatsApp window.\n\n' +
-        'This faculty member has not messaged EdUsaathiAI before.\n\n' +
-        'Ask them to WhatsApp us at +91 98255 93204 first, ' +
-        'then retry sending.'
-      )
-    } else {
-      setList((prev) =>
-        prev.map((n) =>
-          n.id === nomination.id
-            ? { ...n, whatsapp_sent_at: new Date().toISOString() }
-            : n
+        setList((prev) =>
+          prev.map((n) =>
+            n.id === nomination.id
+              ? { ...n, whatsapp_sent_at: new Date().toISOString() }
+              : n
+          )
         )
-      )
-      alert('WhatsApp sent ✓')
+        alert('WhatsApp sent ✓')
+      }
+    } catch (err) {
+      alert('WhatsApp send failed: ' + (err instanceof Error ? err.message : 'Network error'))
     }
     setLoading(null)
   }
