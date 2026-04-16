@@ -124,7 +124,9 @@ serve(async (req: Request) => {
       nominationId,
     })
 
-    const subject = `${nominatorName.split(' ')[0]} thinks you should be on EdUsaathiAI`
+    const subject = nomination.nominator_type === 'faculty'
+      ? `${nominatorName} thinks you should join EdUsaathiAI`
+      : `${nominatorName.split(' ')[0]} thinks you should be on EdUsaathiAI`
 
     // ── Send faculty invitation via Resend ─────────────────────
     const sendRes = await fetch('https://api.resend.com/emails', {
