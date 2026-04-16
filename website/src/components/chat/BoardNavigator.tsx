@@ -182,10 +182,9 @@ export default function BoardNavigator({
     <div
       style={{ borderBottom: '0.5px solid var(--border-subtle, rgba(0,0,0,0.06))' }}
     >
-      {/* ── 📌 PINNED section ─────────────────────────────────────────── */}
+      {/* ── Pinned boards (no label — sidebar has YOUR BOARDS header) ── */}
       {pinned.length > 0 && (
         <>
-          <SectionLabel>📌 Pinned</SectionLabel>
           {pinned.map((b) => (
             <BoardRow
               key={b.id}
@@ -206,9 +205,6 @@ export default function BoardNavigator({
           ))}
         </>
       )}
-
-      {/* ── 📋 BOARDS section ─────────────────────────────────────────── */}
-      <SectionLabel>📋 Boards</SectionLabel>
 
       {/* General — always first, always visible */}
       <button
@@ -267,17 +263,6 @@ export default function BoardNavigator({
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p
-      className="px-3 pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-widest"
-      style={{ color: 'var(--text-ghost)' }}
-    >
-      {children}
-    </p>
-  )
-}
 
 function BoardRow({
   board: b,
@@ -359,14 +344,6 @@ function BoardRow({
               style={{ color: examDaysLeft <= 7 ? '#EF4444' : 'var(--text-ghost)' }}
             >
               {examDaysLeft === 0 ? 'Today!' : `${examDaysLeft} day${examDaysLeft === 1 ? '' : 's'} left`}
-            </span>
-          )}
-          {b.focus_statement && !isEditing && !examDate && (
-            <span
-              className="block truncate text-[10px]"
-              style={{ color: 'var(--text-ghost)' }}
-            >
-              {b.focus_statement}
             </span>
           )}
         </div>

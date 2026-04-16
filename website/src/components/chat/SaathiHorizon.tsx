@@ -128,7 +128,7 @@ export function SaathiHorizon({
   const [filter, setFilter]     = useState<Filter>('all')
 
   // Expanded = body visible. Dismissed = panel entirely hidden.
-  const [isOpen, setIsOpen]           = useState<boolean>(true)
+  const [isOpen, setIsOpen]           = useState<boolean>(false)
   const [isDismissed, setIsDismissed] = useState<boolean>(false)
 
   // Fixed position — initialised on mount to avoid SSR mismatch.
@@ -279,23 +279,17 @@ export function SaathiHorizon({
   if (loading || !pos || isDismissed) return null
   if (scoped.length === 0) return null
 
-  const panelWidthStyle =
-    typeof window !== 'undefined' && window.innerWidth < PANEL_WIDTH + 32
-      ? `calc(100vw - 16px)`
-      : `${PANEL_WIDTH}px`
-
   return (
     <section
       id="saathi-horizon-panel"
       style={{
-        position:      'fixed',
-        left:          pos.x,
-        top:           pos.y,
-        width:         panelWidthStyle,
-        zIndex:        45,
+        position:      'relative',
+        width:         '100%',
+        margin:        '0 auto',
+        maxWidth:      '820px',
         background:    BG_SURFACE,
-        borderRadius:  '16px',
-        boxShadow:     '0 24px 60px rgba(0, 0, 0, 0.45)',
+        borderRadius:  '12px 12px 0 0',
+        boxShadow:     '0 -4px 20px rgba(0, 0, 0, 0.12)',
         fontFamily:    'var(--font-body, "Plus Jakarta Sans"), sans-serif',
         overflow:      'visible', // let the close-button overflow
       }}
