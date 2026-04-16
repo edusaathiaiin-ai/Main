@@ -476,6 +476,17 @@ verify_jwt = false
 [functions.mark-payout-completed]
 verify_jwt = false
 
+# Faculty nomination email — called via supabase.functions.invoke() which
+# can pass a stale JWT. Function validates auth internally.
+[functions.notify-faculty-nomination]
+verify_jwt = false
+
+[functions.fire-nomination-reward]
+verify_jwt = false
+
+[functions.send-to-phone]
+verify_jwt = false
+
 # Admin action: verify a faculty profile, send T14 WhatsApp + email.
 # Auth via Bearer SUPABASE_SERVICE_ROLE_KEY from admin dashboard server action.
 [functions.faculty-verify]
