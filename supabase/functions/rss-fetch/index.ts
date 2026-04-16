@@ -806,8 +806,9 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // Deactivate news items older than 7 days to keep the feed fresh
-  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  // Deactivate news items older than 30 days — generous window so students
+  // always have content even if the cron lags for a few days.
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   await admin
     .from('news_items')
     .update({ is_active: false })
