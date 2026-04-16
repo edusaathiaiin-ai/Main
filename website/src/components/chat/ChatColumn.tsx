@@ -129,6 +129,78 @@ export function ChatColumn({
     })
   }
 
+  // Send to Phone — WhatsApp
+  const [phoneState, setPhoneState] = useState<'idle' | 'sending' | 'sent' | 'no-phone' | 'outside-window' | 'error'>('idle')
+
+  async function handleSendToPhone() {
+    const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant')
+    if (!lastAssistant || phoneState === 'sending') return
+
+    const supabase = createClient()
+    const { data: prof } = await supabase
+      .from('profiles')
+      .select('wa_phone')
+      .eq('id', userId)
+      .single()
+
+    if (!prof?.wa_phone) {
+      setPhoneState('no-phone')
+      setTimeout(() => setPhoneState('idle'), 5000)
+      return
+    }
+
+    setPhoneState('sending')
+
+    const clean = lastAssistant.content
+      .replace(/#{1,6}\s/g, '*')
+      .replace(/\*\*(.*?)\*\*/g, '*$1*')
+      .replace(/`(.*?)`/g, '_$1_')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+      .slice(0, 3000)
+    const formatted = `📒 *${saathi.name} — ${board.name}*\n─────────────────\n${clean}\n─────────────────\n_edusaathiai.in ✦_`
+
+    try {
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      if (!authSession) throw new Error('Not logged in')
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-to-phone`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authSession.access_token}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+          },
+          body: JSON.stringify({
+            phone: prof.wa_phone,
+            message: formatted,
+            boardName: board.name,
+            saathiSlug,
+          }),
+        }
+      )
+
+      if (res.ok) {
+        setPhoneState('sent')
+        setTimeout(() => setPhoneState('idle'), 3000)
+      } else {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        if (body.error === 'outside_window') {
+          setPhoneState('outside-window')
+          setTimeout(() => setPhoneState('idle'), 5000)
+        } else {
+          setPhoneState('error')
+          setTimeout(() => setPhoneState('idle'), 3000)
+        }
+      }
+    } catch {
+      setPhoneState('error')
+      setTimeout(() => setPhoneState('idle'), 3000)
+    }
+  }
+
   return (
     <div
       onClick={onFocus}
@@ -304,6 +376,20 @@ export function ChatColumn({
             {isStreaming ? '…' : '↑'}
           </button>
         </div>
+        {/* WhatsApp send status */}
+        {phoneState !== 'idle' && (
+          <div style={{
+            fontSize: '11px', padding: '4px 8px', borderRadius: '6px', marginBottom: '4px',
+            background: phoneState === 'sent' ? 'rgba(22,163,106,0.08)' : phoneState === 'error' ? 'rgba(239,68,68,0.08)' : phoneState === 'no-phone' || phoneState === 'outside-window' ? 'rgba(245,158,11,0.08)' : 'rgba(0,0,0,0.03)',
+            color: phoneState === 'sent' ? '#16A34A' : phoneState === 'error' ? '#EF4444' : phoneState === 'no-phone' || phoneState === 'outside-window' ? '#D97706' : 'var(--text-ghost)',
+          }}>
+            {phoneState === 'sending' && '📱 Sending to your WhatsApp — should arrive in a moment…'}
+            {phoneState === 'sent' && '✓ Sent to your WhatsApp'}
+            {phoneState === 'no-phone' && '🔗 Link your WhatsApp in Profile to enable this'}
+            {phoneState === 'outside-window' && '💬 Open WhatsApp Saathi first to activate sending'}
+            {phoneState === 'error' && '⚠️ Could not send — please try again'}
+          </div>
+        )}
         {/* Action icons — 🎤 Mic · 📱 Send to Phone · ⚠️ Report Error */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', paddingLeft: '2px' }}>
           <button
@@ -333,17 +419,28 @@ export function ChatColumn({
             🎤
           </button>
           <button
-            onClick={() => onEmailDigest(board.id, board.name)}
+            onClick={handleSendToPhone}
+            disabled={phoneState === 'sending' || messages.filter(m => m.role === 'assistant').length === 0}
             style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: '16px', padding: '2px', color: 'var(--text-ghost)',
+              background: 'none', border: 'none',
+              cursor: phoneState === 'sending' ? 'not-allowed' : 'pointer',
+              fontSize: '16px', padding: '2px',
+              color: phoneState === 'sent' ? '#16A34A' : phoneState === 'no-phone' || phoneState === 'outside-window' ? '#F59E0B' : phoneState === 'error' ? '#EF4444' : 'var(--text-ghost)',
               transition: 'color 0.15s',
+              opacity: messages.filter(m => m.role === 'assistant').length === 0 ? 0.3 : 1,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#16A34A')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-ghost)')}
-            title="Send to WhatsApp"
+            onMouseEnter={(e) => { if (phoneState === 'idle') e.currentTarget.style.color = '#16A34A' }}
+            onMouseLeave={(e) => { if (phoneState === 'idle') e.currentTarget.style.color = 'var(--text-ghost)' }}
+            title={
+              phoneState === 'sending' ? 'Sending to WhatsApp…' :
+              phoneState === 'sent' ? 'Sent!' :
+              phoneState === 'no-phone' ? 'Link WhatsApp in profile first' :
+              phoneState === 'outside-window' ? 'Message your WhatsApp Saathi first to activate' :
+              phoneState === 'error' ? 'Failed — try again' :
+              'Send last response to WhatsApp'
+            }
           >
-            📱
+            {phoneState === 'sending' ? '⏳' : phoneState === 'sent' ? '✓' : '📱'}
           </button>
           <button
             onClick={() => {
