@@ -30,12 +30,19 @@ serve(async (req: Request) => {
       return json({ error: 'Unauthorized' }, 401, CORS)
     }
 
-    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    })
-    const { data: { user }, error: authErr } = await userClient.auth.getUser()
-    if (authErr || !user) {
-      return json({ error: 'Unauthorized' }, 401, CORS)
+    const token = authHeader.replace('Bearer ', '').trim()
+    const isServiceRole = token === SUPABASE_SERVICE_ROLE_KEY
+
+    let userId: string | null = null
+    if (!isServiceRole) {
+      const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
+      })
+      const { data: { user }, error: authErr } = await userClient.auth.getUser()
+      if (authErr || !user) {
+        return json({ error: 'Unauthorized' }, 401, CORS)
+      }
+      userId = user.id
     }
 
     // ── Parse body ─────────────────────────────────────────────
@@ -57,16 +64,18 @@ serve(async (req: Request) => {
       return json({ error: 'Nomination not found' }, 404, CORS)
     }
 
-    // Verify the caller owns this nomination
-    const isOwner =
-      (nomination.nominator_type === 'student' && nomination.nominated_by_user_id === user.id) ||
-      (nomination.nominator_type === 'faculty' && nomination.nominated_by_faculty_id !== null)
-    if (!isOwner) {
-      return json({ error: 'Forbidden' }, 403, CORS)
+    // Verify the caller owns this nomination (skip for service role / admin)
+    if (!isServiceRole) {
+      const isOwner =
+        (nomination.nominator_type === 'student' && nomination.nominated_by_user_id === userId) ||
+        (nomination.nominator_type === 'faculty' && nomination.nominated_by_faculty_id !== null)
+      if (!isOwner) {
+        return json({ error: 'Forbidden' }, 403, CORS)
+      }
     }
 
-    // Already sent — skip (idempotent)
-    if (nomination.email_sent_at) {
+    // Already sent — skip (idempotent) unless service role forces resend
+    if (nomination.email_sent_at && !isServiceRole) {
       return json({ skipped: true, reason: 'already_sent' }, 200, CORS)
     }
 
