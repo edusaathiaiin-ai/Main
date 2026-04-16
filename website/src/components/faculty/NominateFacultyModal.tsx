@@ -278,47 +278,6 @@ export default function NominateFacultyModal({
     )
   }
 
-  // ── ALREADY ON PLATFORM STATE ───────────────────────────────
-  if (state === 'already_on_platform') {
-    return (
-      <ModalShell onClose={onClose}>
-        <div style={{ textAlign: 'center', padding: '24px 16px' }}>
-          <div style={{ fontSize: '40px', marginBottom: '16px' }}>✅</div>
-          <h2 style={{
-            fontFamily: 'var(--font-display, Fraunces, serif)',
-            fontSize: '20px',
-            color: 'var(--text-primary)',
-            marginBottom: '12px',
-          }}>
-            Already on EdUsaathiAI!
-          </h2>
-          <p style={{
-            fontSize: '14px',
-            color: 'var(--text-secondary)',
-            lineHeight: '1.6',
-          }}>
-            <strong>{existingFacultyName}</strong> is already a faculty
-            member on EdUsaathiAI. You can find them in the{' '}
-            <strong>Faculty Finder</strong> and book a session directly.
-          </p>
-          <button onClick={onClose} style={{
-            marginTop: '20px',
-            background: 'var(--saathi-primary)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '10px 24px',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}>
-            Got it
-          </button>
-        </div>
-      </ModalShell>
-    )
-  }
-
   // ── DUPLICATE STATE ────────────────────────────────────────
   if (state === 'duplicate') {
     return (
@@ -353,6 +312,58 @@ export default function NominateFacultyModal({
             cursor: 'pointer',
           }}>
             Close
+          </button>
+        </div>
+      </ModalShell>
+    )
+  }
+
+  // ── ALREADY ON PLATFORM STATE ───────────────────────────────
+  if (state === 'already_on_platform') {
+    return (
+      <ModalShell onClose={onClose}>
+        <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+          <div style={{ fontSize: '40px', marginBottom: '16px' }}>🎓</div>
+          <h2 style={{
+            fontFamily: 'var(--font-display, Fraunces, serif)',
+            fontSize: '20px',
+            color: 'var(--text-primary)',
+            marginBottom: '12px',
+          }}>
+            Already on EdUsaathiAI!
+          </h2>
+          <p style={{
+            fontSize: '14px',
+            color: 'var(--text-secondary)',
+            lineHeight: '1.6',
+            marginBottom: '20px',
+          }}>
+            <strong>{existingFacultyName}</strong> is already a
+            verified faculty member on EdUsaathiAI. 🙏
+          </p>
+          <p style={{
+            fontSize: '13px',
+            color: 'var(--text-tertiary)',
+            lineHeight: '1.6',
+            marginBottom: '20px',
+          }}>
+            You can book a session with them directly
+            through the Faculty Finder.
+          </p>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'var(--saathi-primary)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 24px',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Find them in Faculty Finder →
           </button>
         </div>
       </ModalShell>
