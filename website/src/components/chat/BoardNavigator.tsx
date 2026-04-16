@@ -272,6 +272,23 @@ export default function BoardNavigator({
         </span>
       </button>
 
+      {/* ── Suggest a Faculty ────────────────────────────────────────── */}
+      <button
+        onClick={() => window.dispatchEvent(new CustomEvent('nominate:open'))}
+        className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/[0.03]"
+        style={{ cursor: 'pointer' }}
+      >
+        <span style={{ fontSize: '16px', lineHeight: 1 }}>👨‍🏫</span>
+        <div className="min-w-0">
+          <span className="block truncate text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+            Suggest a Faculty
+          </span>
+          <span className="block text-[10px]" style={{ color: 'var(--text-ghost)' }}>
+            Know someone great? Bring them on board.
+          </span>
+        </div>
+      </button>
+
     </div>
   )
 }

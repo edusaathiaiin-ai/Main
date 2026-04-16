@@ -391,6 +391,12 @@ export function ChatWindow() {
     return () => window.removeEventListener('board:new', open)
   }, [])
 
+  useEffect(() => {
+    const open = () => setShowNominateModal(true)
+    window.addEventListener('nominate:open', open)
+    return () => window.removeEventListener('nominate:open', open)
+  }, [])
+
   // Access token for multi-column mode — refreshed on mount
   const [columnAccessToken, setColumnAccessToken] = useState<string>('')
   useEffect(() => {
