@@ -226,7 +226,7 @@ export default function BoardNavigator({
           borderLeft: activeBoardId === null ? `2px solid ${saathiColor}` : '2px solid transparent',
         }}
       >
-        <span className="text-sm">💬</span>
+        <span style={{ fontSize: '16px', lineHeight: 1 }}>💬</span>
         <span
           className="text-xs font-semibold"
           style={{ color: activeBoardId === null ? saathiColor : 'var(--text-secondary)' }}
@@ -266,7 +266,7 @@ export default function BoardNavigator({
         className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/[0.03]"
         style={{ cursor: 'pointer' }}
       >
-        <span className="text-sm" style={{ color: saathiColor }}>+</span>
+        <span style={{ fontSize: '16px', lineHeight: 1, color: saathiColor }}>+</span>
         <span className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>
           New Board
         </span>
@@ -324,7 +324,7 @@ function BoardRow({
           borderLeft: isActive ? `2px solid ${saathiColor}` : '2px solid transparent',
         }}
       >
-        <span className="text-sm">{b.emoji}</span>
+        <span style={{ fontSize: '16px', lineHeight: 1 }}>{b.emoji}</span>
         <div className="min-w-0 flex-1">
           {isEditing ? (
             <form
