@@ -121,15 +121,28 @@ export default function NominationsClient({
 
     if (error) {
       alert('Status updated but reward failed: ' + error.message)
-    } else {
-      setList((prev) =>
-        prev.map((n) =>
-          n.id === nomination.id
-            ? { ...n, status: 'eminent', reward_fired: true }
-            : n
-        )
-      )
     }
+
+    // 3. Notify student — verified email
+    if (nomination.nominator?.email) {
+      await supabase.functions.invoke('notify-student-faculty-update', {
+        body: {
+          type: 'verified',
+          nominationId: nomination.id,
+          studentEmail: nomination.nominator.email,
+          studentName: nomination.nominator.full_name,
+          facultyName: nomination.faculty_name,
+        },
+      })
+    }
+
+    setList((prev) =>
+      prev.map((n) =>
+        n.id === nomination.id
+          ? { ...n, status: 'eminent', reward_fired: true }
+          : n
+      )
+    )
     setLoading(null)
   }
 
