@@ -61,9 +61,10 @@ export default function NominateFacultyModal({
   })
 
   const [state, setState] = useState<
-    'idle' | 'submitting' | 'success' | 'error' | 'cap_reached' | 'duplicate'
+    'idle' | 'submitting' | 'success' | 'error' | 'cap_reached' | 'duplicate' | 'already_on_platform'
   >('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  const [existingFacultyName, setExistingFacultyName] = useState('')
 
   if (!isOpen) return null
 
@@ -109,6 +110,19 @@ export default function NominateFacultyModal({
           setState('cap_reached')
           return
         }
+      }
+
+      // Check if faculty already on platform
+      const { data: existingFaculty } = await supabase
+        .rpc('check_faculty_email_exists', {
+          check_email: form.faculty_email.trim().toLowerCase(),
+        })
+        .single() as { data: { exists_on_platform: boolean; display_name: string | null } | null }
+
+      if (existingFaculty?.exists_on_platform) {
+        setExistingFacultyName(existingFaculty.display_name ?? form.faculty_name)
+        setState('already_on_platform')
+        return
       }
 
       // Insert nomination
@@ -258,6 +272,47 @@ export default function NominateFacultyModal({
             cursor: 'pointer',
           }}>
             Close
+          </button>
+        </div>
+      </ModalShell>
+    )
+  }
+
+  // ── ALREADY ON PLATFORM STATE ───────────────────────────────
+  if (state === 'already_on_platform') {
+    return (
+      <ModalShell onClose={onClose}>
+        <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+          <div style={{ fontSize: '40px', marginBottom: '16px' }}>✅</div>
+          <h2 style={{
+            fontFamily: 'var(--font-display, Fraunces, serif)',
+            fontSize: '20px',
+            color: 'var(--text-primary)',
+            marginBottom: '12px',
+          }}>
+            Already on EdUsaathiAI!
+          </h2>
+          <p style={{
+            fontSize: '14px',
+            color: 'var(--text-secondary)',
+            lineHeight: '1.6',
+          }}>
+            <strong>{existingFacultyName}</strong> is already a faculty
+            member on EdUsaathiAI. You can find them in the{' '}
+            <strong>Faculty Finder</strong> and book a session directly.
+          </p>
+          <button onClick={onClose} style={{
+            marginTop: '20px',
+            background: 'var(--saathi-primary)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '10px 24px',
+            fontSize: '14px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}>
+            Got it
           </button>
         </div>
       </ModalShell>
