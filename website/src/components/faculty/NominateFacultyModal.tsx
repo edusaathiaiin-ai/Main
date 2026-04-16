@@ -158,21 +158,13 @@ export default function NominateFacultyModal({
         has_bio: !!form.bio_note.trim(),
       })
 
-      // Fire invitation email (fire-and-forget — don't block success)
-      if (inserted?.id) {
-        const { data: { session } } = await supabase.auth.getSession()
-        fetch(
-          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notify-faculty-nomination`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${session?.access_token ?? ''}`,
-            },
-            body: JSON.stringify({ nominationId: inserted.id }),
-          },
-        ).catch((e) => console.error('Nomination email error:', e))
-      }
+      // Fire invitation email — non-blocking
+      supabase.functions.invoke('notify-faculty-nomination', {
+        body: { nominationId: inserted.id },
+      }).catch((err) => {
+        // Silent fail — nomination is saved, email will be retried by admin
+        console.error('Email invoke failed:', err)
+      })
 
       setState('success')
 
