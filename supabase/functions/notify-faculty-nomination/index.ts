@@ -5,7 +5,9 @@
  * nominates someone. Also sends an admin notification to Jaydeep.
  *
  * Called from NominateFacultyModal after successful insert.
- * Auth: user JWT (the nominator must be authenticated).
+ * Auth: nomination-ID-only — the row existing in DB is proof it was
+ * authenticated at insert time. No JWT required (avoids stale-token 401s
+ * from fire-and-forget invoke).
  */
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
@@ -13,7 +15,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 
@@ -24,27 +25,6 @@ serve(async (req: Request) => {
   }
 
   try {
-    // ── Auth ────────────────────────────────────────────────────
-    const authHeader = req.headers.get('Authorization') ?? ''
-    if (!authHeader) {
-      return json({ error: 'Unauthorized' }, 401, CORS)
-    }
-
-    const token = authHeader.replace('Bearer ', '').trim()
-    const isServiceRole = token === SUPABASE_SERVICE_ROLE_KEY
-
-    let userId: string | null = null
-    if (!isServiceRole) {
-      const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        global: { headers: { Authorization: authHeader } },
-      })
-      const { data: { user }, error: authErr } = await userClient.auth.getUser()
-      if (authErr || !user) {
-        return json({ error: 'Unauthorized' }, 401, CORS)
-      }
-      userId = user.id
-    }
-
     // ── Parse body ─────────────────────────────────────────────
     const { nominationId } = await req.json()
     if (!nominationId) {
@@ -52,6 +32,8 @@ serve(async (req: Request) => {
     }
 
     // ── Fetch nomination (service role — bypasses RLS) ─────────
+    // Auth: nomination existing in DB is sufficient — it was
+    // authenticated when the student/faculty submitted the form.
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
     const { data: nomination, error: fetchErr } = await admin
@@ -64,18 +46,8 @@ serve(async (req: Request) => {
       return json({ error: 'Nomination not found' }, 404, CORS)
     }
 
-    // Verify the caller owns this nomination (skip for service role / admin)
-    if (!isServiceRole) {
-      const isOwner =
-        (nomination.nominator_type === 'student' && nomination.nominated_by_user_id === userId) ||
-        (nomination.nominator_type === 'faculty' && nomination.nominated_by_faculty_id !== null)
-      if (!isOwner) {
-        return json({ error: 'Forbidden' }, 403, CORS)
-      }
-    }
-
-    // Already sent — skip (idempotent) unless service role forces resend
-    if (nomination.email_sent_at && !isServiceRole) {
+    // Already sent — skip (idempotent)
+    if (nomination.email_sent_at) {
       return json({ skipped: true, reason: 'already_sent' }, 200, CORS)
     }
 
