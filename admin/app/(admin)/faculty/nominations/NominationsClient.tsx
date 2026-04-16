@@ -146,6 +146,38 @@ export default function NominationsClient({
     setLoading(null)
   }
 
+  async function verifyNomination(nomination: Nomination) {
+    setLoading(nomination.id + 'verified')
+
+    await supabase
+      .from('faculty_nominations')
+      .update({
+        status: 'verified',
+        student_notified_verified_at: new Date().toISOString(),
+      })
+      .eq('id', nomination.id)
+
+    // Notify student — verified (without reward yet)
+    if (nomination.nominator?.email) {
+      await supabase.functions.invoke('notify-student-faculty-update', {
+        body: {
+          type: 'verified',
+          nominationId: nomination.id,
+          studentEmail: nomination.nominator.email,
+          studentName: nomination.nominator.full_name,
+          facultyName: nomination.faculty_name,
+        },
+      })
+    }
+
+    setList((prev) =>
+      prev.map((n) =>
+        n.id === nomination.id ? { ...n, status: 'verified' } : n
+      )
+    )
+    setLoading(null)
+  }
+
   async function resendEmail(nomination: Nomination) {
     setLoading(nomination.id + 'email')
     const { error } = await supabase.functions.invoke(
@@ -337,7 +369,7 @@ export default function NominationsClient({
                 <ActionButton
                   label="✓ Verify"
                   loading={loading === nomination.id + 'verified'}
-                  onClick={() => updateStatus(nomination.id, 'verified')}
+                  onClick={() => verifyNomination(nomination)}
                   variant="green"
                 />
               )}
