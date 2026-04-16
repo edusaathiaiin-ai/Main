@@ -25,6 +25,7 @@ import { GraphPlotter } from './GraphPlotter'
 import { Scene360Viewer } from './Scene360Viewer'
 import { SketchResult } from './SketchResult'
 import { ReportErrorButton } from './ReportErrorButton'
+import { SendToPhone } from './SendToPhone'
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -887,6 +888,14 @@ export function MessageBubble({
             >
               🃏
             </motion.button>
+            {!isStreaming && !isUser && message.content && (
+              <SendToPhone
+                messageContent={message.content}
+                messageLength={message.content.length}
+                saathiName={verticalName ?? 'Saathi'}
+                saathiSlug={verticalSlug ?? ''}
+              />
+            )}
             {onFlag && (
               <motion.button
                 initial={{ opacity: 0, scale: 0.8 }}

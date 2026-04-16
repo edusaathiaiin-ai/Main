@@ -16,7 +16,7 @@ import { todayIST } from '@/lib/quota'
 import { getSaathiTheme } from '@/lib/saathiThemes'
 import { useThemeStore } from '@/stores/themeStore'
 import { useFontStore, getChatFontStyle } from '@/stores/fontStore'
-import { trackChatSent, trackMultipaneActivated } from '@/lib/analytics'
+import { trackChatSent, trackMultipaneActivated, trackColumnAdded, trackColumnRemoved, trackColumnResized, trackUpgradeNudgeShown } from '@/lib/analytics'
 // ── Always-visible — eager ────────────────────────────────────────────────────
 import { ChatWatermark } from './ChatWatermark'
 import { SaathiHeader } from './SaathiHeader'
@@ -26,6 +26,10 @@ import { EmptyState } from './EmptyState'
 import { IceBreaker } from './IceBreaker'
 import { canUseSplitView } from '@/lib/canUseSplitView'
 import BoardNavigator, { type BoardInfo } from '@/components/chat/BoardNavigator'
+import { NewBoardModal } from '@/components/chat/NewBoardModal'
+import { ChatColumn } from '@/components/chat/ChatColumn'
+import { ColumnResizer } from '@/components/chat/ColumnResizer'
+import { getColumnLimit } from '@/lib/columnLimit'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
 import { FreePlanBar } from './FreePlanBar'
@@ -293,6 +297,116 @@ export function ChatWindow() {
   // Board state — which chatboard is active (null = General)
   const [activeChatboardId, setActiveChatboardId] = useState<string | null>(null)
   const [activeBoardInfo, setActiveBoardInfo] = useState<BoardInfo | null>(null)
+  const [showNewBoardModal, setShowNewBoardModal] = useState(false)
+  const [boardRefreshKey, setBoardRefreshKey] = useState(0)
+
+  // Mobile detection — single column only on small screens
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  // Multi-column state — restore from sessionStorage if available
+  // saathiId isn't resolved yet at this point, so derive the slug inline for the storage key
+  const columnStorageSlug = toSlug(activeSaathiId) ?? toSlug(profile?.primary_saathi_id) ?? 'default'
+  const generalBoard: BoardInfo = { id: '', name: 'General', emoji: '💬', focus_statement: null, board_type: 'general' }
+  const [openColumns, setOpenColumns] = useState<BoardInfo[]>(() => {
+    if (typeof window === 'undefined') return [generalBoard]
+    try {
+      const saved = sessionStorage.getItem(`open_columns_${columnStorageSlug}`)
+      if (saved) {
+        const parsed = JSON.parse(saved) as BoardInfo[]
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch { /* corrupted — fall back */ }
+    return [generalBoard]
+  })
+  const [columnWidths, setColumnWidths] = useState<number[]>(() =>
+    Array(openColumns.length).fill(1)
+  )
+  const [activeColumnIndex, setActiveColumnIndex] = useState(0)
+  const columnLimit = isMobile ? 1 : getColumnLimit(profile?.plan_id)
+  const [columnNudge, setColumnNudge] = useState<string | null>(null)
+
+  // Persist open columns to sessionStorage on every change
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(`open_columns_${columnStorageSlug}`, JSON.stringify(openColumns))
+    } catch { /* storage full — ignore */ }
+  }, [openColumns, columnStorageSlug])
+
+  function addColumn(board: BoardInfo) {
+    if (openColumns.some((c) => c.id === board.id)) return
+    if (openColumns.length >= columnLimit) {
+      const msg = columnLimit === 1
+        ? 'Open a second board simultaneously with Plus'
+        : 'Open a third board simultaneously with Pro'
+      setColumnNudge(msg)
+      setTimeout(() => setColumnNudge(null), 4000)
+      trackUpgradeNudgeShown(profile?.plan_id, openColumns.length + 1)
+      return
+    }
+    setOpenColumns((prev) => [...prev, board])
+    setColumnWidths((prev) => [...prev, 1])
+    setActiveColumnIndex(openColumns.length)
+    trackColumnAdded(board.board_type, openColumns.length + 1, profile?.plan_id)
+  }
+
+  function removeColumn(boardId: string) {
+    const idx = openColumns.findIndex((c) => c.id === boardId)
+    if (idx < 0 || openColumns.length <= 1) return
+    const removed = openColumns[idx]
+    trackColumnRemoved(removed.board_type)
+    setOpenColumns((prev) => prev.filter((_, i) => i !== idx))
+    setColumnWidths((prev) => prev.filter((_, i) => i !== idx))
+    if (activeColumnIndex >= openColumns.length - 1) {
+      setActiveColumnIndex(Math.max(0, openColumns.length - 2))
+    }
+  }
+
+  const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  function adjustColumnWidth(index: number, deltaX: number) {
+    setColumnWidths((prev) => {
+      const next = [...prev]
+      const totalPx = window.innerWidth * 0.7
+      const deltaPct = deltaX / totalPx
+      next[index] = Math.max(0.2, next[index] + deltaPct)
+      if (index + 1 < next.length) {
+        next[index + 1] = Math.max(0.2, next[index + 1] - deltaPct)
+      }
+      return next
+    })
+    if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current)
+    resizeTimerRef.current = setTimeout(() => trackColumnResized(openColumns.length), 500)
+  }
+
+  useEffect(() => {
+    const open = () => setShowNewBoardModal(true)
+    window.addEventListener('board:new', open)
+    return () => window.removeEventListener('board:new', open)
+  }, [])
+
+  // Access token for multi-column mode — refreshed on mount
+  const [columnAccessToken, setColumnAccessToken] = useState<string>('')
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.refreshSession().then(({ data: { session } }) => {
+      if (session?.access_token) setColumnAccessToken(session.access_token)
+    })
+  }, [])
+
+  // Listen for "open board in column" from sidebar
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as BoardInfo | undefined
+      if (detail) addColumn(detail)
+    }
+    window.addEventListener('board:open-column', handler)
+    return () => window.removeEventListener('board:open-column', handler)
+  }, [openColumns.length, columnLimit]) // eslint-disable-line react-hooks/exhaustive-deps
   // Split View state — gated to Plus+ via canUseSplitView. Toggle fires
   // from the header button; actual two-pane rendering is Phase 5.
   const [splitView, setSplitView] = useState<boolean>(false)
@@ -571,9 +685,11 @@ export function ChatWindow() {
 
   // Email digest for active board
   const [digestState, setDigestState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
-  async function handleEmailDigest() {
+  async function handleEmailDigest(overrideBoardId?: string | null, overrideBoardName?: string) {
     if (digestState === 'sending' || digestState === 'sent' || !profile?.primary_saathi_id) return
     setDigestState('sending')
+    const boardId = overrideBoardId !== undefined ? overrideBoardId : activeChatboardId
+    const boardName = overrideBoardName ?? activeBoardInfo?.name ?? null
     try {
       const supabase = createClient()
       const { data: { session: authSession } } = await supabase.auth.getSession()
@@ -589,8 +705,8 @@ export function ChatWindow() {
           },
           body: JSON.stringify({
             verticalId: profile.primary_saathi_id,
-            ...(activeChatboardId ? { chatboardId: activeChatboardId } : {}),
-            ...(activeBoardInfo ? { boardName: activeBoardInfo.name } : {}),
+            ...(boardId ? { chatboardId: boardId } : {}),
+            ...(boardName ? { boardName } : {}),
           }),
         }
       )
@@ -898,6 +1014,8 @@ export function ChatWindow() {
           saathiColor={activeSaathi.primary}
           activeBoardId={activeChatboardId}
           onSelectBoard={switchBoard}
+          onNewBoard={() => setShowNewBoardModal(true)}
+          refreshKey={boardRefreshKey}
         />
 
         {canUseSplitView(profile.plan_id) && (
@@ -1008,7 +1126,44 @@ export function ChatWindow() {
           )}
         </AnimatePresence>
 
-        {/* Messages */}
+        {/* ── Multi-column mode ── */}
+        {openColumns.length > 1 && columnAccessToken ? (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flex: 1,
+              minHeight: 0,
+              overflow: 'hidden',
+            }}
+          >
+            {openColumns.map((col, idx) => (
+              <div key={col.id || 'general'} style={{ display: 'contents' }}>
+                <div style={{ flex: columnWidths[idx] ?? 1, minWidth: '280px', display: 'flex' }}>
+                  <ChatColumn
+                    board={col}
+                    saathi={activeSaathi}
+                    saathiSlug={saathiId}
+                    userId={profile.id}
+                    accessToken={columnAccessToken}
+                    verticalId={activeSaathiId ?? profile?.primary_saathi_id ?? ''}
+                    activeBotSlot={activeBotSlot}
+                    isActive={activeColumnIndex === idx}
+                    canClose={openColumns.length > 1}
+                    onFocus={() => setActiveColumnIndex(idx)}
+                    onClose={() => removeColumn(col.id)}
+                    onEmailDigest={handleEmailDigest}
+                  />
+                </div>
+                {idx < openColumns.length - 1 && (
+                  <ColumnResizer onDrag={(delta) => adjustColumnWidth(idx, delta)} />
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+        <>
+        {/* Messages — single column mode */}
         <div
           id="chat-main"
           aria-live="polite"
@@ -1043,7 +1198,7 @@ export function ChatWindow() {
                 </span>
               )}
               <button
-                onClick={handleEmailDigest}
+                onClick={() => handleEmailDigest()}
                 disabled={digestState === 'sending'}
                 className="ml-auto shrink-0 rounded-md px-2 py-0.5 text-[11px] font-medium transition-colors"
                 style={{
@@ -1189,10 +1344,82 @@ export function ChatWindow() {
         {/* Post-first-chat WhatsApp nudge — renders only after a real
             exchange, never on empty chat. Self-hides if dismissed or linked. */}
         <WaLinkTip />
+        </>
+        )}
       </main>
 
       {/* Mobile bottom nav */}
       <MobileNav />
+
+      {/* Column upgrade nudge */}
+      <AnimatePresence>
+        {columnNudge && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            style={{
+              position: 'fixed',
+              bottom: '80px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--saathi-primary)',
+              borderRadius: '12px',
+              padding: '12px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              zIndex: 1000,
+            }}
+          >
+            <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
+              ✦ {columnNudge}
+            </span>
+            <a
+              href="/pricing"
+              style={{
+                color: 'var(--saathi-primary)',
+                fontWeight: 600,
+                fontSize: '13px',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Upgrade →
+            </a>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* New Board modal */}
+      <NewBoardModal
+        open={showNewBoardModal}
+        onClose={() => setShowNewBoardModal(false)}
+        userId={profile.id}
+        saathiSlug={saathiId}
+        saathiColor={activeSaathi.primary}
+        onCreated={(boardId, boardName) => {
+          setBoardRefreshKey((k) => k + 1)
+          switchBoard(boardId, 1, {
+            id: boardId,
+            name: boardName,
+            emoji: '📒',
+            focus_statement: null,
+            board_type: 'subject',
+          })
+          // Welcome message — added after switchBoard clears messages via setTimeout
+          setTimeout(() => {
+            addMessage({
+              id: `welcome-${boardId}`,
+              role: 'assistant',
+              content: `📒 **${boardName}** is ready. What shall we cover here?`,
+              createdAt: new Date().toISOString(),
+            })
+          }, 50)
+        }}
+      />
 
       {/* Conversion modal */}
       <ConversionModal

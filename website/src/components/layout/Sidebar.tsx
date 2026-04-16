@@ -279,14 +279,14 @@ export function Sidebar({
           accentColor="var(--saathi-primary)"
           description="Chat with your Saathi. Ask anything — it remembers you."
         />
-        <div style={{ opacity: 0.4, cursor: 'not-allowed' }}>
-          <ExpandableSidebarItem
-            id="new-board"
-            icon="+"
-            label="New Board"
-            description="Coming soon"
-          />
-        </div>
+        <ExpandableSidebarItem
+          id="new-board"
+          icon="+"
+          label="New Board"
+          href="/chat"
+          onClick={() => window.dispatchEvent(new CustomEvent('board:new'))}
+          accentColor="var(--saathi-primary)"
+        />
 
         <Divider />
 

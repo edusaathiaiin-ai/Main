@@ -41,6 +41,8 @@ type Props = {
   saathiColor: string
   activeBoardId: string | null
   onSelectBoard: (boardId: string | null, lastBotSlot: number, info: BoardInfo | null) => void
+  onNewBoard: () => void
+  refreshKey?: number
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -51,6 +53,8 @@ export default function BoardNavigator({
   saathiColor,
   activeBoardId,
   onSelectBoard,
+  onNewBoard,
+  refreshKey,
 }: Props) {
   const [boards, setBoards] = useState<Board[]>([])
   const [loading, setLoading] = useState(true)
@@ -95,7 +99,7 @@ export default function BoardNavigator({
 
   useEffect(() => {
     fetchBoards()
-  }, [fetchBoards])
+  }, [fetchBoards, refreshKey])
 
   // ── Rename board ─────────────────────────────────────────────────────────
 
@@ -201,6 +205,11 @@ export default function BoardNavigator({
               onRename={() => handleRename(b.id)}
               onTogglePin={() => handleTogglePin(b)}
               onArchive={() => handleArchive(b)}
+              onOpenColumn={() => {
+                window.dispatchEvent(new CustomEvent('board:open-column', {
+                  detail: { id: b.id, name: b.name, emoji: b.emoji, focus_statement: b.focus_statement, board_type: b.board_type },
+                }))
+              }}
             />
           ))}
         </>
@@ -243,18 +252,22 @@ export default function BoardNavigator({
           onRename={() => handleRename(b.id)}
           onTogglePin={() => handleTogglePin(b)}
           onArchive={() => handleArchive(b)}
+          onOpenColumn={() => {
+            window.dispatchEvent(new CustomEvent('board:open-column', {
+              detail: { id: b.id, name: b.name, emoji: b.emoji, focus_statement: b.focus_statement, board_type: b.board_type },
+            }))
+          }}
         />
       ))}
 
-      {/* ── + New Board — disabled for Phase B ────────────────────────── */}
+      {/* ── + New Board ──────────────────────────────────────────────── */}
       <button
-        disabled
-        className="flex w-full items-center gap-2.5 px-3 py-2 text-left opacity-40"
-        style={{ cursor: 'not-allowed' }}
-        title="Coming soon"
+        onClick={onNewBoard}
+        className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/[0.03]"
+        style={{ cursor: 'pointer' }}
       >
-        <span className="text-sm">+</span>
-        <span className="text-xs font-medium" style={{ color: 'var(--text-ghost)' }}>
+        <span className="text-sm" style={{ color: saathiColor }}>+</span>
+        <span className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>
           New Board
         </span>
       </button>
@@ -278,6 +291,7 @@ function BoardRow({
   onRename,
   onTogglePin,
   onArchive,
+  onOpenColumn,
 }: {
   board: { id: string; name: string; emoji: string; focus_statement: string | null; board_type: string; is_pinned: boolean; exam_target_id: string | null }
   isActive: boolean
@@ -292,6 +306,7 @@ function BoardRow({
   onRename: () => void
   onTogglePin: () => void
   onArchive: () => void
+  onOpenColumn: () => void
 }) {
   // Exam countdown — resolve from registry
   const examDate = b.exam_target_id ? inferExamDate(b.exam_target_id) : null
@@ -347,6 +362,21 @@ function BoardRow({
             </span>
           )}
         </div>
+
+        {/* ⊞ open in column — visible on hover, desktop only */}
+        {!isEditing && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpenColumn() }}
+            className="hidden shrink-0 rounded px-1 py-0.5 text-xs transition-opacity group-hover:opacity-100 md:block"
+            style={{
+              color: 'var(--text-ghost)',
+              opacity: 0,
+            }}
+            title="Open in new column"
+          >
+            ⊞
+          </button>
+        )}
 
         {/* ⋮ menu trigger — visible on hover or when menu open */}
         {!isEditing && (

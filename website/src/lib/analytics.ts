@@ -156,3 +156,19 @@ export function trackMultipaneActivated(plan_id: string | null | undefined) {
 export function trackChatboardSwitched(from_type: BoardType, to_type: BoardType) {
   capture('chatboard_switched', { from_type, to_type })
 }
+
+export function trackColumnAdded(board_type: string, total_columns: number, plan_id: string | null | undefined) {
+  capture('column_added', { board_type, total_columns, plan_id: plan_id ?? 'unknown' })
+}
+
+export function trackColumnRemoved(board_type: string) {
+  capture('column_removed', { board_type })
+}
+
+export function trackColumnResized(column_count: number) {
+  capture('column_resized', { column_count })
+}
+
+export function trackUpgradeNudgeShown(current_plan: string | null | undefined, attempted_columns: number) {
+  capture('upgrade_nudge_shown', { trigger: 'column_limit', current_plan: current_plan ?? 'unknown', attempted_columns })
+}
