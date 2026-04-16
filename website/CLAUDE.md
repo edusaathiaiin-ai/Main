@@ -1,4 +1,4 @@
-# EdUsaathiAI — Claude Code Context v3
+# EdUsaathiAI — Claude Code Context v3.1
 # Last updated: April 2026
 # Author: Jaydeep Buch, Ahmedabad
 #
@@ -1329,5 +1329,829 @@ npm run build && vercel --prod
 ```
 
 ---
-# END OF CLAUDE.md v3
+
+
+# ———————————————————————————————————————————————————————————————
+# RESEARCH ARCHIVE — v1 Architecture
+# Appended to CLAUDE.md v3 — April 2026
+# ———————————————————————————————————————————————————————————————
+#
+# Philosophy shift:
+# We are NOT saving screenshots.
+# We are ARCHIVING RESEARCH STATE.
+#
+# A PhD student reopening their profile 3 months later must see:
+#   - The exact Protein ID queried (not "we looked at a protein")
+#   - The specific Wolfram computation with its LaTeX result
+#   - The annotated PDF with highlights at their exact page positions
+#   - The tldraw canvas reconstructable as a live interactive state
+#   - The PubMed citations pulled during discussion
+#
+# A screenshot is a tourist souvenir.
+# A Research State Archive is a scientific notebook.
+# ———————————————————————————————————————————————————————————————
+
+---
+
+## Research Archive — Artifact Type System
+
+Every tool invocation inside /classroom/[id] produces exactly one
+typed artifact. Twelve types cover all 30 Saathis.
+
+```typescript
+// lib/classroom-plugins/types.ts — extend existing file
+
+type ArtifactType =
+  | 'molecule_3d'        // PubChem structure
+  | 'protein_structure'  // RCSB PDB structure
+  | 'wolfram_query'      // Wolfram Alpha computation
+  | 'geogebra_state'     // GeoGebra construction JSON
+  | 'phet_session'       // PhET simulation name + params
+  | 'pubmed_citation'    // PubMed paper reference
+  | 'formula_katex'      // LaTeX formula entered by faculty
+  | 'pdf_annotation'     // PDF + highlight/note positions
+  | 'code_snapshot'      // Monaco editor state at session end
+  | 'map_state'          // Leaflet center/zoom/drawn annotations
+  | 'canvas_snapshot'    // tldraw JSON — ALWAYS present, every session
+  | 'command_log'        // raw AI command bar history
+
+interface ResearchArtifact {
+  type: ArtifactType
+  source: string            // human-readable: "RCSB Protein Data Bank"
+  source_url?: string       // deep link back to the original record
+  data: Record<string, unknown>  // type-specific payload (see below)
+  timestamp: string         // ISO 8601, UTC
+}
+```
+
+---
+
+## Research Archive — DB Schema
+
+```sql
+-- Migration: add to existing schema
+-- File: supabase/migrations/067_research_archives.sql
+
+CREATE TABLE research_archives (
+  id                uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id        uuid        REFERENCES live_sessions(id) ON DELETE CASCADE,
+  student_id        uuid        REFERENCES profiles(id) ON DELETE CASCADE,
+  faculty_id        uuid        REFERENCES profiles(id),
+  saathi_slug       text        NOT NULL,
+  session_date      date        NOT NULL,
+  session_duration  interval,
+
+  -- Claude Haiku summary: 2–3 sentences, what was studied (not how)
+  summary           text,
+
+  -- Ordered array of ResearchArtifact objects
+  -- One entry per tool invocation, chronological
+  artifacts         jsonb       NOT NULL DEFAULT '[]',
+
+  -- true = every artifact can be reconstructed live (viewer re-renders,
+  -- Wolfram re-runs, PDF highlights restore)
+  -- false = canvas_snapshot only (fallback when tools were unavailable)
+  reconstructable   boolean     DEFAULT true,
+
+  -- Storage path for any PDFs uploaded during session
+  -- Cloudflare R2: session-artifacts/{date}/{session_id}/
+  -- Retention: 90 days active, then cold archive
+  storage_prefix    text,
+
+  created_at        timestamptz DEFAULT now(),
+  updated_at        timestamptz DEFAULT now()
+);
+
+-- Indexes
+CREATE INDEX idx_archives_student_date
+  ON research_archives(student_id, session_date DESC);
+
+CREATE INDEX idx_archives_student_saathi
+  ON research_archives(student_id, saathi_slug);
+
+CREATE INDEX idx_archives_session
+  ON research_archives(session_id);
+
+-- RLS
+ALTER TABLE research_archives ENABLE ROW LEVEL SECURITY;
+
+-- Student sees only their own archives
+CREATE POLICY "student_own_archives"
+  ON research_archives FOR SELECT
+  USING (auth.uid() = student_id);
+
+-- Faculty sees archives from their own sessions
+CREATE POLICY "faculty_session_archives"
+  ON research_archives FOR SELECT
+  USING (auth.uid() = faculty_id);
+
+-- archive-session Edge Function writes (service role)
+-- No direct client insert ever
+```
+
+---
+
+## Research Archive — Artifact Payloads (Complete)
+
+These are the exact JSON shapes stored in `artifacts[]`.
+Every plugin must emit artifacts in exactly these shapes.
+Do not invent new fields. Do not omit required fields.
+
+```typescript
+// —— molecule_3d ————————————————————————————————————————————————
+{
+  type: 'molecule_3d',
+  source: 'PubChem',
+  source_url: 'https://pubchem.ncbi.nlm.nih.gov/compound/{cid}',
+  data: {
+    compound_name: string,      // e.g. 'Aspirin'
+    cid: string,                // PubChem Compound ID
+    formula: string,            // e.g. 'C9H8O4'
+    iupac_name: string,
+    molecular_weight: string,   // include unit: '180.16 g/mol'
+    smiles: string,
+    inchi_key: string,
+    viewer_state: {
+      style: 'stick' | 'sphere' | 'cartoon' | 'surface',
+      background_color: string,
+      rotation: { x: number, y: number, z: number }
+    }
+  },
+  timestamp: string
+}
+
+// —— protein_structure ———————————————————————————————————————————
+{
+  type: 'protein_structure',
+  source: 'RCSB Protein Data Bank',
+  source_url: 'https://www.rcsb.org/structure/{pdb_id}',
+  data: {
+    pdb_id: string,             // e.g. '2HYY' — always uppercase
+    title: string,              // full RCSB title
+    organism: string,
+    resolution: string,         // e.g. '2.20 A'
+    deposition_date: string,    // YYYY-MM-DD
+    authors: string,            // first author et al.
+    doi: string,
+    highlighted_residues: string[],  // e.g. ['Thr315', 'Glu286']
+    annotation_note: string,    // faculty or student note on residues
+    viewer_state: {
+      style: 'cartoon' | 'stick' | 'surface',
+      chain_focus?: string,     // e.g. 'A'
+      rotation: { x: number, y: number, z: number }
+    }
+  },
+  timestamp: string
+}
+
+// —— wolfram_query ———————————————————————————————————————————————
+{
+  type: 'wolfram_query',
+  source: 'Wolfram Alpha',
+  source_url: 'https://www.wolframalpha.com/input?i={encoded_query}',
+  data: {
+    input: string,              // exact query string sent
+    plaintext_result: string,   // primary result in plain text
+    latex_result: string,       // LaTeX of primary result
+    pods: Array<{               // all result pods from Wolfram API
+      title: string,
+      content: string,
+      image_url?: string        // Wolfram-hosted image URL if present
+    }>,
+    computation_time_ms: number
+  },
+  timestamp: string
+}
+
+// —— geogebra_state ——————————————————————————————————————————————
+{
+  type: 'geogebra_state',
+  source: 'GeoGebra',
+  source_url: 'https://www.geogebra.org/',
+  data: {
+    app_type: 'graphing' | 'geometry' | 'classic' | '3d' | 'cas',
+    base64_state: string,       // GeoGebra applet.getBase64() result
+    // This is the complete reconstruction key — pass back to
+    // applet.setBase64() to restore exact construction
+    object_count: number,
+    description: string         // AI-generated: "3D vector addition
+                                // diagram with force components"
+  },
+  timestamp: string
+}
+
+// —— phet_session ————————————————————————————————————————————————
+{
+  type: 'phet_session',
+  source: 'PhET Interactive Simulations',
+  source_url: 'https://phet.colorado.edu/sims/html/{sim_name}/latest/{sim_name}_en.html',
+  data: {
+    sim_name: string,           // e.g. 'projectile-motion'
+    sim_display_name: string,   // e.g. 'Projectile Motion'
+    duration_seconds: number,   // how long sim was open
+    // PhET does not expose state API — record params set by faculty:
+    initial_params: Record<string, string>
+    // e.g. { angle: '45', speed: '20', gravity: '9.8' }
+  },
+  timestamp: string
+}
+
+// —— pubmed_citation ————————————————————————————————————————————
+{
+  type: 'pubmed_citation',
+  source: 'PubMed / NCBI',
+  source_url: 'https://pubmed.ncbi.nlm.nih.gov/{pmid}',
+  data: {
+    pmid: string,
+    title: string,
+    authors: string[],          // all authors, not truncated
+    journal: string,
+    year: number,
+    volume: string,
+    issue: string,
+    pages: string,
+    doi: string,
+    abstract_snippet: string,   // first 300 chars of abstract
+    mesh_terms: string[]        // MeSH keywords if available
+  },
+  timestamp: string
+}
+
+// —— formula_katex ——————————————————————————————————————————————
+{
+  type: 'formula_katex',
+  source: 'Faculty',
+  data: {
+    latex: string,              // exact LaTeX string as entered
+    rendered_svg: string,       // server-side KaTeX SVG, stored once
+                                // never re-render — SVG is the record
+    context_note: string,       // who wrote it + surrounding discussion
+    display_mode: boolean       // true = block formula, false = inline
+  },
+  timestamp: string
+}
+
+// —— pdf_annotation ——————————————————————————————————————————————
+{
+  type: 'pdf_annotation',
+  source: 'Faculty upload',
+  data: {
+    file_name: string,
+    original_url?: string,      // if linked, not uploaded
+    storage_path: string,       // R2: session-artifacts/{date}/{id}/doc.pdf
+    file_size_bytes: number,
+    page_count: number,
+    annotations: Array<{
+      page: number,             // 1-indexed
+      type: 'highlight' | 'drawn_arrow' | 'sticky_note' | 'underline',
+      color: string,            // hex
+      rect?: {                  // for highlight/underline
+        x1: number, y1: number,
+        x2: number, y2: number
+      },
+      points?: Array<{x: number, y: number}>,  // for drawn_arrow
+      selected_text?: string,   // for highlight — the actual text
+      note?: string             // student or faculty comment
+    }>
+  },
+  timestamp: string
+}
+
+// —— code_snapshot ——————————————————————————————————————————————
+{
+  type: 'code_snapshot',
+  source: 'Monaco Editor',
+  data: {
+    language: string,           // e.g. 'python'
+    content: string,            // full code as written
+    char_count: number,
+    execution_output?: string,  // last Piston run result if any
+    execution_error?: string,   // last error if run failed
+    context_note: string        // what was being demonstrated
+  },
+  timestamp: string
+}
+
+// —— map_state ——————————————————————————————————————————————————
+{
+  type: 'map_state',
+  source: 'OpenStreetMap / Leaflet',
+  data: {
+    center: { lat: number, lng: number },
+    zoom: number,
+    bounds: {
+      north: number, south: number,
+      east: number, west: number
+    },
+    drawn_layers: unknown,      // GeoJSON of all drawn shapes/pins
+    layer_count: number,
+    context_note: string        // e.g. "Trade routes of Mughal Empire"
+  },
+  timestamp: string
+}
+
+// —— canvas_snapshot ————————————————————————————————————————————
+// ALWAYS present in every session, regardless of delivery_type
+{
+  type: 'canvas_snapshot',
+  source: 'tldraw',
+  data: {
+    tldraw_json: unknown,       // complete tldraw document JSON
+                                // pass to <Tldraw snapshot={...} />
+                                // to reconstruct exactly
+    shape_count: number,
+    has_drawings: boolean,
+    has_text: boolean,
+    has_arrows: boolean,
+    thumbnail_url: string       // R2: .../{session_id}/canvas-thumb.png
+                                // 400x300 PNG, generated server-side
+  },
+  timestamp: string
+}
+
+// —— command_log ————————————————————————————————————————————————
+// Always last artifact. Chronological log of all AI bar commands.
+{
+  type: 'command_log',
+  source: 'EdUsaathiAI AI Command Bar',
+  data: {
+    commands: Array<{
+      command_text: string,
+      tool_triggered: string,
+      tool_query: string,
+      resolved_to: string,      // human-readable: "PDB 2HYY"
+      timestamp: string
+    }>,
+    total_commands: number
+  },
+  timestamp: string             // session end time
+}
+```
+
+---
+
+## Research Archive — archive-session Edge Function
+
+**File:** `supabase/functions/archive-session/index.ts`
+**Trigger:** Called by faculty "End Session" button via POST
+**Auth:** JWT required. Faculty role only.
+**Must complete in:** under 10 seconds (Supabase Edge Function limit)
+
+```typescript
+// Pseudocode — implement fully, do not take shortcuts
+
+export default async function handler(req: Request) {
+  // 1. Verify JWT, verify caller is faculty of this session
+  const { session_id, student_ids } = await req.json()
+
+  // 2. Fetch all classroom_commands for this session
+  const { data: commands } = await supabaseAdmin
+    .from('classroom_commands')
+    .select('*')
+    .eq('session_id', session_id)
+    .order('created_at', { ascending: true })
+
+  // 3. Fetch Liveblocks storage snapshot
+  //    GET https://api.liveblocks.io/v2/rooms/{session_id}/storage
+  //    Authorization: Bearer LIVEBLOCKS_SECRET_KEY (Vercel env)
+  const liveblocksStorage = await fetchLiveblocksStorage(session_id)
+
+  // 4. Extract canvas JSON from Liveblocks storage
+  const canvasJson = liveblocksStorage?.data?.tldrawDocument ?? null
+
+  // 5. Build artifacts[] array
+  //    - One artifact per classroom_command row
+  //    - Plus one canvas_snapshot (always)
+  //    - Plus one command_log (always, always last)
+  const artifacts = await buildArtifacts(commands, canvasJson)
+
+  // 6. Generate canvas thumbnail
+  //    Use @vercel/og or a puppeteer micro-service to render
+  //    tldraw JSON -> 400x300 PNG -> upload to R2
+  const thumbnailUrl = await generateThumbnail(session_id, canvasJson)
+
+  // 7. Generate session summary via Claude Haiku
+  const summary = await generateSummary(artifacts, saathiSlug)
+  // Prompt: "Summarise this research session in 2-3 sentences.
+  //  Focus on what was studied academically, not the tools used.
+  //  Do not mention software names. Be specific about compounds,
+  //  theorems, cases, or concepts that were covered."
+
+  // 8. Calculate session duration
+  const { data: session } = await supabaseAdmin
+    .from('live_sessions')
+    .select('started_at, scheduled_at')
+    .eq('id', session_id)
+    .single()
+
+  // 9. Write one research_archives row per student
+  //    (faculty may have multiple students in a group session)
+  for (const student_id of student_ids) {
+    await supabaseAdmin
+      .from('research_archives')
+      .insert({
+        session_id,
+        student_id,
+        faculty_id: callerId,
+        saathi_slug,
+        session_date: toISTDate(session.started_at),
+        session_duration: calculateDuration(session),
+        summary,
+        artifacts,
+        reconstructable: canvasJson !== null,
+        storage_prefix: `session-artifacts/${toISTDate(session.started_at)}/${session_id}/`
+      })
+  }
+
+  // 10. Update live_sessions.canvas_snapshot and .session_artifacts
+  await supabaseAdmin
+    .from('live_sessions')
+    .update({
+      canvas_snapshot: canvasJson,
+      session_artifacts: artifacts,
+      ended_at: new Date().toISOString()
+    })
+    .eq('id', session_id)
+
+  return new Response(JSON.stringify({ success: true }), { status: 200 })
+}
+```
+
+**Vercel env vars required by this function:**
+```
+LIVEBLOCKS_SECRET_KEY      — Liveblocks dashboard -> API keys -> Secret
+WOLFRAM_ALPHA_APP_ID       — already required by classroom
+```
+
+---
+
+## Research Archive — Plugin Emission Rules
+
+Every subject plugin is responsible for emitting artifacts as
+events into a shared `useArtifactLog` hook. The archive-session
+function reads from `classroom_commands` — but plugins also
+append structured metadata beyond what the command log captures.
+
+```typescript
+// hooks/useArtifactLog.ts
+
+export function useArtifactLog(sessionId: string) {
+  const emit = useCallback(async (artifact: ResearchArtifact) => {
+    // Write to classroom_commands with full artifact payload
+    await fetch('/api/classroom/log-artifact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId, artifact })
+    })
+  }, [sessionId])
+
+  return { emit }
+}
+```
+
+**Plugin emission examples:**
+
+```typescript
+// In chemsaathi.tsx — after PubChem fetch resolves:
+const { emit } = useArtifactLog(roomId)
+
+const handleMoleculeLoaded = (compound: PubChemCompound) => {
+  emit({
+    type: 'molecule_3d',
+    source: 'PubChem',
+    source_url: `https://pubchem.ncbi.nlm.nih.gov/compound/${compound.cid}`,
+    data: {
+      compound_name: compound.iupacName,
+      cid: String(compound.cid),
+      formula: compound.molecularFormula,
+      iupac_name: compound.iupacName,
+      molecular_weight: `${compound.molecularWeight} g/mol`,
+      smiles: compound.canonicalSMILES,
+      inchi_key: compound.inChIKey,
+      viewer_state: current3DmolState()
+    },
+    timestamp: new Date().toISOString()
+  })
+}
+
+// In maathsaathi.tsx — after Wolfram query returns:
+const handleWolframResult = (query: string, result: WolframResult) => {
+  emit({
+    type: 'wolfram_query',
+    source: 'Wolfram Alpha',
+    source_url: `https://www.wolframalpha.com/input?i=${encodeURIComponent(query)}`,
+    data: {
+      input: query,
+      plaintext_result: result.pods[0]?.subpods[0]?.plaintext ?? '',
+      latex_result: extractLatex(result),
+      pods: result.pods.map(p => ({
+        title: p.title,
+        content: p.subpods[0]?.plaintext ?? '',
+        image_url: p.subpods[0]?.img?.src
+      })),
+      computation_time_ms: result.timing * 1000
+    },
+    timestamp: new Date().toISOString()
+  })
+}
+```
+
+**Rule: emit immediately on tool load, not on session end.**
+Emit again if the faculty significantly changes state (different
+molecule, new Wolfram query, new GeoGebra construction).
+Do not emit on every UI interaction (rotation, zoom, pan).
+
+---
+
+## Research Archive — Profile UI Spec
+
+New tab on student profile page: **Research Archive**
+Route: `/profile?tab=archive`
+
+### Archive card component
+
+```typescript
+// components/classroom/ArchiveCard.tsx
+
+interface ArchiveCardProps {
+  archive: {
+    id: string
+    saathi_slug: string
+    session_date: string
+    session_duration: string   // formatted: "1h 32m"
+    summary: string
+    artifacts: ResearchArtifact[]
+    reconstructable: boolean
+    faculty_name: string
+  }
+}
+```
+
+**Card layout:**
+```
+——————————————————————————————————————————————————————
+|  [Saathi color dot]  PharmaSaathi · Dr. Mehta           |
+|  14 April 2026 · 1h 32m                                 |
+|                                                         |
+|  Imatinib–BCR-ABL binding mechanism studied including   |  <- summary
+|  binding site residues and thermodynamic parameters.     |
+|                                                         |
+|  [2HYY ->] [Wolfram: dG] [NEJM 2001] [PDF · 3 notes]   |  <- artifact chips
+|                                                         |
+|  [canvas thumbnail 120x80]         [Reopen session ->]  |
+——————————————————————————————————————————————————————
+```
+
+**Artifact chips — render rules:**
+```
+molecule_3d       -> "[{compound_name}]"        blue chip
+protein_structure -> "[PDB {pdb_id}]"           teal chip
+wolfram_query     -> "[Wolfram: {result_short}]" amber chip
+pubmed_citation   -> "[{first_author} {year}]"  gray chip
+formula_katex     -> "[Formula]"                purple chip
+pdf_annotation    -> "[PDF · {n} notes]"        coral chip
+code_snapshot     -> "[{language} code]"        green chip
+geogebra_state    -> "[GeoGebra]"               blue chip
+map_state         -> "[Map: {context_note}]"    teal chip
+phet_session      -> "[PhET: {sim_display}]"    gray chip
+canvas_snapshot   -> show thumbnail only        no chip
+command_log       -> never shown as chip
+```
+
+Maximum 5 chips visible. "+ N more" if exceeded.
+Clicking any chip opens artifact detail modal.
+
+### Artifact detail modal
+
+Modal shows the artifact fully reconstructed and live:
+
+```
+molecule_3d      -> 3Dmol.js viewer re-renders at saved viewer_state
+protein_structure -> 3Dmol.js viewer, highlights restored
+wolfram_query    -> Wolfram pods displayed, latex_result rendered via KaTeX
+geogebra_state   -> GeoGebra applet.setBase64(base64_state) restores exactly
+pubmed_citation  -> Full citation card + abstract snippet + DOI link
+formula_katex    -> rendered_svg displayed, raw LaTeX shown below
+pdf_annotation   -> PDF.js renders stored PDF, annotations overlaid
+code_snapshot    -> Monaco in read-only mode, execution_output shown
+map_state        -> Leaflet restores center/zoom, GeoJSON layers re-drawn
+canvas_snapshot  -> tldraw in read-only snapshot mode
+```
+
+**NEVER show a screenshot. Always reconstruct live.**
+If reconstruction fails (external API unavailable), show the
+raw data fields with a "Live view unavailable" notice.
+The data is always there. The live render is best-effort.
+
+### Reopen session
+
+"Reopen session" renders `/classroom/[id]?mode=review`.
+Review mode:
+- Canvas restored from `tldraw_json` in read-only snapshot mode
+- All artifact chips visible in sidebar
+- Click any chip -> tool reloads to saved state
+- No video, no sync, no Liveblocks
+- Faculty and student can both access their own sessions
+- Watermark: "Session archive — [date]"
+
+---
+
+## Research Archive — Soul Engine Integration
+
+After `research_archives` row is written, the `soul-update`
+Edge Function receives an additional signal:
+
+```typescript
+// In soul-update Edge Function — after existing 18 fields:
+
+// Read latest archive for this student + saathi
+const { data: latestArchive } = await supabaseAdmin
+  .from('research_archives')
+  .select('artifacts, summary')
+  .eq('student_id', userId)
+  .eq('saathi_slug', saathiSlug)
+  .order('session_date', { ascending: false })
+  .limit(1)
+  .single()
+
+if (latestArchive) {
+  // Extract research depth signals
+  const proteinCount    = countArtifactType(latestArchive.artifacts, 'protein_structure')
+  const pubmedCount     = countArtifactType(latestArchive.artifacts, 'pubmed_citation')
+  const wolframCount    = countArtifactType(latestArchive.artifacts, 'wolfram_query')
+  const hasAnnotatedPDF = countArtifactType(latestArchive.artifacts, 'pdf_annotation') > 0
+
+  // Write to student_soul — new fields added for research tracking
+  // (add these columns via migration 068)
+  await supabaseAdmin
+    .from('student_soul')
+    .upsert({
+      user_id: userId,
+      vertical_id: verticalUUID,
+      last_research_summary: latestArchive.summary,
+      research_depth_score: calculateResearchDepth({
+        proteinCount, pubmedCount, wolframCount, hasAnnotatedPDF
+      }),
+      // Carry into next session's system prompt so Saathi says:
+      // "Last time you were working on BCR-ABL binding energetics.
+      //  Shall we continue from the dG calculation?"
+      last_archive_context: buildContextString(latestArchive.artifacts)
+    }, { onConflict: 'user_id,vertical_id' })
+}
+```
+
+**New columns on `student_soul` (migration 068):**
+```sql
+ALTER TABLE student_soul
+  ADD COLUMN IF NOT EXISTS last_research_summary  text,
+  ADD COLUMN IF NOT EXISTS research_depth_score   int DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS last_archive_context   text;
+  -- last_archive_context is injected into system prompt
+  -- for the NEXT chat session with this Saathi
+  -- max 400 chars — trim if longer
+```
+
+**`research_depth_score` calculation:**
+```
++10  per protein_structure artifact (RCSB PDB — doctoral signal)
++8   per wolfram_query artifact (advanced computation)
++6   per pubmed_citation artifact (literature engagement)
++5   per pdf_annotation with >2 annotations (deep reading)
++4   per geogebra_state (geometric reasoning)
++3   per formula_katex (symbolic thinking)
++2   per code_snapshot (computational approach)
++1   per molecule_3d (basic lab engagement)
+```
+
+This score supplements `depth_calibration` in the soul engine.
+A student consistently pulling RCSB structures and Wolfram proofs
+will have their Saathi automatically deepen its responses — without
+the faculty needing to manually set a difficulty level.
+
+---
+
+## Research Archive — Faculty Aggregate View
+
+Faculty panel at `/faculty/insights` (new page, faculty role only):
+
+```
+Per-session view:
+  Which tools their students used most
+  Which PubMed papers came up most across all sessions
+  Which concepts triggered the most Wolfram queries
+  (signals: students reached for computation help here)
+  Which residues / compounds appeared in multiple sessions
+  (signals: these are the recurring conceptual anchors)
+
+Aggregate anonymised — individual student data is never
+shown to faculty in identifiable form.
+```
+
+Admin can see aggregate platform-wide in the existing
+`Saathi Stats` admin dashboard section. No new admin page needed —
+add `research_depth_score` distribution as a new chart there.
+
+---
+
+## Research Archive — Storage and Retention
+
+```
+Canvas thumbnails (PNG):
+  Path:      R2: session-artifacts/{date}/{session_id}/canvas-thumb.png
+  Size:      400x300px, max 80KB
+  Retention: permanent (small, high value)
+
+Uploaded PDFs:
+  Path:      R2: session-artifacts/{date}/{session_id}/doc.pdf
+  Retention: 90 days active storage
+             After 90 days: move to R2 archive tier (cold)
+             After 2 years: delete unless student explicitly saves
+  Note:      PDF.js renders from R2 signed URL — URL expires in 1hr,
+             regenerate on each modal open via /api/classroom/get-pdf-url
+
+Liveblocks room data:
+  Liveblocks retains room storage for 30 days on free plan
+  On paid plan: configurable
+  archive-session captures the Liveblocks snapshot to Supabase
+  BEFORE the 30-day window. This is why archive-session must
+  fire on session end — not deferred.
+
+research_archives rows:
+  Retention: permanent, tied to profile lifetime
+  On account deletion (DPDP): anonymise student_id field,
+  retain artifacts for faculty record (financial/academic integrity)
+  Hard delete only if student specifically requests artifact removal
+```
+
+---
+
+## Research Archive — Build Phases
+
+### Phase R1 — Foundation (alongside Classroom Phase 1)
+- [ ] Migration 067: `research_archives` table + RLS
+- [ ] `useArtifactLog` hook
+- [ ] `archive-session` Edge Function (canvas_snapshot + command_log only)
+- [ ] Profile UI: archive tab with basic session cards (summary + date)
+- [ ] This gives the minimum viable notebook from day one
+
+### Phase R2 — Rich Artifacts (alongside Classroom Phase 3)
+- [ ] Emission wired in all subject plugins
+- [ ] All 12 artifact types emitting correctly
+- [ ] Artifact chips in profile cards
+- [ ] Artifact detail modal: static display (rendered SVG, citation card)
+
+### Phase R3 — Live Reconstruction (alongside Classroom Phase 4)
+- [ ] Artifact detail modal: live tools (3Dmol.js, GeoGebra, Monaco)
+- [ ] "Reopen session" — `/classroom/[id]?mode=review`
+- [ ] Canvas thumbnail generation
+- [ ] R2 PDF storage + signed URL endpoint
+
+### Phase R4 — Intelligence Layer
+- [ ] Migration 068: new `student_soul` columns
+- [ ] `research_depth_score` calculation in `archive-session`
+- [ ] `last_archive_context` injection into chat system prompt
+- [ ] Saathi continuity: "Last time you were working on..."
+- [ ] Faculty insights page `/faculty/insights`
+
+---
+
+## Research Archive — Rules and Prohibitions
+
+```
+1. NEVER store a screenshot as the primary record
+   -> canvas_snapshot is tldraw JSON, not a PNG
+   -> thumbnail PNG is supplementary (display only)
+
+2. NEVER emit an artifact without source_url
+   -> Every artifact must deep-link to its origin record
+   -> Fabricated or hallucinated source_urls are forbidden
+
+3. NEVER regenerate a Wolfram query for archive display
+   -> Store the original pods[] response at time of query
+   -> Display stored data — do not re-query
+
+4. NEVER expose faculty_id in student-facing archive UI
+   -> Show faculty display_name only (not UUID, not email)
+
+5. NEVER write to research_archives from the client
+   -> Only archive-session Edge Function writes this table
+   -> Service role key only
+
+6. NEVER skip the archive write if canvas was empty
+   -> Even a zero-tool session gets a canvas_snapshot + command_log
+   -> The record that nothing was drawn is still a record
+
+7. NEVER delete research_archives rows on session delete
+   -> ON DELETE CASCADE only for referential integrity
+   -> The archive outlives the live_session row
+   -> Override: set session_id = NULL and retain the archive
+
+8. NEVER show research_depth_score to the student
+   -> It is an internal soul engine signal only
+   -> Students see flame_stage — not raw scores
+```
+
+---
+# END OF RESEARCH ARCHIVE SECTION
+# Combined document = CLAUDE.md v3.1
 # EdUsaathiAI — Jaydeep Buch, Ahmedabad — April 2026
