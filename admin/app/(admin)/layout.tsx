@@ -20,6 +20,7 @@ const NAV_SECTIONS: NavSection[] = [
       { href: '/whatsapp', label: 'WhatsApp', emoji: '📱' },
       { href: '/suspensions', label: 'Suspensions', emoji: '🚨' },
       { href: '/faculty', label: 'Faculty', emoji: '👨‍🏫' },
+      { href: '/faculty/nominations', label: 'Nominations', emoji: '🎓' },
       { href: '/sessions', label: 'Sessions (1:1)', emoji: '🔍' },
       { href: '/live', label: 'Live Lectures', emoji: '🎙️' },
       { href: '/requests', label: 'Requests', emoji: '✉️' },
