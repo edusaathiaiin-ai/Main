@@ -209,6 +209,8 @@ serve(async (req: Request) => {
     // ── Auth for manual calls ──────────────────────────────────────
     let manualUserId:     string | null = null
     let manualVerticalId: string | null = null
+    let manualChatboardId: string | null = null
+    let manualBoardName:   string | null = null
 
     if (isManual) {
       const authHeader = req.headers.get('Authorization')
@@ -228,6 +230,8 @@ serve(async (req: Request) => {
       }
       manualUserId     = user.id
       manualVerticalId = body.verticalId ?? null
+      manualChatboardId = body.chatboardId ?? null
+      manualBoardName   = body.boardName ?? null
       if (!manualVerticalId) {
         return new Response(JSON.stringify({ error: 'verticalId required' }), {
           status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
@@ -310,7 +314,7 @@ serve(async (req: Request) => {
         // so query by user_id + vertical_id + IST day window instead.
         const dayStart = new Date(`${date}T00:00:00+05:30`).toISOString()
         const dayEnd   = new Date(`${date}T23:59:59+05:30`).toISOString()
-        const { data: msgs } = await admin
+        let msgQuery = admin
           .from('chat_messages')
           .select('role, content, created_at')
           .eq('user_id',     g.user_id)
@@ -319,6 +323,10 @@ serve(async (req: Request) => {
           .gte('created_at', dayStart)
           .lte('created_at', dayEnd)
           .order('created_at')
+        if (isManual && manualChatboardId) {
+          msgQuery = msgQuery.eq('chatboard_id', manualChatboardId)
+        }
+        const { data: msgs } = await msgQuery
         if (!msgs?.length) continue
 
         const transcript = msgs
@@ -348,7 +356,7 @@ serve(async (req: Request) => {
         await resend.emails.send({
           from:    `${vert.name} <noreply@edusaathiai.in>`,
           to:      prof.email,
-          subject: `${vert.emoji} Your ${vert.name} session — ${fmtDateIST(first.started_at)}`,
+          subject: `${vert.emoji} Your ${vert.name} session${manualBoardName ? ` — ${manualBoardName}` : ''} — ${fmtDateIST(first.started_at)}`,
           html,
         })
 

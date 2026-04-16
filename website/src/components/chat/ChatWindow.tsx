@@ -569,6 +569,45 @@ export function ChatWindow() {
     setConversionModal({ open: true, trigger: 'plus_bot_tap', botName })
   }
 
+  // Email digest for active board
+  const [digestState, setDigestState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  async function handleEmailDigest() {
+    if (digestState === 'sending' || digestState === 'sent' || !profile?.primary_saathi_id) return
+    setDigestState('sending')
+    try {
+      const supabase = createClient()
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      if (!authSession) throw new Error('Not logged in')
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-session-digest`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authSession.access_token}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+          },
+          body: JSON.stringify({
+            verticalId: profile.primary_saathi_id,
+            ...(activeChatboardId ? { chatboardId: activeChatboardId } : {}),
+            ...(activeBoardInfo ? { boardName: activeBoardInfo.name } : {}),
+          }),
+        }
+      )
+      const data = await res.json()
+      if (!res.ok || data.sent === 0) {
+        setDigestState('error')
+        setTimeout(() => setDigestState('idle'), 3000)
+      } else {
+        setDigestState('sent')
+        setTimeout(() => setDigestState('idle'), 4000)
+      }
+    } catch {
+      setDigestState('error')
+      setTimeout(() => setDigestState('idle'), 3000)
+    }
+  }
+
   // Board switch — clear client messages, set board + bot slot
   function switchBoard(boardId: string | null, lastBotSlot: number, info: BoardInfo | null) {
     setActiveChatboardId(boardId)
@@ -1003,6 +1042,20 @@ export function ChatWindow() {
                   {activeBoardInfo.focus_statement}
                 </span>
               )}
+              <button
+                onClick={handleEmailDigest}
+                disabled={digestState === 'sending'}
+                className="ml-auto shrink-0 rounded-md px-2 py-0.5 text-[11px] font-medium transition-colors"
+                style={{
+                  color: digestState === 'sent' ? 'var(--success)' : digestState === 'error' ? 'var(--error)' : 'var(--text-ghost)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: digestState === 'sending' ? 'not-allowed' : 'pointer',
+                }}
+                title={`Email today's ${activeBoardInfo.name} chat`}
+              >
+                {digestState === 'sending' ? '⏳' : digestState === 'sent' ? '✓ Sent' : digestState === 'error' ? 'No chat today' : '📧'}
+              </button>
             </div>
           )}
 
