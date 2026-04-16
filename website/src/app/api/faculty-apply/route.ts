@@ -187,6 +187,76 @@ async function notifyAdminEmail(data: Validated, applicationId: string) {
   }).catch((e) => console.error('[faculty-apply] admin email failed:', e))
 }
 
+// ── Nomination linkback ───────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function notifyNominatingStudent(
+  admin: any,
+  facultyEmail: string,
+  applicationId: string,
+) {
+  try {
+    // Check if this faculty email was nominated
+    const { data: nominationRaw } = await admin
+      .from('faculty_nominations')
+      .select('id, faculty_name, nominated_by_user_id, nominator_type')
+      .eq('faculty_email', facultyEmail.toLowerCase())
+      .neq('status', 'declined')
+      .single()
+
+    const nomination = nominationRaw as {
+      id: string
+      faculty_name: string
+      nominated_by_user_id: string | null
+      nominator_type: string
+    } | null
+
+    if (!nomination?.nominated_by_user_id) return
+
+    // Get the nominating student's details
+    const { data: studentRaw } = await admin
+      .from('profiles')
+      .select('full_name, email')
+      .eq('id', nomination.nominated_by_user_id)
+      .single()
+
+    const student = studentRaw as { full_name: string | null; email: string | null } | null
+
+    if (!student?.email) return
+
+    // Update nomination status to 'applied' + link the application
+    await admin
+      .from('faculty_nominations')
+      .update({
+        status: 'applied',
+        faculty_profile_id: applicationId,
+        student_notified_applied_at: new Date().toISOString(),
+      })
+      .eq('id', nomination.id)
+
+    // Fire student notification email
+    if (!SUPABASE_URL || !SERVICE_ROLE_KEY) return
+
+    await fetch(`${SUPABASE_URL}/functions/v1/notify-student-faculty-update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({
+        type: 'applied',
+        nominationId: nomination.id,
+        studentEmail: student.email,
+        studentName: student.full_name,
+        facultyName: nomination.faculty_name,
+      }),
+    })
+  } catch (e) {
+    // Never block the /teach response — log and move on
+    console.error('[faculty-apply] nomination linkback failed:', e)
+  }
+}
+
 // ── Route ──────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
@@ -231,6 +301,9 @@ export async function POST(req: NextRequest) {
 
   // Fire-and-forget admin email (never blocks the user response)
   void notifyAdminEmail(result.data, row.id as string)
+
+  // Check if this email was nominated by a student — update status + notify
+  void notifyNominatingStudent(admin, result.data.email, row.id as string)
 
   return NextResponse.json({ ok: true, applicationId: row.id })
 }
