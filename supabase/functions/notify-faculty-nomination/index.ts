@@ -118,6 +118,7 @@ serve(async (req: Request) => {
     const emailHtml = buildInvitationEmail({
       firstName,
       nominatorName,
+      nominatorType: nomination.nominator_type as string,
       nominatorInstitution,
       expertiseArea: nomination.expertise_area,
       bioNote: nomination.bio_note,
@@ -208,6 +209,7 @@ function json(body: Record<string, unknown>, status: number, headers: Record<str
 function buildInvitationEmail(p: {
   firstName: string
   nominatorName: string
+  nominatorType: string
   nominatorInstitution: string | null
   expertiseArea: string
   bioNote: string | null
@@ -229,9 +231,9 @@ function buildInvitationEmail(p: {
       </table>`
     : ''
 
-  const institutionNote = p.nominatorInstitution
-    ? `, a student at ${p.nominatorInstitution},`
-    : ''
+  const introText = p.nominatorType === 'faculty'
+    ? `<strong>${p.nominatorName}</strong>, a verified faculty member on EdUsaathiAI, has personally recommended you as a colleague whose expertise in <strong>${p.expertiseArea}</strong> would be invaluable to our students.`
+    : `<strong>${p.nominatorName}</strong>${p.nominatorInstitution ? `, a student at ${p.nominatorInstitution},` : ''} has personally recommended you as someone whose expertise in <strong>${p.expertiseArea}</strong> would be invaluable to students on EdUsaathiAI.`
 
   return `<!DOCTYPE html>
 <html>
@@ -267,8 +269,7 @@ function buildInvitationEmail(p: {
               </p>
 
               <p style="margin:0 0 20px;font-size:15px;color:#444;line-height:1.7;">
-                <strong>${p.nominatorName}</strong>${institutionNote} has personally recommended you as someone whose expertise in
-                <strong>${p.expertiseArea}</strong> would be invaluable to students on EdUsaathiAI.
+                ${introText}
               </p>
 
               ${bioBlock}
