@@ -1402,22 +1402,20 @@ export function ChatWindow() {
         saathiColor={activeSaathi.primary}
         onCreated={(boardId, boardName) => {
           setBoardRefreshKey((k) => k + 1)
-          switchBoard(boardId, 1, {
+          const newBoard: BoardInfo = {
             id: boardId,
             name: boardName,
             emoji: '📒',
             focus_statement: null,
             board_type: 'subject',
-          })
-          // Welcome message — added after switchBoard clears messages via setTimeout
-          setTimeout(() => {
-            addMessage({
-              id: `welcome-${boardId}`,
-              role: 'assistant',
-              content: `📒 **${boardName}** is ready. What shall we cover here?`,
-              createdAt: new Date().toISOString(),
-            })
-          }, 50)
+          }
+          // If plan allows multi-column, open as new column
+          // Otherwise fall back to switching active board
+          if (columnLimit > 1 && !isMobile) {
+            addColumn(newBoard)
+          } else {
+            switchBoard(boardId, 1, newBoard)
+          }
         }}
       />
 
