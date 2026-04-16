@@ -27,7 +27,7 @@ import { IceBreaker } from './IceBreaker'
 import { canUseSplitView } from '@/lib/canUseSplitView'
 import BoardNavigator, { type BoardInfo } from '@/components/chat/BoardNavigator'
 import { NewBoardModal } from '@/components/chat/NewBoardModal'
-import { ChatColumn } from '@/components/chat/ChatColumn'
+import { ChatColumn, LockedColumn } from '@/components/chat/ChatColumn'
 import { ColumnResizer } from '@/components/chat/ColumnResizer'
 import { getColumnLimit } from '@/lib/columnLimit'
 import { QuotaBanner } from './QuotaBanner'
@@ -1126,8 +1126,8 @@ export function ChatWindow() {
           )}
         </AnimatePresence>
 
-        {/* ── Multi-column mode ── */}
-        {openColumns.length > 1 && columnAccessToken ? (
+        {/* ── Column chat area — always rendered ── */}
+        {columnAccessToken ? (
           <div
             style={{
               display: 'flex',
@@ -1135,6 +1135,8 @@ export function ChatWindow() {
               flex: 1,
               minHeight: 0,
               overflow: 'hidden',
+              gap: '8px',
+              padding: '8px',
             }}
           >
             {openColumns.map((col, idx) => (
@@ -1160,10 +1162,16 @@ export function ChatWindow() {
                 )}
               </div>
             ))}
+            {/* Locked placeholder columns — fill remaining slots up to 3 */}
+            {!isMobile && openColumns.length < 3 && (
+              <div style={{ flex: 1, minWidth: '280px', display: 'flex' }}>
+                <LockedColumn saathi={activeSaathi} planId={profile.plan_id} />
+              </div>
+            )}
           </div>
         ) : (
         <>
-        {/* Messages — single column mode */}
+        {/* Fallback — loading token */}
         <div
           id="chat-main"
           aria-live="polite"

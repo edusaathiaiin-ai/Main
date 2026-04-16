@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { streamChat } from '@/lib/ai'
 import { createClient } from '@/lib/supabase/client'
 import { MessageBubble } from './MessageBubble'
+import { SendToPhone } from './SendToPhone'
+import { SUBJECT_CHIPS } from '@/constants/subjectChips'
 import type { BoardInfo } from './BoardNavigator'
 import type { ChatMessage, Saathi } from '@/types'
 
@@ -21,6 +23,19 @@ type Props = {
   onFocus: () => void
   onClose: () => void
   onEmailDigest: (boardId: string | null, boardName: string) => void
+}
+
+function getStarterQuestions(saathiSlug: string, boardName: string): string[] {
+  const topics = SUBJECT_CHIPS[saathiSlug] ?? []
+  if (boardName === 'General') {
+    return topics.slice(0, 4).map((t) => `Explain ${t} basics`)
+  }
+  return [
+    `What are the key concepts in ${boardName}?`,
+    `Give me study notes on ${boardName}`,
+    `Common exam questions on ${boardName}`,
+    `Explain ${boardName} with examples`,
+  ]
 }
 
 export function ChatColumn({
@@ -42,33 +57,21 @@ export function ChatColumn({
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingText, setStreamingText] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Auto-scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, streamingText])
 
-  // Welcome message for fresh boards
-  useEffect(() => {
-    if (messages.length === 0 && board.id) {
-      setMessages([{
-        id: `welcome-${board.id}`,
-        role: 'assistant',
-        content: `${board.emoji} **${board.name}** is ready. What shall we cover here?`,
-        createdAt: new Date().toISOString(),
-      }])
-    }
-  }, [board.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  const starters = getStarterQuestions(saathiSlug, board.name)
 
-  const sendMessage = useCallback(async () => {
-    const text = input.trim()
-    if (!text || isStreaming) return
+  const sendMessage = useCallback(async (text?: string) => {
+    const msg = (text ?? input).trim()
+    if (!msg || isStreaming) return
 
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: text,
+      content: msg,
       createdAt: new Date().toISOString(),
     }
     setMessages((prev) => [...prev, userMsg])
@@ -86,7 +89,7 @@ export function ChatColumn({
       for await (const delta of streamChat({
         saathiId: saathiSlug,
         botSlot: activeBotSlot,
-        message: text,
+        message: msg,
         history,
         accessToken,
         ...(board.id ? { chatboardId: board.id } : {}),
@@ -123,7 +126,6 @@ export function ChatColumn({
     }
   }, [input, isStreaming, messages, saathiSlug, activeBotSlot, accessToken, board.id])
 
-  // Flag handler
   async function handleFlag(messageId: string) {
     const supabase = createClient()
     await supabase.from('moderation_flags').insert({
@@ -141,10 +143,13 @@ export function ChatColumn({
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        borderRight: '1px solid var(--border-subtle)',
-        background: isActive ? 'var(--bg-base)' : 'var(--bg-subtle, #fafafa)',
         minWidth: '280px',
-        transition: 'background 0.2s',
+        borderRadius: '16px',
+        border: isActive ? `2px solid ${saathi.primary}40` : '1.5px solid var(--border-subtle)',
+        background: 'var(--bg-surface, #fff)',
+        boxShadow: isActive ? `0 4px 24px ${saathi.primary}12` : '0 2px 8px rgba(0,0,0,0.04)',
+        overflow: 'hidden',
+        transition: 'border-color 0.2s, box-shadow 0.2s',
       }}
     >
       {/* Column header */}
@@ -152,18 +157,19 @@ export function ChatColumn({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
-          padding: '8px 12px',
+          gap: '8px',
+          padding: '10px 14px',
           borderBottom: '1px solid var(--border-subtle)',
-          background: isActive ? 'var(--bg-elevated)' : 'transparent',
+          background: isActive ? `${saathi.primary}08` : 'var(--bg-elevated)',
+          flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: '14px' }}>{board.emoji}</span>
+        <span style={{ fontSize: '18px' }}>{board.emoji}</span>
         <span
           style={{
-            fontWeight: 600,
+            fontWeight: 700,
             fontSize: 'var(--text-sm)',
-            color: isActive ? 'var(--saathi-primary)' : 'var(--text-secondary)',
+            color: isActive ? saathi.primary : 'var(--text-primary)',
             flex: 1,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -173,36 +179,16 @@ export function ChatColumn({
           {board.name}
         </span>
         <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onEmailDigest(board.id, board.name)
-          }}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '12px',
-            color: 'var(--text-ghost)',
-            padding: '2px',
-          }}
+          onClick={(e) => { e.stopPropagation(); onEmailDigest(board.id, board.name) }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--text-ghost)', padding: '2px' }}
           title={`Email ${board.name} chat`}
         >
           📧
         </button>
         {canClose && (
           <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onClose()
-            }}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '14px',
-              color: 'var(--text-ghost)',
-              padding: '2px',
-            }}
+            onClick={(e) => { e.stopPropagation(); onClose() }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: 'var(--text-ghost)', padding: '2px' }}
             title="Close column"
           >
             ✕
@@ -211,13 +197,37 @@ export function ChatColumn({
       </div>
 
       {/* Messages — independently scrollable */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '12px',
-        }}
-      >
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+        {/* Starter questions — show when no messages */}
+        {messages.length === 0 && !isStreaming && (
+          <div style={{ padding: '8px 0 16px' }}>
+            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-ghost)', margin: '0 0 8px', fontWeight: 600 }}>
+              Start with:
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {starters.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => sendMessage(q)}
+                  style={{
+                    textAlign: 'left',
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    fontSize: 'var(--text-xs)',
+                    color: saathi.primary,
+                    background: `${saathi.primary}08`,
+                    border: `1px solid ${saathi.primary}20`,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {messages.map((msg) => (
           <MessageBubble
             key={msg.id}
@@ -233,12 +243,7 @@ export function ChatColumn({
         ))}
         {isStreaming && streamingText && (
           <MessageBubble
-            message={{
-              id: 'streaming',
-              role: 'assistant',
-              content: streamingText,
-              createdAt: new Date().toISOString(),
-            }}
+            message={{ id: 'streaming', role: 'assistant', content: streamingText, createdAt: new Date().toISOString() }}
             isStreaming={true}
             verticalId={verticalId}
             verticalSlug={saathiSlug}
@@ -250,82 +255,90 @@ export function ChatColumn({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input area */}
-      <div
-        style={{
-          borderTop: '1px solid var(--border-subtle)',
-          padding: '8px 12px',
-        }}
-      >
+      {/* Input area with mic + send */}
+      <div style={{ borderTop: '1px solid var(--border-subtle)', padding: '8px 12px', flexShrink: 0 }}>
         <textarea
-          ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              sendMessage()
-            }
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
           }}
           placeholder={`Ask ${board.name}…`}
           rows={2}
           disabled={isStreaming}
           style={{
-            width: '100%',
-            resize: 'none',
-            padding: '8px 10px',
-            borderRadius: '8px',
-            fontSize: 'var(--text-sm)',
-            color: 'var(--text-primary)',
+            width: '100%', resize: 'none', padding: '8px 10px', borderRadius: '8px',
+            fontSize: 'var(--text-sm)', color: 'var(--text-primary)',
             background: 'var(--bg-elevated, #f5f5f5)',
-            border: `1px solid ${isActive ? 'var(--saathi-border)' : 'var(--border-subtle)'}`,
-            outline: 'none',
-            fontFamily: 'inherit',
+            border: `1px solid ${isActive ? `${saathi.primary}40` : 'var(--border-subtle)'}`,
+            outline: 'none', fontFamily: 'inherit',
           }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = saathi.primary
-            onFocus()
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-subtle)'
-          }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = saathi.primary; onFocus() }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)' }}
         />
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginTop: '4px',
-          }}
-        >
-          <span
-            style={{
-              fontSize: 'var(--text-xs)',
-              color: 'var(--text-ghost)',
-            }}
-          >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-ghost)' }}>
             Enter to send
           </span>
-          <button
-            onClick={sendMessage}
-            disabled={!input.trim() || isStreaming}
-            style={{
-              background: input.trim() && !isStreaming ? saathi.primary : 'var(--text-ghost)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '4px 12px',
-              fontSize: 'var(--text-xs)',
-              fontWeight: 600,
-              cursor: !input.trim() || isStreaming ? 'not-allowed' : 'pointer',
-              opacity: !input.trim() || isStreaming ? 0.4 : 1,
-              transition: 'all 0.15s',
-            }}
-          >
-            {isStreaming ? '…' : 'Send'}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={() => sendMessage()}
+              disabled={!input.trim() || isStreaming}
+              style={{
+                background: input.trim() && !isStreaming ? saathi.primary : 'var(--text-ghost)',
+                color: '#fff', border: 'none', borderRadius: '6px',
+                padding: '4px 12px', fontSize: 'var(--text-xs)', fontWeight: 600,
+                cursor: !input.trim() || isStreaming ? 'not-allowed' : 'pointer',
+                opacity: !input.trim() || isStreaming ? 0.4 : 1,
+              }}
+            >
+              {isStreaming ? '…' : 'Send'}
+            </button>
+          </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// Locked column placeholder — shows upgrade CTA
+export function LockedColumn({ saathi, planId }: { saathi: Saathi; planId: string | null }) {
+  const label = !planId || planId === 'free' || planId === 'trial'
+    ? 'Upgrade to Plus for 2 columns'
+    : 'Upgrade to Pro for 3 columns'
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        minWidth: '280px',
+        borderRadius: '16px',
+        border: '1.5px dashed var(--border-subtle)',
+        background: 'var(--bg-elevated, #fafafa)',
+        gap: '12px',
+        padding: '24px',
+      }}
+    >
+      <span style={{ fontSize: '32px', opacity: 0.3 }}>⊞</span>
+      <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-ghost)', textAlign: 'center', margin: 0 }}>
+        {label}
+      </p>
+      <a
+        href="/pricing"
+        style={{
+          fontSize: 'var(--text-xs)', fontWeight: 600,
+          color: saathi.primary, textDecoration: 'none',
+          padding: '6px 16px', borderRadius: '8px',
+          border: `1px solid ${saathi.primary}40`,
+          background: `${saathi.primary}08`,
+        }}
+      >
+        Upgrade →
+      </a>
     </div>
   )
 }
