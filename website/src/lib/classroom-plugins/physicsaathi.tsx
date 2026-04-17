@@ -194,12 +194,13 @@ function PhysicsPlugin({ role }: PluginProps) {
                 ))}
               </select>
             </div>
-            {/* Sim iframe */}
+            {/* Sim iframe — sandbox prevents PhET from navigating parent window */}
             <iframe
               key={phetSim}
               src={`https://phet.colorado.edu/sims/html/${phetSim}/latest/${phetSim}_en.html`}
               className="flex-1 border-0"
               allow="fullscreen"
+              sandbox="allow-scripts allow-same-origin allow-popups"
               title={`PhET: ${PHET_SIMS.find((s) => s.id === phetSim)?.name}`}
             />
           </div>
