@@ -1618,7 +1618,7 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
       }
 
       // ── Update profiles ──────────────────────────────────────────────────
-      await supabase.from('profiles').update({
+      const { error: profileErr } = await supabase.from('profiles').update({
         full_name:               form.fullName.trim(),
         city:                    form.city,
         role:                    'faculty',
@@ -1627,9 +1627,10 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
         is_active:               true,
         last_profile_updated_at: new Date().toISOString(),
       }).eq('id', userId)
+      if (profileErr) throw new Error(`Profile update failed: ${profileErr.message}`)
 
       // ── Upsert faculty_profiles ──────────────────────────────────────────
-      await supabase.from('faculty_profiles').upsert({
+      const { error: fpErr } = await supabase.from('faculty_profiles').upsert({
         user_id:                userId,
         institution_name:       validation.institution_name ?? institutionName,
         department:             form.department.trim() || 'General',
@@ -1662,6 +1663,7 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
         agreed_earnings:        true,
         agreed_content:         true,
       }, { onConflict: 'user_id' })
+      if (fpErr) throw new Error(`Faculty profile save failed: ${fpErr.message}`)
 
       // ── Upsert student_soul for primary Saathi ───────────────────────────
       await supabase.from('student_soul').upsert({
@@ -1724,7 +1726,9 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
 
       onComplete()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      console.error('[FacultyOnboardFlow] Submit failed:', err)
+      const msg = err instanceof Error ? err.message : 'Something went wrong'
+      setError(`${msg}. If this persists, contact admin@edusaathiai.in with this error.`)
       setSaving(false)
     }
   }

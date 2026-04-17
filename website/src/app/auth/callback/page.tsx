@@ -212,6 +212,29 @@ function CallbackInner() {
           trackSignupCompleted(method, 0)
         }
 
+        // ── Auto-detect faculty applicants ──────────────────────────────────
+        // If this email has a pending faculty_application or faculty_nomination,
+        // auto-set role to 'faculty' so they route to faculty onboarding.
+        if (role !== 'faculty' && resolvedSession.user.email) {
+          try {
+            const { data: application } = await supabase
+              .from('faculty_applications')
+              .select('id')
+              .eq('email', resolvedSession.user.email.toLowerCase())
+              .eq('status', 'pending')
+              .maybeSingle()
+
+            if (application) {
+              await supabase
+                .from('profiles')
+                .update({ role: 'faculty' })
+                .eq('id', resolvedSession.user.id)
+            }
+          } catch {
+            // Non-critical — they can manually switch later
+          }
+        }
+
         // ── Saathi instant bonding ────────────────────────────────────────────
         // primary_saathi_id is UUID FK → verticals(id). Resolve slug → UUID before saving.
         if (saathiSlug) {
@@ -234,7 +257,20 @@ function CallbackInner() {
         // Never blocks navigation.
         sendWelcomeWithRetry(resolvedSession).catch(() => {})
 
+        // Re-read role in case we auto-upgraded to faculty above
+        const { data: freshProfile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', resolvedSession.user.id)
+          .single()
+        const finalRole = freshProfile?.role ?? roleParam ?? role
+
         if (!isActive) {
+          // Faculty applicants go straight to faculty onboarding
+          if (finalRole === 'faculty') {
+            router.replace('/onboard/faculty')
+            return
+          }
           // Build onboard URL preserving role + saathi params
           const onboardUrl = new URL('/onboard', window.location.origin)
           if (roleParam) onboardUrl.searchParams.set('role', roleParam)

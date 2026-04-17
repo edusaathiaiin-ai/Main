@@ -15,8 +15,7 @@ import { createClient } from '@supabase/supabase-js'
 const SUPABASE_URL      = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SERVICE_ROLE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY
 const RESEND_API_KEY    = process.env.RESEND_API_KEY
-const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL
-                            ?? 'EdUsaathiAI <admin@edusaathiai.in>'
+const RESEND_FROM_EMAIL: string = process.env.RESEND_FROM_EMAIL || 'EdUsaathiAI <admin@edusaathiai.in>'
 const ADMIN_EMAIL       = process.env.ADMIN_EMAIL ?? 'jaydeep@edusaathiai.in'
 
 // Canonical 30 slugs — keep in sync with website/src/constants/saathis.ts
