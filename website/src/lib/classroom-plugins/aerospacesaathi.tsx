@@ -1,8 +1,169 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+
+// ── NACA 4-digit airfoil generator (pure math) ──────────────────────────────
+
+function generateNaca4(digits: string, numPoints: number = 80): { upper: [number, number][]; lower: [number, number][] } {
+  const m = parseInt(digits[0] ?? '0') / 100
+  const p = parseInt(digits[1] ?? '0') / 10
+  const t = parseInt(digits.slice(2) ?? '12') / 100
+
+  const upper: [number, number][] = []
+  const lower: [number, number][] = []
+
+  for (let i = 0; i <= numPoints; i++) {
+    const x = (1 - Math.cos((i / numPoints) * Math.PI)) / 2
+
+    const yt = 5 * t * (0.2969 * Math.sqrt(x) - 0.1260 * x - 0.3516 * x * x + 0.2843 * x * x * x - 0.1015 * x * x * x * x)
+
+    let yc = 0
+    let dyc = 0
+    if (p > 0) {
+      if (x < p) {
+        yc = (m / (p * p)) * (2 * p * x - x * x)
+        dyc = (2 * m / (p * p)) * (p - x)
+      } else {
+        yc = (m / ((1 - p) * (1 - p))) * (1 - 2 * p + 2 * p * x - x * x)
+        dyc = (2 * m / ((1 - p) * (1 - p))) * (p - x)
+      }
+    }
+
+    const theta = Math.atan(dyc)
+    upper.push([x - yt * Math.sin(theta), yc + yt * Math.cos(theta)])
+    lower.push([x + yt * Math.sin(theta), yc - yt * Math.cos(theta)])
+  }
+
+  return { upper, lower }
+}
+
+function NacaAirfoilGenerator() {
+  const [digits, setDigits] = useState('2412')
+  const [numPoints, setNumPoints] = useState(80)
+
+  const airfoil = useMemo(() => generateNaca4(digits, numPoints), [digits, numPoints])
+
+  const svgWidth = 600
+  const svgHeight = 300
+  const pad = 40
+  const scaleX = svgWidth - pad * 2
+  const scaleY = svgHeight * 2
+
+  function toSvg(pt: [number, number]): string {
+    return `${pad + pt[0] * scaleX},${svgHeight / 2 - pt[1] * scaleY}`
+  }
+
+  const upperPath = airfoil.upper.map((p, i) => `${i === 0 ? 'M' : 'L'}${toSvg(p)}`).join(' ')
+  const lowerPath = airfoil.lower.map((p, i) => `${i === 0 ? 'M' : 'L'}${toSvg(p)}`).join(' ')
+
+  const presets = [
+    { label: 'NACA 0012 (Symmetric)', digits: '0012' },
+    { label: 'NACA 2412 (General aviation)', digits: '2412' },
+    { label: 'NACA 4412 (High lift)', digits: '4412' },
+    { label: 'NACA 6412 (High camber)', digits: '6412' },
+    { label: 'NACA 0006 (Thin symmetric)', digits: '0006' },
+    { label: 'NACA 2424 (Thick cambered)', digits: '2424' },
+  ]
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto', padding: '16px' }}>
+      <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px' }}>
+        ✈️ NACA 4-Digit Airfoil Generator
+      </h3>
+
+      {/* Controls */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div>
+          <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-ghost)', display: 'block', marginBottom: '4px' }}>
+            NACA Digits
+          </label>
+          <input
+            value={digits}
+            onChange={(e) => setDigits(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            maxLength={4}
+            style={{
+              width: '80px', padding: '8px 12px', borderRadius: '8px',
+              fontSize: '16px', fontWeight: 700, fontFamily: 'monospace',
+              background: 'var(--bg-elevated)', color: 'var(--text-primary)',
+              border: '1px solid var(--border-subtle)', outline: 'none', textAlign: 'center',
+            }}
+          />
+        </div>
+        <div>
+          <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-ghost)', display: 'block', marginBottom: '4px' }}>
+            Points
+          </label>
+          <input
+            type="range" min={20} max={200} value={numPoints}
+            onChange={(e) => setNumPoints(Number(e.target.value))}
+            style={{ width: '120px' }}
+          />
+          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginLeft: '6px' }}>{numPoints}</span>
+        </div>
+      </div>
+
+      {/* Presets */}
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
+        {presets.map((p) => (
+          <button
+            key={p.digits}
+            onClick={() => setDigits(p.digits)}
+            style={{
+              padding: '4px 12px', borderRadius: '100px', fontSize: '11px', fontWeight: 500,
+              background: digits === p.digits ? 'var(--saathi-primary, #0A1628)' : 'var(--bg-elevated)',
+              color: digits === p.digits ? '#fff' : 'var(--text-secondary)',
+              border: '1px solid var(--border-subtle)', cursor: 'pointer',
+            }}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {/* SVG Plot */}
+      <div style={{
+        background: '#fff', borderRadius: '12px', border: '1px solid var(--border-subtle)',
+        padding: '12px', marginBottom: '16px',
+      }}>
+        <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} style={{ width: '100%', height: 'auto' }}>
+          {/* Grid */}
+          <line x1={pad} y1={svgHeight / 2} x2={svgWidth - pad} y2={svgHeight / 2} stroke="#ddd" strokeWidth="1" />
+          <line x1={pad} y1={pad} x2={pad} y2={svgHeight - pad} stroke="#ddd" strokeWidth="1" />
+          {/* Chord line */}
+          <line x1={pad} y1={svgHeight / 2} x2={svgWidth - pad} y2={svgHeight / 2} stroke="#ccc" strokeWidth="0.5" strokeDasharray="4 4" />
+          {/* Airfoil */}
+          <path d={upperPath} fill="none" stroke="#0A1628" strokeWidth="2" />
+          <path d={lowerPath} fill="none" stroke="#60A5FA" strokeWidth="2" />
+          {/* Fill */}
+          <path d={`${upperPath} ${lowerPath.split(' ').reverse().join(' ')} Z`} fill="rgba(10,22,40,0.06)" />
+          {/* Labels */}
+          <text x={svgWidth / 2} y={svgHeight - 8} textAnchor="middle" fontSize="11" fill="#999">
+            NACA {digits} — {numPoints} points
+          </text>
+          <text x={pad - 4} y={svgHeight / 2 - 4} fontSize="9" fill="#999" textAnchor="end">0</text>
+        </svg>
+      </div>
+
+      {/* Properties */}
+      <div style={{
+        background: 'var(--bg-elevated)', borderRadius: '10px', padding: '14px 18px',
+        border: '1px solid var(--border-subtle)',
+      }}>
+        <p style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
+          Airfoil Properties
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+          <div>Max camber: <strong>{(parseInt(digits[0] ?? '0'))}%</strong> chord</div>
+          <div>Camber position: <strong>{(parseInt(digits[1] ?? '0')) * 10}%</strong> chord</div>
+          <div>Max thickness: <strong>{digits.slice(2)}%</strong> chord</div>
+          <div>Points: <strong>{numPoints}</strong> per surface</div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const TABS = ['Canvas', 'Sketchfab 3D', 'NASA Data', 'NASA Eyes', 'Airfoil Tools'] as const
 type Tab = typeof TABS[number]
@@ -267,21 +428,9 @@ function AerospacePlugin({ role }: PluginProps) {
           />
         )}
 
-        {/* ── Airfoil Tools ── */}
+        {/* ── Airfoil Generator (built-in NACA 4-digit) ── */}
         {tab === 'Airfoil Tools' && (
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', fontSize: '12px', color: 'var(--text-tertiary)' }}>
-              Airfoil Tools — NACA airfoil generator, plotter, and database (airfoiltools.com)
-            </div>
-            <div style={{ flex: 1 }}>
-              <iframe
-                title="Airfoil Tools — NACA Generator"
-                src="https://airfoiltools.com/airfoil/naca4digit"
-                style={{ width: '100%', height: '100%', border: 'none' }}
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-              />
-            </div>
-          </div>
+          <NacaAirfoilGenerator />
         )}
       </div>
     </div>
