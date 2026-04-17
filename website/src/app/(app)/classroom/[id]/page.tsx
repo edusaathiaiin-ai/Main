@@ -322,6 +322,7 @@ export default function ClassroomPage() {
 
   const saathi = session ? SAATHIS.find((s) => s.id === toSlug(session.vertical_id)) ?? null : null
   const color = saathi?.primary ?? 'var(--gold)'
+  const saathiBg = saathi?.bg ?? 'var(--bg-base)'
   const isFaculty = profile?.id === session?.faculty_id
 
   const nextLecture = lectures
@@ -375,7 +376,7 @@ export default function ClassroomPage() {
   // Not booked
   if (state === 'not_booked') {
     return (
-      <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--bg-base)' }}>
+      <main className="flex min-h-screen items-center justify-center" style={{ background: saathiBg }}>
         <div className="mx-auto max-w-md rounded-2xl p-8 text-center" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-medium)' }}>
           {saathi && <p className="mb-3 text-4xl">{saathi.emoji}</p>}
           <h2
@@ -407,7 +408,7 @@ export default function ClassroomPage() {
 
   if (state === 'lobby') {
     return (
-      <main className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
+      <main className="min-h-screen" style={{ background: saathiBg }}>
         {/* Top bar */}
         <nav
           className="flex items-center justify-between px-6 py-4"
@@ -786,7 +787,7 @@ export default function ClassroomPage() {
 
   if (state === 'summary') {
     return (
-      <main className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
+      <main className="min-h-screen" style={{ background: saathiBg }}>
         <nav
           className="flex items-center justify-between px-6 py-4"
           style={{ borderBottom: '1px solid var(--border-subtle)' }}
