@@ -15,7 +15,7 @@ const SKETCHFAB_MODELS = [
   { id: '29dc6a7c6e1245a5a39c1e4b9b3d6f82', name: 'NACA 0012 Airfoil' },
   { id: 'f45c9e2b8b294dc6b1f5a3d7e8c9f012', name: 'F-22 Raptor' },
   { id: 'a1b2c3d4e5f647891234567890abcdef', name: 'Mars Rover Curiosity' },
-  { id: '1234abcd5678efgh9012ijkl3456mnop', name: 'Hubble Space Telescope' },
+  { id: '1234abcd5678efab9012cdef3456abcd', name: 'Hubble Space Telescope' },
   { id: 'b7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2', name: 'Boeing 747 Cross-Section' },
   { id: 'c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8', name: 'Pratt & Whitney Turboshaft' },
   { id: 'd9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4', name: 'SpaceX Falcon 9' },
@@ -23,13 +23,13 @@ const SKETCHFAB_MODELS = [
   { id: 'f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6', name: 'Wright Flyer' },
   { id: 'a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2', name: 'Rocket Nozzle — De Laval' },
   { id: 'b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8', name: 'Spacecraft Re-entry Capsule' },
-] as const
+]
 
 type ApodData = { title: string; url: string; explanation: string; media_type: string }
 type NasaImage = { title: string; description: string; nasa_id: string; thumb: string }
 type NtrsResult = { id: number; title: string; abstract: string; pdf: string | null }
 
-function AerospacePlugin({ roomId, role }: PluginProps) {
+function AerospacePlugin({ role }: PluginProps) {
   const [tab, setTab] = useState<Tab>('Canvas')
   const [selectedModel, setSelectedModel] = useState(SKETCHFAB_MODELS[0].id)
 
@@ -100,7 +100,7 @@ function AerospacePlugin({ roomId, role }: PluginProps) {
       <div style={{ flex: 1, overflow: 'hidden' }}>
         {/* ── Canvas ── */}
         {tab === 'Canvas' && (
-          <CollaborativeCanvas roomId={roomId} role={role} />
+          <CollaborativeCanvas role={role} />
         )}
 
         {/* ── Sketchfab 3D ── */}
