@@ -116,13 +116,12 @@ export default function ClassroomPage() {
   // ── Load session data ──────────────────────────────────────────────────
 
   useEffect(() => {
+    // Don't re-run load if user has already joined or left
+    if (state === 'live' || state === 'summary') return
+
     const supabase = createClient()
 
     async function load() {
-      // Fetch session — select only columns the generated types already know,
-      // then cast to our wider SessionRow which includes migration-126 columns
-      // (delivery_type, external_url, classroom_mode, started_at, ended_at).
-      // Supabase returns all requested columns at runtime regardless of types.
       const { data: sess } = await supabase
         .from('live_sessions')
         .select('*')
@@ -194,7 +193,7 @@ export default function ClassroomPage() {
     }
 
     load()
-  }, [sessionId, profile])
+  }, [sessionId, profile, state])
 
   // ── Countdown to next lecture ──────────────────────────────────────────
 
