@@ -297,10 +297,17 @@ export default function ClassroomPage() {
 
     // Load subject plugin for interactive mode
     if (classroomMode === 'interactive' && session.vertical_id) {
-      const slug = toSlug(session.vertical_id) ?? 'default'
-      const { loadPlugin } = await import('@/lib/classroom-plugins')
-      const loaded = await loadPlugin(slug)
-      setPlugin(loaded)
+      try {
+        const slug = toSlug(session.vertical_id) ?? 'default'
+        const { loadPlugin } = await import('@/lib/classroom-plugins')
+        const loaded = await loadPlugin(slug)
+        setPlugin(loaded)
+      } catch (err) {
+        console.error('[Classroom] Plugin load failed, falling back to default:', err)
+        const { loadPlugin } = await import('@/lib/classroom-plugins')
+        const fallback = await loadPlugin('default')
+        setPlugin(fallback)
+      }
     }
 
     setState('live')
