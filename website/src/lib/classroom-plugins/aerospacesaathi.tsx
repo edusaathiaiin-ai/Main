@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 
-const TABS = ['Canvas', 'Sketchfab 3D', 'NASA Data', 'NASA Eyes', 'JavaFoil'] as const
+const TABS = ['Canvas', 'Sketchfab 3D', 'NASA Data', 'NASA Eyes', 'Airfoil Tools'] as const
 type Tab = typeof TABS[number]
 
 // Real Sketchfab model IDs — verified via API search (downloadable, top-liked)
@@ -267,18 +267,18 @@ function AerospacePlugin({ role }: PluginProps) {
           />
         )}
 
-        {/* ── JavaFoil ── */}
-        {tab === 'JavaFoil' && (
+        {/* ── Airfoil Tools ── */}
+        {tab === 'Airfoil Tools' && (
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', fontSize: '12px', color: 'var(--text-tertiary)' }}>
-              JavaFoil — Airfoil analysis and design tool by Martin Hepperle
+              Airfoil Tools — NACA airfoil generator, plotter, and database (airfoiltools.com)
             </div>
             <div style={{ flex: 1 }}>
               <iframe
-                title="JavaFoil Airfoil Analysis"
-                src="http://www.mh-aerotools.de/airfoils/javafoil.htm"
+                title="Airfoil Tools — NACA Generator"
+                src="https://airfoiltools.com/airfoil/naca4digit"
                 style={{ width: '100%', height: '100%', border: 'none' }}
-                sandbox="allow-scripts allow-same-origin allow-forms"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
               />
             </div>
           </div>
