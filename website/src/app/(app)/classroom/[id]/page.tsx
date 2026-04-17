@@ -617,7 +617,7 @@ export default function ClassroomPage() {
   // ── LIVE — External Delivery (iframe) ──────────────────────────────────
 
   if (state === 'live') {
-    const embedUrl = session?.external_url ?? session?.meeting_link
+    const embedUrl = session?.meeting_link ?? session?.external_url
 
     return (
       <main
