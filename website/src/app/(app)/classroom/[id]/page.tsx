@@ -10,6 +10,7 @@ import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
 import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvider'
 import { FormulaBar } from '@/components/classroom/FormulaBar'
+import { CommandBar } from '@/components/classroom/CommandBar'
 import { SourceBadge } from '@/components/classroom/SourceBadge'
 import type { SaathiPlugin } from '@/lib/classroom-plugins/types'
 
@@ -108,6 +109,7 @@ export default function ClassroomPage() {
   const [rating, setRating] = useState<'up' | 'down' | null>(null)
   const [classroomMode, setClassroomMode] = useState<'standard' | 'interactive'>('standard')
   const [plugin, setPlugin] = useState<SaathiPlugin | null>(null)
+  const [commandToken, setCommandToken] = useState('')
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -308,6 +310,10 @@ export default function ClassroomPage() {
         setPlugin(fallback)
       }
     }
+
+    // Get access token for command bar
+    const { data: { session: authSession } } = await supabase.auth.getSession()
+    if (authSession?.access_token) setCommandToken(authSession.access_token)
 
     setState('live')
   }, [profile, session, sessionId, classroomMode])
@@ -806,6 +812,19 @@ export default function ClassroomPage() {
 
               {/* Plugin panel — 60% on desktop, full width on mobile */}
               <div className="relative flex w-full flex-1 flex-col md:w-[60%]">
+                {/* AI Command Bar — faculty types concepts, Claude routes to tools */}
+                {isFaculty && commandToken && (
+                  <CommandBar
+                    sessionId={sessionId}
+                    saathiSlug={saathi?.id ?? 'default'}
+                    saathiColor={saathi?.primary ?? '#C9993A'}
+                    accessToken={commandToken}
+                    onToolLoad={(result) => {
+                      console.log('[CommandBar] Tool load:', result.tool, result.params)
+                    }}
+                  />
+                )}
+
                 {/* Formula bar — above plugin */}
                 <div
                   className="flex shrink-0 items-center gap-2 px-3 py-1.5"
