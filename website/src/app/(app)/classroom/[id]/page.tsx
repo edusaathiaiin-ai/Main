@@ -322,7 +322,7 @@ export default function ClassroomPage() {
 
   const saathi = session ? SAATHIS.find((s) => s.id === toSlug(session.vertical_id)) ?? null : null
   const color = saathi?.primary ?? 'var(--gold)'
-  const saathiBg = saathi?.bg ?? 'var(--bg-base)'
+  const saathiBg = 'var(--bg-base)'
   const isFaculty = profile?.id === session?.faculty_id
 
   const nextLecture = lectures
