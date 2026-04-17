@@ -7,22 +7,23 @@ import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 const TABS = ['Canvas', 'Sketchfab 3D', 'NASA Data', 'NASA Eyes', 'JavaFoil'] as const
 type Tab = typeof TABS[number]
 
+// Real Sketchfab model IDs — verified via API search (downloadable, top-liked)
 const SKETCHFAB_MODELS = [
-  { id: '9d6a0cca61c8480d9bfee6cc76055120', name: 'Turbofan Engine' },
-  { id: '66f150e0e6234b3d8f3e5b90e7c0feaf', name: 'Space Shuttle' },
-  { id: 'b58c93cb0c4f4ce5a8fe2a5b44e3c72d', name: 'ISS — International Space Station' },
-  { id: '0a3ccf74f53e4e358d5a82e0a1e0d62f', name: 'Saturn V Rocket' },
-  { id: '29dc6a7c6e1245a5a39c1e4b9b3d6f82', name: 'NACA 0012 Airfoil' },
-  { id: 'f45c9e2b8b294dc6b1f5a3d7e8c9f012', name: 'F-22 Raptor' },
-  { id: 'a1b2c3d4e5f647891234567890abcdef', name: 'Mars Rover Curiosity' },
-  { id: '1234abcd5678efab9012cdef3456abcd', name: 'Hubble Space Telescope' },
-  { id: 'b7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2', name: 'Boeing 747 Cross-Section' },
-  { id: 'c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8', name: 'Pratt & Whitney Turboshaft' },
-  { id: 'd9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4', name: 'SpaceX Falcon 9' },
-  { id: 'e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0', name: 'Jet Engine Compressor' },
-  { id: 'f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6', name: 'Wright Flyer' },
-  { id: 'a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2', name: 'Rocket Nozzle — De Laval' },
-  { id: 'b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8', name: 'Spacecraft Re-entry Capsule' },
+  { id: '74c6aceed86b4a41aaad3b93afc3e262', name: 'Turbofan Jet Engine' },
+  { id: '2292ce758e114a5f87626d81404d5f44', name: 'Space Shuttle' },
+  { id: 'db8f1c8cba3b464993e216acbf4a69b9', name: 'International Space Station' },
+  { id: '7a2c9709ff8144c8b3b18ec84b5e112e', name: 'Saturn V Rocket' },
+  { id: 'a120ee56b05e4e01a40ab02fa8b29aeb', name: 'NACA Airfoil' },
+  { id: '327154ad78154f8f9c0ec7169fd4820c', name: 'Boeing 747' },
+  { id: '0696a383f3e841d2b5c7636ee8a58aba', name: 'Mars Rover' },
+  { id: 'f709fc945bb2413faf2878aa613cde3d', name: 'SpaceX Falcon 9' },
+  { id: 'c91467735c6743af872e65107a79beda', name: 'Wright Flyer 1903' },
+  { id: '508de5c48845456bb033fb267ebe1d1e', name: 'F-22 Raptor' },
+  { id: 'd6521362b37b48e3a82bce4911409303', name: 'Hubble Space Telescope' },
+  { id: 'e957a9dbb45146e0946e16f2cb12c827', name: 'Rocket Engine Nozzle' },
+  { id: '2370a0adb0a140fe962972effcd08cbb', name: 'Airbus A380' },
+  { id: 'bd6ac084ae5645848a67597b17665579', name: 'Soyuz Spacecraft' },
+  { id: '47756e4d8a1b43188109795177c00e55', name: 'Jet Engine Compressor' },
 ]
 
 type ApodData = { title: string; url: string; explanation: string; media_type: string }
