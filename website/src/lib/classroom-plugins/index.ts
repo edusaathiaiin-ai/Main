@@ -14,6 +14,8 @@ const PLUGIN_MAP: Record<string, () => Promise<{ default: SaathiPlugin }>> = {
   maathsaathi: () => import('./maathsaathi'),
   biotechsaathi: () => import('./biotechsaathi'),
   pharmasaathi: () => import('./pharmasaathi'),
+  kanoonsaathi: () => import('./kanoonsaathi'),
+  compsaathi: () => import('./compsaathi'),
 }
 
 export async function loadPlugin(saathiSlug: string): Promise<SaathiPlugin> {
