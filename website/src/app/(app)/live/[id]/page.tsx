@@ -426,15 +426,36 @@ export default function LiveSessionDetailPage() {
                       </div>
                     )}
                   </div>
-                  <a
-                    href={session.meeting_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mb-3 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-opacity hover:opacity-90"
-                    style={{ background: '#4ADE80', color: '#060F1D', textDecoration: 'none' }}
-                  >
-                    <span>Join Session →</span>
-                  </a>
+                  {(() => {
+                    const now = Date.now()
+                    const inClassroomWindow = lectures.some((l) => {
+                      const start = new Date(l.scheduled_at).getTime()
+                      const end = start + l.duration_minutes * 60000
+                      return now >= start - 10 * 60000 && now <= end
+                    })
+                    if (inClassroomWindow) {
+                      return (
+                        <Link
+                          href={`/classroom/${sessionId}`}
+                          className="mb-3 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-opacity hover:opacity-90"
+                          style={{ background: '#4ADE80', color: '#060F1D', textDecoration: 'none' }}
+                        >
+                          <span>Enter Classroom →</span>
+                        </Link>
+                      )
+                    }
+                    return (
+                      <a
+                        href={session.meeting_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mb-3 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-opacity hover:opacity-90"
+                        style={{ background: '#4ADE80', color: '#060F1D', textDecoration: 'none' }}
+                      >
+                        <span>Join Session →</span>
+                      </a>
+                    )
+                  })()}
                   <p
                     className="truncate text-[10px]"
                     style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Mono, monospace' }}
