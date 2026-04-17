@@ -325,12 +325,22 @@ export default function ClassroomPage() {
   const saathiBg = 'var(--bg-base)'
   const isFaculty = profile?.id === session?.faculty_id
 
+  // Next upcoming lecture (for countdown display)
   const nextLecture = lectures
     .filter((l) => new Date(l.scheduled_at) > new Date())
     .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0]
 
-  const canJoin = !!nextLecture &&
-    new Date(nextLecture.scheduled_at).getTime() - Date.now() < 10 * 60 * 1000 // within 10 min
+  // Session window: 10 min before earliest scheduled_at until ended_at is set.
+  // If scheduled_at has passed and ended_at is null → session is live, allow join.
+  const canJoin = (() => {
+    if (!lectures.length) return false
+    if (session?.ended_at) return false
+    const now = Date.now()
+    return lectures.some((l) => {
+      const start = new Date(l.scheduled_at).getTime()
+      return now >= start - 10 * 60 * 1000 // within 10 min before OR past start
+    })
+  })()
 
   // ── Render states ──────────────────────────────────────────────────────
 
