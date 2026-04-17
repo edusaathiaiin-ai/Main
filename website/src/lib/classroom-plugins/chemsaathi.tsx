@@ -254,24 +254,18 @@ function KetcherPanel() {
 
 type ChemTab = 'canvas' | 'pubchem' | 'ketcher'
 
-function ChemPlugin({ role }: PluginProps) {
+function ChemPlugin({ role, pendingToolLoad, onToolConsumed }: PluginProps) {
   const [tab, setTab] = useState<ChemTab>('canvas')
   const [pendingSearch, setPendingSearch] = useState<string | null>(null)
 
-  // Listen for AI Command Bar tool loads
+  // React to Command Bar tool load
   useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { tool: string; params: Record<string, unknown> } | undefined
-      if (!detail) return
-      if (detail.tool === 'pubchem') {
-        setTab('pubchem')
-        const compound = (detail.params.compound_name as string) ?? ''
-        if (compound) setPendingSearch(compound)
-      }
-    }
-    window.addEventListener('classroom:tool-load', handler)
-    return () => window.removeEventListener('classroom:tool-load', handler)
-  }, [])
+    if (!pendingToolLoad || pendingToolLoad.tool !== 'pubchem') return
+    setTab('pubchem')
+    const compound = (pendingToolLoad.params.compound_name as string) ?? ''
+    if (compound) setPendingSearch(compound)
+    onToolConsumed?.()
+  }, [pendingToolLoad, onToolConsumed])
 
   const tabs: { id: ChemTab; label: string }[] = [
     { id: 'canvas', label: 'Canvas' },

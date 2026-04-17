@@ -19,6 +19,8 @@ export interface PluginProps {
   roomId: string
   role: 'faculty' | 'student'
   saathiSlug: string
+  pendingToolLoad?: { tool: string; params: Record<string, unknown> } | null
+  onToolConsumed?: () => void
 }
 
 export interface ToolbarItem {

@@ -110,6 +110,7 @@ export default function ClassroomPage() {
   const [classroomMode, setClassroomMode] = useState<'standard' | 'interactive'>('standard')
   const [plugin, setPlugin] = useState<SaathiPlugin | null>(null)
   const [commandToken, setCommandToken] = useState('')
+  const [pendingToolLoad, setPendingToolLoad] = useState<{ tool: string; params: Record<string, unknown> } | null>(null)
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -820,7 +821,7 @@ export default function ClassroomPage() {
                     saathiColor={saathi?.primary ?? '#C9993A'}
                     accessToken={commandToken}
                     onToolLoad={(result) => {
-                      window.dispatchEvent(new CustomEvent('classroom:tool-load', { detail: result }))
+                      setPendingToolLoad({ tool: result.tool, params: result.params })
                     }}
                   />
                 )}
@@ -851,6 +852,8 @@ export default function ClassroomPage() {
                       roomId={sessionId}
                       role={isFaculty ? 'faculty' : 'student'}
                       saathiSlug={saathi?.id ?? 'default'}
+                      pendingToolLoad={pendingToolLoad}
+                      onToolConsumed={() => setPendingToolLoad(null)}
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
