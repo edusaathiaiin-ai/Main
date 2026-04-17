@@ -19,13 +19,38 @@ type CompoundResult = {
   sdf: string | null
 }
 
-function PubChemPanel() {
+function PubChemPanel({ initialSearch, onSearchConsumed }: { initialSearch?: string | null; onSearchConsumed?: () => void }) {
   const [query, setQuery] = useState('')
   const [compound, setCompound] = useState<CompoundResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const viewerRef = useRef<HTMLDivElement>(null)
   const viewerInstanceRef = useRef<unknown>(null)
+  const initialSearchHandled = useRef(false)
+
+  const searchByName = useCallback(async (name: string) => {
+    if (!name.trim()) return
+    setQuery(name)
+    setLoading(true)
+    setError('')
+    setCompound(null)
+    try {
+      const res = await fetch(`/api/classroom/pubchem?name=${encodeURIComponent(name.trim())}`)
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Not found'); setLoading(false); return }
+      setCompound(data as CompoundResult)
+    } catch { setError('Search failed') }
+    setLoading(false)
+  }, [])
+
+  // Auto-search from Command Bar
+  useEffect(() => {
+    if (initialSearch && !initialSearchHandled.current) {
+      initialSearchHandled.current = true
+      onSearchConsumed?.()
+      searchByName(initialSearch)
+    }
+  }, [initialSearch, onSearchConsumed, searchByName])
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return
@@ -231,6 +256,22 @@ type ChemTab = 'canvas' | 'pubchem' | 'ketcher'
 
 function ChemPlugin({ role }: PluginProps) {
   const [tab, setTab] = useState<ChemTab>('canvas')
+  const [pendingSearch, setPendingSearch] = useState<string | null>(null)
+
+  // Listen for AI Command Bar tool loads
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { tool: string; params: Record<string, unknown> } | undefined
+      if (!detail) return
+      if (detail.tool === 'pubchem') {
+        setTab('pubchem')
+        const compound = (detail.params.compound_name as string) ?? ''
+        if (compound) setPendingSearch(compound)
+      }
+    }
+    window.addEventListener('classroom:tool-load', handler)
+    return () => window.removeEventListener('classroom:tool-load', handler)
+  }, [])
 
   const tabs: { id: ChemTab; label: string }[] = [
     { id: 'canvas', label: 'Canvas' },
@@ -263,7 +304,7 @@ function ChemPlugin({ role }: PluginProps) {
       {/* Tab content */}
       <div className="relative flex-1">
         {tab === 'canvas' && <CollaborativeCanvas role={role} />}
-        {tab === 'pubchem' && <PubChemPanel />}
+        {tab === 'pubchem' && <PubChemPanel initialSearch={pendingSearch} onSearchConsumed={() => setPendingSearch(null)} />}
         {tab === 'ketcher' && <KetcherPanel />}
       </div>
     </div>

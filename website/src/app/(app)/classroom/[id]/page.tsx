@@ -820,7 +820,7 @@ export default function ClassroomPage() {
                     saathiColor={saathi?.primary ?? '#C9993A'}
                     accessToken={commandToken}
                     onToolLoad={(result) => {
-                      console.log('[CommandBar] Tool load:', result.tool, result.params)
+                      window.dispatchEvent(new CustomEvent('classroom:tool-load', { detail: result }))
                     }}
                   />
                 )}
