@@ -165,7 +165,100 @@ function NacaAirfoilGenerator() {
   )
 }
 
-const TABS = ['Canvas', 'Sketchfab 3D', 'NASA Data', 'NASA Eyes', 'Airfoil Tools'] as const
+const TABS = ['Canvas', 'Sketchfab 3D', 'NASA Data', 'NASA Eyes', 'Airfoil Tools', 'Physics Lab', 'GeoGebra'] as const
+
+// ── PhET simulations relevant to aerospace ──────────────────────────────────
+
+const PHET_SIMS = [
+  { id: 'projectile-motion', name: 'Projectile Motion', category: 'Mechanics' },
+  { id: 'forces-and-motion-basics', name: 'Forces & Motion', category: 'Mechanics' },
+  { id: 'gravity-and-orbits', name: 'Gravity & Orbits', category: 'Orbital Mechanics' },
+  { id: 'energy-skate-park-basics', name: 'Energy Conservation', category: 'Thermodynamics' },
+  { id: 'gas-properties', name: 'Gas Properties (PV=nRT)', category: 'Thermodynamics' },
+  { id: 'wave-on-a-string', name: 'Wave Propagation', category: 'Vibrations' },
+  { id: 'fluid-pressure-and-flow', name: 'Fluid Pressure & Flow', category: 'Fluid Dynamics' },
+  { id: 'under-pressure', name: 'Under Pressure', category: 'Fluid Dynamics' },
+  { id: 'balloons-and-buoyancy', name: 'Buoyancy', category: 'Fluid Dynamics' },
+  { id: 'blackbody-spectrum', name: 'Blackbody Spectrum', category: 'Heat Transfer' },
+]
+
+const NIST_CONSTANTS = [
+  { name: 'Speed of sound in air (20°C)', value: '343', unit: 'm/s' },
+  { name: 'Standard atmosphere', value: '101 325', unit: 'Pa' },
+  { name: 'Air density at sea level', value: '1.225', unit: 'kg/m³' },
+  { name: 'Specific heat ratio (air)', value: '1.4', unit: 'γ' },
+  { name: 'Gas constant (air)', value: '287.058', unit: 'J/(kg·K)' },
+  { name: 'Gravitational acceleration', value: '9.80665', unit: 'm/s²' },
+  { name: 'Boltzmann constant', value: '1.380649 × 10⁻²³', unit: 'J/K' },
+  { name: 'Stefan–Boltzmann constant', value: '5.670374 × 10⁻⁸', unit: 'W/(m²·K⁴)' },
+  { name: 'Universal gas constant', value: '8.31446', unit: 'J/(mol·K)' },
+  { name: 'Mach 1 at sea level', value: '340.3', unit: 'm/s' },
+]
+
+function PhysicsLab() {
+  const [selectedSim, setSelectedSim] = useState(PHET_SIMS[0].id)
+  const [showConstants, setShowConstants] = useState(false)
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Controls */}
+      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <select
+          value={selectedSim}
+          onChange={(e) => setSelectedSim(e.target.value)}
+          style={{
+            padding: '6px 10px', borderRadius: '8px', fontSize: '12px',
+            background: 'var(--bg-surface)', color: 'var(--text-primary)',
+            border: '1px solid var(--border-subtle)', outline: 'none', flex: 1, minWidth: '180px',
+          }}
+        >
+          {PHET_SIMS.map((s) => (
+            <option key={s.id} value={s.id}>[{s.category}] {s.name}</option>
+          ))}
+        </select>
+        <button
+          onClick={() => setShowConstants((v) => !v)}
+          style={{
+            padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 600,
+            background: showConstants ? 'var(--saathi-primary, #0A1628)' : 'var(--bg-elevated)',
+            color: showConstants ? '#fff' : 'var(--text-secondary)',
+            border: '1px solid var(--border-subtle)', cursor: 'pointer',
+          }}
+        >
+          {showConstants ? '✕ Hide Constants' : '📐 Constants'}
+        </button>
+      </div>
+
+      {/* Constants panel */}
+      {showConstants && (
+        <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', maxHeight: '180px', overflowY: 'auto' }}>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-ghost)', margin: '0 0 6px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            Aerospace Reference Constants
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '2px 12px', fontSize: '11px' }}>
+            {NIST_CONSTANTS.map((c) => (
+              <div key={c.name} style={{ display: 'contents' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>{c.name}</span>
+                <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--text-primary)' }}>{c.value}</span>
+                <span style={{ color: 'var(--text-ghost)' }}>{c.unit}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* PhET simulation */}
+      <div style={{ flex: 1 }}>
+        <iframe
+          title={`PhET — ${PHET_SIMS.find((s) => s.id === selectedSim)?.name}`}
+          src={`https://phet.colorado.edu/sims/html/${selectedSim}/latest/${selectedSim}_all.html`}
+          style={{ width: '100%', height: '100%', border: 'none' }}
+          sandbox="allow-scripts allow-same-origin"
+        />
+      </div>
+    </div>
+  )
+}
 type Tab = typeof TABS[number]
 
 // Real Sketchfab model IDs — verified via API search (downloadable, top-liked)
@@ -432,6 +525,23 @@ function AerospacePlugin({ role }: PluginProps) {
         {tab === 'Airfoil Tools' && (
           <NacaAirfoilGenerator />
         )}
+
+        {/* ── Physics Lab — PhET simulations for fluid dynamics + thermo ── */}
+        {tab === 'Physics Lab' && (
+          <PhysicsLab />
+        )}
+
+        {/* ── GeoGebra — engineering math, vector analysis, orbital mechanics ── */}
+        {tab === 'GeoGebra' && (
+          <div style={{ height: '100%' }}>
+            <iframe
+              title="GeoGebra Classic"
+              src="https://www.geogebra.org/classic"
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+            />
+          </div>
+        )}
       </div>
     </div>
   )
@@ -439,7 +549,7 @@ function AerospacePlugin({ role }: PluginProps) {
 
 const plugin: SaathiPlugin = {
   Component: AerospacePlugin,
-  sourceLabel: 'NASA + NTRS + Sketchfab',
+  sourceLabel: 'NASA + NTRS + Sketchfab + PhET + GeoGebra',
   toolbarItems: [
     {
       icon: '🚀',
