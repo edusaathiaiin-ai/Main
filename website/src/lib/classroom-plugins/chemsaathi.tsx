@@ -233,17 +233,16 @@ function PubChemPanel({ initialSearch, onSearchConsumed }: { initialSearch?: str
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
-/*  Ketcher 2D molecular editor (iframe embed)                                */
+/*  MolView 2D/3D molecular editor (iframe embed — allows embedding)          */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
 function KetcherPanel() {
-  // Ketcher standalone editor hosted by EPAM — free, no install
   return (
     <iframe
-      src="https://lifescience.opensource.epam.com/KetcherDemoSA/index.html"
+      src="https://molview.org/"
       className="h-full w-full border-0"
       sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-      title="Ketcher Molecular Editor"
+      title="MolView — 2D/3D Molecular Editor"
     />
   )
 }
@@ -270,7 +269,7 @@ function ChemPlugin({ role, pendingToolLoad, onToolConsumed }: PluginProps) {
   const tabs: { id: ChemTab; label: string }[] = [
     { id: 'canvas', label: 'Canvas' },
     { id: 'pubchem', label: '3D Molecules' },
-    { id: 'ketcher', label: '2D Editor' },
+    { id: 'ketcher', label: '2D/3D Editor' },
   ]
 
   return (
