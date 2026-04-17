@@ -8,6 +8,23 @@ import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
 import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvider'
+import { FormulaBar } from '@/components/classroom/FormulaBar'
+
+// Lazy-load tldraw canvas (heavy, SSR: false)
+const CollaborativeCanvas = dynamic(
+  () => import('@/components/classroom/CollaborativeCanvas').then((m) => m.CollaborativeCanvas),
+  { ssr: false, loading: () => (
+    <div className="flex h-full w-full items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
+      <div className="text-center">
+        <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2"
+          style={{ borderColor: 'var(--border-medium)', borderTopColor: 'var(--gold)' }} />
+        <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>Loading canvas...</p>
+      </div>
+    </div>
+  )}
+)
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  Types                                                                     */
@@ -102,6 +119,7 @@ export default function ClassroomPage() {
   const [participantCount, setParticipantCount] = useState(0)
   const [sessionDuration, setSessionDuration] = useState(0)
   const [rating, setRating] = useState<'up' | 'down' | null>(null)
+  const [classroomMode, setClassroomMode] = useState<'standard' | 'interactive'>('standard')
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -573,6 +591,48 @@ export default function ClassroomPage() {
               </div>
             )}
 
+            {/* Mode selector — faculty only */}
+            {isFaculty && (canJoin || isFaculty) && (
+              <div className="mb-6">
+                <p
+                  className="mb-2 text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: 'var(--text-ghost)' }}
+                >
+                  Session mode
+                </p>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => setClassroomMode('standard')}
+                    className="rounded-xl px-5 py-3 text-sm font-semibold transition-all"
+                    style={{
+                      background: classroomMode === 'standard' ? `${color}12` : 'var(--bg-elevated)',
+                      border: `2px solid ${classroomMode === 'standard' ? color : 'var(--border-subtle)'}`,
+                      color: classroomMode === 'standard' ? color : 'var(--text-tertiary)',
+                    }}
+                  >
+                    Standard
+                    <span className="mt-0.5 block text-[10px] font-normal" style={{ color: 'var(--text-ghost)' }}>
+                      Video only
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setClassroomMode('interactive')}
+                    className="rounded-xl px-5 py-3 text-sm font-semibold transition-all"
+                    style={{
+                      background: classroomMode === 'interactive' ? `${color}12` : 'var(--bg-elevated)',
+                      border: `2px solid ${classroomMode === 'interactive' ? color : 'var(--border-subtle)'}`,
+                      color: classroomMode === 'interactive' ? color : 'var(--text-tertiary)',
+                    }}
+                  >
+                    Interactive
+                    <span className="mt-0.5 block text-[10px] font-normal" style={{ color: 'var(--text-ghost)' }}>
+                      Video + Canvas
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Join button */}
             <motion.button
               onClick={handleJoin}
@@ -587,7 +647,7 @@ export default function ClassroomPage() {
               }}
             >
               {canJoin || isFaculty
-                ? 'Join Classroom'
+                ? classroomMode === 'interactive' ? 'Join Interactive Classroom' : 'Join Classroom'
                 : countdown
                   ? `Opens ${countdown.includes('d') ? 'in ' + countdown : 'in ' + countdown}`
                   : 'Session not yet scheduled'}
@@ -709,52 +769,112 @@ export default function ClassroomPage() {
           </button>
         </div>
 
-        {/* Video area */}
-        <div className="relative flex-1">
-          {session?.delivery_type === 'external' && embedUrl ? (
-            <iframe
-              src={embedUrl}
-              allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media"
-              allowFullScreen
-              className="h-full w-full border-0"
-              style={{ background: '#000' }}
-            />
-          ) : session?.delivery_type === 'in_app' ? (
-            /* Phase 1 placeholder — 100ms.live integration in Phase 2 */
-            <div
-              className="flex h-full w-full items-center justify-center"
-              style={{ background: 'var(--bg-sunken)' }}
-            >
-              <div className="text-center">
-                <p className="mb-2 text-4xl">📹</p>
-                <p
-                  className="text-sm font-medium"
-                  style={{ color: 'var(--text-secondary)' }}
+        {/* Content area — Standard (video only) or Interactive (video + canvas) */}
+        {classroomMode === 'interactive' ? (
+          <ClassroomRoomProvider
+            sessionId={sessionId}
+            userName={profile?.full_name ?? 'Student'}
+            userRole={isFaculty ? 'faculty' : 'student'}
+          >
+            <div className="flex flex-1 flex-col md:flex-row">
+              {/* Video panel — 40% on desktop, full width on mobile */}
+              <div
+                className="h-[40vh] w-full md:h-full md:w-[40%]"
+                style={{ borderRight: '1px solid var(--border-subtle)' }}
+              >
+                {embedUrl ? (
+                  <iframe
+                    src={embedUrl}
+                    allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media"
+                    allowFullScreen
+                    className="h-full w-full border-0"
+                    style={{ background: '#000' }}
+                  />
+                ) : (
+                  <div
+                    className="flex h-full w-full items-center justify-center"
+                    style={{ background: 'var(--bg-sunken)' }}
+                  >
+                    <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>
+                      No meeting link yet
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Canvas panel — 60% on desktop, full width on mobile */}
+              <div className="relative flex w-full flex-1 flex-col md:w-[60%]">
+                {/* Formula bar — above canvas */}
+                <div
+                  className="flex shrink-0 items-center gap-2 px-3 py-1.5"
+                  style={{ borderBottom: '1px solid var(--border-subtle)' }}
                 >
-                  In-app video coming soon
-                </p>
-                <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>
-                  100ms.live integration — Phase 2
-                </p>
+                  <FormulaBar
+                    onInsert={(latex, html) => {
+                      // TODO Phase 3: drop formula as tldraw shape
+                      // For now, log to console
+                      console.log('[FormulaBar] Insert:', latex, html)
+                    }}
+                  />
+                  <span
+                    className="ml-auto text-[10px]"
+                    style={{ color: 'var(--text-ghost)', fontFamily: 'var(--font-mono)' }}
+                  >
+                    Interactive Canvas
+                  </span>
+                </div>
+
+                {/* tldraw canvas */}
+                <div className="flex-1">
+                  <CollaborativeCanvas role={isFaculty ? 'faculty' : 'student'} />
+                </div>
               </div>
             </div>
-          ) : (
-            <div
-              className="flex h-full w-full items-center justify-center"
-              style={{ background: 'var(--bg-sunken)' }}
-            >
-              <div className="text-center">
-                <p className="mb-2 text-4xl">⏳</p>
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                  Meeting link not yet available.
-                </p>
-                <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>
-                  Faculty will share it before the session starts.
-                </p>
+          </ClassroomRoomProvider>
+        ) : (
+          /* Standard mode — video only (Phase 1 behaviour) */
+          <div className="relative flex-1">
+            {session?.delivery_type === 'external' && embedUrl ? (
+              <iframe
+                src={embedUrl}
+                allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media"
+                allowFullScreen
+                className="h-full w-full border-0"
+                style={{ background: '#000' }}
+              />
+            ) : session?.delivery_type === 'in_app' ? (
+              <div
+                className="flex h-full w-full items-center justify-center"
+                style={{ background: 'var(--bg-sunken)' }}
+              >
+                <div className="text-center">
+                  <p className="mb-2 text-4xl">📹</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                    In-app video coming soon
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>
+                    100ms.live integration — future phase
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div
+                className="flex h-full w-full items-center justify-center"
+                style={{ background: 'var(--bg-sunken)' }}
+              >
+                <div className="text-center">
+                  <p className="mb-2 text-4xl">⏳</p>
+                  <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                    Meeting link not yet available.
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>
+                    Faculty will share it before the session starts.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Bottom bar */}
         <div
