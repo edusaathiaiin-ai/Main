@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 256,
         system: `You are the classroom teaching assistant for ${saathiName}.
 Faculty typed a command. Identify the correct tool to load and extract the query parameters.
