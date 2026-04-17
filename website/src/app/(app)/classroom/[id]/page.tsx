@@ -159,7 +159,7 @@ export default function ClassroomPage() {
         .from('faculty_profiles')
         .select('institution_name, designation, verification_status')
         .eq('user_id', s.faculty_id)
-        .single()
+        .maybeSingle()
 
       setFaculty({
         full_name: fData?.full_name ?? 'Faculty',
@@ -313,7 +313,7 @@ export default function ClassroomPage() {
     }
 
     // Get access token for command bar
-    const { data: { session: authSession } } = await supabase.auth.getSession()
+    const { data: { session: authSession } } = await supabase.auth.refreshSession()
     if (authSession?.access_token) setCommandToken(authSession.access_token)
 
     setState('live')
