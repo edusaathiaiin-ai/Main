@@ -8,23 +8,10 @@ import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
 import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvider'
 import { FormulaBar } from '@/components/classroom/FormulaBar'
-
-// Lazy-load tldraw canvas (heavy, SSR: false)
-const CollaborativeCanvas = dynamic(
-  () => import('@/components/classroom/CollaborativeCanvas').then((m) => m.CollaborativeCanvas),
-  { ssr: false, loading: () => (
-    <div className="flex h-full w-full items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
-      <div className="text-center">
-        <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2"
-          style={{ borderColor: 'var(--border-medium)', borderTopColor: 'var(--gold)' }} />
-        <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>Loading canvas...</p>
-      </div>
-    </div>
-  )}
-)
+import { SourceBadge } from '@/components/classroom/SourceBadge'
+import type { SaathiPlugin } from '@/lib/classroom-plugins/types'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  Types                                                                     */
@@ -120,6 +107,7 @@ export default function ClassroomPage() {
   const [sessionDuration, setSessionDuration] = useState(0)
   const [rating, setRating] = useState<'up' | 'down' | null>(null)
   const [classroomMode, setClassroomMode] = useState<'standard' | 'interactive'>('standard')
+  const [plugin, setPlugin] = useState<SaathiPlugin | null>(null)
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -307,8 +295,16 @@ export default function ClassroomPage() {
       { onConflict: 'session_id,user_id' }
     )
 
+    // Load subject plugin for interactive mode
+    if (classroomMode === 'interactive' && session.vertical_id) {
+      const slug = toSlug(session.vertical_id) ?? 'default'
+      const { loadPlugin } = await import('@/lib/classroom-plugins')
+      const loaded = await loadPlugin(slug)
+      setPlugin(loaded)
+    }
+
     setState('live')
-  }, [profile, session, sessionId])
+  }, [profile, session, sessionId, classroomMode])
 
   // ── Leave session ──────────────────────────────────────────────────────
 
@@ -802,17 +798,16 @@ export default function ClassroomPage() {
                 )}
               </div>
 
-              {/* Canvas panel — 60% on desktop, full width on mobile */}
+              {/* Plugin panel — 60% on desktop, full width on mobile */}
               <div className="relative flex w-full flex-1 flex-col md:w-[60%]">
-                {/* Formula bar — above canvas */}
+                {/* Formula bar — above plugin */}
                 <div
                   className="flex shrink-0 items-center gap-2 px-3 py-1.5"
                   style={{ borderBottom: '1px solid var(--border-subtle)' }}
                 >
                   <FormulaBar
                     onInsert={(latex, html) => {
-                      // TODO Phase 3: drop formula as tldraw shape
-                      // For now, log to console
+                      // TODO: drop formula as tldraw shape on canvas
                       console.log('[FormulaBar] Insert:', latex, html)
                     }}
                   />
@@ -820,13 +815,27 @@ export default function ClassroomPage() {
                     className="ml-auto text-[10px]"
                     style={{ color: 'var(--text-ghost)', fontFamily: 'var(--font-mono)' }}
                   >
-                    Interactive Canvas
+                    {saathi?.name ?? 'Interactive'}
                   </span>
                 </div>
 
-                {/* tldraw canvas */}
-                <div className="flex-1">
-                  <CollaborativeCanvas role={isFaculty ? 'faculty' : 'student'} />
+                {/* Subject plugin (or default canvas) */}
+                <div className="relative flex-1">
+                  {plugin ? (
+                    <plugin.Component
+                      roomId={sessionId}
+                      role={isFaculty ? 'faculty' : 'student'}
+                      saathiSlug={saathi?.id ?? 'default'}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
+                      <div
+                        className="h-8 w-8 animate-spin rounded-full border-2"
+                        style={{ borderColor: 'var(--border-medium)', borderTopColor: 'var(--gold)' }}
+                      />
+                    </div>
+                  )}
+                  {plugin?.sourceLabel && <SourceBadge label={plugin.sourceLabel} />}
                 </div>
               </div>
             </div>
