@@ -36,15 +36,17 @@ export async function GET(req: NextRequest) {
     if (action === 'ntrs') {
       const q = searchParams.get('q') ?? 'aerodynamics'
       const res = await fetch(
-        `https://ntrs.nasa.gov/api/citations?q=${encodeURIComponent(q)}&page=1&pageSize=10`
+        `https://ntrs.nasa.gov/api/citations/search?q=${encodeURIComponent(q)}&page.size=10`
       )
       const data = await res.json()
       const results = (data.results ?? []).slice(0, 10).map(
-        (r: { id?: number; title?: string; abstract?: string; downloads?: { links?: { http?: string }[] }[] }) => ({
+        (r: { id?: number; title?: string; abstract?: string; downloads?: { name?: string; links?: { pdf?: string } }[] }) => ({
           id: r.id,
           title: r.title ?? '',
           abstract: (r.abstract ?? '').slice(0, 300),
-          pdf: r.downloads?.[0]?.links?.[0]?.http ?? null,
+          pdf: r.downloads?.[0]?.links?.pdf
+            ? `https://ntrs.nasa.gov${r.downloads[0].links.pdf}`
+            : null,
         })
       )
       return NextResponse.json({ results })
