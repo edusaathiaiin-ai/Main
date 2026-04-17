@@ -5,9 +5,10 @@ import { NextRequest, NextResponse } from 'next/server'
  * INDIANKANOON_API_KEY is read from env — never exposed client-side.
  *
  * GET /api/classroom/indiankanoon?q=Section+302+murder
- * GET /api/classroom/indiankanoon?docid=12345  (fetch full judgment)
+ * GET /api/classroom/indiankanoon?docid=12345
  *
- * If API key is PENDING or missing, returns a graceful message.
+ * Indian Kanoon API uses POST with form-encoded body for search,
+ * and Token-based auth in the Authorization header.
  */
 export async function GET(req: NextRequest) {
   const query = req.nextUrl.searchParams.get('q')
@@ -23,14 +24,13 @@ export async function GET(req: NextRequest) {
     })
   }
 
+  const headers = { Authorization: `Token ${apiKey}` }
+
   try {
     if (docId) {
-      // Fetch full judgment text
-      const res = await fetch(`https://api.indiankanoon.org/doc/${docId}/`, {
-        headers: { Authorization: `Token ${apiKey}` },
-      })
+      const res = await fetch(`https://api.indiankanoon.org/doc/${docId}/`, { headers })
 
-      if (res.status === 401) {
+      if (res.status === 401 || res.status === 403) {
         return NextResponse.json({
           pending: true,
           message: 'Indian Kanoon integration coming soon. Key pending approval.',
@@ -52,13 +52,21 @@ export async function GET(req: NextRequest) {
     }
 
     if (query) {
-      // Search cases
-      const res = await fetch(
-        `https://api.indiankanoon.org/search/?formInput=${encodeURIComponent(query)}&pagenum=0`,
-        { headers: { Authorization: `Token ${apiKey}` } }
-      )
+      // Indian Kanoon API uses POST with form-encoded body
+      const formBody = new URLSearchParams()
+      formBody.set('formInput', query)
+      formBody.set('pagenum', '0')
 
-      if (res.status === 401) {
+      const res = await fetch('https://api.indiankanoon.org/search/', {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formBody.toString(),
+      })
+
+      if (res.status === 401 || res.status === 403) {
         return NextResponse.json({
           pending: true,
           message: 'Indian Kanoon integration coming soon. Key pending approval.',
@@ -75,15 +83,15 @@ export async function GET(req: NextRequest) {
         tid: number
         title: string
         headline: string
-        courtname: string
-        datestr: string
+        docsource: string
+        publishdate: string
         citation: string
       }) => ({
         docid: d.tid,
         title: d.title ?? '',
         headline: d.headline ?? '',
-        court: d.courtname ?? '',
-        date: d.datestr ?? '',
+        court: d.docsource ?? '',
+        date: d.publishdate ?? '',
         citation: d.citation ?? '',
       }))
 
