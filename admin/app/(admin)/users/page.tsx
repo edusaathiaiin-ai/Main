@@ -106,9 +106,37 @@ export default async function UsersPage({
     return `/users?${params.toString()}`
   }
 
+  // Pending applications alert
+  const { count: pendingApplications } = await admin
+    .from('faculty_applications')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending')
+
   return (
     <div className="p-6">
       <h1 className="text-xl font-bold text-white mb-6">Users</h1>
+
+      {/* Pending applications alert */}
+      {(pendingApplications ?? 0) > 0 && (
+        <div style={{
+          background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '10px',
+          padding: '14px 20px', marginBottom: '20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <span style={{ fontWeight: 600, color: '#92400E' }}>
+            🔔 {pendingApplications} faculty application{(pendingApplications ?? 0) > 1 ? 's' : ''} waiting for approval
+          </span>
+          <a
+            href="/faculty/applications"
+            style={{
+              background: '#C9993A', color: '#fff', padding: '8px 16px',
+              borderRadius: '6px', fontSize: '13px', fontWeight: 600, textDecoration: 'none',
+            }}
+          >
+            Review Now →
+          </a>
+        </div>
+      )}
 
       {/* ── Search + plan filter ──────────────────────────────────────── */}
       <form className="flex gap-3 mb-4">
