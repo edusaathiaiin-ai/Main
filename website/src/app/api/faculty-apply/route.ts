@@ -186,6 +186,53 @@ async function notifyAdminEmail(data: Validated, applicationId: string) {
   }).catch((e) => console.error('[faculty-apply] admin email failed:', e))
 }
 
+// ── Applicant confirmation email ──────────────────────────────────────
+
+async function notifyApplicantEmail(data: Validated) {
+  if (!RESEND_API_KEY) return
+  const firstName = data.full_name.split(' ')[0]
+
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: 'Jaydeep Buch \u2014 EdUsaathiAI <jaydeep@edusaathiai.in>',
+      to: [data.email],
+      subject: 'Application received \u2014 EdUsaathiAI \u2726',
+      reply_to: 'jaydeep@edusaathiai.in',
+      html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#F5F5F0;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5F0;padding:40px 20px;"><tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+<tr><td style="background:#060F1D;padding:28px 36px;text-align:center;">
+<h1 style="margin:0;font-size:22px;font-weight:700;color:#FFFFFF;">Edu<span style="color:#C9993A;">saathi</span>AI</h1>
+<p style="margin:6px 0 0;font-size:12px;color:rgba(255,255,255,0.5);letter-spacing:0.05em;">WHERE EVERY SUBJECT FINDS ITS SAATHI</p>
+</td></tr>
+<tr><td style="padding:36px;">
+<p style="font-size:16px;color:#1A1814;margin:0 0 20px;">Dear <strong>${escapeHtml(firstName)}</strong>,</p>
+<p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 20px;">Thank you for applying to EdUsaathiAI as a faculty member.</p>
+<p style="font-size:15px;color:#444;line-height:1.7;margin:0 0 20px;">Your application is under review. We typically respond within <strong>48 hours</strong>.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F9F7F4;border-radius:10px;margin:0 0 24px;"><tr><td style="padding:20px 24px;">
+<p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#1A1814;text-transform:uppercase;letter-spacing:0.06em;">What happens next</p>
+<table cellpadding="0" cellspacing="0">
+<tr><td style="padding:4px 0;font-size:14px;color:#444;">\u2726 \u00a0Admin reviews your credentials</td></tr>
+<tr><td style="padding:4px 0;font-size:14px;color:#444;">\u2726 \u00a0You receive a verification email within 48 hours</td></tr>
+<tr><td style="padding:4px 0;font-size:14px;color:#444;">\u2726 \u00a0Once verified \u2014 your profile goes live for students to discover</td></tr>
+</table>
+</td></tr></table>
+<p style="font-size:14px;color:#666;line-height:1.7;margin:0 0 8px;">If you have any questions in the meantime, reply directly to this email.</p>
+<p style="font-size:14px;color:#444;margin:0;">With respect,<br><strong>Jaydeep Buch</strong><br><span style="color:#888;font-size:13px;">Founder, EdUsaathiAI \u00b7 Ahmedabad</span></p>
+</td></tr>
+<tr><td style="background:#F9F7F4;padding:20px 36px;border-top:1px solid #EBEBEB;">
+<p style="margin:0;font-size:11px;color:#999;text-align:center;">EdUsaathiAI \u00b7 Ahmedabad, Gujarat, India<br><a href="https://edusaathiai.in" style="color:#C9993A;text-decoration:none;">edusaathiai.in</a></p>
+</td></tr>
+</table></td></tr></table></body></html>`,
+    }),
+  }).catch((e) => console.error('[faculty-apply] applicant email failed:', e))
+}
+
 // ── Nomination linkback ───────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -298,10 +345,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not save — please try again' }, { status: 500 })
   }
 
-  // Fire-and-forget admin email (never blocks the user response)
+  // Fire-and-forget — never blocks the user response
   void notifyAdminEmail(result.data, row.id as string)
-
-  // Check if this email was nominated by a student — update status + notify
+  void notifyApplicantEmail(result.data)
   void notifyNominatingStudent(admin, result.data.email, row.id as string)
 
   return NextResponse.json({ ok: true, applicationId: row.id })
