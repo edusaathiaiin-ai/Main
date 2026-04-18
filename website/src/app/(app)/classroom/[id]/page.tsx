@@ -838,13 +838,11 @@ export default function ClassroomPage() {
               </div>
 
               {/* Draggable divider — desktop only */}
-              <div className="hidden md:block">
-                <ClassroomDivider
-                  sessionId={sessionId}
-                  onRatioChange={setPanelRatio}
-                  initialRatio={panelRatio}
-                />
-              </div>
+              <ClassroomDivider
+                sessionId={sessionId}
+                onRatioChange={setPanelRatio}
+                initialRatio={panelRatio}
+              />
 
               {/* Plugin panel — fills remaining space */}
               <div

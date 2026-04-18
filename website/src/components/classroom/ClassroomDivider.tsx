@@ -84,22 +84,46 @@ export function ClassroomDivider({ sessionId, onRatioChange, initialRatio = 40 }
 
   return (
     <div
+      className="hidden md:flex"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onDoubleClick={onDoubleClick}
       style={{
-        width: '6px',
+        width: '8px',
+        alignSelf: 'stretch',
         cursor: 'col-resize',
-        background: 'var(--border-subtle)',
+        background: 'var(--border-subtle, #e5e5e0)',
         flexShrink: 0,
         transition: 'background 0.15s',
         zIndex: 20,
+        position: 'relative',
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--saathi-primary, #C9993A)')}
       onMouseLeave={(e) => {
-        if (!dragging.current) e.currentTarget.style.background = 'var(--border-subtle)'
+        if (!dragging.current) e.currentTarget.style.background = 'var(--border-subtle, #e5e5e0)'
       }}
-    />
+    >
+      {/* Grip dots */}
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '3px',
+        pointerEvents: 'none',
+      }}>
+        {[0, 1, 2].map(i => (
+          <div key={i} style={{
+            width: '3px',
+            height: '3px',
+            borderRadius: '50%',
+            background: 'var(--text-ghost, #a8a49e)',
+          }} />
+        ))}
+      </div>
+    </div>
   )
 }
