@@ -93,13 +93,28 @@ Respond ONLY in JSON — no preamble, no markdown, no explanation:
     }
 
     const claudeData = await claudeRes.json()
-    const rawText = claudeData.content?.[0]?.text ?? '{}'
+    let rawText = (claudeData.content?.[0]?.text ?? '{}').trim()
+
+    // Strip markdown code fences if Claude wraps the JSON
+    if (rawText.startsWith('```')) {
+      rawText = rawText.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '').trim()
+    }
 
     let result: { tool: string; params: Record<string, unknown>; displayText: string }
     try {
       result = JSON.parse(rawText)
     } catch {
-      result = { tool: 'none', params: {}, displayText: 'Could not parse AI response. Try a more specific command.' }
+      // Try extracting JSON from within the text
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          result = JSON.parse(jsonMatch[0])
+        } catch {
+          result = { tool: 'none', params: {}, displayText: 'Could not parse AI response. Try a more specific command.' }
+        }
+      } else {
+        result = { tool: 'none', params: {}, displayText: 'Could not parse AI response. Try a more specific command.' }
+      }
     }
 
     // Validate tool is in the available list (or none)
