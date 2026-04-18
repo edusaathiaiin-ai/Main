@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import Anthropic from '@anthropic-ai/sdk'
 
 const DEPTH_WEIGHTS: Record<string, number> = {
   protein_structure: 10,
@@ -126,12 +125,11 @@ export async function POST(req: NextRequest) {
     timestamp: new Date().toISOString(),
   })
 
-  // 5. Generate summary via Claude Haiku
+  // 5. Generate summary via Claude Haiku (raw API — no SDK dependency)
   let summary = ''
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (apiKey && artifacts.length > 1) {
     try {
-      const client = new Anthropic({ apiKey })
       const artifactSummary = artifacts
         .filter(a => a.type !== 'command_log')
         .map(a => `- ${a.type}: ${JSON.stringify(a.data).slice(0, 200)}`)
@@ -139,21 +137,34 @@ export async function POST(req: NextRequest) {
 
       const homeworkSummary = (homeworkRows ?? []).map(h => `- HW: ${h.question_text}`).join('\n')
 
-      const response = await client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 200,
-        system: `Summarise this research session in 2-3 sentences.
+      const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 200,
+          system: `Summarise this research session in 2-3 sentences.
 Focus on what was studied academically, not the tools used.
 Do not mention software names. Be specific about compounds,
 theorems, cases, or concepts that were covered.`,
-        messages: [{
-          role: 'user',
-          content: `Session: ${session.title}\nSaathi: ${saathiSlug}\n\nArtifacts:\n${artifactSummary}\n\n${homeworkSummary ? `Homework assigned:\n${homeworkSummary}` : ''}`,
-        }],
+          messages: [{
+            role: 'user',
+            content: `Session: ${session.title}\nSaathi: ${saathiSlug}\n\nArtifacts:\n${artifactSummary}\n\n${homeworkSummary ? `Homework assigned:\n${homeworkSummary}` : ''}`,
+          }],
+        }),
       })
 
-      const textBlock = response.content.find((b: { type: string }) => b.type === 'text') as { text: string } | undefined
-      summary = textBlock?.text ?? ''
+      if (claudeRes.ok) {
+        const data = await claudeRes.json()
+        const text = data.content?.[0]?.text ?? ''
+        summary = text
+      } else {
+        summary = `${session.title} — ${saathiSlug} session with ${artifacts.length} research artifacts.`
+      }
     } catch {
       summary = `${session.title} — ${saathiSlug} session with ${artifacts.length} research artifacts.`
     }
