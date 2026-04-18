@@ -13,6 +13,7 @@ import { FormulaBar } from '@/components/classroom/FormulaBar'
 import { CommandBar } from '@/components/classroom/CommandBar'
 import { CanvasOverlay } from '@/components/classroom/CanvasOverlay'
 import { ClassroomDivider } from '@/components/classroom/ClassroomDivider'
+import { ModeSwitch, ModeSyncBridge } from '@/components/classroom/ModeSwitch'
 import { SourceBadge } from '@/components/classroom/SourceBadge'
 import type { SaathiPlugin } from '@/lib/classroom-plugins/types'
 
@@ -141,6 +142,11 @@ export default function ClassroomPage() {
 
       const s = sess as unknown as SessionRow
       setSession(s)
+
+      // Restore saved classroom mode from DB
+      if (s.classroom_mode === 'interactive' || s.classroom_mode === 'standard') {
+        setClassroomMode(s.classroom_mode as 'standard' | 'interactive')
+      }
 
       // Fetch lectures
       const { data: lecs } = await supabase
@@ -343,6 +349,36 @@ export default function ClassroomPage() {
 
     setState('summary')
   }, [profile, sessionId])
+
+  // ── Mid-session mode switch ───────────────────────────────────────────
+
+  const handleModeChange = useCallback(async (mode: 'standard' | 'interactive') => {
+    if (mode === classroomMode) return
+    setClassroomMode(mode)
+
+    // Load plugin when switching to interactive
+    if (mode === 'interactive' && session?.vertical_id && !plugin) {
+      try {
+        const slug = toSlug(session.vertical_id) ?? 'default'
+        const { loadPlugin } = await import('@/lib/classroom-plugins')
+        const loaded = await loadPlugin(slug)
+        setPlugin(loaded)
+      } catch {
+        const { loadPlugin } = await import('@/lib/classroom-plugins')
+        const fallback = await loadPlugin('default')
+        setPlugin(fallback)
+      }
+    }
+
+    // Faculty saves to DB
+    if (profile?.id === session?.faculty_id) {
+      const supabase = createClient()
+      await supabase
+        .from('live_sessions')
+        .update({ classroom_mode: mode })
+        .eq('id', sessionId)
+    }
+  }, [classroomMode, session, sessionId, profile, plugin])
 
   // ── Derived values ─────────────────────────────────────────────────────
 
@@ -730,8 +766,8 @@ export default function ClassroomPage() {
             </div>
           </div>
 
-          {/* Center: Timer + participants */}
-          <div className="flex items-center gap-4">
+          {/* Center: Timer + mode switch + participants */}
+          <div className="flex items-center gap-3">
             {elapsed && (
               <div
                 className="flex items-center gap-1.5 rounded-full px-3 py-1"
@@ -746,6 +782,12 @@ export default function ClassroomPage() {
                 </span>
               </div>
             )}
+            <ModeSwitch
+              isFaculty={isFaculty}
+              classroomMode={classroomMode}
+              onModeChange={handleModeChange}
+              accentColor={color}
+            />
             {participantCount > 0 && (
               <div
                 className="flex items-center gap-1 rounded-full px-3 py-1 text-xs"
@@ -769,26 +811,38 @@ export default function ClassroomPage() {
           </button>
         </div>
 
-        {/* Content area — Standard (video only) or Interactive (video + canvas) */}
-        {classroomMode === 'interactive' ? (
-          <ClassroomRoomProvider
-            sessionId={sessionId}
-            userName={profile?.full_name ?? 'Student'}
-            userRole={isFaculty ? 'faculty' : 'student'}
+        {/* Content area — wrapped in Liveblocks for mode broadcast */}
+        <ClassroomRoomProvider
+          sessionId={sessionId}
+          userName={profile?.full_name ?? 'Student'}
+          userRole={isFaculty ? 'faculty' : 'student'}
+          classroomMode={classroomMode}
+        >
+          <ModeSyncBridge isFaculty={isFaculty} classroomMode={classroomMode} onModeChange={handleModeChange} />
+
+          <div
+            className="flex flex-1 flex-col md:flex-row"
+            style={{ position: 'relative', transition: 'all 200ms ease' }}
           >
-            <div className="flex flex-1 flex-col md:flex-row" style={{ position: 'relative' }}>
-              {/* Video panel — dynamic width on desktop, full width on mobile */}
-              <div
-                className="w-full md:h-full"
-                style={{
-                  height: panelRatio === 0 ? '0' : undefined,
-                  width: undefined,
-                  flex: `0 0 ${panelRatio}%`,
-                  display: panelRatio === 0 ? 'none' : undefined,
-                  transition: 'flex-basis 0.15s ease',
-                }}
-              >
-                {embedUrl ? (
+            {/* Video panel — always present, width adjusts by mode */}
+            <div
+              className="w-full md:h-full"
+              style={{
+                flex: classroomMode === 'interactive' ? `0 0 ${panelRatio}%` : '1 1 100%',
+                display: classroomMode === 'interactive' && panelRatio === 0 ? 'none' : undefined,
+                transition: 'flex 200ms ease',
+              }}
+            >
+              {embedUrl ? (
+                classroomMode === 'standard' ? (
+                  <iframe
+                    src={embedUrl}
+                    allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media"
+                    allowFullScreen
+                    className="h-full w-full border-0"
+                    style={{ background: '#000' }}
+                  />
+                ) : (
                   <div
                     className="flex h-full w-full flex-col items-center justify-center gap-4"
                     style={{ background: 'var(--bg-sunken, #f5f5f0)' }}
@@ -825,143 +879,118 @@ export default function ClassroomPage() {
                       Canvas, command bar, and all tools stay here
                     </p>
                   </div>
-                ) : (
-                  <div
-                    className="flex h-full w-full items-center justify-center"
-                    style={{ background: 'var(--bg-sunken)' }}
-                  >
+                )
+              ) : session?.delivery_type === 'in_app' ? (
+                <div
+                  className="flex h-full w-full items-center justify-center"
+                  style={{ background: 'var(--bg-sunken)' }}
+                >
+                  <div className="text-center">
+                    <p className="mb-2 text-4xl">📹</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                      In-app video coming soon
+                    </p>
                     <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>
-                      No meeting link yet
+                      100ms.live integration — future phase
                     </p>
                   </div>
-                )}
-              </div>
-
-              {/* Draggable divider — desktop only */}
-              <ClassroomDivider
-                sessionId={sessionId}
-                onRatioChange={setPanelRatio}
-                initialRatio={panelRatio}
-              />
-
-              {/* Plugin panel — fills remaining space */}
-              <div
-                className="relative flex w-full flex-1 flex-col"
-                style={{
-                  display: panelRatio === 100 ? 'none' : undefined,
-                  transition: 'flex 0.15s ease',
-                }}
-              >
-                {/* AI Command Bar — faculty types concepts, Claude routes to tools */}
-                {isFaculty && (
-                  <CommandBar
-                    sessionId={sessionId}
-                    saathiSlug={saathi?.id ?? 'default'}
-                    saathiColor={saathi?.primary ?? '#C9993A'}
-                    onToolLoad={(result) => {
-                      setPendingToolLoad({ tool: result.tool, params: result.params })
-                      // Auto-switch tab via plugin's tool→tab mapping
-                      const tabId = plugin?.toolToTab?.[result.tool]
-                      if (tabId) setActiveTab(tabId)
-                    }}
-                  />
-                )}
-
-                {/* Formula bar — above plugin */}
+                </div>
+              ) : (
                 <div
-                  className="flex shrink-0 items-center gap-2 px-3 py-1.5"
-                  style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                  className="flex h-full w-full items-center justify-center"
+                  style={{ background: 'var(--bg-sunken)' }}
                 >
-                  <FormulaBar
-                    onInsert={(latex, html) => {
-                      // TODO: drop formula as tldraw shape on canvas
-                      console.log('[FormulaBar] Insert:', latex, html)
-                    }}
-                  />
-                  <span
-                    className="ml-auto text-[10px]"
-                    style={{ color: 'var(--text-ghost)', fontFamily: 'var(--font-mono)' }}
-                  >
-                    {saathi?.name ?? 'Interactive'}
-                  </span>
+                  <div className="text-center">
+                    <p className="mb-2 text-4xl">⏳</p>
+                    <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                      Meeting link not yet available.
+                    </p>
+                    <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>
+                      Faculty will share it before the session starts.
+                    </p>
+                  </div>
                 </div>
-
-                {/* Subject plugin (or default canvas) */}
-                <div className="relative flex-1">
-                  {plugin ? (
-                    <>
-                      <plugin.Component
-                        roomId={sessionId}
-                        role={isFaculty ? 'faculty' : 'student'}
-                        saathiSlug={saathi?.id ?? 'default'}
-                        pendingToolLoad={pendingToolLoad}
-                        onToolConsumed={() => setPendingToolLoad(null)}
-                        activeTab={activeTab}
-                        onTabChange={setActiveTab}
-                      />
-                      {/* tldraw annotation overlay — always available */}
-                      <CanvasOverlay
-                        role={isFaculty ? 'faculty' : 'student'}
-                        saathiColor={saathi?.primary ?? '#C9993A'}
-                      />
-                    </>
-                  ) : (
-                    <div className="flex h-full items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
-                      <div
-                        className="h-8 w-8 animate-spin rounded-full border-2"
-                        style={{ borderColor: 'var(--border-medium)', borderTopColor: 'var(--gold)' }}
-                      />
-                    </div>
-                  )}
-                  {plugin?.sourceLabel && <SourceBadge label={plugin.sourceLabel} />}
-                </div>
-              </div>
+              )}
             </div>
-          </ClassroomRoomProvider>
-        ) : (
-          /* Standard mode — video only (Phase 1 behaviour) */
-          <div className="relative flex-1">
-            {session?.delivery_type === 'external' && embedUrl ? (
-              <iframe
-                src={embedUrl}
-                allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media"
-                allowFullScreen
-                className="h-full w-full border-0"
-                style={{ background: '#000' }}
-              />
-            ) : session?.delivery_type === 'in_app' ? (
-              <div
-                className="flex h-full w-full items-center justify-center"
-                style={{ background: 'var(--bg-sunken)' }}
-              >
-                <div className="text-center">
-                  <p className="mb-2 text-4xl">📹</p>
-                  <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                    In-app video coming soon
-                  </p>
-                  <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>
-                    100ms.live integration — future phase
-                  </p>
+
+            {/* Draggable divider + Plugin panel — interactive mode only */}
+            {classroomMode === 'interactive' && (
+              <>
+                <ClassroomDivider
+                  sessionId={sessionId}
+                  onRatioChange={setPanelRatio}
+                  initialRatio={panelRatio}
+                />
+
+                <div
+                  className="relative flex w-full flex-1 flex-col"
+                  style={{
+                    display: panelRatio === 100 ? 'none' : undefined,
+                    transition: 'flex 200ms ease',
+                  }}
+                >
+                  {isFaculty && (
+                    <CommandBar
+                      sessionId={sessionId}
+                      saathiSlug={saathi?.id ?? 'default'}
+                      saathiColor={saathi?.primary ?? '#C9993A'}
+                      onToolLoad={(result) => {
+                        setPendingToolLoad({ tool: result.tool, params: result.params })
+                        const tabId = plugin?.toolToTab?.[result.tool]
+                        if (tabId) setActiveTab(tabId)
+                      }}
+                    />
+                  )}
+
+                  <div
+                    className="flex shrink-0 items-center gap-2 px-3 py-1.5"
+                    style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                  >
+                    <FormulaBar
+                      onInsert={(latex, html) => {
+                        console.log('[FormulaBar] Insert:', latex, html)
+                      }}
+                    />
+                    <span
+                      className="ml-auto text-[10px]"
+                      style={{ color: 'var(--text-ghost)', fontFamily: 'var(--font-mono)' }}
+                    >
+                      {saathi?.name ?? 'Interactive'}
+                    </span>
+                  </div>
+
+                  <div className="relative flex-1">
+                    {plugin ? (
+                      <>
+                        <plugin.Component
+                          roomId={sessionId}
+                          role={isFaculty ? 'faculty' : 'student'}
+                          saathiSlug={saathi?.id ?? 'default'}
+                          pendingToolLoad={pendingToolLoad}
+                          onToolConsumed={() => setPendingToolLoad(null)}
+                          activeTab={activeTab}
+                          onTabChange={setActiveTab}
+                        />
+                        <CanvasOverlay
+                          role={isFaculty ? 'faculty' : 'student'}
+                          saathiColor={saathi?.primary ?? '#C9993A'}
+                        />
+                      </>
+                    ) : (
+                      <div className="flex h-full items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
+                        <div
+                          className="h-8 w-8 animate-spin rounded-full border-2"
+                          style={{ borderColor: 'var(--border-medium)', borderTopColor: 'var(--gold)' }}
+                        />
+                      </div>
+                    )}
+                    {plugin?.sourceLabel && <SourceBadge label={plugin.sourceLabel} />}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div
-                className="flex h-full w-full items-center justify-center"
-                style={{ background: 'var(--bg-sunken)' }}
-              >
-                <div className="text-center">
-                  <p className="mb-2 text-4xl">⏳</p>
-                  <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                    Meeting link not yet available.
-                  </p>
-                  <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>
-                    Faculty will share it before the session starts.
-                  </p>
-                </div>
-              </div>
+              </>
             )}
           </div>
-        )}
+        </ClassroomRoomProvider>
 
         {/* Bottom bar */}
         <div

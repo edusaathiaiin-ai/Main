@@ -5,11 +5,12 @@ const client = createClient({
   publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY!,
 })
 
-// Presence: cursor position + user info
+// Presence: cursor position + user info + classroom mode
 type Presence = {
   cursor: { x: number; y: number } | null
   name: string
   role: 'faculty' | 'student'
+  classroomMode: 'standard' | 'interactive'
 }
 
 // Storage: tldraw document synced via Yjs (no Liveblocks storage needed)

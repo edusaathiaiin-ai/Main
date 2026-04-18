@@ -11,11 +11,13 @@ export function ClassroomRoomProvider({
   sessionId,
   userName,
   userRole,
+  classroomMode,
   children,
 }: {
   sessionId: string
   userName: string
   userRole: 'faculty' | 'student'
+  classroomMode: 'standard' | 'interactive'
   children: ReactNode
 }) {
   return (
@@ -25,6 +27,7 @@ export function ClassroomRoomProvider({
         cursor: null,
         name: userName,
         role: userRole,
+        classroomMode,
       }}
     >
       {children}
