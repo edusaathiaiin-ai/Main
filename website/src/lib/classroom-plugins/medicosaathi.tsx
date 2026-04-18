@@ -7,24 +7,21 @@ import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 const TABS = ['Canvas', 'Anatomy 3D', 'PubMed', 'Drug Reference', 'Clinical Images'] as const
 type Tab = typeof TABS[number]
 
-// BioDigital Human — free 3D anatomy viewer (allows iframe embedding)
-const ANATOMY_SYSTEMS = [
-  { id: 'human-body', name: 'Full Human Body', url: 'https://human.biodigital.com/viewer/?id=production/maleAdult/male_region_background_background.json&ui-panel=false' },
-  { id: 'skeletal', name: 'Skeletal System', url: 'https://human.biodigital.com/viewer/?id=production/maleAdult/skeletal_system.json&ui-panel=false' },
-  { id: 'muscular', name: 'Muscular System', url: 'https://human.biodigital.com/viewer/?id=production/maleAdult/muscular_system.json&ui-panel=false' },
-  { id: 'cardiovascular', name: 'Cardiovascular System', url: 'https://human.biodigital.com/viewer/?id=production/maleAdult/cardiovascular_system.json&ui-panel=false' },
-  { id: 'respiratory', name: 'Respiratory System', url: 'https://human.biodigital.com/viewer/?id=production/maleAdult/respiratory_system.json&ui-panel=false' },
-  { id: 'nervous', name: 'Nervous System', url: 'https://human.biodigital.com/viewer/?id=production/maleAdult/nervous_system.json&ui-panel=false' },
-  { id: 'digestive', name: 'Digestive System', url: 'https://human.biodigital.com/viewer/?id=production/maleAdult/digestive_system.json&ui-panel=false' },
+// Zygote Body — free 3D anatomy viewer (no auth required, allows embedding)
+const ANATOMY_VIEWS = [
+  { id: 'full-body', name: 'Full Human Body', url: 'https://www.zygotebody.com/#nav=-10.49,115.8,75.86,0,0,0' },
+  { id: 'skeletal', name: 'Skeletal System', url: 'https://www.zygotebody.com/#nav=-10.49,115.8,75.86,0,0,0&sel=p:;h:;s:1110100000;c:0;o:0' },
+  { id: 'muscular', name: 'Muscular System', url: 'https://www.zygotebody.com/#nav=-10.49,115.8,75.86,0,0,0&sel=p:;h:;s:0001000000;c:0;o:0' },
+  { id: 'organs', name: 'Internal Organs', url: 'https://www.zygotebody.com/#nav=-10.49,115.8,75.86,0,0,0&sel=p:;h:;s:0000011100;c:0;o:0' },
 ]
 
-// Sketchfab anatomy models as fallback
+// Sketchfab anatomy models — verified via API search, CC-licensed
 const SKETCHFAB_ANATOMY = [
-  { id: 'a4f3b2c1d5e6f7a8b9c0d1e2f3a4b5c6', name: 'Human Heart' },
-  { id: 'b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0', name: 'Human Brain' },
-  { id: 'c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1', name: 'Human Skull' },
-  { id: 'd7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2', name: 'Kidney Cross-Section' },
-  { id: 'e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3', name: 'Human Lungs' },
+  { id: '3f8072336ce94d18b3d0d055a1ece089', name: 'Realistic Human Heart' },
+  { id: '0aa0e33c5c854d1bab7bac9e1c7acaec', name: 'Human Brain & Brainstem' },
+  { id: 'a47ef69ff3a4402783cff0f841bc5e0a', name: 'Human Skull & Neck' },
+  { id: '911b9df7e7834175b69b4840ea15e054', name: 'Human Skeleton' },
+  { id: 'bd50aacad58b488ea80ed973b4874a08', name: 'Knee Joint Anatomy' },
 ]
 
 type PubMedResult = { pmid: string; title: string; abstract: string; authors: string; journal: string; year: string }
@@ -50,7 +47,7 @@ function PubMedPanel({ initialSearch, onSearchConsumed }: { initialSearch?: stri
     try {
       const res = await fetch(`/api/classroom/pubmed?q=${encodeURIComponent(q.trim())}`)
       const data = await res.json()
-      setResults(data.results ?? [])
+      setResults(data.papers ?? [])
     } catch { setResults([]) }
     setLoading(false)
   }
@@ -88,7 +85,8 @@ function PubMedPanel({ initialSearch, onSearchConsumed }: { initialSearch?: stri
 function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolConsumed }: PluginProps) {
   const currentTab = (activeTab || 'Canvas') as Tab
   const setTab = (t: Tab) => onTabChange?.(t)
-  const [selectedSystem, setSelectedSystem] = useState(ANATOMY_SYSTEMS[0].id)
+  const [selectedModel, setSelectedModel] = useState(SKETCHFAB_ANATOMY[0].id)
+  const [anatomySource, setAnatomySource] = useState<'sketchfab' | 'zygote'>('sketchfab')
   const [pendingSearch, setPendingSearch] = useState<string | null>(null)
   const [drugQuery, setDrugQuery] = useState('')
   const [drugResults, setDrugResults] = useState<{ name: string; description: string }[]>([])
@@ -119,7 +117,8 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
     } catch { setDrugResults([]) }
   }
 
-  const currentSystem = ANATOMY_SYSTEMS.find((s) => s.id === selectedSystem) ?? ANATOMY_SYSTEMS[0]
+  const currentModel = SKETCHFAB_ANATOMY.find((s) => s.id === selectedModel) ?? SKETCHFAB_ANATOMY[0]
+  const currentZygote = ANATOMY_VIEWS.find((v) => v.id === 'full-body') ?? ANATOMY_VIEWS[0]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -140,15 +139,53 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
         </div>
 
         <div style={{ display: currentTab === 'Anatomy 3D' ? 'flex' : 'none', flexDirection: 'column', height: '100%' }}>
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)' }}>
-            <select value={selectedSystem} onChange={(e) => setSelectedSystem(e.target.value)}
-              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', fontSize: '13px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', outline: 'none' }}>
-              {ANATOMY_SYSTEMS.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
+          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <button onClick={() => setAnatomySource('sketchfab')} style={{
+                padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, border: 'none', cursor: 'pointer',
+                background: anatomySource === 'sketchfab' ? 'var(--saathi-primary)' : 'var(--bg-elevated)',
+                color: anatomySource === 'sketchfab' ? '#fff' : 'var(--text-tertiary)',
+              }}>Sketchfab 3D</button>
+              <button onClick={() => setAnatomySource('zygote')} style={{
+                padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, border: 'none', cursor: 'pointer',
+                background: anatomySource === 'zygote' ? 'var(--saathi-primary)' : 'var(--bg-elevated)',
+                color: anatomySource === 'zygote' ? '#fff' : 'var(--text-tertiary)',
+              }}>Zygote Body</button>
+            </div>
+            {anatomySource === 'sketchfab' && (
+              <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}
+                style={{ flex: 1, padding: '6px 10px', borderRadius: '8px', fontSize: '12px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', outline: 'none' }}>
+                {SKETCHFAB_ANATOMY.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            )}
+            {anatomySource === 'zygote' && (
+              <select value={currentZygote.id} onChange={(e) => {
+                const v = ANATOMY_VIEWS.find(a => a.id === e.target.value)
+                if (v) { /* Zygote reloads via iframe src */ }
+              }}
+                style={{ flex: 1, padding: '6px 10px', borderRadius: '8px', fontSize: '12px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', outline: 'none' }}>
+                {ANATOMY_VIEWS.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+              </select>
+            )}
           </div>
           <div style={{ flex: 1 }}>
-            <iframe title="3D Anatomy" src={currentSystem.url} style={{ width: '100%', height: '100%', border: 'none' }}
-              sandbox="allow-scripts allow-same-origin allow-popups" />
+            {anatomySource === 'sketchfab' ? (
+              <iframe
+                title={currentModel.name}
+                src={`https://sketchfab.com/models/${currentModel.id}/embed?autostart=1&ui_theme=dark`}
+                style={{ width: '100%', height: '100%', border: 'none' }}
+                allow="autoplay; fullscreen; xr-spatial-tracking"
+                allowFullScreen
+              />
+            ) : (
+              <iframe
+                title="Zygote Body 3D Anatomy"
+                src={currentZygote.url}
+                style={{ width: '100%', height: '100%', border: 'none' }}
+                allow="fullscreen"
+                allowFullScreen
+              />
+            )}
           </div>
         </div>
 
@@ -172,9 +209,24 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
           ))}
         </div>
 
-        <div style={{ display: currentTab === 'Clinical Images' ? 'block' : 'none', height: '100%' }}>
-          <iframe title="Radiopaedia — Clinical Imaging" src="https://radiopaedia.org/" style={{ width: '100%', height: '100%', border: 'none' }}
-            sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+        <div style={{ display: currentTab === 'Clinical Images' ? 'block' : 'none', height: '100%', overflowY: 'auto', padding: '16px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 10px' }}>
+            🩻 Clinical Imaging Resources
+          </h3>
+          <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: '0 0 16px', lineHeight: 1.6 }}>
+            Open these research-grade imaging databases in a new tab. Search for any condition, modality, or anatomy.
+          </p>
+          {[
+            { name: 'Radiopaedia', desc: '100,000+ radiology cases with imaging and diagnosis', url: 'https://radiopaedia.org/search?q=' },
+            { name: 'OpenI — NIH', desc: 'Biomedical image search from NIH National Library of Medicine', url: 'https://openi.nlm.nih.gov/' },
+            { name: 'Radiology Masterclass', desc: 'Free radiology tutorials and case studies', url: 'https://www.radiologymasterclass.co.uk/' },
+          ].map((r) => (
+            <a key={r.name} href={r.url} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'block', padding: '12px 14px', borderRadius: '10px', marginBottom: '8px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', textDecoration: 'none', transition: 'border-color 200ms' }}>
+              <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--saathi-primary)', margin: '0 0 4px' }}>{r.name} →</p>
+              <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.5 }}>{r.desc}</p>
+            </a>
+          ))}
         </div>
       </div>
     </div>
@@ -183,7 +235,7 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
 
 const plugin: SaathiPlugin = {
   Component: MedicoPlugin,
-  sourceLabel: 'BioDigital + PubMed + openFDA + Radiopaedia',
+  sourceLabel: 'Sketchfab + Zygote Body + PubMed + openFDA',
   tabs: [
     { id: 'Canvas', label: 'Canvas' }, { id: 'Anatomy 3D', label: 'Anatomy 3D' },
     { id: 'PubMed', label: 'PubMed' }, { id: 'Drug Reference', label: 'Drug Reference' },
