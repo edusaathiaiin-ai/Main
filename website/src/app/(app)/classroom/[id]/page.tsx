@@ -12,6 +12,7 @@ import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvi
 import { FormulaBar } from '@/components/classroom/FormulaBar'
 import { CommandBar } from '@/components/classroom/CommandBar'
 import { CanvasOverlay } from '@/components/classroom/CanvasOverlay'
+import { ClassroomDivider } from '@/components/classroom/ClassroomDivider'
 import { SourceBadge } from '@/components/classroom/SourceBadge'
 import type { SaathiPlugin } from '@/lib/classroom-plugins/types'
 
@@ -112,6 +113,7 @@ export default function ClassroomPage() {
   const [plugin, setPlugin] = useState<SaathiPlugin | null>(null)
   const [pendingToolLoad, setPendingToolLoad] = useState<{ tool: string; params: Record<string, unknown> } | null>(null)
   const [activeTab, setActiveTab] = useState<string>('')
+  const [panelRatio, setPanelRatio] = useState(40) // left panel % width
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -774,11 +776,17 @@ export default function ClassroomPage() {
             userName={profile?.full_name ?? 'Student'}
             userRole={isFaculty ? 'faculty' : 'student'}
           >
-            <div className="flex flex-1 flex-col md:flex-row">
-              {/* Video panel — 40% on desktop, full width on mobile */}
+            <div className="flex flex-1 flex-col md:flex-row" style={{ position: 'relative' }}>
+              {/* Video panel — dynamic width on desktop, full width on mobile */}
               <div
-                className="h-[40vh] w-full md:h-full md:w-[40%]"
-                style={{ borderRight: '1px solid var(--border-subtle)' }}
+                className="w-full md:h-full"
+                style={{
+                  height: panelRatio === 0 ? '0' : undefined,
+                  width: undefined,
+                  flex: `0 0 ${panelRatio}%`,
+                  display: panelRatio === 0 ? 'none' : undefined,
+                  transition: 'flex-basis 0.15s ease',
+                }}
               >
                 {embedUrl ? (
                   <div
@@ -829,8 +837,23 @@ export default function ClassroomPage() {
                 )}
               </div>
 
-              {/* Plugin panel — 60% on desktop, full width on mobile */}
-              <div className="relative flex w-full flex-1 flex-col md:w-[60%]">
+              {/* Draggable divider — desktop only */}
+              <div className="hidden md:block">
+                <ClassroomDivider
+                  sessionId={sessionId}
+                  onRatioChange={setPanelRatio}
+                  initialRatio={panelRatio}
+                />
+              </div>
+
+              {/* Plugin panel — fills remaining space */}
+              <div
+                className="relative flex w-full flex-1 flex-col"
+                style={{
+                  display: panelRatio === 100 ? 'none' : undefined,
+                  transition: 'flex 0.15s ease',
+                }}
+              >
                 {/* AI Command Bar — faculty types concepts, Claude routes to tools */}
                 {isFaculty && (
                   <CommandBar
