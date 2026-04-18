@@ -14,7 +14,7 @@ const SAATHI_TOOLS: Record<string, string[]> = {
   maathsaathi:     ['geogebra', 'wolfram'],
   kanoonsaathi:    ['indiankanoon'],
   compsaathi:      ['monaco'],
-  aerospacesaathi: ['nasa', 'geogebra', 'phet', 'wolfram'],
+  aerospacesaathi: ['nasa', 'bhuvan', 'geogebra', 'phet', 'wolfram'],
   archsaathi:      ['leaflet'],
   medicosaathi:    ['pubmed', 'rcsb', 'wolfram'],
   nursingsaathi:   ['pubmed'],
@@ -77,6 +77,7 @@ Tool parameter schemas:
 - pubmed: { "query": "CRISPR gene editing" }
 - nist: { "search_term": "speed of light" }
 - nasa: { "query": "mars landing", "action": "ntrs" | "images" | "apod" }
+- bhuvan: { "lat": 23.03, "lng": 72.58 } or { "query": "Sriharikota" }
 - leaflet: { "lat": 41.89, "lng": 12.49, "zoom": 15 }
 - none: {} (when no tool matches)
 

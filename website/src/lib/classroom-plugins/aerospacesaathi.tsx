@@ -166,7 +166,7 @@ function NacaAirfoilGenerator() {
   )
 }
 
-const TABS = ['Canvas', 'Sketchfab 3D', 'NASA Data', 'NASA Eyes', 'Airfoil Tools', 'Physics Lab', 'GeoGebra'] as const
+const TABS = ['Canvas', 'Sketchfab 3D', 'NASA Data', 'ISRO Bhuvan', 'NASA Eyes', 'Airfoil Tools', 'Physics Lab', 'GeoGebra'] as const
 
 // ── PhET simulations relevant to aerospace ──────────────────────────────────
 
@@ -261,6 +261,160 @@ function PhysicsLab() {
   )
 }
 type Tab = typeof TABS[number]
+
+// ── ISRO Bhuvan Geoid Data Panel ──────────────────────────────────────────
+
+function BhuvanPanel() {
+  const [lat, setLat] = useState('23.03')
+  const [lng, setLng] = useState('72.58')
+  const [geocodeQuery, setGeocodeQuery] = useState('')
+  const [geoidData, setGeoidData] = useState<Record<string, unknown> | null>(null)
+  const [geocodeResults, setGeocodeResults] = useState<Record<string, unknown>[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const PRESETS = [
+    { label: 'Ahmedabad', lat: '23.03', lng: '72.58' },
+    { label: 'Sriharikota (ISRO Launch)', lat: '13.72', lng: '80.23' },
+    { label: 'Bengaluru (ISAC)', lat: '12.97', lng: '77.59' },
+    { label: 'Thiruvananthapuram (VSSC)', lat: '8.52', lng: '76.94' },
+    { label: 'Mount Everest', lat: '27.99', lng: '86.93' },
+  ]
+
+  async function fetchGeoid() {
+    setLoading(true); setError(''); setGeoidData(null)
+    try {
+      const res = await fetch(`/api/classroom/bhuvan?action=geoid&lat=${lat}&lng=${lng}`)
+      const data = await res.json()
+      if (res.status === 401) { setError(data.error ?? 'ISRO data temporarily unavailable — token refreshing'); setLoading(false); return }
+      if (!res.ok) { setError(data.error ?? 'Request failed'); setLoading(false); return }
+      setGeoidData(data)
+    } catch { setError('Connection failed') }
+    setLoading(false)
+  }
+
+  async function fetchGeocode() {
+    if (!geocodeQuery.trim()) return
+    setLoading(true); setError(''); setGeocodeResults([])
+    try {
+      const res = await fetch(`/api/classroom/bhuvan?action=geocode&q=${encodeURIComponent(geocodeQuery)}`)
+      const data = await res.json()
+      if (res.status === 401) { setError(data.error ?? 'ISRO data temporarily unavailable — token refreshing'); setLoading(false); return }
+      if (!res.ok) { setError(data.error ?? 'Request failed'); setLoading(false); return }
+      setGeocodeResults(Array.isArray(data) ? data : data.results ?? [])
+    } catch { setError('Connection failed') }
+    setLoading(false)
+  }
+
+  useAutoQueryHandler('bhuvan', (params) => {
+    if (params.lat && params.lng) {
+      setLat(String(params.lat)); setLng(String(params.lng)); fetchGeoid()
+    } else if (params.query) {
+      setGeocodeQuery(String(params.query)); fetchGeocode()
+    }
+  })
+
+  return (
+    <div style={{ height: '100%', overflowY: 'auto', padding: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+        <span style={{ fontSize: '20px' }}>🇮🇳</span>
+        <div>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+            ISRO Bhuvan — Geoid & Satellite Data
+          </h3>
+          <p style={{ fontSize: '10px', color: 'var(--text-ghost)', margin: 0 }}>
+            Indian Space Research Organisation
+          </p>
+        </div>
+      </div>
+
+      {/* Preset locations */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
+        {PRESETS.map(p => (
+          <button key={p.label} onClick={() => { setLat(p.lat); setLng(p.lng) }}
+            style={{
+              padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 500,
+              background: lat === p.lat && lng === p.lng ? 'var(--saathi-primary)' : 'var(--bg-elevated)',
+              color: lat === p.lat && lng === p.lng ? '#fff' : 'var(--text-secondary)',
+              border: 'none', cursor: 'pointer',
+            }}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Geoid query */}
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+        <input value={lat} onChange={(e) => setLat(e.target.value)} placeholder="Latitude"
+          style={{ width: '80px', padding: '6px 10px', borderRadius: '8px', fontSize: '12px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', outline: 'none', fontFamily: 'var(--font-mono)' }} />
+        <input value={lng} onChange={(e) => setLng(e.target.value)} placeholder="Longitude"
+          style={{ width: '80px', padding: '6px 10px', borderRadius: '8px', fontSize: '12px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', outline: 'none', fontFamily: 'var(--font-mono)' }} />
+        <button onClick={fetchGeoid} disabled={loading}
+          style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '11px', fontWeight: 600, background: 'var(--saathi-primary)', color: '#fff', border: 'none', cursor: 'pointer' }}>
+          {loading ? '...' : 'Geoid Data'}
+        </button>
+      </div>
+
+      {/* Geocode search */}
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+        <input value={geocodeQuery} onChange={(e) => setGeocodeQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && fetchGeocode()}
+          placeholder="Search location... e.g. Vikram Sarabhai Space Centre"
+          style={{ flex: 1, padding: '6px 10px', borderRadius: '8px', fontSize: '12px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', outline: 'none' }} />
+        <button onClick={fetchGeocode} disabled={loading}
+          style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '11px', fontWeight: 600, background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', cursor: 'pointer' }}>
+          Search
+        </button>
+      </div>
+
+      {error && (
+        <div style={{ padding: '12px 14px', borderRadius: '10px', marginBottom: '12px', background: error.includes('token') ? 'rgba(251, 146, 60, 0.1)' : 'var(--error-bg)', border: `1px solid ${error.includes('token') ? 'rgba(251, 146, 60, 0.3)' : 'var(--error)'}` }}>
+          <p style={{ fontSize: '12px', color: error.includes('token') ? '#F97316' : 'var(--error)', margin: 0 }}>{error}</p>
+        </div>
+      )}
+
+      {/* Geoid results */}
+      {geoidData && (
+        <div style={{ padding: '14px', borderRadius: '12px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', marginBottom: '12px' }}>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-ghost)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>
+            Geoid Data — {lat}°N, {lng}°E
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            {Object.entries(geoidData).map(([key, val]) => (
+              <div key={key}>
+                <p style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-ghost)', textTransform: 'uppercase', margin: 0 }}>{key.replace(/_/g, ' ')}</p>
+                <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', margin: '2px 0 0' }}>{String(val)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Geocode results */}
+      {geocodeResults.length > 0 && geocodeResults.map((r, i) => (
+        <div key={i} style={{ padding: '10px 14px', borderRadius: '10px', marginBottom: '6px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', cursor: 'pointer' }}
+          onClick={() => { if (r.lat && r.lon) { setLat(String(r.lat)); setLng(String(r.lon)) } }}>
+          <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{String(r.name ?? r.display_name ?? '')}</p>
+          {r.lat ? <p style={{ fontSize: '10px', color: 'var(--text-ghost)', fontFamily: 'var(--font-mono)', margin: '2px 0 0' }}>{String(r.lat)}°N, {String(r.lon)}°E</p> : null}
+        </div>
+      ))}
+
+      {/* Bhuvan map embed */}
+      <div style={{ marginTop: '12px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+        <iframe
+          title="ISRO Bhuvan Map"
+          src={`https://bhuvan-app1.nrsc.gov.in/bhuvan2d/bhuvan/bhuvan2d.php?lat=${lat}&lon=${lng}&zoom=10`}
+          style={{ width: '100%', height: '300px', border: 'none' }}
+          sandbox="allow-scripts allow-same-origin allow-popups"
+        />
+      </div>
+
+      <p style={{ fontSize: '10px', color: 'var(--text-ghost)', marginTop: '8px', textAlign: 'center' }}>
+        Source: ISRO Bhuvan — Indian Space Research Organisation, Dept. of Space, Govt. of India
+      </p>
+    </div>
+  )
+}
 
 // Real Sketchfab model IDs — verified via API search (downloadable, top-liked)
 const SKETCHFAB_MODELS = [
@@ -540,6 +694,9 @@ function AerospacePlugin({ role }: PluginProps) {
           <PhysicsLab />
         )}
 
+        {/* ── ISRO Bhuvan — Indian geoid data, satellite imagery ── */}
+        {tab === 'ISRO Bhuvan' && <BhuvanPanel />}
+
         {/* ── GeoGebra — engineering math, vector analysis, orbital mechanics ── */}
         {tab === 'GeoGebra' && (
           <div style={{ height: '100%' }}>
@@ -558,7 +715,7 @@ function AerospacePlugin({ role }: PluginProps) {
 
 const plugin: SaathiPlugin = {
   Component: AerospacePlugin,
-  sourceLabel: 'NASA + NTRS + Sketchfab + PhET + GeoGebra',
+  sourceLabel: 'NASA + ISRO Bhuvan + NTRS + Sketchfab + PhET + GeoGebra',
   toolbarItems: [
     {
       icon: '🚀',
