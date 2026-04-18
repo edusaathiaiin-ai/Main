@@ -16,7 +16,7 @@ const SAATHI_TOOLS: Record<string, string[]> = {
   compsaathi:      ['monaco'],
   aerospacesaathi: ['nasa', 'geogebra', 'phet', 'wolfram'],
   archsaathi:      ['leaflet'],
-  medicosaathi:    ['pubmed', 'rcsb'],
+  medicosaathi:    ['pubmed', 'rcsb', 'wolfram'],
   nursingsaathi:   ['pubmed'],
 }
 

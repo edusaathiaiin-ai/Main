@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
+import { RcsbPanel as SharedRcsbPanel } from '@/components/classroom/RcsbPanel'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  RCSB PDB panel — protein structure search + 3Dmol.js viewer               */
@@ -446,8 +447,25 @@ function UniProtPanel() {
 
 type BioTab = 'canvas' | 'rcsb' | 'uniprot' | 'pubmed' | 'sciencedirect' | 'citations'
 
-function BioPlugin({ role, onArtifact }: PluginProps) {
+function BioPlugin({ role, onArtifact, activeTab, onTabChange, pendingToolLoad, onToolConsumed }: PluginProps) {
   const [tab, setTab] = useState<BioTab>('canvas')
+  const [pendingRcsb, setPendingRcsb] = useState<string | null>(null)
+  const [pendingPubmed, setPendingPubmed] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!pendingToolLoad) return
+    const p = pendingToolLoad.params
+    if (pendingToolLoad.tool === 'rcsb') {
+      setTab('rcsb')
+      const q = (p.protein_name as string) ?? (p.pdb_id as string) ?? ''
+      if (q) setPendingRcsb(q)
+    } else if (pendingToolLoad.tool === 'pubmed') {
+      setTab('pubmed')
+      const q = (p.query as string) ?? ''
+      if (q) setPendingPubmed(q)
+    }
+    onToolConsumed?.()
+  }, [pendingToolLoad]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const tabs: { id: BioTab; label: string }[] = [
     { id: 'canvas', label: 'Canvas' },
@@ -477,7 +495,7 @@ function BioPlugin({ role, onArtifact }: PluginProps) {
       </div>
       <div className="relative flex-1">
         {tab === 'canvas' && <CollaborativeCanvas role={role} />}
-        {tab === 'rcsb' && <RcsbPanel />}
+        {tab === 'rcsb' && <SharedRcsbPanel initialQuery={pendingRcsb} onQueryConsumed={() => setPendingRcsb(null)} onArtifact={onArtifact} />}
         {tab === 'uniprot' && <UniProtPanel />}
         {tab === 'pubmed' && <PubMedPanel />}
         {tab === 'sciencedirect' && <ScienceDirectPanel />}
@@ -490,6 +508,7 @@ function BioPlugin({ role, onArtifact }: PluginProps) {
 const plugin: SaathiPlugin = {
   Component: BioPlugin,
   sourceLabel: 'RCSB PDB + UniProt + PubMed + ScienceDirect + Scopus',
+  toolToTab: { rcsb: 'rcsb', pubmed: 'pubmed' },
 }
 
 export default plugin

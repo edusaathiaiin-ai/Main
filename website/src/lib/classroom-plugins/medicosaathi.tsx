@@ -100,6 +100,8 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
   const [selectedModel, setSelectedModel] = useState(SKETCHFAB_ANATOMY[0].id)
   const [anatomySource, setAnatomySource] = useState<'sketchfab' | 'zygote'>('sketchfab')
   const [pendingSearch, setPendingSearch] = useState<string | null>(null)
+  const [pendingRcsb, setPendingRcsb] = useState<string | null>(null)
+  const [pendingWolfram, setPendingWolfram] = useState<string | null>(null)
   const [drugQuery, setDrugQuery] = useState('')
   const [drugResults, setDrugResults] = useState<{ name: string; description: string }[]>([])
 
@@ -107,12 +109,19 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
 
   useEffect(() => {
     if (!pendingToolLoad) return
+    const p = pendingToolLoad.params
     if (pendingToolLoad.tool === 'pubmed') {
       setTab('PubMed')
-      const q = (pendingToolLoad.params.query as string) ?? ''
+      const q = (p.query as string) ?? ''
       if (q) setPendingSearch(q)
     } else if (pendingToolLoad.tool === 'rcsb') {
-      setTab('Anatomy 3D')
+      setTab('Proteins')
+      const q = (p.protein_name as string) ?? (p.pdb_id as string) ?? ''
+      if (q) setPendingRcsb(q)
+    } else if (pendingToolLoad.tool === 'wolfram') {
+      setTab('Wolfram')
+      const q = (p.query as string) ?? ''
+      if (q) setPendingWolfram(q)
     }
     onToolConsumed?.()
   }, [pendingToolLoad]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -202,11 +211,11 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
         </div>
 
         <div style={{ display: currentTab === 'Proteins' ? 'block' : 'none', height: '100%' }}>
-          <RcsbPanel placeholder="Search protein... e.g. Troponin, 1J1E" onArtifact={onArtifact} />
+          <RcsbPanel placeholder="Search protein... e.g. Troponin, 1J1E" initialQuery={pendingRcsb} onQueryConsumed={() => setPendingRcsb(null)} onArtifact={onArtifact} />
         </div>
 
         <div style={{ display: currentTab === 'Wolfram' ? 'block' : 'none', height: '100%' }}>
-          <WolframPanel onArtifact={onArtifact} />
+          <WolframPanel initialQuery={pendingWolfram} onQueryConsumed={() => setPendingWolfram(null)} onArtifact={onArtifact} />
         </div>
 
         <div style={{ display: currentTab === 'PubMed' ? 'block' : 'none', height: '100%' }}>

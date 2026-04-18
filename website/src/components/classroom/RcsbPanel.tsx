@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 
+/* eslint-disable react-hooks/exhaustive-deps */
+
 type PdbResult = {
   pdb_id: string; title: string; organism: string
   resolution: number | null; pdb_data: string | null
@@ -9,11 +11,14 @@ type PdbResult = {
 
 type Props = {
   placeholder?: string
+  initialQuery?: string | null
+  onQueryConsumed?: () => void
   onArtifact?: (a: { type: string; source: string; source_url?: string; data: Record<string, unknown>; timestamp: string }) => unknown
 }
 
-export function RcsbPanel({ placeholder, onArtifact }: Props) {
+export function RcsbPanel({ placeholder, initialQuery, onQueryConsumed, onArtifact }: Props) {
   const [query, setQuery] = useState('')
+  const autoSearched = useRef(false)
   const [searchResults, setSearchResults] = useState<{ pdb_id: string }[]>([])
   const [structure, setStructure] = useState<PdbResult | null>(null)
   const [loading, setLoading] = useState(false)
@@ -21,13 +26,26 @@ export function RcsbPanel({ placeholder, onArtifact }: Props) {
   const viewerRef = useRef<HTMLDivElement>(null)
   const viewerInstanceRef = useRef<unknown>(null)
 
-  const handleSearch = useCallback(async () => {
-    if (!query.trim()) return
+  useEffect(() => {
+    if (initialQuery && !autoSearched.current) {
+      autoSearched.current = true
+      setQuery(initialQuery)
+      onQueryConsumed?.()
+      setTimeout(() => {
+        const q = initialQuery
+        setQuery(q)
+        doSearch(q)
+      }, 100)
+    }
+  }, [initialQuery])
+
+  async function doSearch(q: string) {
+    if (!q.trim()) return
     setLoading(true); setError(''); setSearchResults([]); setStructure(null)
 
-    if (/^[a-zA-Z0-9]{4}$/.test(query.trim())) {
+    if (/^[a-zA-Z0-9]{4}$/.test(q.trim())) {
       try {
-        const res = await fetch(`/api/classroom/rcsb?pdb=${query.trim()}`)
+        const res = await fetch(`/api/classroom/rcsb?pdb=${q.trim()}`)
         const data = await res.json()
         if (res.ok) { setStructure(data); emitProtein(data) }
         else setError(data.error)
@@ -37,13 +55,15 @@ export function RcsbPanel({ placeholder, onArtifact }: Props) {
     }
 
     try {
-      const res = await fetch(`/api/classroom/rcsb?q=${encodeURIComponent(query.trim())}`)
+      const res = await fetch(`/api/classroom/rcsb?q=${encodeURIComponent(q.trim())}`)
       const data = await res.json()
       setSearchResults(data.results ?? [])
       if (data.results?.length === 0) setError('No structures found')
     } catch { setError('Search failed') }
     setLoading(false)
-  }, [query]) // eslint-disable-line react-hooks/exhaustive-deps
+  }
+
+  const handleSearch = useCallback(() => { doSearch(query) }, [query]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadStructure = useCallback(async (pdbId: string) => {
     setLoading(true)

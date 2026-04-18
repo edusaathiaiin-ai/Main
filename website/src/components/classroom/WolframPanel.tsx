@@ -1,33 +1,45 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 
 type Pod = { title: string; content: string; image_url: string | null }
 
 type Props = {
+  initialQuery?: string | null
+  onQueryConsumed?: () => void
   onArtifact?: (a: { type: string; source: string; source_url?: string; data: Record<string, unknown>; timestamp: string }) => unknown
 }
 
-export function WolframPanel({ onArtifact }: Props) {
+export function WolframPanel({ initialQuery, onQueryConsumed, onArtifact }: Props) {
   const [query, setQuery] = useState('')
+  const autoSearched = useRef(false)
   const [pods, setPods] = useState<Pod[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSearch = useCallback(async () => {
-    if (!query.trim()) return
+  useEffect(() => {
+    if (initialQuery && !autoSearched.current) {
+      autoSearched.current = true
+      setQuery(initialQuery)
+      onQueryConsumed?.()
+      setTimeout(() => doSearch(initialQuery), 100)
+    }
+  }, [initialQuery]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function doSearch(q: string) {
+    if (!q.trim()) return
     setLoading(true); setError(''); setPods([])
     try {
-      const res = await fetch(`/api/classroom/wolfram?q=${encodeURIComponent(query.trim())}`)
+      const res = await fetch(`/api/classroom/wolfram?q=${encodeURIComponent(q.trim())}`)
       const data = await res.json()
       if (!res.ok || !data.success) { setError(data.error ?? 'No result'); setLoading(false); return }
       setPods(data.pods ?? [])
       onArtifact?.({
         type: 'wolfram_query',
         source: 'Wolfram Alpha',
-        source_url: `https://www.wolframalpha.com/input?i=${encodeURIComponent(query.trim())}`,
+        source_url: `https://www.wolframalpha.com/input?i=${encodeURIComponent(q.trim())}`,
         data: {
-          input: query.trim(),
+          input: q.trim(),
           plaintext_result: data.pods?.[0]?.content ?? '',
           pods: data.pods ?? [],
           computation_time_ms: (data.timing ?? 0) * 1000,
@@ -36,7 +48,9 @@ export function WolframPanel({ onArtifact }: Props) {
       })
     } catch { setError('Wolfram request failed') }
     setLoading(false)
-  }, [query, onArtifact])
+  }
+
+  const handleSearch = useCallback(() => { doSearch(query) }, [query]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex h-full flex-col">
