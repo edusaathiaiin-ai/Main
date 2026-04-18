@@ -212,26 +212,44 @@ function CallbackInner() {
           trackSignupCompleted(method, 0)
         }
 
-        // ── Auto-detect faculty applicants ──────────────────────────────────
-        // If this email has a pending faculty_application or faculty_nomination,
-        // auto-set role to 'faculty' so they route to faculty onboarding.
+        // ── Auto-detect faculty: applications, nominations, or approved status ──
+        // Check ALL possible faculty signals — not just applications.
         if (role !== 'faculty' && resolvedSession.user.email) {
           try {
+            const userEmail = resolvedSession.user.email.toLowerCase()
+
+            // 1. Pending or approved faculty application
             const { data: application } = await supabase
               .from('faculty_applications')
-              .select('id')
-              .eq('email', resolvedSession.user.email.toLowerCase())
-              .eq('status', 'pending')
+              .select('id, status')
+              .eq('email', userEmail)
+              .in('status', ['pending', 'approved'])
               .maybeSingle()
 
-            if (application) {
+            // 2. Faculty nomination (invited, applied, verified, eminent)
+            const { data: nomination } = await supabase
+              .from('faculty_nominations')
+              .select('id, status')
+              .eq('faculty_email', userEmail)
+              .neq('status', 'declined')
+              .maybeSingle()
+
+            if (application || nomination) {
               await supabase
                 .from('profiles')
                 .update({ role: 'faculty' })
                 .eq('id', resolvedSession.user.id)
+
+              // If nomination exists, update its status to 'applied'
+              if (nomination && nomination.status === 'invited') {
+                await supabase
+                  .from('faculty_nominations')
+                  .update({ status: 'applied' })
+                  .eq('id', nomination.id)
+              }
             }
           } catch {
-            // Non-critical — they can manually switch later
+            // Non-critical — they can still complete onboarding manually
           }
         }
 
