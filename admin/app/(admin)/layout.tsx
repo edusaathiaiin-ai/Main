@@ -106,7 +106,7 @@ export default async function AdminLayout({
                     <span className="text-base leading-none">{n.emoji}</span>
                     <span className="flex-1">{n.label}</span>
                     {n.badge != null && n.badge > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-slate-950">
+                      <span style={{ background: '#EF4444', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontSize: '10px', fontWeight: 700, marginLeft: '6px' }}>
                         {n.badge}
                       </span>
                     )}
