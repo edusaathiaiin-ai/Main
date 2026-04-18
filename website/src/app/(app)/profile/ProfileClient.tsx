@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
@@ -13,6 +13,7 @@ import { MobileNav } from '@/components/layout/MobileNav'
 import ProfileTab from '@/components/profile/ProfileTab'
 import SoulTab from '@/components/profile/SoulTab'
 import DataTab from '@/components/profile/DataTab'
+import ArchiveTab from '@/components/profile/ArchiveTab'
 import SubscriptionCard from '@/components/profile/SubscriptionCard'
 import type { QuotaState, Saathi } from '@/types'
 
@@ -24,7 +25,7 @@ const DEFAULT_QUOTA: QuotaState = {
   isCooling: false,
 }
 
-type Tab = 'profile' | 'soul' | 'data'
+type Tab = 'profile' | 'soul' | 'data' | 'archive'
 
 interface RawSoul {
   academic_level: string | null
@@ -50,6 +51,7 @@ interface RawSoul {
 
 export function ProfileClient() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { profile } = useAuthStore()
   const { activeSaathiId } = useChatStore()
 
@@ -60,7 +62,10 @@ export function ProfileClient() {
   const activeSaathi: Saathi =
     SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
 
-  const [activeTab, setActiveTab] = useState<Tab>('profile')
+  const urlTab = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState<Tab>(
+    urlTab === 'archive' || urlTab === 'soul' || urlTab === 'data' ? urlTab : 'profile'
+  )
   const [soul, setSoul] = useState<RawSoul | null>(null)
   const [soulLoading, setSoulLoading] = useState(true)
 
@@ -107,6 +112,7 @@ export function ProfileClient() {
     { id: 'profile', label: 'My Profile' },
     { id: 'soul', label: 'My Soul' },
     { id: 'data', label: 'My Data' },
+    { id: 'archive', label: 'Research Archive' },
   ]
 
   return (
@@ -211,6 +217,9 @@ export function ProfileClient() {
                   userId={profile.id}
                   onEditProfile={() => setActiveTab('profile')}
                 />
+              )}
+              {activeTab === 'archive' && (
+                <ArchiveTab userId={profile.id} />
               )}
             </motion.div>
           </AnimatePresence>
