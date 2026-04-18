@@ -92,6 +92,54 @@ const TIPS: Tip[] = [
     body:     'Internship and research opportunities matched to your Saathi subject and academic interests — not random listings. Found in Internships & Research.',
     cta:      { label: 'Explore opportunities →', href: '/internships' },
   },
+  {
+    id:       'nominate-faculty',
+    emoji:    '🙏',
+    headline: 'Know a great teacher? Nominate them',
+    body:     'Recommend a professor, practitioner, or mentor you trust. We invite them personally — and if they join, you earn ₹50 wallet credit + 50 Saathi Points.',
+  },
+  {
+    id:       'multi-column',
+    emoji:    '⊞',
+    headline: 'Open multiple boards side by side',
+    body:     'Study two topics simultaneously — like a trading terminal. Click + New Board in the sidebar to create focused study spaces for each topic. Plus plan opens 2 columns, Pro opens 3.',
+  },
+  {
+    id:       'send-to-phone',
+    emoji:    '📱',
+    headline: 'Send any answer to your WhatsApp',
+    body:     'See a great explanation? Tap the 📱 icon below any Saathi response to send it to your phone instantly. Read it on the bus, revise on the go.',
+  },
+  {
+    id:       'exam-board',
+    emoji:    '🎯',
+    headline: 'Your exam board is auto-created',
+    body:     'When you set an exam target in your profile, a dedicated board is created with a countdown timer. Every conversation stays focused on that exam.',
+  },
+  {
+    id:       'night-mode',
+    emoji:    '🌙',
+    headline: 'Switch to night mode for late study',
+    body:     'Tap the Night toggle in the top-right corner. The entire interface shifts to a dark theme — easier on your eyes during those midnight sessions.',
+  },
+  {
+    id:       'email-chat',
+    emoji:    '📧',
+    headline: 'Email yourself today\'s chat',
+    body:     'Tap 📧 in the board header to receive a clean summary of today\'s conversation in your inbox. Great for revision — your Saathi even highlights the key takeaways.',
+  },
+  {
+    id:       'whatsapp-saathi',
+    emoji:    '💚',
+    headline: 'Your Saathi is on WhatsApp too',
+    body:     'No laptop? No problem. Message your Saathi on WhatsApp and continue where you left off. Same soul, same memory — different device.',
+  },
+  {
+    id:       'report-error',
+    emoji:    '⚠️',
+    headline: 'Spot an error? Report it instantly',
+    body:     'Tap the ⚠️ icon below any Saathi response to flag a factual error. Your report reaches our team, and verified corrections are injected into future conversations for everyone.',
+  },
 ]
 
 // ─── Storage helpers ──────────────────────────────────────────────────────────
