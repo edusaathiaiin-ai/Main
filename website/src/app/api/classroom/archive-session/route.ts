@@ -73,6 +73,27 @@ export async function POST(req: NextRequest) {
     })
   }
 
+  // Add canvas snapshot artifact if present
+  const canvasJson = (session.session_artifacts as Record<string, unknown>)?.canvas_snapshot
+  if (canvasJson) {
+    artifacts.push({
+      type: 'canvas_snapshot',
+      source: 'tldraw',
+      data: {
+        tldraw_json: canvasJson,
+        has_drawings: true,
+      },
+      timestamp: new Date().toISOString(),
+    })
+  } else {
+    artifacts.push({
+      type: 'canvas_snapshot',
+      source: 'tldraw',
+      data: { tldraw_json: null, has_drawings: false },
+      timestamp: new Date().toISOString(),
+    })
+  }
+
   // Add notes artifact if present
   if (sessionNotes?.html) {
     artifacts.push({
@@ -131,7 +152,7 @@ theorems, cases, or concepts that were covered.`,
         }],
       })
 
-      const textBlock = response.content.find(b => b.type === 'text')
+      const textBlock = response.content.find((b: { type: string }) => b.type === 'text') as { text: string } | undefined
       summary = textBlock?.text ?? ''
     } catch {
       summary = `${session.title} — ${saathiSlug} session with ${artifacts.length} research artifacts.`

@@ -585,7 +585,7 @@ async function buildSystemPrompt(
     admin
       .from('student_soul')
       .select(
-        'display_name, ambition_level, preferred_tone, enrolled_subjects, future_subjects, future_research_area, top_topics, struggle_topics, last_session_summary, session_count, academic_level, depth_calibration, peer_mode, exam_mode, flame_stage, career_discovery_stage, prior_knowledge_base, learning_style, passion_intensity, shell_broken, shell_broken_at, predicted_trajectory, career_interest'
+        'display_name, ambition_level, preferred_tone, enrolled_subjects, future_subjects, future_research_area, top_topics, struggle_topics, last_session_summary, session_count, academic_level, depth_calibration, peer_mode, exam_mode, flame_stage, career_discovery_stage, prior_knowledge_base, learning_style, passion_intensity, shell_broken, shell_broken_at, predicted_trajectory, career_interest, last_archive_context, last_research_summary'
       )
       .eq('user_id', userId)
       .eq('vertical_id', saathiId)
@@ -647,6 +647,8 @@ async function buildSystemPrompt(
       ? s.last_session_summary
       : 'This is your first session together.';
   const sessionCount = typeof s?.session_count === 'number' ? s.session_count : 0;
+  const archiveContext = typeof s?.last_archive_context === 'string' ? s.last_archive_context : '';
+  const researchSummary = typeof s?.last_research_summary === 'string' ? s.last_research_summary : '';
 
   // ── Calibration fields ─────────────────────────────────────────────────────
   const academicLevel       = typeof s?.academic_level === 'string' ? s.academic_level
@@ -872,7 +874,12 @@ Topics they struggle with: ${struggles}
 # LAST SESSION MEMORY
 ${lastSession}
 Sessions completed together: ${sessionCount}
-
+${archiveContext ? `
+# LAST CLASSROOM SESSION
+${researchSummary}
+Research context: ${archiveContext}
+Reference this naturally in your first 2 messages — e.g. "Last time we studied [topic]. Shall we go deeper today?"
+` : ''}
 # TODAY'S CONTEXT
 ${newsContext}
 ${exams.length > 0 ? `

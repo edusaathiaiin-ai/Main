@@ -83,6 +83,8 @@ export function ArtifactModal({ artifact, onClose }: { artifact: Artifact; onClo
   )
 }
 
+function s(v: unknown): string { return String(v ?? '') }
+
 function ArtifactContent({ artifact }: { artifact: Artifact }) {
   const d = artifact.data
 
@@ -91,25 +93,25 @@ function ArtifactContent({ artifact }: { artifact: Artifact }) {
       return (
         <div>
           <p style={{ fontSize: '15px', fontWeight: 600, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, margin: '0 0 8px' }}>
-            {d.title as string}
+            {s(d.title)}
           </p>
           <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: '0 0 4px' }}>
-            {(d.authors as string[])?.join(', ')}
+            {Array.isArray(d.authors) ? (d.authors as string[]).join(', ') : s(d.authors)}
           </p>
           <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
-            {d.journal as string} · {d.year as string} · PMID: {d.pmid as string}
+            {s(d.journal)} · {s(d.year)} · PMID: {s(d.pmid)}
           </p>
-          {d.abstract_snippet && (
+          {d.abstract_snippet ? (
             <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, marginTop: '12px' }}>
-              {d.abstract_snippet as string}
+              {s(d.abstract_snippet)}
             </p>
-          )}
-          {d.doi && (
+          ) : null}
+          {d.doi ? (
             <a href={`https://doi.org/${d.doi}`} target="_blank" rel="noopener noreferrer"
               style={{ fontSize: '11px', color: '#C9993A', marginTop: '8px', display: 'inline-block' }}>
-              DOI: {d.doi as string}
+              DOI: {s(d.doi)}
             </a>
-          )}
+          ) : null}
         </div>
       )
 
@@ -120,19 +122,19 @@ function ArtifactContent({ artifact }: { artifact: Artifact }) {
       return (
         <div>
           <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '0 0 8px' }}>
-            Query: <code style={{ color: 'rgba(255,255,255,0.7)' }}>{d.input as string}</code>
+            Query: <code style={{ color: 'rgba(255,255,255,0.7)' }}>{s(d.input)}</code>
           </p>
           <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)', marginBottom: '12px' }}>
             <p style={{ fontSize: '16px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--font-mono)' }}>
-              {d.plaintext_result as string}
+              {s(d.plaintext_result)}
             </p>
-            {d.latex_result && (
+            {d.latex_result ? (
               <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '8px', fontFamily: 'var(--font-mono)' }}>
-                LaTeX: {d.latex_result as string}
+                LaTeX: {s(d.latex_result)}
               </p>
-            )}
+            ) : null}
           </div>
-          {(d.pods as Array<{ title: string; content: string }>)?.map((pod, i) => (
+          {Array.isArray(d.pods) && (d.pods as Array<{ title: string; content: string }>).map((pod, i) => (
             <div key={i} style={{ marginBottom: '8px', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)' }}>
               <p style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.5)', margin: '0 0 4px' }}>{pod.title}</p>
               <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', fontFamily: 'var(--font-mono)' }}>{pod.content}</p>
@@ -145,23 +147,23 @@ function ArtifactContent({ artifact }: { artifact: Artifact }) {
       return (
         <div>
           {d.rendered_svg ? (
-            <div dangerouslySetInnerHTML={{ __html: d.rendered_svg as string }}
+            <div dangerouslySetInnerHTML={{ __html: s(d.rendered_svg) }}
               style={{ padding: '24px', textAlign: 'center', background: 'rgba(255,255,255,0.03)', borderRadius: '10px' }} />
           ) : (
             <div style={{ padding: '24px', textAlign: 'center', background: 'rgba(255,255,255,0.03)', borderRadius: '10px' }}>
               <p style={{ fontSize: '18px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.8)' }}>
-                {d.latex as string}
+                {s(d.latex)}
               </p>
             </div>
           )}
           <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '12px', fontFamily: 'var(--font-mono)' }}>
-            Raw LaTeX: {d.latex as string}
+            Raw LaTeX: {s(d.latex)}
           </p>
-          {d.context_note && (
+          {d.context_note ? (
             <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '8px' }}>
-              {d.context_note as string}
+              {s(d.context_note)}
             </p>
-          )}
+          ) : null}
         </div>
       )
 
@@ -170,7 +172,7 @@ function ArtifactContent({ artifact }: { artifact: Artifact }) {
         <div>
           <div style={{ padding: '4px 8px', borderRadius: '6px 6px 0 0', background: 'rgba(255,255,255,0.06)', display: 'inline-block' }}>
             <span style={{ fontSize: '10px', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
-              {(d.language as string)?.toUpperCase() ?? 'CODE'}
+              {s(d.language).toUpperCase() || 'CODE'}
             </span>
           </div>
           <pre style={{
@@ -178,19 +180,19 @@ function ArtifactContent({ artifact }: { artifact: Artifact }) {
             fontSize: '12px', lineHeight: 1.6, color: 'rgba(255,255,255,0.75)',
             fontFamily: 'var(--font-mono)', overflow: 'auto', maxHeight: '300px', margin: 0,
           }}>
-            {d.content as string}
+            {s(d.content)}
           </pre>
-          {d.execution_output && (
+          {d.execution_output ? (
             <div style={{ marginTop: '8px' }}>
               <p style={{ fontSize: '10px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Output:</p>
               <pre style={{
                 padding: '10px', borderRadius: '8px', background: 'rgba(5,150,105,0.1)',
                 fontSize: '11px', color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-mono)', margin: 0,
               }}>
-                {d.execution_output as string}
+                {s(d.execution_output)}
               </pre>
             </div>
-          )}
+          ) : null}
         </div>
       )
 
@@ -198,7 +200,7 @@ function ArtifactContent({ artifact }: { artifact: Artifact }) {
       return (
         <div>
           <div
-            dangerouslySetInnerHTML={{ __html: (d.html as string) ?? '' }}
+            dangerouslySetInnerHTML={{ __html: s(d.html) }}
             style={{ fontSize: '13px', lineHeight: 1.8, color: 'rgba(255,255,255,0.7)' }}
           />
         </div>
@@ -208,13 +210,13 @@ function ArtifactContent({ artifact }: { artifact: Artifact }) {
       return (
         <div>
           <p style={{ fontSize: '15px', fontWeight: 600, color: 'rgba(255,255,255,0.85)', margin: '0 0 8px' }}>
-            {d.compound_name as string ?? d.iupac_name as string}
+            {s(d.compound_name || d.iupac_name)}
           </p>
           <div className="grid grid-cols-2 gap-3" style={{ fontSize: '12px' }}>
-            {d.formula && <Field label="Formula" value={d.formula as string} />}
-            {d.molecular_weight && <Field label="Mol. Weight" value={d.molecular_weight as string} />}
-            {d.cid && <Field label="CID" value={d.cid as string} />}
-            {d.smiles && <Field label="SMILES" value={(d.smiles as string).slice(0, 40)} />}
+            {d.formula ? <Field label="Formula" value={s(d.formula)} /> : null}
+            {d.molecular_weight ? <Field label="Mol. Weight" value={s(d.molecular_weight)} /> : null}
+            {d.cid ? <Field label="CID" value={s(d.cid)} /> : null}
+            {d.smiles ? <Field label="SMILES" value={s(d.smiles).slice(0, 40)} /> : null}
           </div>
         </div>
       )
@@ -291,10 +293,10 @@ function Protein3DViewer({ data }: { data: Record<string, unknown> }) {
     <div>
       <div ref={viewerRef} style={{ width: '100%', height: '280px', borderRadius: '10px', background: '#1A1F2E' }} />
       <div style={{ marginTop: '12px' }}>
-        <p style={{ fontSize: '14px', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{data.title as string}</p>
+        <p style={{ fontSize: '14px', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{s(data.title)}</p>
         <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
-          PDB: {data.pdb_id as string} · {data.organism as string}
-          {data.resolution && ` · ${data.resolution}Å`}
+          PDB: {s(data.pdb_id)} · {s(data.organism)}
+          {data.resolution ? ` · ${data.resolution}Å` : ''}
         </p>
       </div>
     </div>

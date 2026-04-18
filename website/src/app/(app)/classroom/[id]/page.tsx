@@ -360,28 +360,35 @@ export default function ClassroomPage() {
       setSessionDuration(dur)
     }
 
-    // ── Persist notes to session_artifacts ──
+    // ── Persist notes + canvas state to session_artifacts ──
     try {
       const notesHtml = localStorage.getItem(`classroom-notes-${sessionId}`) ?? ''
+      const artifacts: Record<string, unknown> = {}
+
       if (notesHtml) {
         const tempDiv = document.createElement('div')
         tempDiv.innerHTML = notesHtml
-        const plainText = tempDiv.textContent ?? ''
+        artifacts.session_notes = {
+          html: notesHtml,
+          plain_text: tempDiv.textContent ?? '',
+          saved_at: leftAt,
+        }
+      }
 
+      // Capture canvas state from Liveblocks localStorage cache
+      try {
+        const canvasKey = `liveblocks:classroom-${sessionId}`
+        const canvasData = localStorage.getItem(canvasKey)
+        if (canvasData) artifacts.canvas_snapshot = JSON.parse(canvasData)
+      } catch { /* canvas capture is best-effort */ }
+
+      if (Object.keys(artifacts).length > 0) {
         await supabase
           .from('live_sessions')
-          .update({
-            session_artifacts: {
-              session_notes: {
-                html: notesHtml,
-                plain_text: plainText,
-                saved_at: leftAt,
-              },
-            },
-          })
+          .update({ session_artifacts: artifacts })
           .eq('id', sessionId)
       }
-    } catch { /* notes save is best-effort */ }
+    } catch { /* artifacts save is best-effort */ }
 
     // ── Persist question log to classroom_commands ──
     if (sessionQuestions.length > 0) {
@@ -1055,7 +1062,12 @@ export default function ClassroomPage() {
                   >
                     <FormulaBar
                       onInsert={(latex, html) => {
-                        console.log('[FormulaBar] Insert:', latex, html)
+                        emitArtifact({
+                          type: 'formula_katex',
+                          source: 'Faculty',
+                          data: { latex, rendered_svg: html, display_mode: true },
+                          timestamp: new Date().toISOString(),
+                        })
                       }}
                     />
                     <span

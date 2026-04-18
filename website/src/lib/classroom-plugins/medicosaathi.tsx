@@ -4,8 +4,10 @@ import { useState, useCallback, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
+import { RcsbPanel } from '@/components/classroom/RcsbPanel'
+import { WolframPanel } from '@/components/classroom/WolframPanel'
 
-const TABS = ['Canvas', 'Anatomy 3D', 'PubMed', 'ScienceDirect', 'Citations', 'Drug Reference', 'Clinical Images'] as const
+const TABS = ['Canvas', 'Anatomy 3D', 'Proteins', 'Wolfram', 'PubMed', 'ScienceDirect', 'Citations', 'Drug Reference', 'Clinical Images'] as const
 type Tab = typeof TABS[number]
 
 // Zygote Body — free 3D anatomy viewer (no auth required, allows embedding)
@@ -199,6 +201,14 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
           </div>
         </div>
 
+        <div style={{ display: currentTab === 'Proteins' ? 'block' : 'none', height: '100%' }}>
+          <RcsbPanel placeholder="Search protein... e.g. Troponin, 1J1E" onArtifact={onArtifact} />
+        </div>
+
+        <div style={{ display: currentTab === 'Wolfram' ? 'block' : 'none', height: '100%' }}>
+          <WolframPanel onArtifact={onArtifact} />
+        </div>
+
         <div style={{ display: currentTab === 'PubMed' ? 'block' : 'none', height: '100%' }}>
           <PubMedPanel initialSearch={pendingSearch} onSearchConsumed={() => setPendingSearch(null)} onArtifact={onArtifact} />
         </div>
@@ -253,14 +263,15 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
 
 const plugin: SaathiPlugin = {
   Component: MedicoPlugin,
-  sourceLabel: 'Sketchfab + PubMed + ScienceDirect + Scopus + openFDA',
+  sourceLabel: 'RCSB PDB + Wolfram Alpha + PubMed + ScienceDirect + Scopus',
   tabs: [
     { id: 'Canvas', label: 'Canvas' }, { id: 'Anatomy 3D', label: 'Anatomy 3D' },
+    { id: 'Proteins', label: 'Proteins' }, { id: 'Wolfram', label: 'Wolfram' },
     { id: 'PubMed', label: 'PubMed' }, { id: 'ScienceDirect', label: 'ScienceDirect' },
     { id: 'Citations', label: 'Citations' }, { id: 'Drug Reference', label: 'Drug Reference' },
     { id: 'Clinical Images', label: 'Clinical Images' },
   ],
-  toolToTab: { pubmed: 'PubMed', rcsb: 'Anatomy 3D' },
+  toolToTab: { pubmed: 'PubMed', rcsb: 'Proteins', wolfram: 'Wolfram' },
 }
 
 export default plugin
