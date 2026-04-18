@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { createClient } from '@/lib/supabase/client'
 
 type CommandResult = {
   tool: string
@@ -13,11 +14,10 @@ type Props = {
   sessionId: string
   saathiSlug: string
   saathiColor: string
-  accessToken: string
   onToolLoad: (result: CommandResult) => void
 }
 
-export function CommandBar({ sessionId, saathiSlug, saathiColor, accessToken, onToolLoad }: Props) {
+export function CommandBar({ sessionId, saathiSlug, saathiColor, onToolLoad }: Props) {
   const [input, setInput] = useState('')
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -33,11 +33,20 @@ export function CommandBar({ sessionId, saathiSlug, saathiColor, accessToken, on
     setLastResult(null)
 
     try {
+      const supabase = createClient()
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      const token = authSession?.access_token
+      if (!token) {
+        setLastResult({ tool: 'none', params: {}, displayText: 'Session expired — please refresh the page.' })
+        setLoading(false)
+        return
+      }
+
       const res = await fetch('/api/classroom/command', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ command: cmd, saathiSlug, sessionId }),
       })
@@ -56,7 +65,7 @@ export function CommandBar({ sessionId, saathiSlug, saathiColor, accessToken, on
     }
 
     setLoading(false)
-  }, [input, loading, accessToken, saathiSlug, sessionId, onToolLoad])
+  }, [input, loading, saathiSlug, sessionId, onToolLoad])
 
   return (
     <div style={{ borderBottom: '1px solid var(--border-subtle)' }}>

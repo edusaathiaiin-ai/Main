@@ -109,7 +109,6 @@ export default function ClassroomPage() {
   const [rating, setRating] = useState<'up' | 'down' | null>(null)
   const [classroomMode, setClassroomMode] = useState<'standard' | 'interactive'>('standard')
   const [plugin, setPlugin] = useState<SaathiPlugin | null>(null)
-  const [commandToken, setCommandToken] = useState('')
   const [pendingToolLoad, setPendingToolLoad] = useState<{ tool: string; params: Record<string, unknown> } | null>(null)
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -311,10 +310,6 @@ export default function ClassroomPage() {
         setPlugin(fallback)
       }
     }
-
-    // Get access token for command bar
-    const { data: { session: authSession } } = await supabase.auth.refreshSession()
-    if (authSession?.access_token) setCommandToken(authSession.access_token)
 
     setState('live')
   }, [profile, session, sessionId, classroomMode])
@@ -814,12 +809,11 @@ export default function ClassroomPage() {
               {/* Plugin panel — 60% on desktop, full width on mobile */}
               <div className="relative flex w-full flex-1 flex-col md:w-[60%]">
                 {/* AI Command Bar — faculty types concepts, Claude routes to tools */}
-                {isFaculty && commandToken && (
+                {isFaculty && (
                   <CommandBar
                     sessionId={sessionId}
                     saathiSlug={saathi?.id ?? 'default'}
                     saathiColor={saathi?.primary ?? '#C9993A'}
-                    accessToken={commandToken}
                     onToolLoad={(result) => {
                       setPendingToolLoad({ tool: result.tool, params: result.params })
                     }}
