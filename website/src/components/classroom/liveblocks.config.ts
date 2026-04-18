@@ -16,10 +16,18 @@ type Presence = {
 // Storage: tldraw document synced via Yjs (no Liveblocks storage needed)
 type Storage = Record<string, never>
 
+// Events: broadcast questions, homework, etc.
+type RoomEvent =
+  | { type: 'question'; id: string; studentName: string; text: string; timestamp: string }
+  | { type: 'question_seen'; id: string }
+  | { type: 'question_addressed'; id: string }
+
 export const {
   RoomProvider,
   useRoom,
   useMyPresence,
   useOthers,
   useSelf,
-} = createRoomContext<Presence, Storage>(client)
+  useBroadcastEvent,
+  useEventListener,
+} = createRoomContext<Presence, Storage, never, RoomEvent>(client)

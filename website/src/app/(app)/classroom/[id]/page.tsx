@@ -15,6 +15,8 @@ import { CanvasOverlay } from '@/components/classroom/CanvasOverlay'
 import { ClassroomDivider } from '@/components/classroom/ClassroomDivider'
 import { ModeSwitch, ModeSyncBridge } from '@/components/classroom/ModeSwitch'
 import { NoteBuilder } from '@/components/classroom/NoteBuilder'
+import { StudentAskPanel, FacultyQuestionQueue } from '@/components/classroom/QuestionQueue'
+import type { HomeworkItem } from '@/components/classroom/QuestionQueue'
 import { SourceBadge } from '@/components/classroom/SourceBadge'
 import type { SaathiPlugin } from '@/lib/classroom-plugins/types'
 
@@ -117,6 +119,10 @@ export default function ClassroomPage() {
   const [activeTab, setActiveTab] = useState<string>('')
   const [panelRatio, setPanelRatio] = useState(40) // left panel % width
   const [notesOpen, setNotesOpen] = useState(false)
+  const [questionsOpen, setQuestionsOpen] = useState(false)
+  const [homeworkItems, setHomeworkItems] = useState<HomeworkItem[]>([])
+  const [homeworkSending, setHomeworkSending] = useState(false)
+  const [homeworkSent, setHomeworkSent] = useState(false)
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -800,10 +806,25 @@ export default function ClassroomPage() {
             )}
           </div>
 
-          {/* Right: Notes toggle + End button */}
+          {/* Right: Questions + Notes + End */}
           <div className="flex items-center gap-2">
+            {isFaculty && (
+              <button
+                onClick={() => { setQuestionsOpen(o => !o); if (notesOpen) setNotesOpen(false) }}
+                className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all"
+                style={{
+                  background: questionsOpen ? `${color}15` : 'var(--bg-elevated)',
+                  border: `1px solid ${questionsOpen ? color : 'var(--border-subtle)'}`,
+                  color: questionsOpen ? color : 'var(--text-tertiary)',
+                  cursor: 'pointer',
+                }}
+                title="Student questions"
+              >
+                🙋 Q&A
+              </button>
+            )}
             <button
-              onClick={() => setNotesOpen(o => !o)}
+              onClick={() => { setNotesOpen(o => !o); if (questionsOpen) setQuestionsOpen(false) }}
               className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all"
               style={{
                 background: notesOpen ? `${color}15` : 'var(--bg-elevated)',
@@ -1006,6 +1027,21 @@ export default function ClassroomPage() {
                 </div>
               </>
             )}
+            {/* Student ask panel — bottom of content area */}
+            {!isFaculty && (
+              <StudentAskPanel studentName={profile?.full_name ?? 'Student'} />
+            )}
+
+            {/* Faculty question queue — right edge */}
+            {isFaculty && (
+              <FacultyQuestionQueue
+                open={questionsOpen}
+                onClose={() => setQuestionsOpen(false)}
+                onHomeworkAdd={(item) => setHomeworkItems(prev => [...prev, item])}
+                accentColor={color}
+              />
+            )}
+
             {/* Note builder — private per user, right edge */}
             <NoteBuilder
               sessionId={sessionId}
@@ -1172,6 +1208,67 @@ export default function ClassroomPage() {
                 )}
               </div>
             </div>
+
+            {/* Homework review — faculty only */}
+            {isFaculty && homeworkItems.length > 0 && (
+              <div
+                className="mb-8 rounded-2xl p-6 text-left"
+                style={{ background: 'var(--bg-surface)', border: `1.5px solid ${color}30` }}
+              >
+                <p className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color }}>
+                  📝 Homework ({homeworkItems.length} items)
+                </p>
+                <div className="space-y-2">
+                  {homeworkItems.map((item, i) => (
+                    <div key={item.id} className="flex items-start gap-2">
+                      <span className="mt-0.5 text-xs font-bold" style={{ color: 'var(--text-ghost)' }}>{i + 1}.</span>
+                      <input
+                        defaultValue={item.text}
+                        onChange={(e) => {
+                          setHomeworkItems(prev => prev.map(h => h.id === item.id ? { ...h, text: e.target.value } : h))
+                        }}
+                        className="flex-1 border-0 bg-transparent text-sm outline-none"
+                        style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-subtle)', padding: '2px 0' }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center gap-3">
+                  <button
+                    onClick={async () => {
+                      setHomeworkSending(true)
+                      try {
+                        await fetch('/api/classroom/send-homework', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            sessionId,
+                            sessionTitle: session?.title ?? 'Classroom Session',
+                            items: homeworkItems,
+                          }),
+                        })
+                        setHomeworkSent(true)
+                      } catch { /* ignore */ }
+                      setHomeworkSending(false)
+                    }}
+                    disabled={homeworkSending || homeworkSent}
+                    className="rounded-xl px-5 py-2.5 text-xs font-bold transition-all disabled:opacity-50"
+                    style={{ background: color, color: '#fff', cursor: homeworkSent ? 'default' : 'pointer' }}
+                  >
+                    {homeworkSent ? '✓ Sent via WhatsApp' : homeworkSending ? 'Sending...' : 'Send Now via WhatsApp'}
+                  </button>
+                  {!homeworkSent && (
+                    <button
+                      onClick={() => setHomeworkItems([])}
+                      className="rounded-xl px-4 py-2.5 text-xs font-semibold"
+                      style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)', border: '1px solid var(--border-subtle)' }}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Thumbs up / down */}
             {!isFaculty && (
