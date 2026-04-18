@@ -123,6 +123,7 @@ export default function ClassroomPage() {
   const [homeworkItems, setHomeworkItems] = useState<HomeworkItem[]>([])
   const [homeworkSending, setHomeworkSending] = useState(false)
   const [homeworkSent, setHomeworkSent] = useState(false)
+  const [sessionQuestions, setSessionQuestions] = useState<{ text: string; studentName: string; timestamp: string }[]>([])
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -355,8 +356,61 @@ export default function ClassroomPage() {
       setSessionDuration(dur)
     }
 
+    // ── Persist notes to session_artifacts ──
+    try {
+      const notesHtml = localStorage.getItem(`classroom-notes-${sessionId}`) ?? ''
+      if (notesHtml) {
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = notesHtml
+        const plainText = tempDiv.textContent ?? ''
+
+        await supabase
+          .from('live_sessions')
+          .update({
+            session_artifacts: {
+              session_notes: {
+                html: notesHtml,
+                plain_text: plainText,
+                saved_at: leftAt,
+              },
+            },
+          })
+          .eq('id', sessionId)
+      }
+    } catch { /* notes save is best-effort */ }
+
+    // ── Persist question log to classroom_commands ──
+    if (sessionQuestions.length > 0) {
+      try {
+        const rows = sessionQuestions.map(q => ({
+          session_id: sessionId,
+          user_id: profile.id,
+          command_text: q.text,
+          tool_triggered: 'question',
+          tool_query: `${q.studentName}: ${q.text}`,
+          created_at: q.timestamp,
+        }))
+        await supabase.from('classroom_commands').insert(rows)
+      } catch { /* question log is best-effort */ }
+    }
+
+    // ── Persist homework items (faculty only) ──
+    if (profile.id === session?.faculty_id && homeworkItems.length > 0) {
+      try {
+        const rows = homeworkItems.map(item => ({
+          session_id: sessionId,
+          faculty_id: profile.id,
+          student_name: item.studentName,
+          question_text: item.text,
+          status: 'draft',
+          due_date: item.dueDate ?? null,
+        }))
+        await supabase.from('homework').insert(rows)
+      } catch { /* homework save is best-effort */ }
+    }
+
     setState('summary')
-  }, [profile, sessionId])
+  }, [profile, session, sessionId, sessionQuestions, homeworkItems])
 
   // ── Mid-session mode switch ───────────────────────────────────────────
 
@@ -1038,6 +1092,7 @@ export default function ClassroomPage() {
                 open={questionsOpen}
                 onClose={() => setQuestionsOpen(false)}
                 onHomeworkAdd={(item) => setHomeworkItems(prev => [...prev, item])}
+                onQuestionReceived={(q) => setSessionQuestions(prev => [...prev, q])}
                 accentColor={color}
               />
             )}
@@ -1233,38 +1288,55 @@ export default function ClassroomPage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 flex items-center gap-3">
-                  <button
-                    onClick={async () => {
-                      setHomeworkSending(true)
-                      try {
-                        await fetch('/api/classroom/send-homework', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            sessionId,
-                            sessionTitle: session?.title ?? 'Classroom Session',
-                            items: homeworkItems,
-                          }),
-                        })
-                        setHomeworkSent(true)
-                      } catch { /* ignore */ }
-                      setHomeworkSending(false)
-                    }}
-                    disabled={homeworkSending || homeworkSent}
-                    className="rounded-xl px-5 py-2.5 text-xs font-bold transition-all disabled:opacity-50"
-                    style={{ background: color, color: '#fff', cursor: homeworkSent ? 'default' : 'pointer' }}
-                  >
-                    {homeworkSent ? '✓ Sent via WhatsApp' : homeworkSending ? 'Sending...' : 'Send Now via WhatsApp'}
-                  </button>
-                  {!homeworkSent && (
-                    <button
-                      onClick={() => setHomeworkItems([])}
-                      className="rounded-xl px-4 py-2.5 text-xs font-semibold"
-                      style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)', border: '1px solid var(--border-subtle)' }}
-                    >
-                      Cancel
-                    </button>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  {!homeworkSent ? (
+                    <>
+                      <button
+                        onClick={async () => {
+                          setHomeworkSending(true)
+                          const supabase = createClient()
+                          await supabase.from('homework').update({ status: 'sent', sent_at: new Date().toISOString(), send_at: new Date().toISOString() }).eq('session_id', sessionId).eq('status', 'draft')
+                          try {
+                            await fetch('/api/classroom/send-homework', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ sessionId, sessionTitle: session?.title ?? 'Classroom Session', items: homeworkItems }),
+                            })
+                          } catch { /* best-effort */ }
+                          setHomeworkSent(true)
+                          setHomeworkSending(false)
+                        }}
+                        disabled={homeworkSending}
+                        className="rounded-xl px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
+                        style={{ background: color, color: '#fff', cursor: 'pointer' }}
+                      >
+                        {homeworkSending ? 'Sending...' : 'Send Now'}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const sendAt = new Date(Date.now() + 30 * 60_000).toISOString()
+                          const supabase = createClient()
+                          await supabase.from('homework').update({ status: 'pending', send_at: sendAt }).eq('session_id', sessionId).eq('status', 'draft')
+                          setHomeworkSent(true)
+                        }}
+                        disabled={homeworkSending}
+                        className="rounded-xl px-4 py-2 text-xs font-semibold transition-all"
+                        style={{ background: `${color}15`, color, border: `1px solid ${color}40`, cursor: 'pointer' }}
+                      >
+                        Send in 30 min
+                      </button>
+                      <button
+                        onClick={() => setHomeworkItems([])}
+                        className="rounded-xl px-4 py-2 text-xs font-semibold"
+                        style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)', border: '1px solid var(--border-subtle)' }}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <p className="text-xs font-semibold" style={{ color: 'var(--success)' }}>
+                      ✓ Homework {homeworkSending ? 'sent' : 'scheduled'}
+                    </p>
                   )}
                 </div>
               </div>

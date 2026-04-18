@@ -103,11 +103,13 @@ export function FacultyQuestionQueue({
   open,
   onClose,
   onHomeworkAdd,
+  onQuestionReceived,
   accentColor,
 }: {
   open: boolean
   onClose: () => void
   onHomeworkAdd: (item: HomeworkItem) => void
+  onQuestionReceived?: (q: { text: string; studentName: string; timestamp: string }) => void
   accentColor: string
 }) {
   const [questions, setQuestions] = useState<Question[]>([])
@@ -118,6 +120,7 @@ export function FacultyQuestionQueue({
       const { id, studentName, text, timestamp } = event as { id: string; studentName: string; text: string; timestamp: string }
       setQuestions(prev => [...prev, { id, studentName, text, timestamp, status: 'sent' as const }])
       broadcast({ type: 'question_seen', id })
+      onQuestionReceived?.({ text, studentName, timestamp })
     }
   })
 
