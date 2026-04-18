@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { useAutoQueryHandler } from './useAutoQueryHandler'
 import { ToolContainer } from '@/components/classroom/ToolContainer'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -132,31 +133,24 @@ function IndianKanoonPanel() {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSearch = useCallback(async () => {
-    if (!query.trim()) return
-    setLoading(true)
-    setError('')
-    setResults([])
-    setSelectedDoc(null)
-    setPending(false)
-
+  async function doSearch(q: string) {
+    if (!q.trim()) return
+    setLoading(true); setError(''); setResults([]); setSelectedDoc(null); setPending(false)
     try {
-      const res = await fetch(`/api/classroom/indiankanoon?q=${encodeURIComponent(query.trim())}`)
+      const res = await fetch(`/api/classroom/indiankanoon?q=${encodeURIComponent(q.trim())}`)
       const data = await res.json()
-
-      if (data.pending) {
-        setPending(true)
-        setLoading(false)
-        return
-      }
-
+      if (data.pending) { setPending(true); setLoading(false); return }
       setResults(data.results ?? [])
       if (data.results?.length === 0) setError('No cases found')
-    } catch {
-      setError('Search failed')
-    }
+    } catch { setError('Search failed') }
     setLoading(false)
-  }, [query])
+  }
+
+  useAutoQueryHandler('indiankanoon', (params) => {
+    if (params.query) { setQuery(String(params.query)); doSearch(String(params.query)) }
+  })
+
+  const handleSearch = useCallback(() => { doSearch(query) }, [query]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadDocument = useCallback(async (docid: number) => {
     setLoading(true)

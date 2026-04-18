@@ -8,6 +8,7 @@ import Editor from '@monaco-editor/react'
 import { useRoom } from '@/components/classroom/liveblocks.config'
 import { LiveblocksYjsProvider } from '@liveblocks/yjs'
 import * as Y from 'yjs'
+import { useAutoQueryHandler } from './useAutoQueryHandler'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  Collaborative Monaco Editor with Liveblocks Yjs sync                      */
@@ -36,6 +37,11 @@ function CodeEditorPanel({ role }: { role: 'faculty' | 'student' }) {
   const [language, setLanguage] = useState<string>('python')
   const [code, setCode] = useState(DEFAULT_CODE.python)
   const [output, setOutput] = useState('')
+
+  useAutoQueryHandler('monaco', (params) => {
+    if (params.language) setLanguage(String(params.language))
+    if (params.starter_code) setCode(String(params.starter_code))
+  })
   const [running, setRunning] = useState(false)
   const [synced, setSynced] = useState(false)
   const yDocRef = useRef<Y.Doc | null>(null)

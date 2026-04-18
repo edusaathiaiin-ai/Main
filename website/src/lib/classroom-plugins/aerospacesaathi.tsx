@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { useAutoQueryHandler } from './useAutoQueryHandler'
 
 // ── NACA 4-digit airfoil generator (pure math) ──────────────────────────────
 
@@ -306,23 +307,31 @@ function AerospacePlugin({ role }: PluginProps) {
     }
   }, [tab, apod])
 
-  async function searchNasaImages() {
-    if (!imageQuery.trim()) return
+  async function searchNasaImages(q?: string) {
+    const term = q ?? imageQuery
+    if (!term.trim()) return
+    if (q) setImageQuery(q)
     setNasaLoading(true)
-    const res = await fetch(`/api/classroom/nasa?action=images&q=${encodeURIComponent(imageQuery)}`)
+    const res = await fetch(`/api/classroom/nasa?action=images&q=${encodeURIComponent(term)}`)
     const data = await res.json()
     setNasaImages(data.items ?? [])
     setNasaLoading(false)
   }
 
-  async function searchNtrs() {
-    if (!ntrsQuery.trim()) return
+  async function searchNtrs(q?: string) {
+    const term = q ?? ntrsQuery
+    if (!term.trim()) return
+    if (q) setNtrsQuery(q)
     setNasaLoading(true)
-    const res = await fetch(`/api/classroom/nasa?action=ntrs&q=${encodeURIComponent(ntrsQuery)}`)
+    const res = await fetch(`/api/classroom/nasa?action=ntrs&q=${encodeURIComponent(term)}`)
     const data = await res.json()
     setNtrsResults(data.results ?? [])
     setNasaLoading(false)
   }
+
+  useAutoQueryHandler('nasa', (params) => {
+    if (params.query) searchNasaImages(String(params.query))
+  })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -432,7 +441,7 @@ function AerospacePlugin({ role }: PluginProps) {
                   }}
                 />
                 <button
-                  onClick={searchNasaImages}
+                  onClick={() => searchNasaImages()}
                   disabled={nasaLoading}
                   style={{
                     padding: '8px 16px', borderRadius: '8px',
@@ -476,7 +485,7 @@ function AerospacePlugin({ role }: PluginProps) {
                   }}
                 />
                 <button
-                  onClick={searchNtrs}
+                  onClick={() => searchNtrs()}
                   disabled={nasaLoading}
                   style={{
                     padding: '8px 16px', borderRadius: '8px',

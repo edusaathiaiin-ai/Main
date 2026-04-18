@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
+import { useAutoQueryHandler } from './useAutoQueryHandler'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  PubChem drug search + 3Dmol.js viewer                                     */
@@ -27,6 +28,22 @@ function DrugStructurePanel() {
   const [error, setError] = useState('')
   const viewerRef = useRef<HTMLDivElement>(null)
   const viewerInstanceRef = useRef<unknown>(null)
+
+  useAutoQueryHandler('pubchem', (params) => {
+    if (params.compound_name) { setQuery(String(params.compound_name)); doSearch(String(params.compound_name)) }
+  })
+
+  async function doSearch(q: string) {
+    if (!q.trim()) return
+    setLoading(true); setError(''); setCompound(null)
+    try {
+      const res = await fetch(`/api/classroom/pubchem?name=${encodeURIComponent(q.trim())}`)
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Not found'); setLoading(false); return }
+      setCompound(data)
+    } catch { setError('Search failed') }
+    setLoading(false)
+  }
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return

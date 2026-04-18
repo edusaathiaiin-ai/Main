@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { useAutoQueryHandler } from './useAutoQueryHandler'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  PubChem search + 3Dmol.js viewer                                          */
@@ -19,15 +20,13 @@ type CompoundResult = {
   sdf: string | null
 }
 
-function PubChemPanel({ initialSearch, onSearchConsumed }: { initialSearch?: string | null; onSearchConsumed?: () => void }) {
+function PubChemPanel() {
   const [query, setQuery] = useState('')
   const [compound, setCompound] = useState<CompoundResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const viewerRef = useRef<HTMLDivElement>(null)
   const viewerInstanceRef = useRef<unknown>(null)
-  const initialSearchHandled = useRef(false)
-
   const searchByName = useCallback(async (name: string) => {
     if (!name.trim()) return
     setQuery(name)
@@ -43,14 +42,9 @@ function PubChemPanel({ initialSearch, onSearchConsumed }: { initialSearch?: str
     setLoading(false)
   }, [])
 
-  // Auto-search from Command Bar
-  useEffect(() => {
-    if (initialSearch && !initialSearchHandled.current) {
-      initialSearchHandled.current = true
-      onSearchConsumed?.()
-      searchByName(initialSearch)
-    }
-  }, [initialSearch, onSearchConsumed, searchByName])
+  useAutoQueryHandler('pubchem', (params) => {
+    if (params.compound_name) searchByName(String(params.compound_name))
+  })
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return
@@ -253,24 +247,13 @@ function KetcherPanel() {
 
 type ChemTab = 'canvas' | 'pubchem' | 'ketcher'
 
-function ChemPlugin({ role, pendingToolLoad, onToolConsumed, activeTab, onTabChange }: PluginProps) {
+function ChemPlugin({ role, activeTab, onTabChange }: PluginProps) {
   const currentTab = (activeTab || 'canvas') as ChemTab
   const setTab = (t: ChemTab) => onTabChange?.(t)
-  const [pendingSearch, setPendingSearch] = useState<string | null>(null)
 
-  // Set default tab on mount
   useEffect(() => {
     if (!activeTab) onTabChange?.('canvas')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // React to Command Bar tool load
-  useEffect(() => {
-    if (!pendingToolLoad || pendingToolLoad.tool !== 'pubchem') return
-    setTab('pubchem')
-    const compound = (pendingToolLoad.params.compound_name as string) ?? ''
-    if (compound) setPendingSearch(compound)
-    onToolConsumed?.()
-  }, [pendingToolLoad, onToolConsumed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const tabs: { id: ChemTab; label: string }[] = [
     { id: 'canvas', label: 'Canvas' },
@@ -306,7 +289,7 @@ function ChemPlugin({ role, pendingToolLoad, onToolConsumed, activeTab, onTabCha
           <CollaborativeCanvas role={role} />
         </div>
         <div style={{ display: currentTab === 'pubchem' ? 'block' : 'none', height: '100%', transition: 'opacity 0.15s', opacity: currentTab === 'pubchem' ? 1 : 0 }}>
-          <PubChemPanel initialSearch={pendingSearch} onSearchConsumed={() => setPendingSearch(null)} />
+          <PubChemPanel />
         </div>
         <div style={{ display: currentTab === 'ketcher' ? 'block' : 'none', height: '100%', transition: 'opacity 0.15s', opacity: currentTab === 'ketcher' ? 1 : 0 }}>
           <KetcherPanel />
