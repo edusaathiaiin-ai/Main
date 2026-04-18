@@ -133,42 +133,36 @@ function validate(body: Record<string, unknown>): { ok: true; data: Validated } 
 async function notifyAdminEmail(data: Validated, applicationId: string) {
   if (!RESEND_API_KEY) return
 
-  const detailRow = (label: string, value: string | number | null) =>
-    `<tr><td style="padding:4px 12px 4px 0;color:#7A7570;font-size:13px;vertical-align:top">${label}</td><td style="padding:4px 0;color:#1A1814;font-size:13px">${value ?? '—'}</td></tr>`
+  const row = (label: string, value: string | number | null) =>
+    `<tr><td style="padding:10px;border:1px solid #ddd;font-weight:bold;background:#f9f9f9;">${label}</td><td style="padding:10px;border:1px solid #ddd;">${value ?? '\u2014'}</td></tr>`
 
-  const html = `<!DOCTYPE html>
-<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#FAFAF8">
-  <div style="max-width:580px;margin:0 auto;padding:32px 24px">
-    <h1 style="font-family:Georgia,serif;font-size:20px;color:#1A1814;margin:0 0 16px 0">
-      New faculty application · ${escapeHtml(data.full_name)}
-    </h1>
-    <p style="font-size:13px;color:#7A7570;margin:0 0 24px 0">
-      Submitted just now — review within 48h per the /teach SLA.
-    </p>
+  const appliedAt = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
 
-    <table style="width:100%;border-collapse:collapse;margin:0 0 24px 0">
-      ${detailRow('Email',         escapeHtml(data.email))}
-      ${detailRow('WhatsApp',      escapeHtml(data.wa_phone))}
-      ${detailRow('Primary',       escapeHtml(data.primary_saathi_slug))}
-      ${detailRow('Additional',    escapeHtml(data.additional_saathi_slugs.join(', ') || '—'))}
-      ${detailRow('Qualification', escapeHtml(data.highest_qualification))}
-      ${detailRow('Institution',   escapeHtml(data.current_institution ?? '—'))}
-      ${detailRow('Experience',    `${data.years_experience} years`)}
-      ${detailRow('Fee / hr',      `₹${data.session_fee_rupees}`)}
-      ${detailRow('LinkedIn',      escapeHtml(data.linkedin_url ?? '—'))}
-      ${detailRow('Crossover',     escapeHtml(data.areas_of_expertise ?? '—'))}
-    </table>
+  const html = `<h2>New Faculty Application Waiting for Approval</h2>
+<table style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif;">
+${row('Name', escapeHtml(data.full_name))}
+${row('Email', escapeHtml(data.email))}
+${row('WhatsApp', escapeHtml(data.wa_phone))}
+${row('Primary Saathi', escapeHtml(data.primary_saathi_slug))}
+${row('Expertise', escapeHtml(data.areas_of_expertise ?? '\u2014'))}
+${row('Qualification', escapeHtml(data.highest_qualification))}
+${row('Institution', escapeHtml(data.current_institution ?? '\u2014'))}
+${row('Experience', data.years_experience + ' years')}
+${row('Fee / hr', '\u20b9' + data.session_fee_rupees)}
+${row('LinkedIn', escapeHtml(data.linkedin_url ?? '\u2014'))}
+${row('Applied at', appliedAt + ' IST')}
+</table>
 
-    <div style="background:#FFFFFF;border-left:3px solid #B8860B;padding:14px 18px;border-radius:4px;margin:0 0 20px 0">
-      <p style="margin:0 0 4px 0;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#B8860B;font-weight:600">Short bio</p>
-      <p style="margin:0;font-size:13px;color:#1A1814;line-height:1.55">${escapeHtml(data.short_bio)}</p>
-    </div>
+<div style="background:#FFFFFF;border-left:3px solid #B8860B;padding:14px 18px;border-radius:4px;margin:20px 0">
+<p style="margin:0 0 4px 0;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#B8860B;font-weight:600">Short bio</p>
+<p style="margin:0;font-size:13px;color:#1A1814;line-height:1.55">${escapeHtml(data.short_bio)}</p>
+</div>
 
-    <p style="font-size:12px;color:#A8A49E;margin:0">
-      Application ID: <code style="font-family:monospace">${applicationId}</code>
-    </p>
-  </div>
-</body></html>`
+<p style="font-size:12px;color:#A8A49E;margin:0 0 20px;">Application ID: <code>${applicationId}</code></p>
+
+<a href="https://edusaathiai-admin.vercel.app/faculty/applications" style="display:inline-block;background:#C9993A;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">Review Application \u2192</a>
+&nbsp;&nbsp;
+<a href="https://edusaathiai-admin.vercel.app/faculty/nominations" style="display:inline-block;background:#060F1D;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">View Nominations \u2192</a>`
 
   await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -177,10 +171,10 @@ async function notifyAdminEmail(data: Validated, applicationId: string) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from:     RESEND_FROM_EMAIL,
+      from:     'EdUsaathiAI System <noreply@edusaathiai.in>',
       to:       [ADMIN_EMAIL],
-      reply_to: data.email,                       // reply goes to the applicant
-      subject:  `Faculty application · ${data.full_name} (${data.primary_saathi_slug})`,
+      reply_to: data.email,
+      subject:  `\uD83D\uDD14 New Faculty Application \u2014 ${data.full_name} (${data.areas_of_expertise ?? data.primary_saathi_slug})`,
       html,
     }),
   }).catch((e) => console.error('[faculty-apply] admin email failed:', e))
