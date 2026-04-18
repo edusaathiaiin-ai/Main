@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvider'
 import { FormulaBar } from '@/components/classroom/FormulaBar'
 import { CommandBar } from '@/components/classroom/CommandBar'
+import { CanvasOverlay } from '@/components/classroom/CanvasOverlay'
 import { SourceBadge } from '@/components/classroom/SourceBadge'
 import type { SaathiPlugin } from '@/lib/classroom-plugins/types'
 
@@ -110,6 +111,7 @@ export default function ClassroomPage() {
   const [classroomMode, setClassroomMode] = useState<'standard' | 'interactive'>('standard')
   const [plugin, setPlugin] = useState<SaathiPlugin | null>(null)
   const [pendingToolLoad, setPendingToolLoad] = useState<{ tool: string; params: Record<string, unknown> } | null>(null)
+  const [activeTab, setActiveTab] = useState<string>('')
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -845,6 +847,9 @@ export default function ClassroomPage() {
                     saathiColor={saathi?.primary ?? '#C9993A'}
                     onToolLoad={(result) => {
                       setPendingToolLoad({ tool: result.tool, params: result.params })
+                      // Auto-switch tab via plugin's tool→tab mapping
+                      const tabId = plugin?.toolToTab?.[result.tool]
+                      if (tabId) setActiveTab(tabId)
                     }}
                   />
                 )}
@@ -871,13 +876,22 @@ export default function ClassroomPage() {
                 {/* Subject plugin (or default canvas) */}
                 <div className="relative flex-1">
                   {plugin ? (
-                    <plugin.Component
-                      roomId={sessionId}
-                      role={isFaculty ? 'faculty' : 'student'}
-                      saathiSlug={saathi?.id ?? 'default'}
-                      pendingToolLoad={pendingToolLoad}
-                      onToolConsumed={() => setPendingToolLoad(null)}
-                    />
+                    <>
+                      <plugin.Component
+                        roomId={sessionId}
+                        role={isFaculty ? 'faculty' : 'student'}
+                        saathiSlug={saathi?.id ?? 'default'}
+                        pendingToolLoad={pendingToolLoad}
+                        onToolConsumed={() => setPendingToolLoad(null)}
+                        activeTab={activeTab}
+                        onTabChange={setActiveTab}
+                      />
+                      {/* tldraw annotation overlay — always available */}
+                      <CanvasOverlay
+                        role={isFaculty ? 'faculty' : 'student'}
+                        saathiColor={saathi?.primary ?? '#C9993A'}
+                      />
+                    </>
                   ) : (
                     <div className="flex h-full items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
                       <div

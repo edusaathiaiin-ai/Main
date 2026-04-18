@@ -7,6 +7,10 @@ import type { ReactNode } from 'react'
 export interface SaathiPlugin {
   /** The main plugin component rendered in the 60% right panel */
   Component: React.FC<PluginProps>
+  /** Tab definitions — id + label. First tab is default. */
+  tabs?: { id: string; label: string }[]
+  /** Map from AI command tool name → tab id */
+  toolToTab?: Record<string, string>
   /** Additional toolbar buttons shown in the plugin header */
   toolbarItems?: ToolbarItem[]
   /** Data source attribution shown as badge, e.g. "RCSB Protein Data Bank" */
@@ -21,6 +25,8 @@ export interface PluginProps {
   saathiSlug: string
   pendingToolLoad?: { tool: string; params: Record<string, unknown> } | null
   onToolConsumed?: () => void
+  activeTab?: string
+  onTabChange?: (tab: string) => void
 }
 
 export interface ToolbarItem {

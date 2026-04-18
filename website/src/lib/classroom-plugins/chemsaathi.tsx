@@ -253,9 +253,15 @@ function KetcherPanel() {
 
 type ChemTab = 'canvas' | 'pubchem' | 'ketcher'
 
-function ChemPlugin({ role, pendingToolLoad, onToolConsumed }: PluginProps) {
-  const [tab, setTab] = useState<ChemTab>('canvas')
+function ChemPlugin({ role, pendingToolLoad, onToolConsumed, activeTab, onTabChange }: PluginProps) {
+  const currentTab = (activeTab || 'canvas') as ChemTab
+  const setTab = (t: ChemTab) => onTabChange?.(t)
   const [pendingSearch, setPendingSearch] = useState<string | null>(null)
+
+  // Set default tab on mount
+  useEffect(() => {
+    if (!activeTab) onTabChange?.('canvas')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // React to Command Bar tool load
   useEffect(() => {
@@ -264,7 +270,7 @@ function ChemPlugin({ role, pendingToolLoad, onToolConsumed }: PluginProps) {
     const compound = (pendingToolLoad.params.compound_name as string) ?? ''
     if (compound) setPendingSearch(compound)
     onToolConsumed?.()
-  }, [pendingToolLoad, onToolConsumed])
+  }, [pendingToolLoad, onToolConsumed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const tabs: { id: ChemTab; label: string }[] = [
     { id: 'canvas', label: 'Canvas' },
@@ -285,8 +291,8 @@ function ChemPlugin({ role, pendingToolLoad, onToolConsumed }: PluginProps) {
             onClick={() => setTab(t.id)}
             className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
             style={{
-              background: tab === t.id ? 'var(--bg-elevated)' : 'transparent',
-              color: tab === t.id ? 'var(--text-primary)' : 'var(--text-ghost)',
+              background: currentTab === t.id ? 'var(--bg-elevated)' : 'transparent',
+              color: currentTab === t.id ? 'var(--text-primary)' : 'var(--text-ghost)',
             }}
           >
             {t.label}
@@ -296,9 +302,15 @@ function ChemPlugin({ role, pendingToolLoad, onToolConsumed }: PluginProps) {
 
       {/* Tab content */}
       <div className="relative flex-1">
-        {tab === 'canvas' && <CollaborativeCanvas role={role} />}
-        {tab === 'pubchem' && <PubChemPanel initialSearch={pendingSearch} onSearchConsumed={() => setPendingSearch(null)} />}
-        {tab === 'ketcher' && <KetcherPanel />}
+        <div style={{ display: currentTab === 'canvas' ? 'block' : 'none', height: '100%', transition: 'opacity 0.15s', opacity: currentTab === 'canvas' ? 1 : 0 }}>
+          <CollaborativeCanvas role={role} />
+        </div>
+        <div style={{ display: currentTab === 'pubchem' ? 'block' : 'none', height: '100%', transition: 'opacity 0.15s', opacity: currentTab === 'pubchem' ? 1 : 0 }}>
+          <PubChemPanel initialSearch={pendingSearch} onSearchConsumed={() => setPendingSearch(null)} />
+        </div>
+        <div style={{ display: currentTab === 'ketcher' ? 'block' : 'none', height: '100%', transition: 'opacity 0.15s', opacity: currentTab === 'ketcher' ? 1 : 0 }}>
+          <KetcherPanel />
+        </div>
       </div>
     </div>
   )
@@ -310,7 +322,15 @@ function ChemPlugin({ role, pendingToolLoad, onToolConsumed }: PluginProps) {
 
 const plugin: SaathiPlugin = {
   Component: ChemPlugin,
-  sourceLabel: 'PubChem + 3Dmol.js + Ketcher',
+  sourceLabel: 'PubChem + 3Dmol.js + MolView',
+  tabs: [
+    { id: 'canvas', label: 'Canvas' },
+    { id: 'pubchem', label: '3D Molecules' },
+    { id: 'ketcher', label: '2D/3D Editor' },
+  ],
+  toolToTab: {
+    pubchem: 'pubchem',
+  },
 }
 
 export default plugin
