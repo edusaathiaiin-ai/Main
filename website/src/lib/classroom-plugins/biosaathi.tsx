@@ -5,7 +5,7 @@ import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
 import { RcsbPanel as SharedRcsbPanel } from '@/components/classroom/RcsbPanel'
-import { useAutoSearch } from './useAutoSearch'
+import { useAutoQueryHandler } from './useAutoQueryHandler'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  RCSB PDB panel — protein structure search + 3Dmol.js viewer               */
@@ -250,11 +250,9 @@ function PubMedPanel() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Universal auto-search from TA command bar
-  useAutoSearch('pubmed', (params) => {
+  useAutoQueryHandler('pubmed', (params) => {
     const q = (params.query as string) ?? ''
     if (q) { setQuery(q); doSearch(q) }
-    return q
   })
 
   async function doSearch(q: string) {

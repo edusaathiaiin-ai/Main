@@ -1,37 +1,24 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
-import { useAutoSearch } from '@/lib/classroom-plugins/useAutoSearch'
+import { useState, useCallback } from 'react'
+import { useAutoQueryHandler } from '@/lib/classroom-plugins/useAutoQueryHandler'
 
 type Pod = { title: string; content: string; image_url: string | null }
 
 type Props = {
-  initialQuery?: string | null
-  onQueryConsumed?: () => void
   onArtifact?: (a: { type: string; source: string; source_url?: string; data: Record<string, unknown>; timestamp: string }) => unknown
 }
 
-export function WolframPanel({ initialQuery, onQueryConsumed, onArtifact }: Props) {
+export function WolframPanel({ onArtifact }: Props) {
   const [query, setQuery] = useState('')
   const [pods, setPods] = useState<Pod[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Universal auto-search from TA command bar
-  useAutoSearch('wolfram', (params) => {
+  useAutoQueryHandler('wolfram', (params) => {
     const q = (params.query as string) ?? ''
     if (q) { setQuery(q); doSearch(q) }
-    return q
   })
-
-  // Legacy prop-based auto-search
-  useEffect(() => {
-    if (initialQuery) {
-      setQuery(initialQuery)
-      onQueryConsumed?.()
-      doSearch(initialQuery)
-    }
-  }, [initialQuery]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function doSearch(q: string) {
     if (!q.trim()) return
