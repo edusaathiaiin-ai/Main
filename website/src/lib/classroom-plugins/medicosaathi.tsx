@@ -6,6 +6,7 @@ import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
 import { RcsbPanel } from '@/components/classroom/RcsbPanel'
 import { WolframPanel } from '@/components/classroom/WolframPanel'
+import { useAutoSearch } from './useAutoSearch'
 
 const TABS = ['Canvas', 'Anatomy 3D', 'Proteins', 'Wolfram', 'PubMed', 'ScienceDirect', 'Citations', 'Drug Reference', 'Clinical Images'] as const
 type Tab = typeof TABS[number]
@@ -33,11 +34,17 @@ function PubMedPanel({ initialSearch, onSearchConsumed, onArtifact }: { initialS
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PubMedResult[]>([])
   const [loading, setLoading] = useState(false)
-  const searchDone = useState(false)
 
+  // Universal auto-search from TA command bar
+  useAutoSearch('pubmed', (params) => {
+    const q = (params.query as string) ?? ''
+    if (q) { setQuery(q); doSearch(q) }
+    return q
+  })
+
+  // Legacy prop-based auto-search
   useEffect(() => {
-    if (initialSearch && !searchDone[0]) {
-      searchDone[1](true)
+    if (initialSearch) {
       setQuery(initialSearch)
       onSearchConsumed?.()
       doSearch(initialSearch)

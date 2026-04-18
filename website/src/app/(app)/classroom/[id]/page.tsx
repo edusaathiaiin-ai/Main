@@ -19,6 +19,7 @@ import { StudentAskPanel, FacultyQuestionQueue } from '@/components/classroom/Qu
 import type { HomeworkItem } from '@/components/classroom/QuestionQueue'
 import { SourceBadge } from '@/components/classroom/SourceBadge'
 import { useArtifactLog } from '@/hooks/useArtifactLog'
+import { AutoQueryProvider } from '@/lib/classroom-plugins/AutoQueryContext'
 import type { ResearchArtifact } from '@/hooks/useArtifactLog'
 import type { SaathiPlugin } from '@/lib/classroom-plugins/types'
 
@@ -1080,7 +1081,10 @@ export default function ClassroomPage() {
 
                   <div className="relative flex-1">
                     {plugin ? (
-                      <>
+                      <AutoQueryProvider
+                        value={pendingToolLoad}
+                        onClear={() => setPendingToolLoad(null)}
+                      >
                         <plugin.Component
                           roomId={sessionId}
                           role={isFaculty ? 'faculty' : 'student'}
@@ -1095,7 +1099,7 @@ export default function ClassroomPage() {
                           role={isFaculty ? 'faculty' : 'student'}
                           saathiColor={saathi?.primary ?? '#C9993A'}
                         />
-                      </>
+                      </AutoQueryProvider>
                     ) : (
                       <div className="flex h-full items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
                         <div

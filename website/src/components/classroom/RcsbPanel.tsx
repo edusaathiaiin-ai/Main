@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-
-/* eslint-disable react-hooks/exhaustive-deps */
+import { useAutoSearch } from '@/lib/classroom-plugins/useAutoSearch'
 
 type PdbResult = {
   pdb_id: string; title: string; organism: string
@@ -18,7 +17,6 @@ type Props = {
 
 export function RcsbPanel({ placeholder, initialQuery, onQueryConsumed, onArtifact }: Props) {
   const [query, setQuery] = useState('')
-  const lastAutoQuery = useRef<string | null>(null)
   const [searchResults, setSearchResults] = useState<{ pdb_id: string }[]>([])
   const [structure, setStructure] = useState<PdbResult | null>(null)
   const [loading, setLoading] = useState(false)
@@ -26,14 +24,21 @@ export function RcsbPanel({ placeholder, initialQuery, onQueryConsumed, onArtifa
   const viewerRef = useRef<HTMLDivElement>(null)
   const viewerInstanceRef = useRef<unknown>(null)
 
+  // Universal auto-search from TA command bar
+  useAutoSearch('rcsb', (params) => {
+    const q = (params.protein_name as string) ?? (params.pdb_id as string) ?? ''
+    if (q) { setQuery(q); doSearch(q) }
+    return q
+  })
+
+  // Legacy prop-based auto-search (for plugins that still pass initialQuery)
   useEffect(() => {
-    if (initialQuery && initialQuery !== lastAutoQuery.current) {
-      lastAutoQuery.current = initialQuery
+    if (initialQuery) {
       setQuery(initialQuery)
       onQueryConsumed?.()
       doSearch(initialQuery)
     }
-  }, [initialQuery])
+  }, [initialQuery]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function doSearch(q: string) {
     if (!q.trim()) return

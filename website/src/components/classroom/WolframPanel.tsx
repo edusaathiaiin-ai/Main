@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { useAutoSearch } from '@/lib/classroom-plugins/useAutoSearch'
 
 type Pod = { title: string; content: string; image_url: string | null }
 
@@ -12,14 +13,20 @@ type Props = {
 
 export function WolframPanel({ initialQuery, onQueryConsumed, onArtifact }: Props) {
   const [query, setQuery] = useState('')
-  const lastAutoQuery = useRef<string | null>(null)
   const [pods, setPods] = useState<Pod[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Universal auto-search from TA command bar
+  useAutoSearch('wolfram', (params) => {
+    const q = (params.query as string) ?? ''
+    if (q) { setQuery(q); doSearch(q) }
+    return q
+  })
+
+  // Legacy prop-based auto-search
   useEffect(() => {
-    if (initialQuery && initialQuery !== lastAutoQuery.current) {
-      lastAutoQuery.current = initialQuery
+    if (initialQuery) {
       setQuery(initialQuery)
       onQueryConsumed?.()
       doSearch(initialQuery)

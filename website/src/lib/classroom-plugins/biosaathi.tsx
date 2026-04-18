@@ -5,6 +5,7 @@ import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
 import { RcsbPanel as SharedRcsbPanel } from '@/components/classroom/RcsbPanel'
+import { useAutoSearch } from './useAutoSearch'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  RCSB PDB panel — protein structure search + 3Dmol.js viewer               */
@@ -248,11 +249,17 @@ function PubMedPanel({ initialQuery, onQueryConsumed }: { initialQuery?: string 
   const [papers, setPapers] = useState<Paper[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const lastAutoQuery = useRef<string | null>(null)
 
+  // Universal auto-search from TA command bar
+  useAutoSearch('pubmed', (params) => {
+    const q = (params.query as string) ?? ''
+    if (q) { setQuery(q); doSearch(q) }
+    return q
+  })
+
+  // Legacy prop-based auto-search
   useEffect(() => {
-    if (initialQuery && initialQuery !== lastAutoQuery.current) {
-      lastAutoQuery.current = initialQuery
+    if (initialQuery) {
       setQuery(initialQuery)
       onQueryConsumed?.()
       doSearch(initialQuery)
