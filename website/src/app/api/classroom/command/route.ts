@@ -28,7 +28,6 @@ const SAATHI_NAMES: Record<string, string> = {
 }
 
 export async function POST(req: NextRequest) {
-  console.log('ANTHROPIC_API_KEY present:', !!process.env.ANTHROPIC_API_KEY)
   try {
     // Auth
     const authHeader = req.headers.get('Authorization') ?? ''
