@@ -220,6 +220,29 @@ export default function NominateFacultyModal({
               heads-up makes all the difference. 🙏
             </p>
           </div>
+          {/* WhatsApp tip */}
+          <div style={{
+            background: 'rgba(22,163,106,0.06)',
+            borderRadius: '10px',
+            padding: '12px 16px',
+            textAlign: 'left',
+            marginBottom: '16px',
+            border: '1px solid rgba(22,163,106,0.15)',
+          }}>
+            <p style={{
+              fontSize: '12px',
+              color: 'var(--text-secondary)',
+              lineHeight: '1.6',
+              margin: 0,
+            }}>
+              <span style={{ fontSize: '14px' }}>💚</span>{' '}
+              <strong>Tip:</strong> Ask {form.faculty_name.split(' ')[0]} to save{' '}
+              <strong>+91 98255 93204</strong> (EdUsaathiAI) on WhatsApp.
+              We send a personal invitation via WhatsApp too — it lands much
+              faster than email.
+            </p>
+          </div>
+
           <p style={{
             fontSize: '12px',
             color: 'var(--text-tertiary)',
