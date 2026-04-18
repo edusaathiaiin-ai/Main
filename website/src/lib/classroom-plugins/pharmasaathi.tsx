@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  PubChem drug search + 3Dmol.js viewer                                     */
@@ -339,7 +340,7 @@ function PharmaPubMedPanel() {
 /*  Pharma Plugin Component                                                   */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-type PharmaTab = 'canvas' | 'drug_structure' | 'drug_target' | 'pubmed'
+type PharmaTab = 'canvas' | 'drug_structure' | 'drug_target' | 'pubmed' | 'sciencedirect' | 'citations'
 
 function PharmaPlugin({ role }: PluginProps) {
   const [tab, setTab] = useState<PharmaTab>('canvas')
@@ -349,11 +350,13 @@ function PharmaPlugin({ role }: PluginProps) {
     { id: 'drug_structure', label: 'Drug 3D' },
     { id: 'drug_target', label: 'Binding Sites' },
     { id: 'pubmed', label: 'Literature' },
+    { id: 'sciencedirect', label: 'ScienceDirect' },
+    { id: 'citations', label: 'Citations' },
   ]
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex shrink-0 items-center gap-1 px-2 py-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+      <div className="flex shrink-0 flex-wrap items-center gap-1 px-2 py-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         {tabs.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
@@ -370,6 +373,8 @@ function PharmaPlugin({ role }: PluginProps) {
         {tab === 'drug_structure' && <DrugStructurePanel />}
         {tab === 'drug_target' && <DrugTargetPanel />}
         {tab === 'pubmed' && <PharmaPubMedPanel />}
+        {tab === 'sciencedirect' && <ScienceDirectPanel />}
+        {tab === 'citations' && <ScopusPanel />}
       </div>
     </div>
   )
@@ -377,7 +382,7 @@ function PharmaPlugin({ role }: PluginProps) {
 
 const plugin: SaathiPlugin = {
   Component: PharmaPlugin,
-  sourceLabel: 'PubChem + RCSB PDB + PubMed',
+  sourceLabel: 'PubChem + RCSB PDB + PubMed + ScienceDirect + Scopus',
 }
 
 export default plugin

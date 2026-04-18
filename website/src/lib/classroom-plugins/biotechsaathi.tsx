@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  RCSB PDB panel (shared with biosaathi — same 3Dmol.js viewer)             */
@@ -311,7 +312,7 @@ function NcbiGenePanel() {
 /*  Biotech Plugin Component                                                  */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-type BiotechTab = 'canvas' | 'rcsb' | 'ensembl' | 'ncbi_gene'
+type BiotechTab = 'canvas' | 'rcsb' | 'ensembl' | 'ncbi_gene' | 'sciencedirect' | 'citations'
 
 function BiotechPlugin({ role }: PluginProps) {
   const [tab, setTab] = useState<BiotechTab>('canvas')
@@ -321,11 +322,13 @@ function BiotechPlugin({ role }: PluginProps) {
     { id: 'rcsb', label: '3D Proteins' },
     { id: 'ensembl', label: 'Genome' },
     { id: 'ncbi_gene', label: 'Genes' },
+    { id: 'sciencedirect', label: 'ScienceDirect' },
+    { id: 'citations', label: 'Citations' },
   ]
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex shrink-0 items-center gap-1 px-2 py-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+      <div className="flex shrink-0 flex-wrap items-center gap-1 px-2 py-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         {tabs.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
@@ -342,6 +345,8 @@ function BiotechPlugin({ role }: PluginProps) {
         {tab === 'rcsb' && <RcsbPanel />}
         {tab === 'ensembl' && <EnsemblPanel />}
         {tab === 'ncbi_gene' && <NcbiGenePanel />}
+        {tab === 'sciencedirect' && <ScienceDirectPanel />}
+        {tab === 'citations' && <ScopusPanel />}
       </div>
     </div>
   )
@@ -349,7 +354,7 @@ function BiotechPlugin({ role }: PluginProps) {
 
 const plugin: SaathiPlugin = {
   Component: BiotechPlugin,
-  sourceLabel: 'RCSB PDB + Ensembl + NCBI Gene',
+  sourceLabel: 'RCSB PDB + Ensembl + NCBI Gene + ScienceDirect + Scopus',
 }
 
 export default plugin

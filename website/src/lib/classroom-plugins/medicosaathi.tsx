@@ -3,8 +3,9 @@
 import { useState, useCallback, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
 
-const TABS = ['Canvas', 'Anatomy 3D', 'PubMed', 'Drug Reference', 'Clinical Images'] as const
+const TABS = ['Canvas', 'Anatomy 3D', 'PubMed', 'ScienceDirect', 'Citations', 'Drug Reference', 'Clinical Images'] as const
 type Tab = typeof TABS[number]
 
 // Zygote Body — free 3D anatomy viewer (no auth required, allows embedding)
@@ -193,6 +194,14 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
           <PubMedPanel initialSearch={pendingSearch} onSearchConsumed={() => setPendingSearch(null)} />
         </div>
 
+        <div style={{ display: currentTab === 'ScienceDirect' ? 'block' : 'none', height: '100%' }}>
+          <ScienceDirectPanel />
+        </div>
+
+        <div style={{ display: currentTab === 'Citations' ? 'block' : 'none', height: '100%' }}>
+          <ScopusPanel />
+        </div>
+
         <div style={{ display: currentTab === 'Drug Reference' ? 'block' : 'none', height: '100%', overflowY: 'auto', padding: '16px' }}>
           <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 10px' }}>💊 openFDA Drug Reference</h3>
           <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
@@ -235,10 +244,11 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
 
 const plugin: SaathiPlugin = {
   Component: MedicoPlugin,
-  sourceLabel: 'Sketchfab + Zygote Body + PubMed + openFDA',
+  sourceLabel: 'Sketchfab + PubMed + ScienceDirect + Scopus + openFDA',
   tabs: [
     { id: 'Canvas', label: 'Canvas' }, { id: 'Anatomy 3D', label: 'Anatomy 3D' },
-    { id: 'PubMed', label: 'PubMed' }, { id: 'Drug Reference', label: 'Drug Reference' },
+    { id: 'PubMed', label: 'PubMed' }, { id: 'ScienceDirect', label: 'ScienceDirect' },
+    { id: 'Citations', label: 'Citations' }, { id: 'Drug Reference', label: 'Drug Reference' },
     { id: 'Clinical Images', label: 'Clinical Images' },
   ],
   toolToTab: { pubmed: 'PubMed', rcsb: 'Anatomy 3D' },

@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  RCSB PDB panel — protein structure search + 3Dmol.js viewer               */
@@ -443,7 +444,7 @@ function UniProtPanel() {
 /*  Biology Plugin Component                                                  */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-type BioTab = 'canvas' | 'rcsb' | 'uniprot' | 'pubmed'
+type BioTab = 'canvas' | 'rcsb' | 'uniprot' | 'pubmed' | 'sciencedirect' | 'citations'
 
 function BioPlugin({ role }: PluginProps) {
   const [tab, setTab] = useState<BioTab>('canvas')
@@ -453,11 +454,13 @@ function BioPlugin({ role }: PluginProps) {
     { id: 'rcsb', label: '3D Proteins' },
     { id: 'uniprot', label: 'UniProt' },
     { id: 'pubmed', label: 'PubMed' },
+    { id: 'sciencedirect', label: 'ScienceDirect' },
+    { id: 'citations', label: 'Citations' },
   ]
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex shrink-0 items-center gap-1 px-2 py-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+      <div className="flex shrink-0 flex-wrap items-center gap-1 px-2 py-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -477,6 +480,8 @@ function BioPlugin({ role }: PluginProps) {
         {tab === 'rcsb' && <RcsbPanel />}
         {tab === 'uniprot' && <UniProtPanel />}
         {tab === 'pubmed' && <PubMedPanel />}
+        {tab === 'sciencedirect' && <ScienceDirectPanel />}
+        {tab === 'citations' && <ScopusPanel />}
       </div>
     </div>
   )
@@ -484,7 +489,7 @@ function BioPlugin({ role }: PluginProps) {
 
 const plugin: SaathiPlugin = {
   Component: BioPlugin,
-  sourceLabel: 'RCSB PDB + UniProt + PubMed',
+  sourceLabel: 'RCSB PDB + UniProt + PubMed + ScienceDirect + Scopus',
 }
 
 export default plugin
