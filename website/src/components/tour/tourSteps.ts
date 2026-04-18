@@ -9,19 +9,13 @@ export const STUDENT_TOUR: TourStep[] = [
   },
   {
     target: '[data-tour="nav-board"]',
-    title: '🏛️ Community Board',
+    title: '🌐 Community Board',
     description:
       'Post questions publicly. Your Saathi answers instantly. Verified faculty can also reply with expert knowledge.',
   },
   {
-    target: '[data-tour="nav-more"]',
-    title: '🎓 Faculty Finder & More',
-    description:
-      'Tap here to find verified professors, book 1:1 sessions, browse internships, and declare what you want to learn.',
-  },
-  {
     target: '[data-tour="nav-explore"]',
-    title: '🗺️ Your Treasure Chest',
+    title: '📚 Explore Beyond',
     description:
       'Curated books, journals, tools and channels — refreshed every week by your Saathi. Everything beyond the chat.',
   },
