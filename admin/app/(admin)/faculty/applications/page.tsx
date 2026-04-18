@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
 import { getAdminClient } from '@/lib/supabase-admin'
+import { approveApplication, rejectApplication } from './actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -128,16 +129,14 @@ export default async function ApplicationsPage() {
               {/* Actions */}
               {app.status === 'pending' && (
                 <div className="flex gap-2">
-                  <form action={`/api/faculty-application-action`} method="POST">
+                  <form action={approveApplication}>
                     <input type="hidden" name="id" value={app.id} />
-                    <input type="hidden" name="action" value="approve" />
                     <button type="submit" className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors">
                       ✓ Approve
                     </button>
                   </form>
-                  <form action={`/api/faculty-application-action`} method="POST">
+                  <form action={rejectApplication}>
                     <input type="hidden" name="id" value={app.id} />
-                    <input type="hidden" name="action" value="reject" />
                     <button type="submit" className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-colors">
                       Decline
                     </button>
