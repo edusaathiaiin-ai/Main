@@ -50,7 +50,7 @@ export async function approveApplication(formData: FormData) {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#F9F7F4;border-radius:10px;margin:0 0 24px;"><tr><td style="padding:20px 24px;">
 <table cellpadding="0" cellspacing="0">
 <tr><td style="padding:4px 0;font-size:14px;color:#444;">\u2726 \u00a0Log in at <a href="https://edusaathiai.in/login" style="color:#C9993A;">edusaathiai.in/login</a> with the email you applied with</td></tr>
-<tr><td style="padding:4px 0;font-size:14px;color:#444;">\u2726 \u00a0Complete your faculty profile \u2014 add your photo, session availability, and fee</td></tr>
+<tr><td style="padding:4px 0;font-size:14px;color:#444;">\u2726 \u00a0Complete your faculty profile \u2014 add your session availability and fee</td></tr>
 <tr><td style="padding:4px 0;font-size:14px;color:#444;">\u2726 \u00a0Your profile will appear on Faculty Finder once complete</td></tr>
 <tr><td style="padding:4px 0;font-size:14px;color:#444;">\u2726 \u00a0Students can then discover and book sessions with you</td></tr>
 </table>

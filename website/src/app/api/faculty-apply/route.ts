@@ -191,12 +191,17 @@ ${row('Applied at', appliedAt + ' IST')}
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from:     'EdUsaathiAI System <noreply@edusaathiai.in>',
+      from:     'EdUsaathiAI <admin@edusaathiai.in>',
       to:       [ADMIN_EMAIL],
       reply_to: data.email,
       subject:  `\uD83D\uDD14 New Faculty Application \u2014 ${data.full_name} (${data.areas_of_expertise ?? data.primary_saathi_slug})`,
       html,
     }),
+  }).then(async (res) => {
+    if (res && !res.ok) {
+      const errText = await res.text().catch(() => 'unknown')
+      console.error('[faculty-apply] admin email rejected:', res.status, errText)
+    }
   }).catch((e) => console.error('[faculty-apply] admin email failed:', e))
 }
 
