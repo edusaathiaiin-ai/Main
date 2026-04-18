@@ -243,32 +243,37 @@ type Paper = {
   doi: string
 }
 
-function PubMedPanel() {
+function PubMedPanel({ initialQuery, onQueryConsumed }: { initialQuery?: string | null; onQueryConsumed?: () => void }) {
   const [query, setQuery] = useState('')
   const [papers, setPapers] = useState<Paper[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const lastAutoQuery = useRef<string | null>(null)
 
-  const handleSearch = useCallback(async () => {
-    if (!query.trim()) return
-    setLoading(true)
-    setError('')
-    setPapers([])
+  useEffect(() => {
+    if (initialQuery && initialQuery !== lastAutoQuery.current) {
+      lastAutoQuery.current = initialQuery
+      setQuery(initialQuery)
+      onQueryConsumed?.()
+      doSearch(initialQuery)
+    }
+  }, [initialQuery]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  async function doSearch(q: string) {
+    if (!q.trim()) return
+    setLoading(true); setError(''); setPapers([])
     try {
-      const res = await fetch(`/api/classroom/pubmed?q=${encodeURIComponent(query.trim())}`)
+      const res = await fetch(`/api/classroom/pubmed?q=${encodeURIComponent(q.trim())}`)
       const data = await res.json()
       if (res.ok) {
         setPapers(data.papers ?? [])
         if (data.papers?.length === 0) setError('No papers found')
-      } else {
-        setError(data.error)
-      }
-    } catch {
-      setError('Search failed')
-    }
+      } else setError(data.error)
+    } catch { setError('Search failed') }
     setLoading(false)
-  }, [query])
+  }
+
+  const handleSearch = useCallback(() => { doSearch(query) }, [query]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex h-full flex-col">
@@ -448,9 +453,12 @@ function UniProtPanel() {
 type BioTab = 'canvas' | 'rcsb' | 'uniprot' | 'pubmed' | 'sciencedirect' | 'citations'
 
 function BioPlugin({ role, onArtifact, activeTab, onTabChange, pendingToolLoad, onToolConsumed }: PluginProps) {
-  const [tab, setTab] = useState<BioTab>('canvas')
+  const currentTab = (activeTab || 'canvas') as BioTab
+  const setTab = (t: BioTab) => onTabChange?.(t)
   const [pendingRcsb, setPendingRcsb] = useState<string | null>(null)
   const [pendingPubmed, setPendingPubmed] = useState<string | null>(null)
+
+  useEffect(() => { if (!activeTab) onTabChange?.('canvas') }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!pendingToolLoad) return
@@ -485,8 +493,8 @@ function BioPlugin({ role, onArtifact, activeTab, onTabChange, pendingToolLoad, 
             onClick={() => setTab(t.id)}
             className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
             style={{
-              background: tab === t.id ? 'var(--bg-elevated)' : 'transparent',
-              color: tab === t.id ? 'var(--text-primary)' : 'var(--text-ghost)',
+              background: currentTab === t.id ? 'var(--bg-elevated)' : 'transparent',
+              color: currentTab === t.id ? 'var(--text-primary)' : 'var(--text-ghost)',
             }}
           >
             {t.label}
@@ -494,12 +502,12 @@ function BioPlugin({ role, onArtifact, activeTab, onTabChange, pendingToolLoad, 
         ))}
       </div>
       <div className="relative flex-1">
-        {tab === 'canvas' && <CollaborativeCanvas role={role} />}
-        {tab === 'rcsb' && <SharedRcsbPanel initialQuery={pendingRcsb} onQueryConsumed={() => setPendingRcsb(null)} onArtifact={onArtifact} />}
-        {tab === 'uniprot' && <UniProtPanel />}
-        {tab === 'pubmed' && <PubMedPanel />}
-        {tab === 'sciencedirect' && <ScienceDirectPanel />}
-        {tab === 'citations' && <ScopusPanel />}
+        {currentTab === 'canvas' && <CollaborativeCanvas role={role} />}
+        {currentTab === 'rcsb' && <SharedRcsbPanel initialQuery={pendingRcsb} onQueryConsumed={() => setPendingRcsb(null)} onArtifact={onArtifact} />}
+        {currentTab === 'uniprot' && <UniProtPanel />}
+        {currentTab === 'pubmed' && <PubMedPanel initialQuery={pendingPubmed} onQueryConsumed={() => setPendingPubmed(null)} />}
+        {currentTab === 'sciencedirect' && <ScienceDirectPanel />}
+        {currentTab === 'citations' && <ScopusPanel />}
       </div>
     </div>
   )

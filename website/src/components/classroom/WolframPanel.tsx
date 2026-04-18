@@ -12,17 +12,17 @@ type Props = {
 
 export function WolframPanel({ initialQuery, onQueryConsumed, onArtifact }: Props) {
   const [query, setQuery] = useState('')
-  const autoSearched = useRef(false)
+  const lastAutoQuery = useRef<string | null>(null)
   const [pods, setPods] = useState<Pod[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (initialQuery && !autoSearched.current) {
-      autoSearched.current = true
+    if (initialQuery && initialQuery !== lastAutoQuery.current) {
+      lastAutoQuery.current = initialQuery
       setQuery(initialQuery)
       onQueryConsumed?.()
-      setTimeout(() => doSearch(initialQuery), 100)
+      doSearch(initialQuery)
     }
   }, [initialQuery]) // eslint-disable-line react-hooks/exhaustive-deps
 

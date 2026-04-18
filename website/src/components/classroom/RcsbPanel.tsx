@@ -18,7 +18,7 @@ type Props = {
 
 export function RcsbPanel({ placeholder, initialQuery, onQueryConsumed, onArtifact }: Props) {
   const [query, setQuery] = useState('')
-  const autoSearched = useRef(false)
+  const lastAutoQuery = useRef<string | null>(null)
   const [searchResults, setSearchResults] = useState<{ pdb_id: string }[]>([])
   const [structure, setStructure] = useState<PdbResult | null>(null)
   const [loading, setLoading] = useState(false)
@@ -27,15 +27,11 @@ export function RcsbPanel({ placeholder, initialQuery, onQueryConsumed, onArtifa
   const viewerInstanceRef = useRef<unknown>(null)
 
   useEffect(() => {
-    if (initialQuery && !autoSearched.current) {
-      autoSearched.current = true
+    if (initialQuery && initialQuery !== lastAutoQuery.current) {
+      lastAutoQuery.current = initialQuery
       setQuery(initialQuery)
       onQueryConsumed?.()
-      setTimeout(() => {
-        const q = initialQuery
-        setQuery(q)
-        doSearch(q)
-      }, 100)
+      doSearch(initialQuery)
     }
   }, [initialQuery])
 
