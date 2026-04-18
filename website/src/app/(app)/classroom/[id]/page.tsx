@@ -787,13 +787,42 @@ export default function ClassroomPage() {
                 style={{ borderRight: '1px solid var(--border-subtle)' }}
               >
                 {embedUrl ? (
-                  <iframe
-                    src={embedUrl}
-                    allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media"
-                    allowFullScreen
-                    className="h-full w-full border-0"
-                    style={{ background: '#000' }}
-                  />
+                  <div
+                    className="flex h-full w-full flex-col items-center justify-center gap-4"
+                    style={{ background: 'var(--bg-sunken, #f5f5f0)' }}
+                  >
+                    <div
+                      className="flex h-16 w-16 items-center justify-center rounded-2xl"
+                      style={{ background: `${saathi?.primary ?? '#C9993A'}12` }}
+                    >
+                      <span style={{ fontSize: '28px' }}>📹</span>
+                    </div>
+                    <div style={{ textAlign: 'center', maxWidth: '280px' }}>
+                      <p style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>
+                        Open Google Meet
+                      </p>
+                      <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', lineHeight: 1.6, margin: '0 0 16px' }}>
+                        Your meeting opens in a new tab.
+                        Return here for the interactive canvas, tools, and AI assistant.
+                      </p>
+                      <a
+                        href={embedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors"
+                        style={{
+                          background: saathi?.primary ?? '#C9993A',
+                          color: '#fff',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        Open Meet →
+                      </a>
+                    </div>
+                    <p style={{ fontSize: '11px', color: 'var(--text-ghost)', marginTop: '8px' }}>
+                      Canvas, command bar, and all tools stay here
+                    </p>
+                  </div>
                 ) : (
                   <div
                     className="flex h-full w-full items-center justify-center"
