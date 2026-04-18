@@ -413,6 +413,17 @@ export default function ClassroomPage() {
       } catch { /* homework save is best-effort */ }
     }
 
+    // ── Archive session (faculty only — creates research_archives + updates soul) ──
+    if (profile.id === session?.faculty_id) {
+      try {
+        await fetch('/api/classroom/archive-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: sessionId }),
+        })
+      } catch { /* archive is best-effort */ }
+    }
+
     setState('summary')
   }, [profile, session, sessionId, sessionQuestions, homeworkItems])
 
