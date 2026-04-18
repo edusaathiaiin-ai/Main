@@ -28,6 +28,7 @@ const SAATHI_NAMES: Record<string, string> = {
 }
 
 export async function POST(req: NextRequest) {
+  console.log('ANTHROPIC_API_KEY present:', !!process.env.ANTHROPIC_API_KEY)
   try {
     // Auth
     const authHeader = req.headers.get('Authorization') ?? ''
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 256,
         system: `You are the classroom teaching assistant for ${saathiName}.
 Faculty typed a command. Identify the correct tool to load and extract the query parameters.
