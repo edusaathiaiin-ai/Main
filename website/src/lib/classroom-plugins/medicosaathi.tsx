@@ -8,7 +8,7 @@ import { RcsbPanel } from '@/components/classroom/RcsbPanel'
 import { WolframPanel } from '@/components/classroom/WolframPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
 
-const TABS = ['Canvas', 'Anatomy 3D', 'Proteins', 'Wolfram', 'PubMed', 'ScienceDirect', 'Citations', 'Drug Reference', 'Clinical Images'] as const
+const TABS = ['Canvas', 'Anatomy 3D', 'Neuro Atlas', 'Proteins', 'Wolfram', 'PubMed', 'ScienceDirect', 'Citations', 'Drug Reference', 'Clinical Images'] as const
 type Tab = typeof TABS[number]
 
 // Zygote Body — free 3D anatomy viewer (no auth required, allows embedding)
@@ -184,6 +184,15 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
           </div>
         </div>
 
+        <div style={{ display: currentTab === 'Neuro Atlas' ? 'block' : 'none', height: '100%' }}>
+          <iframe
+            title="OpenAnatomy — Harvard Medical School"
+            src="https://www.openanatomy.org/atlas/"
+            style={{ width: '100%', height: '100%', border: 'none' }}
+            sandbox="allow-scripts allow-same-origin allow-popups"
+          />
+        </div>
+
         <div style={{ display: currentTab === 'Proteins' ? 'block' : 'none', height: '100%' }}>
           <RcsbPanel placeholder="Search protein... e.g. Troponin, 1J1E" onArtifact={onArtifact} />
         </div>
@@ -246,9 +255,10 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
 
 const plugin: SaathiPlugin = {
   Component: MedicoPlugin,
-  sourceLabel: 'RCSB PDB + Wolfram Alpha + PubMed + ScienceDirect + Scopus',
+  sourceLabel: 'RCSB PDB + OpenAnatomy (Harvard) + Wolfram Alpha + PubMed + ScienceDirect + Scopus',
   tabs: [
     { id: 'Canvas', label: 'Canvas' }, { id: 'Anatomy 3D', label: 'Anatomy 3D' },
+    { id: 'Neuro Atlas', label: 'Neuro Atlas' },
     { id: 'Proteins', label: 'Proteins' }, { id: 'Wolfram', label: 'Wolfram' },
     { id: 'PubMed', label: 'PubMed' }, { id: 'ScienceDirect', label: 'ScienceDirect' },
     { id: 'Citations', label: 'Citations' }, { id: 'Drug Reference', label: 'Drug Reference' },
