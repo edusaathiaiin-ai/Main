@@ -119,6 +119,7 @@ export default function ClassroomPage() {
   const [classroomMode, setClassroomMode] = useState<'standard' | 'interactive'>('standard')
   const [plugin, setPlugin] = useState<SaathiPlugin | null>(null)
   const [pendingToolLoad, setPendingToolLoad] = useState<{ tool: string; params: Record<string, unknown> } | null>(null)
+  const [autoQuery, setAutoQuery] = useState<{ tool: string; params: Record<string, unknown> } | null>(null)
   const [activeTab, setActiveTab] = useState<string>('')
   const [panelRatio, setPanelRatio] = useState(40) // left panel % width
   const [notesOpen, setNotesOpen] = useState(false)
@@ -1050,9 +1051,8 @@ export default function ClassroomPage() {
                       saathiSlug={saathi?.id ?? 'default'}
                       saathiColor={saathi?.primary ?? '#C9993A'}
                       onToolLoad={(result) => {
-                        setPendingToolLoad({ tool: result.tool, params: result.params })
-                        const tabId = plugin?.toolToTab?.[result.tool]
-                        if (tabId) setActiveTab(tabId)
+                        setActiveTab(result.tool)
+                        setAutoQuery({ tool: result.tool, params: result.params })
                       }}
                     />
                   )}
@@ -1082,15 +1082,13 @@ export default function ClassroomPage() {
                   <div className="relative flex-1">
                     {plugin ? (
                       <AutoQueryProvider
-                        value={pendingToolLoad}
-                        onClear={() => setPendingToolLoad(null)}
+                        value={autoQuery}
+                        onClear={() => setAutoQuery(null)}
                       >
                         <plugin.Component
                           roomId={sessionId}
                           role={isFaculty ? 'faculty' : 'student'}
                           saathiSlug={saathi?.id ?? 'default'}
-                          pendingToolLoad={pendingToolLoad}
-                          onToolConsumed={() => setPendingToolLoad(null)}
                           activeTab={activeTab}
                           onTabChange={setActiveTab}
                           onArtifact={(a) => emitArtifact(a as ResearchArtifact)}

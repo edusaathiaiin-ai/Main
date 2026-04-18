@@ -244,7 +244,7 @@ type Paper = {
   doi: string
 }
 
-function PubMedPanel({ initialQuery, onQueryConsumed }: { initialQuery?: string | null; onQueryConsumed?: () => void }) {
+function PubMedPanel() {
   const [query, setQuery] = useState('')
   const [papers, setPapers] = useState<Paper[]>([])
   const [loading, setLoading] = useState(false)
@@ -256,15 +256,6 @@ function PubMedPanel({ initialQuery, onQueryConsumed }: { initialQuery?: string 
     if (q) { setQuery(q); doSearch(q) }
     return q
   })
-
-  // Legacy prop-based auto-search
-  useEffect(() => {
-    if (initialQuery) {
-      setQuery(initialQuery)
-      onQueryConsumed?.()
-      doSearch(initialQuery)
-    }
-  }, [initialQuery]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function doSearch(q: string) {
     if (!q.trim()) return
@@ -459,28 +450,11 @@ function UniProtPanel() {
 
 type BioTab = 'canvas' | 'rcsb' | 'uniprot' | 'pubmed' | 'sciencedirect' | 'citations'
 
-function BioPlugin({ role, onArtifact, activeTab, onTabChange, pendingToolLoad, onToolConsumed }: PluginProps) {
+function BioPlugin({ role, onArtifact, activeTab, onTabChange }: PluginProps) {
   const currentTab = (activeTab || 'canvas') as BioTab
   const setTab = (t: BioTab) => onTabChange?.(t)
-  const [pendingRcsb, setPendingRcsb] = useState<string | null>(null)
-  const [pendingPubmed, setPendingPubmed] = useState<string | null>(null)
 
   useEffect(() => { if (!activeTab) onTabChange?.('canvas') }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!pendingToolLoad) return
-    const p = pendingToolLoad.params
-    if (pendingToolLoad.tool === 'rcsb') {
-      setTab('rcsb')
-      const q = (p.protein_name as string) ?? (p.pdb_id as string) ?? ''
-      if (q) setPendingRcsb(q)
-    } else if (pendingToolLoad.tool === 'pubmed') {
-      setTab('pubmed')
-      const q = (p.query as string) ?? ''
-      if (q) setPendingPubmed(q)
-    }
-    onToolConsumed?.()
-  }, [pendingToolLoad]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const tabs: { id: BioTab; label: string }[] = [
     { id: 'canvas', label: 'Canvas' },
@@ -510,9 +484,9 @@ function BioPlugin({ role, onArtifact, activeTab, onTabChange, pendingToolLoad, 
       </div>
       <div className="relative flex-1">
         {currentTab === 'canvas' && <CollaborativeCanvas role={role} />}
-        {currentTab === 'rcsb' && <SharedRcsbPanel initialQuery={pendingRcsb} onQueryConsumed={() => setPendingRcsb(null)} onArtifact={onArtifact} />}
+        {currentTab === 'rcsb' && <SharedRcsbPanel onArtifact={onArtifact} />}
         {currentTab === 'uniprot' && <UniProtPanel />}
-        {currentTab === 'pubmed' && <PubMedPanel initialQuery={pendingPubmed} onQueryConsumed={() => setPendingPubmed(null)} />}
+        {currentTab === 'pubmed' && <PubMedPanel />}
         {currentTab === 'sciencedirect' && <ScienceDirectPanel />}
         {currentTab === 'citations' && <ScopusPanel />}
       </div>

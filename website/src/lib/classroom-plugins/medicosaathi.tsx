@@ -30,7 +30,7 @@ const SKETCHFAB_ANATOMY = [
 
 type PubMedResult = { pmid: string; title: string; abstract: string; authors: string; journal: string; year: string }
 
-function PubMedPanel({ initialSearch, onSearchConsumed, onArtifact }: { initialSearch?: string | null; onSearchConsumed?: () => void; onArtifact?: PluginProps['onArtifact'] }) {
+function PubMedPanel({ onArtifact }: { onArtifact?: PluginProps['onArtifact'] }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PubMedResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -41,15 +41,6 @@ function PubMedPanel({ initialSearch, onSearchConsumed, onArtifact }: { initialS
     if (q) { setQuery(q); doSearch(q) }
     return q
   })
-
-  // Legacy prop-based auto-search
-  useEffect(() => {
-    if (initialSearch) {
-      setQuery(initialSearch)
-      onSearchConsumed?.()
-      doSearch(initialSearch)
-    }
-  }, [initialSearch]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function doSearch(q: string) {
     if (!q.trim()) return
@@ -101,37 +92,15 @@ function PubMedPanel({ initialSearch, onSearchConsumed, onArtifact }: { initialS
   )
 }
 
-function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolConsumed, onArtifact }: PluginProps) {
+function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps) {
   const currentTab = (activeTab || 'Canvas') as Tab
   const setTab = (t: Tab) => onTabChange?.(t)
   const [selectedModel, setSelectedModel] = useState(SKETCHFAB_ANATOMY[0].id)
   const [anatomySource, setAnatomySource] = useState<'sketchfab' | 'zygote'>('sketchfab')
-  const [pendingSearch, setPendingSearch] = useState<string | null>(null)
-  const [pendingRcsb, setPendingRcsb] = useState<string | null>(null)
-  const [pendingWolfram, setPendingWolfram] = useState<string | null>(null)
   const [drugQuery, setDrugQuery] = useState('')
   const [drugResults, setDrugResults] = useState<{ name: string; description: string }[]>([])
 
   useEffect(() => { if (!activeTab) onTabChange?.('Canvas') }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!pendingToolLoad) return
-    const p = pendingToolLoad.params
-    if (pendingToolLoad.tool === 'pubmed') {
-      setTab('PubMed')
-      const q = (p.query as string) ?? ''
-      if (q) setPendingSearch(q)
-    } else if (pendingToolLoad.tool === 'rcsb') {
-      setTab('Proteins')
-      const q = (p.protein_name as string) ?? (p.pdb_id as string) ?? ''
-      if (q) setPendingRcsb(q)
-    } else if (pendingToolLoad.tool === 'wolfram') {
-      setTab('Wolfram')
-      const q = (p.query as string) ?? ''
-      if (q) setPendingWolfram(q)
-    }
-    onToolConsumed?.()
-  }, [pendingToolLoad]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function searchDrug() {
     if (!drugQuery.trim()) return
@@ -218,15 +187,15 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
         </div>
 
         <div style={{ display: currentTab === 'Proteins' ? 'block' : 'none', height: '100%' }}>
-          <RcsbPanel placeholder="Search protein... e.g. Troponin, 1J1E" initialQuery={pendingRcsb} onQueryConsumed={() => setPendingRcsb(null)} onArtifact={onArtifact} />
+          <RcsbPanel placeholder="Search protein... e.g. Troponin, 1J1E" onArtifact={onArtifact} />
         </div>
 
         <div style={{ display: currentTab === 'Wolfram' ? 'block' : 'none', height: '100%' }}>
-          <WolframPanel initialQuery={pendingWolfram} onQueryConsumed={() => setPendingWolfram(null)} onArtifact={onArtifact} />
+          <WolframPanel onArtifact={onArtifact} />
         </div>
 
         <div style={{ display: currentTab === 'PubMed' ? 'block' : 'none', height: '100%' }}>
-          <PubMedPanel initialSearch={pendingSearch} onSearchConsumed={() => setPendingSearch(null)} onArtifact={onArtifact} />
+          <PubMedPanel onArtifact={onArtifact} />
         </div>
 
         <div style={{ display: currentTab === 'ScienceDirect' ? 'block' : 'none', height: '100%' }}>
