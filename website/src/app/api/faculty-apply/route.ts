@@ -131,7 +131,26 @@ function validate(body: Record<string, unknown>): { ok: true; data: Validated } 
 // ── Admin email ────────────────────────────────────────────────────────
 
 async function notifyAdminEmail(data: Validated, applicationId: string) {
-  if (!RESEND_API_KEY) return
+  if (!RESEND_API_KEY || !SUPABASE_URL || !SERVICE_ROLE_KEY) return
+
+  // Check if applicant was nominated by a student
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+  const { data: nomination } = await admin
+    .from('faculty_nominations')
+    .select('faculty_name, nominated_by_user_id')
+    .eq('faculty_email', data.email.toLowerCase())
+    .neq('status', 'declined')
+    .maybeSingle()
+
+  let nominatedBy = 'Direct application \u2014 found us independently'
+  if (nomination?.nominated_by_user_id) {
+    const { data: nominator } = await admin
+      .from('profiles')
+      .select('full_name')
+      .eq('id', nomination.nominated_by_user_id)
+      .single()
+    nominatedBy = `${nominator?.full_name ?? 'Unknown'} (student referral)`
+  }
 
   const row = (label: string, value: string | number | null) =>
     `<tr><td style="padding:10px;border:1px solid #ddd;font-weight:bold;background:#f9f9f9;">${label}</td><td style="padding:10px;border:1px solid #ddd;">${value ?? '\u2014'}</td></tr>`
@@ -150,6 +169,7 @@ ${row('Institution', escapeHtml(data.current_institution ?? '\u2014'))}
 ${row('Experience', data.years_experience + ' years')}
 ${row('Fee / hr', '\u20b9' + data.session_fee_rupees)}
 ${row('LinkedIn', escapeHtml(data.linkedin_url ?? '\u2014'))}
+${row('Nominated by', nominatedBy)}
 ${row('Applied at', appliedAt + ' IST')}
 </table>
 
