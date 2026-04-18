@@ -14,6 +14,7 @@ import { CommandBar } from '@/components/classroom/CommandBar'
 import { CanvasOverlay } from '@/components/classroom/CanvasOverlay'
 import { ClassroomDivider } from '@/components/classroom/ClassroomDivider'
 import { ModeSwitch, ModeSyncBridge } from '@/components/classroom/ModeSwitch'
+import { NoteBuilder } from '@/components/classroom/NoteBuilder'
 import { SourceBadge } from '@/components/classroom/SourceBadge'
 import type { SaathiPlugin } from '@/lib/classroom-plugins/types'
 
@@ -115,6 +116,7 @@ export default function ClassroomPage() {
   const [pendingToolLoad, setPendingToolLoad] = useState<{ tool: string; params: Record<string, unknown> } | null>(null)
   const [activeTab, setActiveTab] = useState<string>('')
   const [panelRatio, setPanelRatio] = useState(40) // left panel % width
+  const [notesOpen, setNotesOpen] = useState(false)
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -798,17 +800,32 @@ export default function ClassroomPage() {
             )}
           </div>
 
-          {/* Right: End button */}
-          <button
-            onClick={handleLeave}
-            className="rounded-xl px-4 py-2 text-xs font-bold transition-colors"
-            style={{
-              background: 'var(--error-bg)',
-              color: 'var(--error)',
-            }}
-          >
-            {isFaculty ? 'End Session' : 'Leave'}
-          </button>
+          {/* Right: Notes toggle + End button */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setNotesOpen(o => !o)}
+              className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all"
+              style={{
+                background: notesOpen ? `${color}15` : 'var(--bg-elevated)',
+                border: `1px solid ${notesOpen ? color : 'var(--border-subtle)'}`,
+                color: notesOpen ? color : 'var(--text-tertiary)',
+                cursor: 'pointer',
+              }}
+              title="Toggle notes panel"
+            >
+              ✏️ Notes
+            </button>
+            <button
+              onClick={handleLeave}
+              className="rounded-xl px-4 py-2 text-xs font-bold transition-colors"
+              style={{
+                background: 'var(--error-bg)',
+                color: 'var(--error)',
+              }}
+            >
+              {isFaculty ? 'End Session' : 'Leave'}
+            </button>
+          </div>
         </div>
 
         {/* Content area — wrapped in Liveblocks for mode broadcast */}
@@ -989,6 +1006,13 @@ export default function ClassroomPage() {
                 </div>
               </>
             )}
+            {/* Note builder — private per user, right edge */}
+            <NoteBuilder
+              sessionId={sessionId}
+              sessionTitle={session?.title ?? 'Classroom Session'}
+              open={notesOpen}
+              onClose={() => setNotesOpen(false)}
+            />
           </div>
         </ClassroomRoomProvider>
 
