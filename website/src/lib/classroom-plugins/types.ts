@@ -27,6 +27,8 @@ export interface PluginProps {
   onToolConsumed?: () => void
   activeTab?: string
   onTabChange?: (tab: string) => void
+  /** Emit a research artifact — wired by classroom page. type field uses ArtifactType from useArtifactLog. */
+  onArtifact?: (artifact: { type: string; source: string; source_url?: string; data: Record<string, unknown>; timestamp: string }) => unknown
 }
 
 export interface ToolbarItem {

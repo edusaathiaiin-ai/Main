@@ -342,7 +342,7 @@ function PharmaPubMedPanel() {
 
 type PharmaTab = 'canvas' | 'drug_structure' | 'drug_target' | 'pubmed' | 'sciencedirect' | 'citations'
 
-function PharmaPlugin({ role }: PluginProps) {
+function PharmaPlugin({ role, onArtifact }: PluginProps) {
   const [tab, setTab] = useState<PharmaTab>('canvas')
 
   const tabs: { id: PharmaTab; label: string }[] = [

@@ -314,7 +314,7 @@ function NcbiGenePanel() {
 
 type BiotechTab = 'canvas' | 'rcsb' | 'ensembl' | 'ncbi_gene' | 'sciencedirect' | 'citations'
 
-function BiotechPlugin({ role }: PluginProps) {
+function BiotechPlugin({ role, onArtifact }: PluginProps) {
   const [tab, setTab] = useState<BiotechTab>('canvas')
 
   const tabs: { id: BiotechTab; label: string }[] = [

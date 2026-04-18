@@ -18,6 +18,8 @@ import { NoteBuilder } from '@/components/classroom/NoteBuilder'
 import { StudentAskPanel, FacultyQuestionQueue } from '@/components/classroom/QuestionQueue'
 import type { HomeworkItem } from '@/components/classroom/QuestionQueue'
 import { SourceBadge } from '@/components/classroom/SourceBadge'
+import { useArtifactLog } from '@/hooks/useArtifactLog'
+import type { ResearchArtifact } from '@/hooks/useArtifactLog'
 import type { SaathiPlugin } from '@/lib/classroom-plugins/types'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -124,6 +126,8 @@ export default function ClassroomPage() {
   const [homeworkSending, setHomeworkSending] = useState(false)
   const [homeworkSent, setHomeworkSent] = useState(false)
   const [sessionQuestions, setSessionQuestions] = useState<{ text: string; studentName: string; timestamp: string }[]>([])
+
+  const { emit: emitArtifact } = useArtifactLog(sessionId)
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -1062,6 +1066,7 @@ export default function ClassroomPage() {
                           onToolConsumed={() => setPendingToolLoad(null)}
                           activeTab={activeTab}
                           onTabChange={setActiveTab}
+                          onArtifact={(a) => emitArtifact(a as ResearchArtifact)}
                         />
                         <CanvasOverlay
                           role={isFaculty ? 'faculty' : 'student'}

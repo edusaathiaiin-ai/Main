@@ -27,7 +27,7 @@ const SKETCHFAB_ANATOMY = [
 
 type PubMedResult = { pmid: string; title: string; abstract: string; authors: string; journal: string; year: string }
 
-function PubMedPanel({ initialSearch, onSearchConsumed }: { initialSearch?: string | null; onSearchConsumed?: () => void }) {
+function PubMedPanel({ initialSearch, onSearchConsumed, onArtifact }: { initialSearch?: string | null; onSearchConsumed?: () => void; onArtifact?: PluginProps['onArtifact'] }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PubMedResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -48,7 +48,16 @@ function PubMedPanel({ initialSearch, onSearchConsumed }: { initialSearch?: stri
     try {
       const res = await fetch(`/api/classroom/pubmed?q=${encodeURIComponent(q.trim())}`)
       const data = await res.json()
-      setResults(data.papers ?? [])
+      const papers = data.papers ?? []
+      setResults(papers)
+      for (const p of papers) {
+        onArtifact?.({
+          type: 'pubmed_citation', source: 'PubMed / NCBI',
+          source_url: `https://pubmed.ncbi.nlm.nih.gov/${p.pmid}`,
+          data: { pmid: p.pmid, title: p.title, authors: p.authors ?? [], journal: p.journal ?? '', year: p.year ?? '' },
+          timestamp: new Date().toISOString(),
+        })
+      }
     } catch { setResults([]) }
     setLoading(false)
   }
@@ -83,7 +92,7 @@ function PubMedPanel({ initialSearch, onSearchConsumed }: { initialSearch?: stri
   )
 }
 
-function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolConsumed }: PluginProps) {
+function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolConsumed, onArtifact }: PluginProps) {
   const currentTab = (activeTab || 'Canvas') as Tab
   const setTab = (t: Tab) => onTabChange?.(t)
   const [selectedModel, setSelectedModel] = useState(SKETCHFAB_ANATOMY[0].id)
@@ -191,7 +200,7 @@ function MedicoPlugin({ role, activeTab, onTabChange, pendingToolLoad, onToolCon
         </div>
 
         <div style={{ display: currentTab === 'PubMed' ? 'block' : 'none', height: '100%' }}>
-          <PubMedPanel initialSearch={pendingSearch} onSearchConsumed={() => setPendingSearch(null)} />
+          <PubMedPanel initialSearch={pendingSearch} onSearchConsumed={() => setPendingSearch(null)} onArtifact={onArtifact} />
         </div>
 
         <div style={{ display: currentTab === 'ScienceDirect' ? 'block' : 'none', height: '100%' }}>

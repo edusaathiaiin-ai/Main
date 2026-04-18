@@ -446,7 +446,7 @@ function UniProtPanel() {
 
 type BioTab = 'canvas' | 'rcsb' | 'uniprot' | 'pubmed' | 'sciencedirect' | 'citations'
 
-function BioPlugin({ role }: PluginProps) {
+function BioPlugin({ role, onArtifact }: PluginProps) {
   const [tab, setTab] = useState<BioTab>('canvas')
 
   const tabs: { id: BioTab; label: string }[] = [
