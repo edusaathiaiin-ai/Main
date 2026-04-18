@@ -267,7 +267,7 @@ async function notifyNominatingStudent(
       .select('id, faculty_name, nominated_by_user_id, nominator_type')
       .eq('faculty_email', facultyEmail.toLowerCase())
       .neq('status', 'declined')
-      .single()
+      .maybeSingle()
 
     const nomination = nominationRaw as {
       id: string
