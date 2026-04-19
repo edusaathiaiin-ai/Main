@@ -509,3 +509,8 @@ verify_jwt = false
 # Called by chat edge function for inline math/physics/stats results.
 [functions.fetch-wolfram]
 verify_jwt = false
+
+# NASA API — APOD, Image Library, NTRS Technical Reports.
+# Called by chat edge function for inline space/physics imagery.
+[functions.fetch-nasa]
+verify_jwt = false

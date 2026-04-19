@@ -351,6 +351,21 @@ Rules:
 - If question is conceptual only (no calculation) — skip the tag
 Use natural Wolfram Alpha query syntax — it understands plain English.`
 
+const NASA_SAATHIS = new Set(['aerospacesaathi', 'physicsaathi'])
+
+const NASA_INSTRUCTION = `NASA DATA: When discussing space, astronomy, astrophysics, aeronautics, rocket science, planetary science, or any topic where a NASA image would deepen understanding — embed a reference using this exact format:
+[NASA:search query for relevant image or concept]
+Examples:
+- Student asks about Mars → explain, then: [NASA:mars surface rover]
+- Student asks about black holes → explain, then: [NASA:black hole simulation]
+- Student asks about ISS → [NASA:international space station orbit]
+- Student asks about rocket propulsion → [NASA:rocket engine test firing]
+Rules:
+- Only emit ONE [NASA:] tag per response
+- Query should be visual — NASA's strength is imagery
+- Always explain BEFORE the tag
+- If question is pure math/theory with no visual component — skip the tag`
+
 const UNIVERSAL_GUARDRAILS = `UNIVERSAL GUARDRAILS — enforce without exception:
 - Never write assignments, essays, or exam answers on behalf of the student.
 - Never express political opinions or take political sides.
@@ -775,6 +790,7 @@ async function buildSystemPrompt(
 
   const saathiGuardrail = SAATHI_GUARDRAILS[saathiSlug] ?? '';
   const wolframBlock = WOLFRAM_SAATHIS.has(saathiSlug) ? `\n\n${WOLFRAM_INSTRUCTION}` : '';
+  const nasaBlock = NASA_SAATHIS.has(saathiSlug) ? `\n\n${NASA_INSTRUCTION}` : '';
 
   return `${SAATHI_PHILOSOPHY}
 
@@ -1005,7 +1021,7 @@ Degree programme: ${degreeProgramme}${currentSemester ? ` | Semester ${currentSe
 ${firstSessionBlock ? `
 # FIRST SESSION INSTRUCTION
 ${firstSessionBlock}
-` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}${wolframBlock}${(() => {
+` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}${wolframBlock}${nasaBlock}${(() => {
   // ── Rich rendering instructions ──────────────────────────────────────────────
   const MATH_SAATHIS = new Set([
     'maathsaathi', 'chemsaathi', 'biosaathi', 'physicsaathi',
