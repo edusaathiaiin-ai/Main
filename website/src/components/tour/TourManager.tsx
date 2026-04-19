@@ -10,13 +10,22 @@ import type { TourStep } from './TourTooltip'
 
 const TOUR_KEY = 'edusaathiai_tour_v1'
 
-export function TourManager() {
+export function TourManager({ forceShow, onClose }: { forceShow?: boolean; onClose?: () => void } = {}) {
   const { profile } = useAuthStore()
   const [showTour, setShowTour] = useState(false)
   const [steps, setSteps] = useState<TourStep[]>([])
 
+  // Manual trigger via forceShow prop
   useEffect(() => {
-    if (!profile) return
+    if (forceShow && profile) {
+      const role = profile.role ?? 'student'
+      setSteps(role === 'faculty' ? FACULTY_TOUR : role === 'institution' ? INSTITUTION_TOUR : STUDENT_TOUR)
+      setShowTour(true)
+    }
+  }, [forceShow, profile])
+
+  useEffect(() => {
+    if (!profile || forceShow) return
 
     const completed = localStorage.getItem(`${TOUR_KEY}_${profile.id}`)
     if (completed) return
@@ -40,6 +49,7 @@ export function TourManager() {
 
   function handleComplete() {
     setShowTour(false)
+    onClose?.()
     if (profile?.id) {
       localStorage.setItem(`${TOUR_KEY}_${profile.id}`, new Date().toISOString())
     }

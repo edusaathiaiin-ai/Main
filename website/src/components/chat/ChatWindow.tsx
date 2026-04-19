@@ -34,6 +34,7 @@ import { getColumnLimit } from '@/lib/columnLimit'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
 import NominateFacultyModal from '@/components/faculty/NominateFacultyModal'
+import { TourManager } from '@/components/tour/TourManager'
 import { FreePlanBar } from './FreePlanBar'
 import { WaLinkTip } from './WaLinkTip'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -301,6 +302,7 @@ export function ChatWindow() {
   const [activeBoardInfo, setActiveBoardInfo] = useState<BoardInfo | null>(null)
   const [showNewBoardModal, setShowNewBoardModal] = useState(false)
   const [showNominateModal, setShowNominateModal] = useState(false)
+  const [showTour, setShowTour] = useState(false)
   const [boardRefreshKey, setBoardRefreshKey] = useState(0)
 
   // Mobile detection — single column only on small screens
@@ -1024,6 +1026,9 @@ export function ChatWindow() {
           onSlotChange={handleSlotChange}
           onLockedTap={handleLockedTap}
           onSuggestFaculty={() => setShowNominateModal(true)}
+          onEmailDigest={() => handleEmailDigest()}
+          digestState={digestState}
+          onWalkthrough={() => setShowTour(true)}
         />
 
         {/* Free plan ambient quota bar — always visible, hides during cooling */}
@@ -1356,6 +1361,11 @@ export function ChatWindow() {
           }
         }}
       />
+
+      {/* Walkthrough tour */}
+      {showTour && (
+        <TourManager forceShow={showTour} onClose={() => setShowTour(false)} />
+      )}
 
       {/* Nominate Faculty modal */}
       {showNominateModal && (
