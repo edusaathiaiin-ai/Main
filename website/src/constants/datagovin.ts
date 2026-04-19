@@ -24,7 +24,7 @@ export const DATAGOVIN_RESOURCES = {
   // AgriSaathi
   CROP_PRODUCTION: 'TODO',               // State-wise crop production
   MSP_CROPS: 'TODO',                     // Minimum support prices
-  AGMARKNET_PRICES: 'TODO',              // Mandi/APMC live prices
+  AGMARKNET_PRICES: '35985678-0d79-46b4-9ed6-6f13308a1d24', // 78M+ daily mandi prices — every commodity, every market
   RAINFALL_DISTRICT: 'TODO',             // District-wise rainfall
   SOIL_HEALTH: 'TODO',                   // Soil health card data
 
