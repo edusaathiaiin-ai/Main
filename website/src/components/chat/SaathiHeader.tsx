@@ -97,19 +97,17 @@ export function SaathiHeader({
             <button
               onClick={onEmailDigest}
               disabled={digestState === 'sending'}
-              title="Email today's chat summary"
-              className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium transition-all"
+              title="Email today's chat as a study summary — key concepts + homework for tomorrow"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all"
               style={{
                 background: digestState === 'sent' ? 'var(--success-bg)' : 'var(--bg-elevated)',
                 border: `1px solid ${digestState === 'sent' ? 'var(--success)' : 'var(--border-medium)'}`,
-                color: digestState === 'sent' ? 'var(--success)' : digestState === 'error' ? 'var(--error)' : 'var(--text-tertiary)',
+                color: digestState === 'sent' ? 'var(--success)' : digestState === 'error' ? 'var(--error)' : 'var(--text-secondary)',
                 cursor: digestState === 'sending' ? 'not-allowed' : 'pointer',
               }}
             >
               {digestState === 'sending' ? '⏳' : digestState === 'sent' ? '✓' : digestState === 'error' ? '✗' : '📧'}
-              <span className="hidden sm:inline">
-                {digestState === 'sent' ? 'Sent' : digestState === 'error' ? 'No chat' : 'Email'}
-              </span>
+              {digestState === 'sent' ? 'Sent to your email!' : digestState === 'error' ? 'No chat today' : digestState === 'sending' ? 'Sending...' : "Email today's chat"}
             </button>
           )}
 
@@ -117,16 +115,16 @@ export function SaathiHeader({
           {onWalkthrough && (
             <button
               onClick={onWalkthrough}
-              title="Start walkthrough tour"
-              className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium transition-all"
+              title="Take a guided tour of all features"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all"
               style={{
                 background: 'var(--bg-elevated)',
                 border: '1px solid var(--border-medium)',
-                color: 'var(--text-tertiary)',
+                color: 'var(--text-secondary)',
                 cursor: 'pointer',
               }}
             >
-              🎓 <span className="hidden sm:inline">Tour</span>
+              🎓 Guided tour
             </button>
           )}
 
