@@ -24,6 +24,7 @@ import { MessageBubble } from './MessageBubble'
 import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
 import { YesterdaySummary } from './YesterdaySummary'
+import { ThinkingBubble } from './ThinkingBubble'
 import { IceBreaker } from './IceBreaker'
 import { canUseSplitView } from '@/lib/canUseSplitView'
 import BoardNavigator, { type BoardInfo } from '@/components/chat/BoardNavigator'
@@ -1227,8 +1228,16 @@ export function ChatWindow() {
                   )
                 })}
 
-                {/* Streaming bubble */}
-                {isStreaming && (
+                {/* Thinking bubble — shows before first token */}
+                {isStreaming && !streamingText && (
+                  <ThinkingBubble
+                    saathiName={activeSaathi.name}
+                    saathiEmoji={activeSaathi.emoji}
+                  />
+                )}
+
+                {/* Streaming bubble — shows once first token arrives */}
+                {isStreaming && streamingText && (
                   <MessageBubble
                     key="streaming"
                     message={{
