@@ -1233,6 +1233,7 @@ export function ChatWindow() {
                   <ThinkingBubble
                     saathiName={activeSaathi.name}
                     saathiEmoji={activeSaathi.emoji}
+                    saathiSlug={saathiId}
                   />
                 )}
 

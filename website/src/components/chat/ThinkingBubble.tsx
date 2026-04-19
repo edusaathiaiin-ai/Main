@@ -2,15 +2,111 @@
 
 import { useState, useEffect } from 'react'
 
-export function ThinkingBubble({ saathiName, saathiEmoji }: { saathiName: string; saathiEmoji: string }) {
-  const [messageIndex, setMessageIndex] = useState(0)
+const SAATHI_THINKING: Record<string, string[]> = {
+  kanoonsaathi: [
+    'KanoonSaathi is reviewing the law...',
+    'Checking relevant sections and judgments...',
+    'Preparing your legal explanation...',
+    'Almost ready...',
+  ],
+  medicosaathi: [
+    'MedicoSaathi is reviewing clinical knowledge...',
+    'Preparing your medical explanation...',
+    'Checking the latest guidelines...',
+    'Almost ready...',
+  ],
+  maathsaathi: [
+    'MaathSaathi is working through the problem...',
+    'Calculating step by step...',
+    'Preparing your solution...',
+    'Almost ready...',
+  ],
+  physicsaathi: [
+    'PhysicsSaathi is applying the principles...',
+    'Working through the physics...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  chemsaathi: [
+    'ChemSaathi is analysing the reaction...',
+    'Checking molecular structures...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  biosaathi: [
+    'BioSaathi is reviewing the biology...',
+    'Checking cellular mechanisms...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  pharmasaathi: [
+    'PharmaSaathi is checking drug data...',
+    'Reviewing pharmacology...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  compsaathi: [
+    'CompSaathi is compiling your answer...',
+    'Debugging the logic...',
+    'Preparing your solution...',
+    'Almost ready...',
+  ],
+  econsaathi: [
+    'EconSaathi is analysing the data...',
+    'Checking economic indicators...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  historysaathi: [
+    'HistorySaathi is consulting the archives...',
+    'Tracing the historical context...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  psychsaathi: [
+    'PsychSaathi is reviewing the research...',
+    'Examining psychological frameworks...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  aerospacesaathi: [
+    'AerospaceSaathi is computing trajectories...',
+    'Checking mission data...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  finsaathi: [
+    'FinSaathi is crunching the numbers...',
+    'Reviewing financial models...',
+    'Preparing your analysis...',
+    'Almost ready...',
+  ],
+  accountsaathi: [
+    'AccountSaathi is reviewing the standards...',
+    'Checking accounting principles...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+}
 
-  const messages = [
-    `${saathiName} is thinking...`,
-    `${saathiName} is preparing your answer...`,
-    `Finding the best explanation for you...`,
-    `Almost ready...`,
-  ]
+const DEFAULT_THINKING = [
+  'Your Saathi is thinking...',
+  'Preparing your answer...',
+  'Finding the best explanation for you...',
+  'Almost ready...',
+]
+
+export function ThinkingBubble({
+  saathiName,
+  saathiEmoji,
+  saathiSlug,
+}: {
+  saathiName: string
+  saathiEmoji: string
+  saathiSlug?: string
+}) {
+  const [messageIndex, setMessageIndex] = useState(0)
+  const messages = (saathiSlug && SAATHI_THINKING[saathiSlug]) ?? DEFAULT_THINKING
 
   useEffect(() => {
     const timer = setInterval(() => {
