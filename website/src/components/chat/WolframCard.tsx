@@ -1,123 +1,162 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
-/**
- * Inline Wolfram Alpha computation card for chat.
- * Fetches result from /api/classroom/wolfram on render.
- *
- * Source badge: "Wolfram Alpha — Computational Intelligence"
- */
-
-type Props = {
-  query: string
+type WolframPod = {
+  title: string
+  content: string
 }
 
 type WolframResult = {
+  query: string
   shortAnswer: string | null
-  pods: { title: string; content: string }[]
+  pods: WolframPod[]
   wolframUrl: string
 }
 
-export function WolframCard({ query }: Props) {
+export function WolframCard({ query }: { query: string }) {
   const [result, setResult] = useState<WolframResult | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [expanded, setExpanded] = useState(false)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
-    async function fetchResult() {
+    async function fetchWolfram() {
+      setLoading(true)
       try {
-        const res = await fetch(`/api/classroom/wolfram?q=${encodeURIComponent(query)}`)
-        if (!res.ok) { setError('Computation unavailable'); setLoading(false); return }
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) { setError(true); setLoading(false); return }
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/fetch-wolfram`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query }),
+          }
+        )
+        if (!res.ok) throw new Error('Wolfram fetch failed')
         const data = await res.json()
         setResult(data)
-      } catch { setError('Failed to compute') }
+      } catch {
+        setError(true)
+      }
       setLoading(false)
     }
-    fetchResult()
+    fetchWolfram()
   }, [query])
 
-  if (loading) {
-    return (
-      <div style={{
-        padding: '14px', borderRadius: '12px', margin: '8px 0',
-        background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>🔣</span>
-          <span style={{ fontSize: '12px', color: 'var(--text-ghost)' }}>Computing: {query}...</span>
-        </div>
-      </div>
-    )
-  }
-
-  if (error || !result) {
-    return (
-      <div style={{
-        padding: '14px', borderRadius: '12px', margin: '8px 0',
-        background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
-      }}>
-        <span style={{ fontSize: '12px', color: 'var(--text-ghost)' }}>
-          🔣 {error || 'No result'} — <a href={`https://www.wolframalpha.com/input?i=${encodeURIComponent(query)}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--saathi-primary)' }}>Try on Wolfram →</a>
-        </span>
-      </div>
-    )
-  }
+  if (error) return null
 
   return (
     <div style={{
-      padding: '14px 16px', borderRadius: '12px', margin: '8px 0',
-      background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
+      margin: '8px 0',
+      background: 'var(--bg-elevated)',
+      borderRadius: '10px',
+      border: '1px solid var(--border-subtle)',
+      borderLeft: '3px solid var(--saathi-primary)',
+      overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-        <span style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>🔣</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Query */}
-          <p style={{ fontSize: '11px', color: 'var(--text-ghost)', margin: '0 0 6px', fontFamily: 'var(--font-mono)' }}>
-            {query}
-          </p>
-
-          {/* Short answer — hero result */}
-          {result.shortAnswer && (
-            <p style={{
-              fontSize: '18px', fontWeight: 700, margin: '0 0 8px',
-              color: 'var(--text-primary)', fontFamily: 'var(--font-mono)',
-            }}>
-              {result.shortAnswer}
-            </p>
+      {/* Header */}
+      <div
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 14px', cursor: 'pointer',
+        }}
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '14px' }}>🧮</span>
+          <span style={{
+            fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)',
+            textTransform: 'uppercase', letterSpacing: '0.05em',
+          }}>
+            Wolfram Alpha
+          </span>
+          {loading && (
+            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
+              Computing...
+            </span>
           )}
+        </div>
+        <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+          {expanded ? '▲' : '▼'}
+        </span>
+      </div>
 
-          {/* Pods */}
+      {/* Query */}
+      <div style={{
+        padding: '0 14px 8px', fontSize: '12px',
+        color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)',
+      }}>
+        {query}
+      </div>
+
+      {/* Short answer — always visible */}
+      {!loading && result?.shortAnswer && (
+        <div style={{
+          padding: '8px 14px', background: 'var(--bg-base)',
+          borderTop: '1px solid var(--border-subtle)',
+          fontSize: '15px', fontWeight: 600,
+          color: 'var(--text-primary)', fontFamily: 'var(--font-mono)',
+        }}>
+          = {result.shortAnswer}
+        </div>
+      )}
+
+      {/* Expanded pods — step by step */}
+      {expanded && !loading && result?.pods && result.pods.length > 0 && (
+        <div style={{ borderTop: '1px solid var(--border-subtle)' }}>
           {result.pods.map((pod, i) => (
             <div key={i} style={{
-              padding: '8px 10px', borderRadius: '8px', marginBottom: '6px',
-              background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)',
+              padding: '10px 14px',
+              borderBottom: i < result.pods.length - 1 ? '1px solid var(--border-subtle)' : 'none',
             }}>
-              <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-ghost)', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 3px' }}>
+              <div style={{
+                fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)',
+                textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px',
+              }}>
                 {pod.title}
-              </p>
-              <p style={{
+              </div>
+              <div style={{
                 fontSize: '13px', color: 'var(--text-primary)',
-                fontFamily: 'var(--font-mono)', whiteSpace: 'pre-wrap', margin: 0,
-                lineHeight: 1.6,
+                fontFamily: 'var(--font-mono)', lineHeight: '1.6', whiteSpace: 'pre-wrap',
               }}>
                 {pod.content}
-              </p>
+              </div>
             </div>
           ))}
-
-          {/* Footer */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
-            <p style={{ fontSize: '9px', color: 'var(--text-ghost)', margin: 0, fontFamily: 'var(--font-mono)' }}>
-              Wolfram Alpha — Computational Intelligence
-            </p>
-            <a href={result.wolframUrl} target="_blank" rel="noopener noreferrer"
-              style={{ fontSize: '10px', fontWeight: 600, color: 'var(--saathi-primary)', textDecoration: 'none' }}>
-              Full result →
-            </a>
-          </div>
         </div>
-      </div>
+      )}
+
+      {/* Footer — link to Wolfram */}
+      {!loading && (
+        <div style={{
+          padding: '8px 14px', borderTop: '1px solid var(--border-subtle)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
+            Powered by Wolfram Alpha
+          </span>
+          <a
+            href={result?.wolframUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontSize: '11px', color: 'var(--saathi-primary)',
+              textDecoration: 'none', fontWeight: 500,
+            }}
+          >
+            Full solution →
+          </a>
+        </div>
+      )}
     </div>
   )
 }
