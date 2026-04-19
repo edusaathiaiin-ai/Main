@@ -17,6 +17,7 @@ export const DATAGOVIN_RESOURCES = {
   WPI_INFLATION: 'TODO',                  // Wholesale Price Index
   TRADE_EXPORTS: 'TODO',                  // India exports data
   TRADE_IMPORTS: 'TODO',                  // India imports data
+  INTL_AIR_TRAFFIC: 'da28d265-d62a-418b-82fe-329052b77846', // International air traffic — pax + freight
   FOREX_RESERVES: 'TODO',                 // Foreign exchange reserves
 
   // ── AGRICULTURE ────────────────────────────────────────────
@@ -70,6 +71,7 @@ export const SAATHI_DATASETS: Record<string, (keyof typeof DATAGOVIN_RESOURCES)[
   medicosaathi:  ['HOSPITAL_INFRASTRUCTURE', 'DRUG_PRICES_NPPA', 'IMMUNISATION_COVERAGE'],
   nursingsaathi: ['HOSPITAL_INFRASTRUCTURE', 'IMMUNISATION_COVERAGE'],
   pharmasaathi:  ['DRUG_PRICES_NPPA'],
+  aerospacesaathi: ['INTL_AIR_TRAFFIC'],
 }
 
 // Trigger keywords per dataset
@@ -103,4 +105,5 @@ export const DATASET_TRIGGERS: Record<keyof typeof DATAGOVIN_RESOURCES, string[]
   IMMUNISATION_COVERAGE: ['vaccination', 'immunisation', 'polio', 'measles'],
   SCHOOL_UDISE: ['school data', 'udise', 'school infrastructure'],
   SCHOLARSHIP_DATA: ['scholarship', 'financial aid', 'stipend'],
+  INTL_AIR_TRAFFIC: ['air traffic', 'international flights', 'passenger traffic', 'aviation data', 'freight traffic'],
 }
