@@ -485,3 +485,7 @@ verify_jwt = false
 # Auth via Bearer SUPABASE_SERVICE_ROLE_KEY from admin dashboard server action.
 [functions.faculty-reject]
 verify_jwt = false
+
+# Cron: daily 6 AM IST — refreshes ISRO Bhuvan bearer token (expires every 24h)
+[functions.refresh-bhuvan-token]
+verify_jwt = false

@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 
 /**
  * Proxy for ISRO Bhuvan APIs — geoid data, satellite imagery, Indian geo data.
- * ISRO_BHUVAN_TOKEN read from env. Token expires daily — handle 401 gracefully.
+ *
+ * Token source (priority order):
+ * 1. system_tokens table (refreshed daily by refresh-bhuvan-token Edge Function)
+ * 2. ISRO_BHUVAN_TOKEN env var (manual fallback)
  *
  * GET /api/classroom/bhuvan?action=geoid&lat=23.03&lng=72.58
  * GET /api/classroom/bhuvan?action=layers
@@ -15,7 +19,27 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const action = req.nextUrl.searchParams.get('action') ?? 'layers'
-  const token = process.env.ISRO_BHUVAN_TOKEN
+
+  // Read token: DB first (auto-refreshed), env var fallback
+  let token = ''
+  try {
+    const admin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    const { data: row } = await admin
+      .from('system_tokens')
+      .select('value, expires_at')
+      .eq('key', 'bhuvan_token')
+      .single()
+
+    if (row?.value && row.expires_at && new Date(row.expires_at) > new Date()) {
+      token = row.value
+    }
+  } catch { /* fall through to env var */ }
+
+  if (!token) token = process.env.ISRO_BHUVAN_TOKEN ?? ''
+
   if (!token) {
     return NextResponse.json({ error: 'ISRO Bhuvan not configured' }, { status: 503 })
   }
