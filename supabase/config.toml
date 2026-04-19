@@ -504,3 +504,8 @@ verify_jwt = false
 # Called by classroom plugins and chat edge functions.
 [functions.fetch-datagovin]
 verify_jwt = false
+
+# Wolfram Alpha computation — Short Answers + Full Results API.
+# Called by chat edge function for inline math/physics/stats results.
+[functions.fetch-wolfram]
+verify_jwt = false

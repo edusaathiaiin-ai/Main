@@ -332,6 +332,20 @@ Always include 1-3 relevant case citations when explaining a legal concept. Use 
 };
 
 
+const WOLFRAM_SAATHIS = new Set([
+  'maathsaathi', 'physicsaathi', 'statssaathi', 'chemsaathi', 'econsaathi',
+])
+
+const WOLFRAM_INSTRUCTION = `LIVE COMPUTATION: When a student asks you to compute, solve, integrate, differentiate, simplify, evaluate, or calculate anything — embed the computation inline using this exact format:
+[WOLFRAM:the mathematical expression or query]
+Examples:
+- Student asks "What is the integral of x^2?" → explain the concept, then: [WOLFRAM:integrate x^2 dx]
+- Student asks "What is 15% of 3400?" → [WOLFRAM:15% of 3400]
+- Student asks "Solve x^2 - 5x + 6 = 0" → [WOLFRAM:solve x^2 - 5x + 6 = 0]
+- Student asks "What is the derivative of sin(x)cos(x)?" → [WOLFRAM:derivative of sin(x)cos(x)]
+- Student asks "What is the standard deviation of 4, 8, 15, 16, 23, 42?" → [WOLFRAM:standard deviation of {4, 8, 15, 16, 23, 42}]
+Always explain the concept first in your own words, then embed [WOLFRAM:...] so the student sees the verified computation. Use natural Wolfram Alpha query syntax — it understands plain English.`
+
 const UNIVERSAL_GUARDRAILS = `UNIVERSAL GUARDRAILS — enforce without exception:
 - Never write assignments, essays, or exam answers on behalf of the student.
 - Never express political opinions or take political sides.
@@ -755,6 +769,7 @@ async function buildSystemPrompt(
       : 'No news items available today.';
 
   const saathiGuardrail = SAATHI_GUARDRAILS[saathiSlug] ?? '';
+  const wolframBlock = WOLFRAM_SAATHIS.has(saathiSlug) ? `\n\n${WOLFRAM_INSTRUCTION}` : '';
 
   return `${SAATHI_PHILOSOPHY}
 
@@ -985,7 +1000,7 @@ Degree programme: ${degreeProgramme}${currentSemester ? ` | Semester ${currentSe
 ${firstSessionBlock ? `
 # FIRST SESSION INSTRUCTION
 ${firstSessionBlock}
-` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}${(() => {
+` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}${wolframBlock}${(() => {
   // ── Rich rendering instructions ──────────────────────────────────────────────
   const MATH_SAATHIS = new Set([
     'maathsaathi', 'chemsaathi', 'biosaathi', 'physicsaathi',

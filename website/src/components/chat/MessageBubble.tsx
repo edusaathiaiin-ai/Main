@@ -27,6 +27,7 @@ import { SketchResult } from './SketchResult'
 import { ReportErrorButton } from './ReportErrorButton'
 import { SendToPhone } from './SendToPhone'
 import { CaseLawCard } from './CaseLawCard'
+import { WolframCard } from './WolframCard'
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -49,6 +50,7 @@ type Segment =
   | { type: 'scene360'; name: string }
   | { type: 'sketch'; content: string }
   | { type: 'case_law'; caseName: string; court: string; year: string; url: string }
+  | { type: 'wolfram'; query: string }
   | {
       type: 'plot'
       expression: string
@@ -271,6 +273,16 @@ function parseMessageContent(text: string): Segment[] {
       }
     }
 
+    // 4o. Wolfram tag [WOLFRAM:query]
+    const wolframMatch = /\[WOLFRAM:([^\]]+)\]/.exec(remaining)
+    if (wolframMatch && wolframMatch.index < currentIndex()) {
+      earliest = {
+        index: wolframMatch.index,
+        length: wolframMatch[0].length,
+        segment: { type: 'wolfram' as const, query: wolframMatch[1].trim() },
+      }
+    }
+
     // 5. Inline math $...$ (guard against $$)
     const inlineMath = /(?<!\$)\$([^$\n]+?)\$(?!\$)/.exec(remaining)
     if (inlineMath && inlineMath.index < currentIndex()) {
@@ -486,6 +498,9 @@ function RenderSegments({
                 saathiColor={primaryColor}
               />
             )
+
+          case 'wolfram':
+            return <WolframCard key={i} query={seg.query} />
 
           case 'case_law':
             return (
