@@ -6,6 +6,46 @@
 
 ---
 
+## 0. Engineering Philosophy
+
+The world is messy. APIs fail. Networks drop.
+Data is incomplete. Students are confused.
+Faculty are busy. Admin is overwhelmed.
+
+Our code's answer to this mess:
+
+### 1. SILENT RESILIENCE
+Every external call wrapped in try/catch.
+Every failure logged, never surfaced to student.
+Fallback always exists — never a blank screen.
+
+### 2. HUMAN FIRST
+Features exist to serve the student.
+Not the other way around.
+If a feature adds friction — remove it.
+If a feature adds fear — rewrite it.
+
+### 3. SOUL BEFORE SCALE
+EdUsaathiAI's moat is not features.
+It is the feeling that someone knows you.
+Every line of code must protect that feeling.
+
+### 4. FIX PERMANENTLY OR DON'T FIX
+No patches. No workarounds.
+Understand the root cause.
+Fix it once. Fix it right.
+
+### 5. THE STUDENT AT 11PM
+Before shipping any feature ask:
+*"Does this help the student in Jalgaon
+studying alone at 11pm before their exam?"*
+If yes — ship it.
+If no — question it.
+
+---
+
+---
+
 ## ⚠️ SLUG TEST — MANDATORY BEFORE EVERY DEPLOY
 
 ```bash
