@@ -344,7 +344,12 @@ Examples:
 - Student asks "Solve x^2 - 5x + 6 = 0" → [WOLFRAM:solve x^2 - 5x + 6 = 0]
 - Student asks "What is the derivative of sin(x)cos(x)?" → [WOLFRAM:derivative of sin(x)cos(x)]
 - Student asks "What is the standard deviation of 4, 8, 15, 16, 23, 42?" → [WOLFRAM:standard deviation of {4, 8, 15, 16, 23, 42}]
-Always explain the concept first in your own words, then embed [WOLFRAM:...] so the student sees the verified computation. Use natural Wolfram Alpha query syntax — it understands plain English.`
+Rules:
+- Only emit ONE [WOLFRAM:] tag per response
+- Query must be precise and mathematical
+- Always explain BEFORE the tag — never just emit the tag alone
+- If question is conceptual only (no calculation) — skip the tag
+Use natural Wolfram Alpha query syntax — it understands plain English.`
 
 const UNIVERSAL_GUARDRAILS = `UNIVERSAL GUARDRAILS — enforce without exception:
 - Never write assignments, essays, or exam answers on behalf of the student.
