@@ -351,6 +351,21 @@ Rules:
 - If question is conceptual only (no calculation) — skip the tag
 Use natural Wolfram Alpha query syntax — it understands plain English.`
 
+const CHEMSPIDER_SAATHIS = new Set(['chemsaathi', 'pharmasaathi', 'chemengg-saathi', 'biotechsaathi'])
+
+const CHEMSPIDER_INSTRUCTION = `MOLECULE DATA: When discussing any specific chemical compound, drug, molecule, or substance — embed a lookup using this exact format:
+[CHEMSPIDER:compound name]
+Examples:
+- Student asks about aspirin → explain its structure, then: [CHEMSPIDER:aspirin]
+- Student asks about glucose metabolism → explain the pathway, then: [CHEMSPIDER:glucose]
+- Student asks about a reaction involving benzene → [CHEMSPIDER:benzene]
+- Student asks about a drug mechanism → [CHEMSPIDER:ibuprofen]
+Rules:
+- Only emit ONE [CHEMSPIDER:] tag per response
+- Use the common compound name, not IUPAC unless specifically discussing nomenclature
+- Always explain BEFORE the tag
+- If question is about a reaction mechanism or theory with no specific compound — skip the tag`
+
 const NASA_SAATHIS = new Set(['aerospacesaathi', 'physicsaathi'])
 
 const NASA_INSTRUCTION = `NASA DATA: When discussing space, astronomy, astrophysics, aeronautics, rocket science, planetary science, or any topic where a NASA image would deepen understanding — embed a reference using this exact format:
@@ -791,6 +806,7 @@ async function buildSystemPrompt(
   const saathiGuardrail = SAATHI_GUARDRAILS[saathiSlug] ?? '';
   const wolframBlock = WOLFRAM_SAATHIS.has(saathiSlug) ? `\n\n${WOLFRAM_INSTRUCTION}` : '';
   const nasaBlock = NASA_SAATHIS.has(saathiSlug) ? `\n\n${NASA_INSTRUCTION}` : '';
+  const chemspiderBlock = CHEMSPIDER_SAATHIS.has(saathiSlug) ? `\n\n${CHEMSPIDER_INSTRUCTION}` : '';
 
   return `${SAATHI_PHILOSOPHY}
 
@@ -1021,7 +1037,7 @@ Degree programme: ${degreeProgramme}${currentSemester ? ` | Semester ${currentSe
 ${firstSessionBlock ? `
 # FIRST SESSION INSTRUCTION
 ${firstSessionBlock}
-` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}${wolframBlock}${nasaBlock}${(() => {
+` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}${wolframBlock}${nasaBlock}${chemspiderBlock}${(() => {
   // ── Rich rendering instructions ──────────────────────────────────────────────
   const MATH_SAATHIS = new Set([
     'maathsaathi', 'chemsaathi', 'biosaathi', 'physicsaathi',

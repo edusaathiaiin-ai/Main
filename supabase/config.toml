@@ -514,3 +514,8 @@ verify_jwt = false
 # Called by chat edge function for inline space/physics imagery.
 [functions.fetch-nasa]
 verify_jwt = false
+
+# ChemSpider (Royal Society of Chemistry) — 100M+ compounds.
+# Called by chat edge function for inline molecule data.
+[functions.fetch-chemspider]
+verify_jwt = false

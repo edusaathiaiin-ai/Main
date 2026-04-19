@@ -29,6 +29,7 @@ import { SendToPhone } from './SendToPhone'
 import { CaseLawCard } from './CaseLawCard'
 import { WolframCard } from './WolframCard'
 import { NasaCard } from './NasaCard'
+import { ChemSpiderCard } from './ChemSpiderCard'
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -53,6 +54,7 @@ type Segment =
   | { type: 'case_law'; caseName: string; court: string; year: string; url: string }
   | { type: 'wolfram'; query: string }
   | { type: 'nasa'; query: string }
+  | { type: 'chemspider'; query: string }
   | {
       type: 'plot'
       expression: string
@@ -285,7 +287,17 @@ function parseMessageContent(text: string): Segment[] {
       }
     }
 
-    // 4p. NASA tag [NASA:query]
+    // 4p. ChemSpider tag [CHEMSPIDER:query]
+    const chemspiderMatch = /\[CHEMSPIDER:([^\]]+)\]/.exec(remaining)
+    if (chemspiderMatch && chemspiderMatch.index < currentIndex()) {
+      earliest = {
+        index: chemspiderMatch.index,
+        length: chemspiderMatch[0].length,
+        segment: { type: 'chemspider' as const, query: chemspiderMatch[1].trim() },
+      }
+    }
+
+    // 4q. NASA tag [NASA:query]
     const nasaMatch = /\[NASA:([^\]]+)\]/.exec(remaining)
     if (nasaMatch && nasaMatch.index < currentIndex()) {
       earliest = {
@@ -513,6 +525,9 @@ function RenderSegments({
 
           case 'wolfram':
             return <WolframCard key={i} query={seg.query} />
+
+          case 'chemspider':
+            return <ChemSpiderCard key={i} query={seg.query} />
 
           case 'nasa':
             return <NasaCard key={i} query={seg.query} />
