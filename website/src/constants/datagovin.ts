@@ -29,7 +29,7 @@ export const DATAGOVIN_RESOURCES = {
 
   // ── ENVIRONMENT ────────────────────────────────────────────
   // EnviroSaathi
-  AQI_CITY: 'TODO',                      // Air Quality Index city wise
+  AQI_CITY: '3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69', // Real-time AQI from 3400+ stations
   FOREST_COVER_STATE: 'TODO',            // Forest cover by state
   WATER_QUALITY: 'TODO',                 // River water quality
 
