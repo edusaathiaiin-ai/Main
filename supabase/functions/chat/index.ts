@@ -298,7 +298,15 @@ async function incrementQuota(
 
 const SAATHI_GUARDRAILS: Record<string, string> = {
   kanoonsaathi:
-    'GUARDRAILS: Never give legal advice. Never recommend specific lawyers. Never comment on pending or active legal cases. Always clarify you are an AI learning companion, not a licensed legal professional.\nAUTHORITATIVE SOURCES: For all questions about Indian statutes, acts, and the Constitution of India, always reference and direct students to:\n- India Code (https://www.indiacode.nic.in/) — the official repository of all central and state Acts, maintained by the Legislative Department, Ministry of Law and Justice. This is what the Supreme Court of India relies upon.\n- Constitution of India full text (https://legislative.gov.in/constitution-of-india) — the definitive amended version from the same department.\nNever cite secondary/commercial sources when official government sources are available.',
+    `GUARDRAILS: Never give legal advice. Never recommend specific lawyers. Never comment on pending or active legal cases. Always clarify you are an AI learning companion, not a licensed legal professional.
+AUTHORITATIVE SOURCES: For all questions about Indian statutes, acts, and the Constitution of India, always reference and direct students to:
+- India Code (https://www.indiacode.nic.in/) — the official repository of all central and state Acts, maintained by the Legislative Department, Ministry of Law and Justice. This is what the Supreme Court of India relies upon.
+- Constitution of India full text (https://legislative.gov.in/constitution-of-india) — the definitive amended version from the same department.
+Never cite secondary/commercial sources when official government sources are available.
+LIVE CASE LAW: When discussing any IPC/BNS section, legal principle, or landmark judgment, embed case citations using this exact format:
+[CASE:case_name|court|year|url]
+Example: [CASE:Virsa Singh vs State of Punjab|Supreme Court|1958|https://indiankanoon.org/doc/92983/]
+Always include 1-3 relevant case citations when explaining a legal concept. Use real cases you are confident about — never fabricate case names or citations. Prefer Supreme Court and High Court judgments. For each case, give a one-line ratio decidendi before the tag.`,
   medicosaathi:
     'GUARDRAILS: Never prescribe medications or treatments. Never diagnose conditions. Never give patient-specific clinical advice. Disclaimer: "I am an AI learning companion, not a licensed medical professional."',
   pharmasaathi:

@@ -26,6 +26,7 @@ import { Scene360Viewer } from './Scene360Viewer'
 import { SketchResult } from './SketchResult'
 import { ReportErrorButton } from './ReportErrorButton'
 import { SendToPhone } from './SendToPhone'
+import { CaseLawCard } from './CaseLawCard'
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -47,6 +48,7 @@ type Segment =
   | { type: 'golden_ratio'; width: number; height: number }
   | { type: 'scene360'; name: string }
   | { type: 'sketch'; content: string }
+  | { type: 'case_law'; caseName: string; court: string; year: string; url: string }
   | {
       type: 'plot'
       expression: string
@@ -249,6 +251,22 @@ function parseMessageContent(text: string): Segment[] {
           min: parseFloat(plotMatch[3]),
           max: parseFloat(plotMatch[4]),
           label: plotMatch[5]?.trim(),
+        },
+      }
+    }
+
+    // 4n. Case law tag [CASE:name|court|year|url]
+    const caseMatch = /\[CASE:([^|]+)\|([^|]+)\|([^|]+)\|([^\]]+)\]/.exec(remaining)
+    if (caseMatch && caseMatch.index < currentIndex()) {
+      earliest = {
+        index: caseMatch.index,
+        length: caseMatch[0].length,
+        segment: {
+          type: 'case_law' as const,
+          caseName: caseMatch[1].trim(),
+          court: caseMatch[2].trim(),
+          year: caseMatch[3].trim(),
+          url: caseMatch[4].trim(),
         },
       }
     }
@@ -466,6 +484,17 @@ function RenderSegments({
                 max={seg.max}
                 label={seg.label}
                 saathiColor={primaryColor}
+              />
+            )
+
+          case 'case_law':
+            return (
+              <CaseLawCard
+                key={i}
+                caseName={seg.caseName}
+                court={seg.court}
+                year={seg.year}
+                url={seg.url}
               />
             )
 
