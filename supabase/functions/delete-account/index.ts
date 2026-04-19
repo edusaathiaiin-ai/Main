@@ -69,8 +69,9 @@ serve(async (req: Request) => {
     }).select('id').maybeSingle()
 
     // ── Cascade delete — all personal data (parallel for speed) ──────
-    // All tables are independent — run in one Promise.allSettled() batch.
-    // Must complete before profile anonymise + auth user deletion.
+    // Every table with FK to profiles.id must be listed here.
+    // Missing a table = FK constraint error = deletion blocked.
+    // Last audited: 2026-04-19 — 59 FK references, all covered.
     await Promise.allSettled([
       // Student learning
       admin.from('student_soul').delete().eq('user_id', userId),
@@ -85,36 +86,70 @@ serve(async (req: Request) => {
       admin.from('flashcards').delete().eq('user_id', userId),
       admin.from('daily_challenge_attempts').delete().eq('user_id', userId),
       admin.from('learning_intents').delete().eq('student_id', userId),
-      // Chat
+      // Chat + chatboards
       admin.from('chat_messages').delete().eq('user_id', userId),
       admin.from('chat_sessions').delete().eq('user_id', userId),
+      admin.from('chat_summaries').delete().eq('user_id', userId),
+      admin.from('chatboards').delete().eq('user_id', userId),
       admin.from('digest_sent_log').delete().eq('user_id', userId),
       // Community
       admin.from('board_answers').delete().eq('user_id', userId),
       admin.from('board_questions').delete().eq('user_id', userId),
       admin.from('feedback').delete().eq('user_id', userId),
+      admin.from('moderation_flags').delete().eq('reported_by', userId),
+      admin.from('moderation_flags').delete().eq('reporter_user_id', userId),
       // Sessions / bookings
       admin.from('live_bookings').delete().eq('student_id', userId),
+      admin.from('live_wishlist').delete().eq('student_id', userId),
       admin.from('lecture_requests').delete().eq('student_id', userId),
+      admin.from('session_messages').delete().eq('sender_id', userId),
       admin.from('intern_applications').delete().eq('student_id', userId),
       admin.from('intern_interests').delete().eq('student_user_id', userId),
       admin.from('intern_matches').delete().eq('student_user_id', userId),
       admin.from('faculty_bookmarks').delete().eq('student_id', userId),
       admin.from('notifications').delete().eq('user_id', userId),
       admin.from('conversion_shown').delete().eq('user_id', userId),
-      // Compliance
+      // Classroom
+      admin.from('classroom_commands').delete().eq('user_id', userId),
+      admin.from('classroom_presence').delete().eq('user_id', userId),
+      admin.from('research_archives').delete().eq('student_id', userId),
+      admin.from('homework').delete().eq('faculty_id', userId),
+      // Compliance + nudges
       admin.from('consent_log').delete().eq('user_id', userId),
+      admin.from('nudge_log').delete().eq('user_id', userId),
+      admin.from('inactivity_nudges_sent').delete().eq('user_id', userId),
+      admin.from('suspension_log').delete().eq('user_id', userId),
+      admin.from('traces').delete().eq('user_id', userId),
+      // WhatsApp
       admin.from('whatsapp_sessions').delete().eq('user_id', userId),
+      admin.from('whatsapp_sends').delete().eq('user_id', userId),
+      // Subscriptions (keep for financial records — anonymise instead)
+      admin.from('subscriptions').update({
+        razorpay_subscription_id: null,
+        razorpay_order_id: null,
+      }).eq('user_id', userId),
       // Faculty / institution
       admin.from('faculty_profiles').delete().eq('user_id', userId),
       admin.from('faculty_bookmarks').delete().eq('faculty_id', userId),
       admin.from('faculty_sessions').delete().eq('faculty_id', userId),
+      admin.from('faculty_payouts').update({ faculty_id: null }).eq('faculty_id', userId),
       admin.from('live_sessions').delete().eq('faculty_id', userId),
       admin.from('lecture_requests').delete().eq('faculty_id', userId),
       admin.from('research_projects').delete().eq('faculty_id', userId),
+      admin.from('research_archives').update({ faculty_id: null }).eq('faculty_id', userId),
       admin.from('internship_postings').delete().eq('posted_by', userId),
       admin.from('intern_listings').delete().eq('institution_user_id', userId),
       admin.from('institution_profiles').delete().eq('user_id', userId),
+      // Fact corrections — nullify reporter, keep correction
+      admin.from('fact_corrections').update({ reporter_id: null }).eq('reporter_id', userId),
+      // Faculty nominations — nullify nominator
+      admin.from('faculty_nominations').update({ nominated_by_user_id: null }).eq('nominated_by_user_id', userId),
+      // Faculty applications — nullify reviewer
+      admin.from('faculty_applications').update({ reviewed_by: null }).eq('reviewed_by', userId),
+      // Nudge campaigns — nullify sender
+      admin.from('nudge_campaigns').update({ sent_by: null }).eq('sent_by', userId),
+      // Moderation — nullify reviewer
+      admin.from('moderation_flags').update({ reviewed_by: null }).eq('reviewed_by', userId),
     ])
 
     // ── Anonymise profile (keep row for FK integrity, scrub PII) ─────
