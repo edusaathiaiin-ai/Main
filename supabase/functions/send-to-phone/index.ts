@@ -91,13 +91,16 @@ Deno.serve(async (req: Request) => {
     }
   );
 
-  if (!waRes.ok) {
-    let errorBody: { error?: { code?: number; message?: string } } = {};
-    try { errorBody = await waRes.json(); } catch { /* not JSON */ }
-    const errCode = errorBody?.error?.code;
-    console.error('[send-to-phone] WhatsApp API error:', JSON.stringify(errorBody));
+  let waBody: Record<string, unknown> = {};
+  try { waBody = await waRes.json(); } catch { /* not JSON */ }
 
-    // 131047 = outside 24hr conversation window — student hasn't messaged bot recently
+  // Log full response for debugging
+  console.log('[send-to-phone] WhatsApp response:', waRes.status, JSON.stringify(waBody));
+
+  if (!waRes.ok) {
+    const errCode = (waBody as { error?: { code?: number } })?.error?.code;
+    console.error('[send-to-phone] WhatsApp API error:', JSON.stringify(waBody));
+
     if (errCode === 131047) {
       return new Response(JSON.stringify({
         error: 'outside_window',
@@ -108,8 +111,21 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Send failed' }), {
+    return new Response(JSON.stringify({ error: 'Send failed', detail: waBody }), {
       status: 500,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Check for errors inside 200 response (Meta sometimes accepts but won't deliver)
+  const messages = (waBody as { messages?: Array<{ message_status?: string }> })?.messages;
+  if (messages?.[0]?.message_status === 'failed') {
+    console.error('[send-to-phone] Message accepted but failed:', JSON.stringify(waBody));
+    return new Response(JSON.stringify({
+      error: 'outside_window',
+      message: 'Message could not be delivered. Send "Hi" to +91 98255 93204 on WhatsApp first.',
+    }), {
+      status: 422,
       headers: { ...CORS, 'Content-Type': 'application/json' },
     });
   }
