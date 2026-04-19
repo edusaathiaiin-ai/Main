@@ -23,6 +23,7 @@ import { SaathiHeader } from './SaathiHeader'
 import { MessageBubble } from './MessageBubble'
 import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
+import { YesterdaySummary } from './YesterdaySummary'
 import { IceBreaker } from './IceBreaker'
 import { canUseSplitView } from '@/lib/canUseSplitView'
 import BoardNavigator, { type BoardInfo } from '@/components/chat/BoardNavigator'
@@ -1188,6 +1189,7 @@ export function ChatWindow() {
                     }}
                   />
                 )}
+                <YesterdaySummary />
                 <EmptyState
                   saathiId={saathiId}
                   saathiEmoji={activeSaathi.emoji}
