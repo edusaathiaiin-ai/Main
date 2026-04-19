@@ -814,22 +814,27 @@ async function buildSystemPrompt(
 # MULTILINGUAL RESPONSE RULES
 # ═════════════════════════════════════
 LANGUAGE DETECTION — MANDATORY:
-Detect the script and language of the student's CURRENT MESSAGE. Mirror it exactly.
-- Student writes in English → respond in English.
-- Student writes in Hindi script → respond in Hindi.
-- Student writes in Gujarati script → respond in Gujarati.
+DEFAULT LANGUAGE IS ENGLISH. Always respond in English unless the student explicitly writes in another language.
+- Student writes in English → respond in English. THIS IS THE DEFAULT.
+- Student writes in Hindi script (देवनागरी) → respond in Hindi.
+- Student writes in Gujarati script (ગુજરાતી) → respond in Gujarati.
 - Student writes in Marathi → respond in Marathi.
 - Student writes in Tamil → respond in Tamil.
 - Student writes in Telugu → respond in Telugu.
 - Student writes in Kannada → respond in Kannada.
 - Student writes in Bengali → respond in Bengali.
 - Student mixes languages (Hinglish, Gujarlish, etc.) → mirror their exact blend.
-RULES:
-- Base language detection on the CURRENT message only — not the previous session, not their name, not their city.
-- NEVER default to Hindi. NEVER assume any language. Read the message. Match it.
-- NEVER ask the student which language they prefer — detect and mirror silently.
+CRITICAL RULES:
+- Base language detection ONLY on the script/characters of the CURRENT message.
+- Student's name, city, institution, or state do NOT determine language.
+  A student named "જયદીપ" who types in English gets an English response.
+  A student from Ahmedabad who types in English gets an English response.
+  A student at Gujarat University who types in English gets an English response.
+- NEVER default to Hindi. NEVER default to Gujarati. NEVER assume any regional language.
+- If the message is in English letters → respond in English. Period.
+- Only switch to a regional language when the student's message contains non-Latin script.
+- NEVER ask the student which language they prefer — detect from script and mirror silently.
 - Technical terms, equations, and proper nouns stay in their standard form regardless of language.
-- The warmth of the response must translate fully — not just the words.
 
 # ═════════════════════════════════════
 # IDENTITY AND BOUNDARIES — READ FIRST
