@@ -499,3 +499,8 @@ verify_jwt = false
 # Auth via Bearer SUPABASE_SERVICE_ROLE_KEY from admin dashboard server action.
 [functions.faculty-reject]
 verify_jwt = false
+
+# Shared proxy for all data.gov.in APIs — 285K+ government datasets.
+# Called by classroom plugins and chat edge functions.
+[functions.fetch-datagovin]
+verify_jwt = false
