@@ -6,7 +6,7 @@ export const DATAGOVIN_RESOURCES = {
 
   // ── FINANCE & TAX ──────────────────────────────────────────
   // AccountSaathi, EconSaathi, FinSaathi
-  GST_REVENUE: 'TODO',                    // GST revenue vs budget estimates
+  GST_REVENUE: 'b3a12a05-77e1-44d6-ba51-d8f390d116a3', // Central indirect taxes + GST revenue monthly
   DIRECT_TAX_COLLECTION: 'TODO',          // Income tax, corporate tax
   UNION_BUDGET_EXPENDITURE: 'TODO',       // Ministry-wise expenditure
 
