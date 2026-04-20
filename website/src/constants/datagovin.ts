@@ -24,7 +24,8 @@ export const DATAGOVIN_RESOURCES = {
   // AgriSaathi
   CROP_PRODUCTION: 'TODO',               // State-wise crop production
   MSP_CROPS: 'TODO',                     // Minimum support prices
-  AGMARKNET_PRICES: '35985678-0d79-46b4-9ed6-6f13308a1d24', // 78M+ daily mandi prices — every commodity, every market
+  AGMARKNET_PRICES: '35985678-0d79-46b4-9ed6-6f13308a1d24', // 78M+ daily mandi prices — every commodity, every market (historical)
+  MANDI_DAILY_PRICES: '9ef84268-d588-465a-a308-a864a43d0070', // Current daily mandi prices — live today's rates
   RAINFALL_DISTRICT: 'TODO',             // District-wise rainfall
   SOIL_HEALTH: 'TODO',                   // Soil health card data
 
@@ -64,7 +65,7 @@ export const SAATHI_DATASETS: Record<string, (keyof typeof DATAGOVIN_RESOURCES)[
   accountsaathi: ['GST_REVENUE', 'DIRECT_TAX_COLLECTION', 'UNION_BUDGET_EXPENDITURE'],
   econsaathi:    ['GDP_CURRENT_PRICES', 'CPI_INFLATION', 'WPI_INFLATION', 'TRADE_EXPORTS', 'FOREX_RESERVES', 'GST_REVENUE'],
   finsaathi:     ['GST_REVENUE', 'DIRECT_TAX_COLLECTION', 'FOREX_RESERVES'],
-  agrisaathi:    ['CROP_PRODUCTION', 'MSP_CROPS', 'AGMARKNET_PRICES', 'RAINFALL_DISTRICT'],
+  agrisaathi:    ['CROP_PRODUCTION', 'MSP_CROPS', 'AGMARKNET_PRICES', 'MANDI_DAILY_PRICES', 'RAINFALL_DISTRICT'],
   envirosaathi:  ['AQI_CITY', 'FOREST_COVER_STATE', 'WATER_QUALITY'],
   polscisaathi:  ['ELECTION_RESULTS_LS', 'ELECTION_RESULTS_STATE', 'PARLIAMENT_SESSIONS'],
   civilsaathi:   ['SMART_CITIES_PROGRESS', 'PMGSY_ROADS', 'INFRASTRUCTURE_PROJECTS'],
@@ -106,4 +107,5 @@ export const DATASET_TRIGGERS: Record<keyof typeof DATAGOVIN_RESOURCES, string[]
   SCHOOL_UDISE: ['school data', 'udise', 'school infrastructure'],
   SCHOLARSHIP_DATA: ['scholarship', 'financial aid', 'stipend'],
   INTL_AIR_TRAFFIC: ['air traffic', 'international flights', 'passenger traffic', 'aviation data', 'freight traffic'],
+  MANDI_DAILY_PRICES: ['today mandi price', 'current price', 'daily rate', 'aaj ka bhav', 'live mandi'],
 }
