@@ -171,6 +171,7 @@ function CodeEditorPanel({ role }: { role: 'faculty' | 'student' }) {
 
         {/* Editor */}
         <div className="flex-1" style={{ minHeight: 0 }}>
+          <FullscreenPanel label="Code Editor">
           <Editor
             height="100%"
             language={monacoLang}
@@ -189,6 +190,7 @@ function CodeEditorPanel({ role }: { role: 'faculty' | 'student' }) {
               readOnly: false,
             }}
           />
+          </FullscreenPanel>
         </div>
 
         {/* Output panel */}
