@@ -158,7 +158,7 @@ function ExpandableSidebarItem({
 // ─── Upgrade pill ─────────────────────────────────────────────────────────────
 
 const UPGRADE_MESSAGES = [
-  { min: 0,  max: 2,   text: 'Try Saathi Plus →',          sub: '₹199/month' },
+  { min: 0,  max: 2,   text: 'Try Saathi Plus →',          sub: '₹99/month' },
   { min: 3,  max: 5,   text: 'Enjoying this? Go Plus →',   sub: 'Unlimited learning' },
   { min: 6,  max: 9,   text: 'Your Saathi remembers you ✦', sub: 'Upgrade to protect this' },
   { min: 10, max: 999, text: '10 sessions together 🎉',     sub: 'Become a Plus member' },

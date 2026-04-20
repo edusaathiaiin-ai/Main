@@ -22,7 +22,7 @@ const FAQS = [
   },
   {
     q: 'Do you offer student discounts?',
-    a: 'Our ₹199/month IS the student price. We built EdUsaathiAI specifically for Indian students — 8× cheaper than ChatGPT Plus. Every plan is already a student plan.',
+    a: 'Our ₹99/month IS the student price. We built EdUsaathiAI specifically for Indian students — 16× cheaper than ChatGPT Plus. Every plan is already a student plan.',
   },
   {
     q: 'What is Founding Student Access?',

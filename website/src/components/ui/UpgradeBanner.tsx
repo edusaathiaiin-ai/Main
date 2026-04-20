@@ -22,7 +22,7 @@ type BannerConfig = {
 const BANNER_CONFIGS: Record<UpgradeTrigger, BannerConfig> = {
   session_milestone: {
     headline: 'Enjoying your Saathi? ✦',
-    subtext: 'Founding Student Plus · ₹199/month · No cooling · 20 chats daily',
+    subtext: 'Founding Student Plus · ₹99/month · No cooling · 20 chats daily',
     cta: 'Upgrade now →',
     ctaUrl: '/pricing?plan=plus&trigger=session',
     urgency: 'low',
@@ -38,7 +38,7 @@ const BANNER_CONFIGS: Record<UpgradeTrigger, BannerConfig> = {
   cooling: {
     headline: 'Your Saathi is ready. Are you? 🔥',
     subtext:
-      'Upgrade to Plus and the cooling period disappears — forever. ₹199/month.',
+      'Upgrade to Plus and the cooling period disappears — forever. ₹99/month.',
     cta: 'End the wait →',
     ctaUrl: '/pricing?plan=plus&trigger=cooling',
     urgency: 'high',

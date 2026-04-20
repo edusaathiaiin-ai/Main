@@ -535,7 +535,7 @@ export function PostQuestionModal({
                           textAlign: 'center',
                         }}
                       >
-                        Upgrade to Plus — ₹199/month →
+                        Upgrade to Plus — ₹99/month →
                       </Link>
 
                       <button

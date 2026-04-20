@@ -63,7 +63,7 @@ const FEATURES = [
   {
     label: 'Price',
     free: '₹0',
-    plus: '₹199/mo',
+    plus: '₹99/mo',
     pro: '₹499/mo',
     unlimited: '₹4,999/mo',
   },

@@ -103,7 +103,7 @@ export function ConversionModal({ open, trigger, botName, onClose }: Props) {
               {[
                 {
                   name: 'Plus',
-                  price: '₹199/mo',
+                  price: '₹99/mo',
                   detail: '20 chats/day · All 5 bots · Priority support',
                   color: '#C9993A',
                 },

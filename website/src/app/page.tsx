@@ -367,7 +367,7 @@ export default async function RootPage() {
             </div>
             <div className="stat-divider" />
             <div className="stat">
-              <div className="stat-num">₹199</div>
+              <div className="stat-num">₹99</div>
               <div className="stat-label">Per month</div>
             </div>
             <div className="stat-divider" />
@@ -526,7 +526,7 @@ export default async function RootPage() {
                 className="comparison-price"
                 style={{ color: 'var(--gold)' }}
               >
-                ₹199/month
+                ₹99/month
               </div>
             </div>
             {[
@@ -536,7 +536,7 @@ export default async function RootPage() {
               'Soul matching. Mirrors your tone, adapts to your ambition, bridges to your goals',
               'Community Board with faculty-verified answers and AI auto-responses',
               'Daily headlines from Nature, Cell, Bar & Bench, PRS India — filtered to your Saathi',
-              '₹199/month. Less than your weekly pizza. More than a semester of guidance.',
+              '₹99/month. Less than your weekly pizza. More than a semester of guidance.',
             ].map((t, i) => (
               <div key={i} className="comparison-item">
                 <div className="comparison-icon icon-yes">✓</div>
