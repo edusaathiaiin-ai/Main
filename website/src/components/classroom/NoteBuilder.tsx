@@ -7,12 +7,14 @@ type Props = {
   sessionTitle: string
   open: boolean
   onClose: () => void
+  isFaculty?: boolean
+  studentCount?: number
 }
 
 const STORAGE_KEY = (id: string) => `classroom-notes-${id}`
 const AUTOSAVE_MS = 30_000
 
-export function NoteBuilder({ sessionId, sessionTitle, open, onClose }: Props) {
+export function NoteBuilder({ sessionId, sessionTitle, open, onClose, isFaculty = false, studentCount = 0 }: Props) {
   const editorRef = useRef<HTMLDivElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [lastSaved, setLastSaved] = useState<string>('')
@@ -163,23 +165,139 @@ export function NoteBuilder({ sessionId, sessionTitle, open, onClose }: Props) {
         }}
       />
 
-      {/* Footer */}
+      {/* Footer — share menu */}
+      <ShareFooter
+        lastSaved={lastSaved}
+        isFaculty={isFaculty}
+        studentCount={studentCount}
+        sessionId={sessionId}
+        onPrint={handlePrint}
+      />
+    </div>
+  )
+}
+
+function ShareFooter({
+  lastSaved, isFaculty, studentCount, sessionId, onPrint,
+}: {
+  lastSaved: string; isFaculty: boolean; studentCount: number
+  sessionId: string; onPrint: () => void
+}) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [sendState, setSendState] = useState<Record<string, 'idle' | 'sending' | 'sent' | 'error'>>({
+    whatsapp: 'idle', email: 'idle',
+  })
+  const [result, setResult] = useState<{ sent: number; totalStudents: number } | null>(null)
+
+  async function handleSend(channel: 'whatsapp' | 'email' | 'both') {
+    setSendState(prev => ({ ...prev, [channel]: 'sending' }))
+    try {
+      const res = await fetch('/api/classroom/share-notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, channel }),
+      })
+      const data = await res.json()
+      if (res.ok && data.sent > 0) {
+        setSendState(prev => ({ ...prev, [channel]: 'sent' }))
+        setResult({ sent: data.sent, totalStudents: data.totalStudents })
+      } else {
+        setSendState(prev => ({ ...prev, [channel]: 'error' }))
+      }
+    } catch { setSendState(prev => ({ ...prev, [channel]: 'error' })) }
+  }
+
+  return (
+    <div style={{ borderTop: '1px solid var(--border-subtle)', flexShrink: 0 }}>
+      {/* Auto-save status + share button */}
       <div style={{
-        padding: '8px 12px', borderTop: '1px solid var(--border-subtle)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
+        padding: '8px 12px', display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between',
       }}>
         <span style={{ fontSize: '10px', color: 'var(--text-ghost)' }}>
           {lastSaved ? `Saved ${lastSaved}` : 'Auto-saves every 30s'}
         </span>
-        <button onClick={handlePrint} style={{
+        <button onClick={() => setMenuOpen(o => !o)} style={{
           padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600,
-          background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
-          color: 'var(--text-secondary)', cursor: 'pointer',
+          background: menuOpen ? 'var(--saathi-light)' : 'var(--bg-elevated)',
+          border: `1px solid ${menuOpen ? 'var(--saathi-border)' : 'var(--border-subtle)'}`,
+          color: menuOpen ? 'var(--saathi-text)' : 'var(--text-secondary)', cursor: 'pointer',
         }}>
-          Share Notes
+          Share Notes {menuOpen ? '▴' : '▾'}
         </button>
       </div>
+
+      {/* Share menu */}
+      {menuOpen && (
+        <div style={{
+          padding: '8px 12px 12px', borderTop: '1px solid var(--border-subtle)',
+          background: 'var(--bg-elevated)',
+        }}>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 8px' }}>
+            Share today&apos;s notes
+          </p>
+
+          {/* Save as PDF */}
+          <ShareBtn icon="📄" label="Save as PDF" onClick={onPrint} state="idle" />
+
+          {/* Send via WhatsApp — faculty only */}
+          {isFaculty && (
+            <ShareBtn
+              icon="💬"
+              label="Send via WhatsApp"
+              onClick={() => handleSend('whatsapp')}
+              state={sendState.whatsapp}
+              sentLabel={`Sent to ${result?.sent ?? 0} students`}
+            />
+          )}
+
+          {/* Email to students — faculty only */}
+          {isFaculty && (
+            <ShareBtn
+              icon="📧"
+              label="Email to students"
+              onClick={() => handleSend('email')}
+              state={sendState.email}
+              sentLabel={`Emailed to ${result?.sent ?? 0} students`}
+            />
+          )}
+
+          {/* Student count */}
+          {isFaculty && studentCount > 0 && (
+            <p style={{ fontSize: '10px', color: 'var(--text-ghost)', margin: '8px 0 0' }}>
+              {studentCount} student{studentCount !== 1 ? 's' : ''} will receive
+            </p>
+          )}
+        </div>
+      )}
     </div>
+  )
+}
+
+function ShareBtn({
+  icon, label, onClick, state, sentLabel,
+}: {
+  icon: string; label: string; onClick: () => void
+  state: 'idle' | 'sending' | 'sent' | 'error'
+  sentLabel?: string
+}) {
+  return (
+    <button
+      onClick={state === 'idle' ? onClick : undefined}
+      disabled={state === 'sending'}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+        padding: '8px 10px', borderRadius: '8px', marginBottom: '4px',
+        background: state === 'sent' ? 'var(--success-bg)' : 'var(--bg-surface)',
+        border: `1px solid ${state === 'sent' ? 'var(--success)' : 'var(--border-subtle)'}`,
+        color: state === 'sent' ? 'var(--success)' : state === 'error' ? 'var(--error)' : 'var(--text-secondary)',
+        fontSize: '12px', fontWeight: 500, cursor: state === 'sending' ? 'not-allowed' : 'pointer',
+        textAlign: 'left',
+      }}
+    >
+      <span>{state === 'sent' ? '✓' : state === 'sending' ? '⏳' : state === 'error' ? '✗' : icon}</span>
+      <span>{state === 'sent' ? (sentLabel ?? 'Sent') : state === 'sending' ? 'Sending...' : state === 'error' ? 'Failed — try again' : label}</span>
+    </button>
   )
 }
 

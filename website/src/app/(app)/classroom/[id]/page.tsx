@@ -1133,6 +1133,8 @@ export default function ClassroomPage() {
               sessionTitle={session?.title ?? 'Classroom Session'}
               open={notesOpen}
               onClose={() => setNotesOpen(false)}
+              isFaculty={isFaculty}
+              studentCount={participantCount}
             />
           </div>
         </ClassroomRoomProvider>
