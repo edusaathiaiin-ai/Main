@@ -120,6 +120,7 @@ export function NoteBuilder({ sessionId, sessionTitle, open, onClose, isFaculty 
         zIndex: 30,
         display: 'flex',
         flexDirection: 'column',
+        paddingBottom: '40px',
       }}
     >
       {/* Header */}

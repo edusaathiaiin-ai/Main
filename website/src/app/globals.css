@@ -525,6 +525,19 @@ a:focus-visible               { outline: 2px solid var(--saathi-primary, #C9993A
 }
 .horizon-breathe { animation: horizon-breathe 2.8s ease-in-out infinite; }
 
+/* ── Liveblocks badge — move to bottom-left, away from session controls ─ */
+[data-liveblocks-badge],
+.liveblocks-badge,
+a[href*="liveblocks.io"],
+div[class*="liveblocks"] > a,
+iframe[src*="liveblocks"] {
+  position: fixed !important;
+  bottom: 8px !important;
+  left: 8px !important;
+  right: auto !important;
+  z-index: 5 !important;
+}
+
 /* Horizon scroll container — subtle scrollbar on dark surface */
 .horizon-scroll::-webkit-scrollbar { width: 6px; }
 .horizon-scroll::-webkit-scrollbar-track { background: transparent; }
