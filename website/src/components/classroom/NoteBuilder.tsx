@@ -262,6 +262,20 @@ function ShareFooter({
             />
           )}
 
+          {/* Send both — faculty only */}
+          {isFaculty && (
+            <>
+              <div style={{ height: '1px', background: 'var(--border-subtle)', margin: '6px 0' }} />
+              <ShareBtn
+                icon="🚀"
+                label="Send both (WhatsApp + Email)"
+                onClick={() => handleSend('both')}
+                state={sendState.whatsapp === 'sent' && sendState.email === 'sent' ? 'sent' : sendState.whatsapp === 'sending' || sendState.email === 'sending' ? 'sending' : 'idle'}
+                sentLabel={`Sent to ${result?.sent ?? 0} students`}
+              />
+            </>
+          )}
+
           {/* Student count */}
           {isFaculty && studentCount > 0 && (
             <p style={{ fontSize: '10px', color: 'var(--text-ghost)', margin: '8px 0 0' }}>
