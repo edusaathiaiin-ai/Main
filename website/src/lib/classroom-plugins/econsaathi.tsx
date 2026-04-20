@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 
 const TABS = ['Canvas', 'GeoGebra', 'Media'] as const
 type Tab = typeof TABS[number]
@@ -21,7 +22,9 @@ function EconPlugin({ role, activeTab, onTabChange }: PluginProps) {
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <div style={{ display: currentTab === 'Canvas' ? 'block' : 'none', height: '100%' }}><CollaborativeCanvas role={role} /></div>
         <div style={{ display: currentTab === 'GeoGebra' ? 'block' : 'none', height: '100%' }}>
-          <iframe title="GeoGebra" src="https://www.geogebra.org/classic" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          <FullscreenPanel label="GeoGebra">
+            <iframe title="GeoGebra" src="https://www.geogebra.org/classic" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          </FullscreenPanel>
         </div>
         <div style={{ display: currentTab === 'Media' ? 'block' : 'none', height: '100%' }}>
           <div style={{ padding: '16px', height: '100%', overflowY: 'auto' }}>
@@ -29,9 +32,9 @@ function EconPlugin({ role, activeTab, onTabChange }: PluginProps) {
               <input value={embedUrl} onChange={(e) => setEmbedUrl(e.target.value)} placeholder="Paste YouTube or embeddable URL" style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', fontSize: '13px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', outline: 'none' }} />
             </div>
             {embedUrl ? (
-              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-subtle)', height: '400px' }}>
+              <FullscreenPanel label="Media">
                 <iframe title="Media" src={embedUrl.includes('youtube.com/watch?v=') ? embedUrl.replace('watch?v=', 'embed/') : embedUrl.includes('youtu.be/') ? `https://www.youtube.com/embed/${embedUrl.split('youtu.be/')[1]}` : embedUrl} style={{ width: '100%', height: '100%', border: 'none' }} allow="autoplay; fullscreen" sandbox="allow-scripts allow-same-origin allow-popups" />
-              </div>
+              </FullscreenPanel>
             ) : (
               <div style={{ height: '300px', borderRadius: '12px', border: '2px dashed var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px' }}>
                 <span style={{ fontSize: '32px', opacity: 0.3 }}>📊</span>

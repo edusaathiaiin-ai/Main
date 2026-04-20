@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 
 const TABS = ['Canvas', 'Sketchfab 3D', 'Maps', 'Spline / Media'] as const
 type Tab = typeof TABS[number]
@@ -96,7 +97,7 @@ function ArchPlugin({ role }: PluginProps) {
                 ))}
               </select>
             </div>
-            <div style={{ flex: 1 }}>
+            <FullscreenPanel label="Sketchfab 3D">
               <iframe
                 title="Sketchfab 3D Model"
                 src={`https://sketchfab.com/models/${selectedModel}/embed?autospin=1&ui_theme=dark&ui_infos=0&ui_watermark=0`}
@@ -104,7 +105,7 @@ function ArchPlugin({ role }: PluginProps) {
                 allow="autoplay; fullscreen; xr-spatial-tracking"
                 sandbox="allow-scripts allow-same-origin allow-popups"
               />
-            </div>
+            </FullscreenPanel>
           </div>
         )}
 
@@ -136,14 +137,14 @@ function ArchPlugin({ role }: PluginProps) {
                 ))}
               </div>
             </div>
-            <div style={{ flex: 1 }}>
+            <FullscreenPanel label="Map">
               <iframe
                 id="arch-map-frame"
                 title="OpenStreetMap"
                 src={`https://www.openstreetmap.org/export/embed.html?bbox=${LANDMARKS[0].lng - 0.01}%2C${LANDMARKS[0].lat - 0.005}%2C${LANDMARKS[0].lng + 0.01}%2C${LANDMARKS[0].lat + 0.005}&layer=mapnik&marker=${LANDMARKS[0].lat}%2C${LANDMARKS[0].lng}`}
                 style={{ width: '100%', height: '100%', border: 'none' }}
               />
-            </div>
+            </FullscreenPanel>
           </div>
         )}
 
@@ -169,7 +170,7 @@ function ArchPlugin({ role }: PluginProps) {
               />
             </div>
             {embedUrl && (
-              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-subtle)', height: '400px' }}>
+              <FullscreenPanel label="Media">
                 <iframe
                   title="Embedded content"
                   src={embedUrl.includes('youtube.com/watch?v=')
@@ -181,7 +182,7 @@ function ArchPlugin({ role }: PluginProps) {
                   allow="autoplay; fullscreen"
                   sandbox="allow-scripts allow-same-origin allow-popups"
                 />
-              </div>
+              </FullscreenPanel>
             )}
             {!embedUrl && (
               <div style={{

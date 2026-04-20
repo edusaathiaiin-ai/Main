@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 
 const TABS = ['Canvas', 'GeoGebra', 'Code Editor'] as const
 type Tab = typeof TABS[number]
@@ -39,7 +40,9 @@ function StatsPlugin({ role, activeTab, onTabChange }: PluginProps) {
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <div style={{ display: currentTab === 'Canvas' ? 'block' : 'none', height: '100%' }}><CollaborativeCanvas role={role} /></div>
         <div style={{ display: currentTab === 'GeoGebra' ? 'block' : 'none', height: '100%' }}>
-          <iframe title="GeoGebra" src="https://www.geogebra.org/classic" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          <FullscreenPanel label="GeoGebra">
+            <iframe title="GeoGebra" src="https://www.geogebra.org/classic" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          </FullscreenPanel>
         </div>
         <div style={{ display: currentTab === 'Code Editor' ? 'flex' : 'none', flexDirection: 'column', height: '100%' }}>
           <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: '8px', alignItems: 'center' }}>

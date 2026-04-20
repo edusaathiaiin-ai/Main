@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 
 const TABS = ['Canvas', 'GeoGebra', 'Maps', 'PubMed'] as const
 type Tab = typeof TABS[number]
@@ -29,7 +30,9 @@ function AgriPlugin({ role, activeTab, onTabChange }: PluginProps) {
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <div style={{ display: currentTab === 'Canvas' ? 'block' : 'none', height: '100%' }}><CollaborativeCanvas role={role} /></div>
         <div style={{ display: currentTab === 'GeoGebra' ? 'block' : 'none', height: '100%' }}>
-          <iframe title="GeoGebra" src="https://www.geogebra.org/classic" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          <FullscreenPanel label="GeoGebra">
+            <iframe title="GeoGebra" src="https://www.geogebra.org/classic" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          </FullscreenPanel>
         </div>
         <div style={{ display: currentTab === 'Maps' ? 'flex' : 'none', flexDirection: 'column', height: '100%' }}>
           <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -39,12 +42,14 @@ function AgriPlugin({ role, activeTab, onTabChange }: PluginProps) {
               ))}
             </div>
           </div>
-          <div style={{ flex: 1 }}>
+          <FullscreenPanel label="Map">
             <iframe id="agri-map" title="OpenStreetMap" src={`https://www.openstreetmap.org/export/embed.html?bbox=${LANDMARKS[0].lng - 1}%2C${LANDMARKS[0].lat - 0.5}%2C${LANDMARKS[0].lng + 1}%2C${LANDMARKS[0].lat + 0.5}&layer=mapnik&marker=${LANDMARKS[0].lat}%2C${LANDMARKS[0].lng}`} style={{ width: '100%', height: '100%', border: 'none' }} />
-          </div>
+          </FullscreenPanel>
         </div>
         <div style={{ display: currentTab === 'PubMed' ? 'block' : 'none', height: '100%' }}>
-          <iframe title="PubMed" src="https://pubmed.ncbi.nlm.nih.gov/?term=agricultural+science" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          <FullscreenPanel label="PubMed">
+            <iframe title="PubMed" src="https://pubmed.ncbi.nlm.nih.gov/?term=agricultural+science" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          </FullscreenPanel>
         </div>
       </div>
     </div>

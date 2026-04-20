@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -153,11 +154,13 @@ function PubChemPanel() {
         {compound && (
           <div className="flex flex-col gap-0">
             {/* 3D viewer */}
-            <div
-              ref={viewerRef}
-              className="w-full"
-              style={{ height: '300px', background: 'var(--bg-base)' }}
-            />
+            <FullscreenPanel label="3D Structure">
+              <div
+                ref={viewerRef}
+                className="w-full"
+                style={{ height: '300px', background: 'var(--bg-base)' }}
+              />
+            </FullscreenPanel>
 
             {/* Compound info */}
             <div className="space-y-2 px-3 py-3">
@@ -232,12 +235,14 @@ function PubChemPanel() {
 
 function KetcherPanel() {
   return (
-    <iframe
-      src="https://molview.org/"
-      className="h-full w-full border-0"
-      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-      title="MolView — 2D/3D Molecular Editor"
-    />
+    <FullscreenPanel label="MolView">
+      <iframe
+        src="https://molview.org/"
+        className="h-full w-full border-0"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+        title="MolView — 2D/3D Molecular Editor"
+      />
+    </FullscreenPanel>
   )
 }
 

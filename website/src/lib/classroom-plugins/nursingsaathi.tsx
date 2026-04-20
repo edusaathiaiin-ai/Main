@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 
 const TABS = ['Canvas', 'PubMed', 'Drug Reference', 'Clinical Guidelines'] as const
 type Tab = typeof TABS[number]
@@ -30,13 +31,19 @@ function NursingPlugin({ role, activeTab, onTabChange }: PluginProps) {
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <div style={{ display: currentTab === 'Canvas' ? 'block' : 'none', height: '100%' }}><CollaborativeCanvas role={role} /></div>
         <div style={{ display: currentTab === 'PubMed' ? 'block' : 'none', height: '100%' }}>
-          <iframe title="PubMed Nursing" src="https://pubmed.ncbi.nlm.nih.gov/?term=nursing" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          <FullscreenPanel label="PubMed">
+            <iframe title="PubMed Nursing" src="https://pubmed.ncbi.nlm.nih.gov/?term=nursing" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          </FullscreenPanel>
         </div>
         <div style={{ display: currentTab === 'Drug Reference' ? 'block' : 'none', height: '100%' }}>
-          <iframe title="MedlinePlus Drugs" src="https://medlineplus.gov/druginformation.html" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          <FullscreenPanel label="MedlinePlus">
+            <iframe title="MedlinePlus Drugs" src="https://medlineplus.gov/druginformation.html" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          </FullscreenPanel>
         </div>
         <div style={{ display: currentTab === 'Clinical Guidelines' ? 'block' : 'none', height: '100%' }}>
-          <iframe title="WHO Guidelines" src="https://www.who.int/publications/guidelines" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          <FullscreenPanel label="WHO Guidelines">
+            <iframe title="WHO Guidelines" src="https://www.who.int/publications/guidelines" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          </FullscreenPanel>
         </div>
       </div>
     </div>

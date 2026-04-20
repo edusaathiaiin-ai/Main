@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  PhET curated simulation list                                              */
@@ -163,12 +164,14 @@ function PhysicsPlugin({ role }: PluginProps) {
         {tab === 'canvas' && <CollaborativeCanvas role={role} />}
 
         {tab === 'geogebra' && (
-          <iframe
-            src="https://www.geogebra.org/classic?lang=en"
-            className="h-full w-full border-0"
-            allow="fullscreen"
-            title="GeoGebra"
-          />
+          <FullscreenPanel label="GeoGebra">
+            <iframe
+              src="https://www.geogebra.org/classic?lang=en"
+              className="h-full w-full border-0"
+              allow="fullscreen"
+              title="GeoGebra"
+            />
+          </FullscreenPanel>
         )}
 
         {tab === 'phet' && (
@@ -195,14 +198,16 @@ function PhysicsPlugin({ role }: PluginProps) {
               </select>
             </div>
             {/* Sim iframe — sandbox prevents PhET from navigating parent window */}
-            <iframe
-              key={phetSim}
-              src={`https://phet.colorado.edu/sims/html/${phetSim}/latest/${phetSim}_en.html`}
-              className="flex-1 border-0"
-              allow="fullscreen"
-              sandbox="allow-scripts allow-same-origin allow-popups"
-              title={`PhET: ${PHET_SIMS.find((s) => s.id === phetSim)?.name}`}
-            />
+            <FullscreenPanel label="PhET Simulation">
+              <iframe
+                key={phetSim}
+                src={`https://phet.colorado.edu/sims/html/${phetSim}/latest/${phetSim}_en.html`}
+                className="h-full w-full border-0"
+                allow="fullscreen"
+                sandbox="allow-scripts allow-same-origin allow-popups"
+                title={`PhET: ${PHET_SIMS.find((s) => s.id === phetSim)?.name}`}
+              />
+            </FullscreenPanel>
           </div>
         )}
 

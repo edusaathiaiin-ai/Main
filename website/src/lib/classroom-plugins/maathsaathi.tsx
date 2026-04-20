@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  Wolfram Alpha query panel                                                 */
@@ -135,13 +136,15 @@ function GeoGebraPanel() {
           </button>
         ))}
       </div>
-      <iframe
-        key={mode}
-        src={activeMode.url}
-        className="flex-1 border-0"
-        allow="fullscreen"
-        title={`GeoGebra ${activeMode.label}`}
-      />
+      <FullscreenPanel label={`GeoGebra ${activeMode.label}`}>
+        <iframe
+          key={mode}
+          src={activeMode.url}
+          className="h-full w-full border-0"
+          allow="fullscreen"
+          title={`GeoGebra ${activeMode.label}`}
+        />
+      </FullscreenPanel>
     </div>
   )
 }
@@ -184,12 +187,14 @@ function MathPlugin({ role }: PluginProps) {
         {tab === 'geogebra' && <GeoGebraPanel />}
         {tab === 'wolfram' && <WolframPanel />}
         {tab === 'sagemath' && (
-          <iframe
-            src="https://sagecell.sagemath.org/"
-            className="h-full w-full border-0"
-            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-            title="SageMathCell"
-          />
+          <FullscreenPanel label="SageMath">
+            <iframe
+              src="https://sagecell.sagemath.org/"
+              className="h-full w-full border-0"
+              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+              title="SageMathCell"
+            />
+          </FullscreenPanel>
         )}
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 
 const TABS = ['Canvas', 'GeoGebra', 'PubChem', 'PhET Sims'] as const
 type Tab = typeof TABS[number]
@@ -27,15 +28,17 @@ function ChemEnggPlugin({ role, activeTab, onTabChange }: PluginProps) {
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <div style={{ display: currentTab === 'Canvas' ? 'block' : 'none', height: '100%' }}><CollaborativeCanvas role={role} /></div>
         <div style={{ display: currentTab === 'GeoGebra' ? 'block' : 'none', height: '100%' }}>
-          <iframe title="GeoGebra" src="https://www.geogebra.org/classic" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          <FullscreenPanel label="GeoGebra">
+            <iframe title="GeoGebra" src="https://www.geogebra.org/classic" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          </FullscreenPanel>
         </div>
         <div style={{ display: currentTab === 'PubChem' ? 'flex' : 'none', flexDirection: 'column', height: '100%' }}>
           <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: '6px' }}>
             <input value={pubchemQuery} onChange={(e) => setPubchemQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && pubchemQuery.trim() && setPubchemQuery(pubchemQuery.trim())} placeholder="Search compound..." style={{ flex: 1, padding: '6px 10px', borderRadius: '8px', fontSize: '12px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', outline: 'none' }} />
           </div>
-          <div style={{ flex: 1 }}>
+          <FullscreenPanel label="PubChem">
             <iframe title="PubChem" src={pubchemQuery.trim() ? `https://pubchem.ncbi.nlm.nih.gov/#query=${encodeURIComponent(pubchemQuery.trim())}` : 'https://pubchem.ncbi.nlm.nih.gov/'} style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
-          </div>
+          </FullscreenPanel>
         </div>
         <div style={{ display: currentTab === 'PhET Sims' ? 'flex' : 'none', flexDirection: 'column', height: '100%' }}>
           <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -43,7 +46,7 @@ function ChemEnggPlugin({ role, activeTab, onTabChange }: PluginProps) {
               {PHET_SIMS.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
-          <div style={{ flex: 1 }}><iframe title="PhET" src={`https://phet.colorado.edu/sims/html/${sim}/latest/${sim}_all.html`} style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin" /></div>
+          <FullscreenPanel label="PhET Simulation"><iframe title="PhET" src={`https://phet.colorado.edu/sims/html/${sim}/latest/${sim}_all.html`} style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin" /></FullscreenPanel>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { ToolContainer } from '@/components/classroom/ToolContainer'
 import Editor from '@monaco-editor/react'
 import { useRoom } from '@/components/classroom/liveblocks.config'

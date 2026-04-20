@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 
 const TABS = ['Canvas', 'GeoGebra', 'PhET Sims', 'Falstad Circuits'] as const
 type Tab = typeof TABS[number]
@@ -26,7 +27,9 @@ function ElectronicsPlugin({ role, activeTab, onTabChange }: PluginProps) {
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <div style={{ display: currentTab === 'Canvas' ? 'block' : 'none', height: '100%' }}><CollaborativeCanvas role={role} /></div>
         <div style={{ display: currentTab === 'GeoGebra' ? 'block' : 'none', height: '100%' }}>
-          <iframe title="GeoGebra" src="https://www.geogebra.org/classic" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          <FullscreenPanel label="GeoGebra">
+            <iframe title="GeoGebra" src="https://www.geogebra.org/classic" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
+          </FullscreenPanel>
         </div>
         <div style={{ display: currentTab === 'PhET Sims' ? 'flex' : 'none', flexDirection: 'column', height: '100%' }}>
           <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -34,10 +37,12 @@ function ElectronicsPlugin({ role, activeTab, onTabChange }: PluginProps) {
               {PHET_SIMS.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
-          <div style={{ flex: 1 }}><iframe title="PhET" src={`https://phet.colorado.edu/sims/html/${sim}/latest/${sim}_all.html`} style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin" /></div>
+          <FullscreenPanel label="PhET Simulation"><iframe title="PhET" src={`https://phet.colorado.edu/sims/html/${sim}/latest/${sim}_all.html`} style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin" /></FullscreenPanel>
         </div>
         <div style={{ display: currentTab === 'Falstad Circuits' ? 'block' : 'none', height: '100%' }}>
-          <iframe title="Falstad Circuit Simulator" src="https://www.falstad.com/circuit/circuitjs.html" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups" />
+          <FullscreenPanel label="Falstad Circuit Simulator">
+            <iframe title="Falstad Circuit Simulator" src="https://www.falstad.com/circuit/circuitjs.html" style={{ width: '100%', height: '100%', border: 'none' }} sandbox="allow-scripts allow-same-origin allow-popups" />
+          </FullscreenPanel>
         </div>
       </div>
     </div>

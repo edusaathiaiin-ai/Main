@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
 import { RcsbPanel } from '@/components/classroom/RcsbPanel'
 import { WolframPanel } from '@/components/classroom/WolframPanel'
@@ -163,7 +164,7 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
               </select>
             )}
           </div>
-          <div style={{ flex: 1 }}>
+          <FullscreenPanel label={anatomySource === 'sketchfab' ? 'Sketchfab 3D' : 'Zygote Body'}>
             {anatomySource === 'sketchfab' ? (
               <iframe
                 title={currentModel.name}
@@ -181,16 +182,18 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
                 allowFullScreen
               />
             )}
-          </div>
+          </FullscreenPanel>
         </div>
 
         <div style={{ display: currentTab === 'Neuro Atlas' ? 'block' : 'none', height: '100%' }}>
-          <iframe
-            title="OpenAnatomy — Harvard Medical School"
-            src="https://www.openanatomy.org/atlas/"
-            style={{ width: '100%', height: '100%', border: 'none' }}
-            sandbox="allow-scripts allow-same-origin allow-popups"
-          />
+          <FullscreenPanel label="OpenAnatomy">
+            <iframe
+              title="OpenAnatomy — Harvard Medical School"
+              src="https://www.openanatomy.org/atlas/"
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              sandbox="allow-scripts allow-same-origin allow-popups"
+            />
+          </FullscreenPanel>
         </div>
 
         <div style={{ display: currentTab === 'Proteins' ? 'block' : 'none', height: '100%' }}>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
 
 // ── NACA 4-digit airfoil generator (pure math) ──────────────────────────────
@@ -249,14 +250,14 @@ function PhysicsLab() {
       )}
 
       {/* PhET simulation */}
-      <div style={{ flex: 1 }}>
+      <FullscreenPanel label="PhET Simulation">
         <iframe
           title={`PhET — ${PHET_SIMS.find((s) => s.id === selectedSim)?.name}`}
           src={`https://phet.colorado.edu/sims/html/${selectedSim}/latest/${selectedSim}_all.html`}
           style={{ width: '100%', height: '100%', border: 'none' }}
           sandbox="allow-scripts allow-same-origin"
         />
-      </div>
+      </FullscreenPanel>
     </div>
   )
 }
@@ -400,14 +401,14 @@ function BhuvanPanel() {
       ))}
 
       {/* Bhuvan map embed */}
-      <div style={{ marginTop: '12px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+      <FullscreenPanel label="ISRO Bhuvan">
         <iframe
           title="ISRO Bhuvan Map"
           src={`https://bhuvan-app1.nrsc.gov.in/bhuvan2d/bhuvan/bhuvan2d.php?lat=${lat}&lon=${lng}&zoom=10`}
           style={{ width: '100%', height: '300px', border: 'none' }}
           sandbox="allow-scripts allow-same-origin allow-popups"
         />
-      </div>
+      </FullscreenPanel>
 
       <p style={{ fontSize: '10px', color: 'var(--text-ghost)', marginTop: '8px', textAlign: 'center' }}>
         Source: ISRO Bhuvan — Indian Space Research Organisation, Dept. of Space, Govt. of India
@@ -542,7 +543,7 @@ function AerospacePlugin({ role }: PluginProps) {
                 ))}
               </select>
             </div>
-            <div style={{ flex: 1 }}>
+            <FullscreenPanel label="Sketchfab 3D">
               <iframe
                 title="Sketchfab 3D Model"
                 src={`https://sketchfab.com/models/${selectedModel}/embed?autospin=1&ui_theme=dark&ui_infos=0&ui_watermark=0`}
@@ -550,7 +551,7 @@ function AerospacePlugin({ role }: PluginProps) {
                 allow="autoplay; fullscreen; xr-spatial-tracking"
                 sandbox="allow-scripts allow-same-origin allow-popups"
               />
-            </div>
+            </FullscreenPanel>
           </div>
         )}
 
@@ -570,7 +571,9 @@ function AerospacePlugin({ role }: PluginProps) {
                     style={{ width: '100%', borderRadius: '10px', marginBottom: '8px' }}
                   />
                 ) : (
-                  <iframe src={apod.url} title={apod.title} style={{ width: '100%', height: '300px', borderRadius: '10px', border: 'none', marginBottom: '8px' }} />
+                  <FullscreenPanel label="APOD Video">
+                    <iframe src={apod.url} title={apod.title} style={{ width: '100%', height: '300px', borderRadius: '10px', border: 'none', marginBottom: '8px' }} />
+                  </FullscreenPanel>
                 )}
                 <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>{apod.title}</p>
                 <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', lineHeight: 1.6 }}>{apod.explanation?.slice(0, 300)}…</p>
@@ -676,12 +679,14 @@ function AerospacePlugin({ role }: PluginProps) {
 
         {/* ── NASA Eyes ── */}
         {tab === 'NASA Eyes' && (
-          <iframe
-            title="NASA Eyes — Solar System"
-            src="https://eyes.nasa.gov/apps/solar-system/"
-            style={{ width: '100%', height: '100%', border: 'none' }}
-            sandbox="allow-scripts allow-same-origin allow-popups"
-          />
+          <FullscreenPanel label="NASA Eyes">
+            <iframe
+              title="NASA Eyes — Solar System"
+              src="https://eyes.nasa.gov/apps/solar-system/"
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              sandbox="allow-scripts allow-same-origin allow-popups"
+            />
+          </FullscreenPanel>
         )}
 
         {/* ── Airfoil Generator (built-in NACA 4-digit) ── */}
@@ -699,14 +704,14 @@ function AerospacePlugin({ role }: PluginProps) {
 
         {/* ── GeoGebra — engineering math, vector analysis, orbital mechanics ── */}
         {tab === 'GeoGebra' && (
-          <div style={{ height: '100%' }}>
+          <FullscreenPanel label="GeoGebra">
             <iframe
               title="GeoGebra Classic"
               src="https://www.geogebra.org/classic"
               style={{ width: '100%', height: '100%', border: 'none' }}
               sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
             />
-          </div>
+          </FullscreenPanel>
         )}
       </div>
     </div>

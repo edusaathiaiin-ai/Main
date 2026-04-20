@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useAutoQueryHandler } from '@/lib/classroom-plugins/useAutoQueryHandler'
+import { FullscreenPanel } from './FullscreenPanel'
 
 type Pod = { title: string; content: string; image_url: string | null }
 
@@ -47,6 +48,7 @@ export function WolframPanel({ onArtifact }: Props) {
   const handleSearch = useCallback(() => { doSearch(query) }, [query]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
+    <FullscreenPanel label="Wolfram Alpha">
     <div className="flex h-full flex-col">
       <div className="flex shrink-0 items-center gap-2 px-3 py-2" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
@@ -79,5 +81,6 @@ export function WolframPanel({ onArtifact }: Props) {
         )}
       </div>
     </div>
+    </FullscreenPanel>
   )
 }

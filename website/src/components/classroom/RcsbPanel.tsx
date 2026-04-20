@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useAutoQueryHandler } from '@/lib/classroom-plugins/useAutoQueryHandler'
+import { FullscreenPanel } from './FullscreenPanel'
 
 type PdbResult = {
   pdb_id: string; title: string; organism: string
@@ -127,7 +128,9 @@ export function RcsbPanel({ placeholder, onArtifact }: Props) {
         ))}
         {structure && (
           <div>
-            <div ref={viewerRef} className="w-full" style={{ height: '280px', background: 'var(--bg-base)' }} />
+            <FullscreenPanel label={`PDB ${structure.pdb_id}`}>
+              <div ref={viewerRef} className="w-full" style={{ height: '100%', minHeight: '280px', background: 'var(--bg-base)' }} />
+            </FullscreenPanel>
             <div className="space-y-2 px-3 py-3">
               <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{structure.title}</p>
               <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>

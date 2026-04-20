@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
 import { RcsbPanel as SharedRcsbPanel } from '@/components/classroom/RcsbPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
@@ -177,7 +178,9 @@ function RcsbPanel() {
         {/* Structure detail */}
         {structure && (
           <div>
-            <div ref={viewerRef} className="w-full" style={{ height: '280px', background: 'var(--bg-base)' }} />
+            <FullscreenPanel label="3D Structure">
+              <div ref={viewerRef} className="w-full" style={{ height: '280px', background: 'var(--bg-base)' }} />
+            </FullscreenPanel>
             <div className="space-y-2 px-3 py-3">
               <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{structure.title}</p>
               <div className="grid grid-cols-2 gap-2">

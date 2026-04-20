@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 
 const TABS = ['Canvas', 'Maps', 'Media'] as const
 type Tab = typeof TABS[number]
@@ -39,9 +40,9 @@ function HistoryPlugin({ role, activeTab, onTabChange }: PluginProps) {
               ))}
             </div>
           </div>
-          <div style={{ flex: 1 }}>
+          <FullscreenPanel label="Map">
             <iframe id="history-map" title="OpenStreetMap" src={`https://www.openstreetmap.org/export/embed.html?bbox=${LANDMARKS[0].lng - 0.02}%2C${LANDMARKS[0].lat - 0.01}%2C${LANDMARKS[0].lng + 0.02}%2C${LANDMARKS[0].lat + 0.01}&layer=mapnik&marker=${LANDMARKS[0].lat}%2C${LANDMARKS[0].lng}`} style={{ width: '100%', height: '100%', border: 'none' }} />
-          </div>
+          </FullscreenPanel>
         </div>
         <div style={{ display: currentTab === 'Media' ? 'block' : 'none', height: '100%' }}>
           <div style={{ padding: '16px', height: '100%', overflowY: 'auto' }}>
@@ -49,9 +50,9 @@ function HistoryPlugin({ role, activeTab, onTabChange }: PluginProps) {
               <input value={embedUrl} onChange={(e) => setEmbedUrl(e.target.value)} placeholder="Paste YouTube or embeddable URL" style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', fontSize: '13px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', outline: 'none' }} />
             </div>
             {embedUrl ? (
-              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-subtle)', height: '400px' }}>
+              <FullscreenPanel label="Media">
                 <iframe title="Media" src={embedUrl.includes('youtube.com/watch?v=') ? embedUrl.replace('watch?v=', 'embed/') : embedUrl.includes('youtu.be/') ? `https://www.youtube.com/embed/${embedUrl.split('youtu.be/')[1]}` : embedUrl} style={{ width: '100%', height: '100%', border: 'none' }} allow="autoplay; fullscreen" sandbox="allow-scripts allow-same-origin allow-popups" />
-              </div>
+              </FullscreenPanel>
             ) : (
               <div style={{ height: '300px', borderRadius: '12px', border: '2px dashed var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px' }}>
                 <span style={{ fontSize: '32px', opacity: 0.3 }}>🏺</span>

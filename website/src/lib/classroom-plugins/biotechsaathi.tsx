@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -123,7 +124,9 @@ function RcsbPanel() {
         ))}
         {structure && (
           <div>
-            <div ref={viewerRef} className="w-full" style={{ height: '280px', background: 'var(--bg-base)' }} />
+            <FullscreenPanel label="3D Structure">
+              <div ref={viewerRef} className="w-full" style={{ height: '280px', background: 'var(--bg-base)' }} />
+            </FullscreenPanel>
             <div className="space-y-2 px-3 py-3">
               <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{structure.title}</p>
               <div className="grid grid-cols-2 gap-2">
@@ -180,13 +183,15 @@ function EnsemblPanel() {
           ))}
         </select>
       </div>
-      <iframe
-        key={region}
-        src={`https://www.ensembl.org/Homo_sapiens/Location/View?r=${region}`}
-        className="flex-1 border-0"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-        title="Ensembl Genome Browser"
-      />
+      <FullscreenPanel label="Ensembl Genome Browser">
+        <iframe
+          key={region}
+          src={`https://www.ensembl.org/Homo_sapiens/Location/View?r=${region}`}
+          className="h-full w-full border-0"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+          title="Ensembl Genome Browser"
+        />
+      </FullscreenPanel>
     </div>
   )
 }

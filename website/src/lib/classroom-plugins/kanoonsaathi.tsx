@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
+import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
 import { ToolContainer } from '@/components/classroom/ToolContainer'
 
@@ -268,11 +269,13 @@ function PdfPanel() {
         </div>
         <div className="flex-1">
           {loadedUrl ? (
-            <iframe
-              src={`https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(loadedUrl)}`}
-              className="h-full w-full border-0"
-              title="PDF Viewer"
-            />
+            <FullscreenPanel label="PDF Viewer">
+              <iframe
+                src={`https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(loadedUrl)}`}
+                className="h-full w-full border-0"
+                title="PDF Viewer"
+              />
+            </FullscreenPanel>
           ) : (
             <div className="flex h-full items-center justify-center">
               <div className="text-center">
