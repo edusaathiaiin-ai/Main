@@ -306,6 +306,14 @@ export function Sidebar({
           dataTour="nav-board"
         />
         <ExpandableSidebarItem
+          id="live-sessions"
+          icon="🎙️"
+          label="Live Sessions"
+          href="/live"
+          isActive={pathname === '/live' || pathname.startsWith('/live/')}
+          accentColor="#DC2626"
+        />
+        <ExpandableSidebarItem
           id="news"
           icon="📰"
           label="News"

@@ -520,6 +520,26 @@ export default function FacultyLiveDashboard() {
                         session={s}
                         onSaved={handleMeetingLinkSaved}
                       />
+                      {/* Enter Classroom — faculty goes live */}
+                      <Link
+                        href={`/classroom/${s.id}`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          marginTop: '8px',
+                          padding: '8px 16px',
+                          borderRadius: '10px',
+                          background: '#C9993A',
+                          color: '#fff',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          textDecoration: 'none',
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        🎓 Enter Classroom
+                      </Link>
                       {s.meeting_link_shared_at && (
                         <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginTop: '6px' }}>
                           Last shared{' '}
