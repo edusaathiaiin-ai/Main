@@ -295,7 +295,9 @@ function CallbackInner() {
           if (saathiSlug) onboardUrl.searchParams.set('saathi', saathiSlug)
           router.replace(onboardUrl.pathname + onboardUrl.search)
         } else {
-          router.replace(roleDefaultRoute(roleParam ?? role))
+          // Use finalRole — may have been auto-promoted to faculty
+          // during this login if application was approved since last visit
+          router.replace(roleDefaultRoute(finalRole as DbUserRole))
         }
       } catch (err) {
         setStatus('error')
