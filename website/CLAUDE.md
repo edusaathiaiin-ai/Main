@@ -1,4 +1,4 @@
-# EdUsaathiAI — Claude Code Context v3.2
+# EdUsaathiAI — Claude Code Context v3.2 FINAL
 # Last updated: April 2026
 # Author: Jaydeep Buch, Ahmedabad
 #
@@ -107,7 +107,7 @@ Always import from this file — never hardcode UUIDs.
 Supabase:         vpmpuxosyrijknbxautx.supabase.co
 Auth:             Supabase Auth (Email magic link + Google OAuth)
 Payments:         Razorpay LIVE (not test — real money)
-Edge Functions:   37 deployed, all ACTIVE
+Edge Functions:   37+ deployed, all ACTIVE
 DB tables:        60+ tables, full RLS
 Cron jobs:        13 active via pg_cron + pg_net
 Email:            Resend (from admin@edusaathiai.in)
@@ -177,7 +177,6 @@ Monaco Editor     VS Code code editor (classroom)
 /* Per-Saathi colors via data-saathi attribute */
 /* Set on body: document.body.setAttribute('data-saathi', slug) */
 /* CSS vars --saathi-primary, --saathi-light, --saathi-bg etc. */
-/* auto-override per Saathi */
 ```
 
 **Fonts:**
@@ -192,7 +191,6 @@ Mono:     JetBrains Mono
 ❌ rgba(255,255,255,0.x) as TEXT color — invisible on light bg
 ❌ Hardcoded dark backgrounds in chat components
 ❌ Navy #0B1F3A or #060F1D anywhere in chat UI
-   (dark theme is only for /explore marketing page)
 ```
 
 **Exception:** The `/explore` Saathi grid page intentionally stays dark (#0F1923).
@@ -211,7 +209,6 @@ All other pages: light theme.
 --text-xl:    24px   /* section headers */
 --text-2xl:   30px   /* page titles */
 
-/* Scale up automatically with data-font-size attribute */
 [data-font-size="large"]  → all sizes +2px
 [data-font-size="xlarge"] → all sizes +4px
 ```
@@ -321,7 +318,7 @@ Saathi says: "Last time we studied cardiac troponin. Shall we continue?"
 
 ## Inline Tool Tags — Chat System
 
-Five Saathi-specific tool tag systems wired into chat:
+Five Saathi-specific tool tag systems wired into chat responses:
 
 | Tag Format | Saathis | Card Component | Edge Function |
 |---|---|---|---|
@@ -331,7 +328,7 @@ Five Saathi-specific tool tag systems wired into chat:
 | `[CHEMSPIDER:compound]` | Chem, Pharma, ChemEngg, BioTech | ChemSpiderCard | fetch-chemspider |
 | `[MOLECULE:name]` | Chem, Pharma, Bio | MoleculeViewer | (client-side PubChem) |
 
-Rules for all tags:
+**Rules for all tags:**
 - One tag per response maximum
 - Always explain BEFORE the tag — never just emit the tag alone
 - If question is conceptual only (no computation/lookup needed) — skip the tag
@@ -346,9 +343,9 @@ DEFAULT LANGUAGE IS ENGLISH. Always respond in English unless the
 student explicitly writes in another language.
 
 Student's name, city, institution, or state do NOT determine language.
-  A student named "જયદીપ" who types in English gets an English response.
-  A student from Ahmedabad who types in English gets an English response.
-  A student at Gujarat University who types in English gets an English response.
+  A student named "જયદીપ" who types in English → English response.
+  A student from Ahmedabad who types in English → English response.
+  A student at Gujarat University who types in English → English response.
 
 Only switch to a regional language when the student's message contains
 non-Latin script (देवनागरी, ગુજરાતી, தமிழ், etc.).
@@ -372,12 +369,11 @@ supabase/functions/_shared/saathiPersonalities_part2.ts  (non-STEM + rotation lo
 
 **Prof. Sharma conflict:** KanoonSaathi system prompt previously had
 hardcoded Prof. Sharma / Arjun / Meera personas. These override the
-personality system. Remove any such hardcoded personas — let the
-personality system handle all character voices.
+personality system. Remove any such hardcoded personas.
 
-**Time-aware greeting:** Personality prompt includes IST time context.
-Never say "Good morning" at 10 PM. The prompt includes:
+**Time-aware greeting:**
 `Current time in India: [morning/afternoon/evening/night].`
+Never say "Good morning" at 10 PM.
 
 ---
 
@@ -399,6 +395,25 @@ IPC → replaced by Bharatiya Nyaya Sanhita (BNS) 2023, effective 1 July 2024
 CrPC → replaced by BNSS 2023
 Indian Evidence Act → replaced by BSA 2023
 Always mention equivalent BNS section when discussing IPC sections.
+```
+
+**Correction injection** (in chat/index.ts, before sending to Claude/Groq):
+```typescript
+const { data: corrections } = await supabaseAdmin
+  .from('fact_corrections')
+  .select('wrong_claim, correct_claim, topic')
+  .eq('vertical_id', saathiId)
+  .eq('status', 'verified')
+  .order('verified_at', { ascending: false })
+  .limit(20)
+
+if (corrections?.length) {
+  systemPrompt = `VERIFIED CORRECTIONS — ALWAYS USE:\n${
+    corrections.map((c, i) =>
+      `${i+1}. WRONG: "${c.wrong_claim}"\n   CORRECT: "${c.correct_claim}"`
+    ).join('\n')
+  }\n\n` + systemPrompt
+}
 ```
 
 ---
@@ -463,7 +478,7 @@ cron-admin-digest-daily      30 2 * * *    (8 AM IST)
 cron-admin-digest-weekly     30 3 * * 1    (Mon 9 AM IST)
 cron-weekly-letter           30 2 * * 0    (Sun 8 AM IST)
 cron-eval-flagged            (Sunday)
-cron-refresh-bhuvan-token    30 0 * * *    (6 AM IST — health check)
+cron-refresh-bhuvan-token    30 0 * * *    (6 AM IST)
 cron-homework-notify         */5 * * * *   (every 5 min — classroom)
 ```
 
@@ -526,38 +541,145 @@ homework              system_tokens
 
 ---
 
+## Board — Access Rules
+
+Students can post on community board ONLY if:
+1. `registered_at` is more than 24 hours ago
+2. `profile_completeness_pct >= 60`
+
+Show banner BEFORE input — not after failed post attempt.
+
+---
+
+## Name Field Validation
+
+Use `validateDisplayName()` from `@/lib/validation/nameValidation.ts`
+Never accept: pure numbers, keyboard mash, repeated chars, generic words (test/user/admin),
+under 2 or over 40 chars, containing numbers or special characters.
+
+---
+
+## WhatsApp Setup
+
+```
+API Number:       +91 98255 93204
+Phone Number ID:  1010533742151361
+Business Acct ID: 934629882802473
+Admin receives:   +91 98255 93262 (Jaydeep personal)
+```
+
+**Templates — current status:**
+```
+T01  hello_world                          Active
+T02  edusaathiai_session_booked           Active ✓
+T03  edusaathiai_meeting_link_ready       Active
+T04  new_lecture_request                  Active
+T05  faculty_accepted_your_request        Active
+T06  edusaathiai_subscription_activated   Active ✓
+T16  edusaathiai_renewal_reminder         Pending approval
+T17  edusaathiai_plan_expired             Pending approval
+T18  edusaathiai_come_back                Pending (MARKETING)
+T19  edusaathiai_session_notes            Pending (CLASSROOM)
+```
+
+**Templates NOT YET wired:**
+```
+T16 → subscription-lifecycle (3 days before expiry)
+T17 → subscription-lifecycle (expiry day)
+T18 → inactivity-nudge (7 days inactive) — TO BUILD
+T19 → share-notes route (wired, pending Meta approval)
+```
+
+**WhatsApp Saathi rules:**
+1. Cooling: Free/Plus 48hr, Unlimited 0h
+2. Saathi lock: permanent once set, admin-only unlock
+3. wa_phone format: always `+91XXXXXXXXXX`
+
+---
+
+## DPDP Compliance
+
+```
+Data Fiduciary:    Jaydeep Buch (NOT IAES)
+Grievance Officer: Jaydeep Buch
+Contact:           admin@edusaathiai.in
+
+Delete account:    Hard delete soul, sessions, points, auth user
+                   Anonymise profiles row (keep for FK integrity)
+                   Keep subscriptions (financial records)
+```
+
+---
+
+## Immersive Components (Never Remove)
+
+```
+MoleculeViewer      [MOLECULE]    Chemistry AR
+Molecule3DViewer    [MOLECULE3D]  PubChem 3D
+MechanismViewer     [MECHANISM]   Reaction animation
+AnatomyViewer       [ANATOMY]     Medical AR
+CircuitSimulator    [CIRCUIT]     Live circuits
+ArchModel3D         [ARCHMODEL]   Building walkthroughs
+Scene360Viewer      [SCENE360]    360° VR feed
+MindMap             [MINDMAP]     Spatial knowledge graph
+FloorPlanViewer     [FLOORPLAN]   AR floor projection
+```
+
+Caption text: `rgba(255,255,255,0.65)` — NOT 0.3. Invisible at 0.3.
+
+---
+
+## Razorpay — LIVE MODE
+
+```
+Payments are LIVE. Real money.
+Triple charge guard: useRef(false) in pricing/page.tsx
+Server-side: 409 if already_subscribed
+Never create duplicate orders.
+```
+
+---
+
+## Admin Dashboard
+
+```
+URL: edusaathiai-admin.vercel.app
+Sections: Users, Revenue, Moderation, Observability, WhatsApp,
+Suspensions, Faculty, Sessions (1:1), Live Lectures, Requests,
+Financials, Saathi Stats, Nudge Centre, Platform Health
+```
+
+---
+
 ## Common Bugs to Never Repeat
 
 ```
-1. UUID as slug in SAATHIS.find()
-   → Always toSlug() first
-   → Never ?? SAATHIS[0] fallback
+1.  UUID as slug in SAATHIS.find()
+    → Always toSlug() first. Never ?? SAATHIS[0]
 
-2. UTC date for quota check
-   → Always todayIST() from @/lib/quota
+2.  UTC date for quota check
+    → Always todayIST() from @/lib/quota
 
-3. Edge Function built but never deployed
-   → After every build: supabase functions list
-   → Verify version incremented
+3.  Edge Function built but never deployed
+    → After every build: supabase functions list
 
-4. IAES Ahmedabad referenced anywhere
-   → Remove immediately. Platform belongs to Jaydeep Buch.
+4.  IAES Ahmedabad referenced anywhere
+    → Remove immediately. Platform belongs to Jaydeep Buch.
 
-5. white/rgba(255,255,255,x) as text in light theme
-   → Use var(--text-secondary) or var(--text-tertiary)
+5.  white/rgba(255,255,255,x) as text in light theme
+    → Use var(--text-secondary) or var(--text-tertiary)
 
-6. vertical_id passed as slug to DB
-   → Always resolveVerticalId() before insert
+6.  vertical_id passed as slug to DB
+    → Always resolveVerticalId() before insert
 
-7. Client-side history sent to chat function
-   → History is fetched server-side from chat_messages
-   → Client history in request body is ignored
+7.  Client-side history sent to chat function
+    → History fetched server-side from chat_messages
 
-8. primary_saathi_id used directly in URL or component
-   → Always toSlug(profile.primary_saathi_id) first
+8.  primary_saathi_id used directly in URL or component
+    → Always toSlug(profile.primary_saathi_id) first
 
-9. Soul upsert with .insert() instead of .upsert()
-   → Always onConflict: 'user_id,vertical_id'
+9.  Soul upsert with .insert() instead of .upsert()
+    → Always onConflict: 'user_id,vertical_id'
 
 10. passion_peak_topic accepting generic words
     → Must be a genuine academic topic
@@ -568,10 +690,11 @@ homework              system_tokens
 
 12. Sources removed from classroom plugins
     → Platform rule: sources are NEVER removed, only added
+    → PubMed, RCSB, Wolfram, Indian Kanoon stay forever
 
 13. AutoQueryContext bypassed
     → Never add per-plugin autoQuery props
-    → Always use useAutoQueryHandler hook
+    → Always use useAutoQueryHandler — one line per panel
 
 14. ₹199 shown instead of ₹99 on student-facing surfaces
     → Launch price is ₹99/mo. Check plan.introPrice first.
@@ -580,9 +703,83 @@ homework              system_tokens
 
 ---
 
+## File Structure (Key Files)
+
+```
+website/src/
+  app/
+    (auth)/login/          onboard/
+    (app)/chat/            board/          news/
+         profile/          progress/       flashcards/
+         faculty/          live/           requests/
+         internships/      research/       learn/
+         classroom/        ← LIVE IN PRODUCTION
+    admin/                 pricing/        explore/
+    api/
+      classroom/
+        command/           ← AI Teaching Assistant (Claude Haiku)
+        archive-session/   ← Research Archive writer
+        log-artifact/      ← Artifact emission
+        share-notes/       ← Email + WhatsApp notes delivery
+        rcsb/  pubmed/  wolfram/  pubchem/
+        elsevier/  scopus/  indiankanoon/
+        nasa/  bhuvan/
+
+  components/
+    chat/     classroom/    profile/    ui/    saathi/
+
+  constants/
+    saathis.ts        ← 30 Saathis, slugs as .id
+    verticalIds.ts    ← UUID map for all 30
+
+  lib/
+    resolveVerticalId.ts
+    quota.ts                    ← todayIST() lives here
+    soul.ts                     ← SERVER ONLY
+    classroom-plugins/
+      types.ts                  ← SaathiPlugin interface
+      AutoQueryContext.tsx       ← universal TA context provider
+      useAutoQueryHandler.ts    ← one line per panel
+      default.tsx               ← tldraw for all unspecified Saathis
+      physicsaathi.tsx  maathsaathi.tsx  chemsaathi.tsx
+      biosaathi.tsx     medicosaathi.tsx  pharmasaathi.tsx
+      biotechsaathi.tsx kanoonsaathi.tsx  compsaathi.tsx
+      aerospacesaathi.tsx
+      [remaining use default.tsx]
+
+  hooks/
+    useArtifactLog.ts   ← emits artifacts to log-artifact
+
+supabase/functions/
+  _shared/
+    cors.ts  rateLimit.ts  validate.ts
+    saathiPersonalities_part1.ts
+    saathiPersonalities_part2.ts
+  chat/ (v138)   soul-update/   archive-session/
+  fetch-wolfram/ fetch-nasa/    fetch-chemspider/
+  refresh-bhuvan-token/
+  [30+ more functions]
+```
+
+---
+
 # ═══════════════════════════════════════════════════════════════════
 # CLASSROOM — LIVE IN PRODUCTION (April 2026)
 # ═══════════════════════════════════════════════════════════════════
+#
+# Status:  LIVE on main branch — edusaathiai.in/classroom/[id]
+# Merged:  20 April 2026 — 87 files, 15,667 lines, zero conflicts
+# ═══════════════════════════════════════════════════════════════════
+
+## Classroom — Core Philosophy
+
+**The student never leaves the app. Ever.**
+
+Two delivery types — faculty chooses at session creation:
+1. **External**: Google Meet / Zoom wrapped in iframe.
+2. **In-app**: 100ms.live video + shared canvas + subject tools.
+
+Both share identical chrome: timer, Saathi branding, notes, Q&A, summary.
 
 ## Classroom — What Shipped
 
@@ -590,28 +787,215 @@ homework              system_tokens
 Route:           /classroom/[id]
 Lobby:           Saathi avatar, countdown, join gate
 Session chrome:  Timer, mode switch, Q&A, Notes, End/Leave
-Video:           Google Meet iframe (external) or 100ms.live (in-app)
+Video:           Google Meet iframe OR 100ms.live peer tiles
 Canvas:          tldraw multiplayer via Liveblocks Yjs
 Formula bar:     KaTeX — faculty types LaTeX, renders on canvas
-Drag divider:    Adjustable video/canvas split, snaps, localStorage
-Mode switch:     Standard ↔ Interactive, Liveblocks broadcast
-Note builder:    Private per user, rich text, auto-save, PDF/WA/Email share
-Question queue:  Student asks → faculty sees → mark addressed or homework
-Homework:        30-minute review window, WhatsApp on send
-AI command bar:  Claude Haiku routes commands to tools automatically
+Drag divider:    Adjustable video/canvas split, snap points, localStorage
+Mode switch:     Standard ↔ Interactive, Liveblocks broadcast to all
+Note builder:    Private per user, rich text, auto-save 30s
+                 Share: PDF + Email (Resend) + WhatsApp (T19 pending)
+Question queue:  Student asks → faculty sees → addressed or homework
+Homework:        30-minute review window, cron-based WhatsApp send
+AI command bar:  Claude Haiku routes to correct tool automatically
+AutoQuery:       AutoQueryContext broadcasts, useAutoQueryHandler fires
 Research Archive: Permanent scientific notebook per student per session
-FullscreenPanel: Every tool viewer has expand/collapse, Escape to exit
-Saathi branding: Notes PDF/email/WA branded per Saathi from constants/saathis.ts
+FullscreenPanel: Every tool viewer — expand icon + double-click + Escape
+Saathi branding: Notes branded per Saathi from constants/saathis.ts
 ```
 
 ## Classroom — Universal Rules
 
 ```
-1. Sources are NEVER removed — only added
-2. AutoQueryContext is universal — one line per panel
-3. FullscreenPanel wraps every viewer
+1. Sources NEVER removed — only added
+   PubMed, RCSB, Wolfram, Indian Kanoon stay forever
+
+2. AutoQueryContext is universal
+   Never per-plugin autoQuery props
+   useAutoQueryHandler — one line per panel, done
+
+3. FullscreenPanel wraps every tool viewer
+   RcsbPanel, WolframPanel, GeoGebraPanel, PhETPanel,
+   MonacoPanel, PubMedPanel, NasaPanel, SketchfabPanel,
+   IndianKanoonPanel — all wrapped
+
 4. API keys never client-side
-5. Plugin = one file, zero changes to classroom core
+   Every external call through /api/classroom/* routes
+
+5. Plugin = one file
+   Adding a Saathi plugin = one new file
+   Zero changes to classroom route or core components
+```
+
+## Classroom — Subject Plugins
+
+```
+physicsaathi    GeoGebra + PhET (12 sims) + NIST (hardcoded 20 constants,
+                correct — 2019 SI redefinition values are fixed)
+                + Wolfram Alpha
+
+maathsaathi     GeoGebra (2D/3D/CAS) + Wolfram Alpha + SageMathCell
+
+chemsaathi      PubChem + 3Dmol.js + Ketcher + ChemSpider
+
+biosaathi       RCSB PDB + UniProt + PubMed + ScienceDirect
+                + Scopus + OpenAnatomy (neuro)
+
+medicosaathi    RCSB PDB + Wolfram + PubMed + ScienceDirect + Scopus
+                + Sketchfab anatomy (5 CC models) + Zygote Body
+                + OpenI NIH + Radiopaedia + Drug Reference (openFDA)
+
+pharmasaathi    PubChem + RCSB PDB + PubMed + DrugBank
+
+biotechsaathi   RCSB PDB + UniProt + Ensembl + NCBI Gene + PubMed
+
+kanoonsaathi    Indian Kanoon + BNS 2023 cross-reference (local table)
+                + PDF.js with Liveblocks-synced annotations
+
+compsaathi      Monaco Editor + y-monaco (Yjs) + Piston Runtime
+                Python, JS, TS, Java, C++, SQL
+
+aerospacesaathi NASA (APOD + NTRS + images) + GeoGebra + PhET
+                + Sketchfab aerospace models + NASA Eyes embed
+                + ISRO Bhuvan (Geoid — token refreshed daily by cron)
+
+All others      default.tsx (tldraw + KaTeX formula bar)
+```
+
+## Classroom — API Keys (Vercel + Supabase via Doppler)
+
+```
+ANTHROPIC_API_KEY             powers AI command bar + archive summary
+LIVEBLOCKS_SECRET_KEY         canvas sync
+NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY  client Liveblocks
+HMS_ACCESS_KEY / HMS_SECRET   100ms.live video
+WOLFRAM_ALPHA_APP_ID          55Y7GR5PHE
+CHEMSPIDER_API_KEY            RSC ChemSpider
+INDIANKANOON_API_KEY          Indian court judgments
+NASA_API_KEY                  NASA open data
+ELSEVIER_API_KEY              ScienceDirect
+SCOPUS_API_KEY                Scopus citations
+ISRO_BHUVAN_TOKEN             expires daily — refreshed by cron
+```
+
+## Classroom — Research Archive
+
+**Philosophy:** Not screenshots. Archiving Research State.
+
+```
+Artifact types (14):
+  molecule_3d, protein_structure, wolfram_query, geogebra_state,
+  phet_session, pubmed_citation, formula_katex, pdf_annotation,
+  code_snapshot, map_state, canvas_snapshot, command_log,
+  session_notes, homework
+
+archive-session flow:
+  1. Faculty ends session
+  2. Reads classroom_commands + Liveblocks storage + session_artifacts
+  3. Claude Haiku: 2-3 sentence academic summary (no software names)
+  4. Writes one research_archives row per booked student
+  5. Updates student_soul: research_depth_score + last_archive_context
+  6. last_archive_context injected into next chat system prompt
+
+Profile tab: /profile?tab=archive
+  Session cards: summary + artifact chips + canvas thumbnail
+  Click chip → ArtifactModal reconstructs live (never screenshot)
+  Reopen: /classroom/[id]?mode=review (read-only)
+
+Prohibitions:
+  NEVER store screenshot as primary record
+  NEVER emit artifact without source_url
+  NEVER regenerate Wolfram query for display — store original pods[]
+  NEVER show research_depth_score to student (internal signal only)
+  NEVER write research_archives from client — service role only
+  NEVER delete research_archives rows (set session_id = NULL instead)
+```
+
+## Classroom — Share Notes
+
+```
+1. Save as PDF        → browser print, Saathi branded
+2. Email to students  → Resend, full notes + artifact summary
+                        subject: "📒 Notes from {Saathi} — {Faculty} — {date}"
+                        batched in 10 for Resend rate limits
+3. WhatsApp           → template T19 (pending Meta approval)
+                        button visible now, activates on approval
+                        zero code change needed on approval
+
+All formats: Saathi emoji + name + tagline from constants/saathis.ts
+```
+
+## Classroom — Homework Pipeline
+
+```
+Student question queue → faculty marks "Assign as homework"
+Session ends → Summary card shows homework items editable inline
+Default: send in 30 minutes (countdown visible)
+"Send Now" button available
+"Cancel" stops send — faculty sends manually later
+Delayed send: cron-homework-notify checks every 5 minutes
+WhatsApp to each booked student with wa_phone
+homework table: draft → sent → acknowledged
+```
+
+## Classroom — Parked Features (Do Not Build Yet)
+
+```
+⏳  Session types: curriculum | broader_context | story
+    Story mode = amber chrome, quiet TA, no mode selector
+    Build after: classroom usage data from real sessions
+
+⏳  Lecture series table
+    Faculty creates series, students subscribe
+    Build after: first 10 real sessions completed
+
+⏳  Curriculum seeding
+    St. Xavier's Ahmedabad BSc Biochemistry as first seed
+    PDF received: NEP 2020, Semester 1, 7 papers, 22 credits
+    Build after: first institutional membership signed
+
+⏳  Student Whisper Mode (Level 3 TA)
+    Private TA per student during class
+    Faculty sees aggregate questions
+    Build after: Phase 4 usage data shows demand
+
+⏳  ISRO Bhuvan token refresh cron
+    Token expires daily
+    cron-refresh-bhuvan-token: daily 6 AM IST
+    Stores fresh token in system_tokens table
+
+⏳  3D4Medical anatomy partnership
+    Email sent to enterprise@3d4medical.com
+    Replace Sketchfab anatomy when approved
+
+⏳  Student telling exchange (student_reflection artifact)
+    Post story-session Saathi prompts student to tell their version
+    Wings gate updated to require one student_reflection artifact
+    Build after: story sessions are live
+
+⏳  Faculty insights page /faculty/insights
+    Aggregate anonymised tool usage per faculty
+    Which PubMed papers appeared most, which Wolfram queries
+    Build after: 20+ archived sessions exist
+```
+
+---
+
+# ═══════════════════════════════════════════════════════════════════
+# INSTITUTIONAL MEMBERSHIP — PARKED
+# Do NOT build until classroom has real usage data
+# ═══════════════════════════════════════════════════════════════════
+
+```
+URL pattern:    /institution/[slug]
+Three logins:   principal (analytics + NAAC), faculty, student
+Student flow:   "Find My Institution" CTA → one click to join
+NAAC report:    one-click PDF from principal dashboard
+DB migration:   068_institutions.sql (NOT YET RUN)
+
+NEVER auto-verify institutions
+NEVER show individual student data to principal (aggregate only)
+NEVER bill students within an institution
+NEVER build before classroom has real usage data
 ```
 
 ---
@@ -626,12 +1010,16 @@ supabase functions list
 SELECT
   (SELECT COUNT(*) FROM verticals WHERE is_active = true) AS saathis,
   (SELECT COUNT(*) FROM profiles WHERE is_active = true)  AS active_users,
-  (SELECT COUNT(*) FROM research_archives)                 AS archives;
+  (SELECT COUNT(*) FROM profiles
+   WHERE plan_id != 'free' AND plan_id != 'deleted')      AS paid_users,
+  (SELECT COUNT(*) FROM research_archives)                 AS archives_written,
+  (SELECT COUNT(*) FROM classroom_commands)                AS commands_logged;
 
 # 3. Deploy frontend
-npm run test:saathis   # 13/13 must pass
+npm run test:saathis   # 13/13 must pass before deploy
+npm run build && vercel --prod
 ```
 
 ---
-# END OF CLAUDE.md v3.2
+# END OF CLAUDE.md v3.2 FINAL
 # EdUsaathiAI — Jaydeep Buch, Ahmedabad — April 2026
