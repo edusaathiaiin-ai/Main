@@ -1135,6 +1135,8 @@ export default function ClassroomPage() {
               onClose={() => setNotesOpen(false)}
               isFaculty={isFaculty}
               studentCount={participantCount}
+              saathiSlug={saathi?.id}
+              facultyName={faculty?.full_name}
             />
           </div>
         </ClassroomRoomProvider>

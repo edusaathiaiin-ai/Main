@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { SAATHIS } from '@/constants/saathis'
 
 type Props = {
   sessionId: string
@@ -9,12 +10,15 @@ type Props = {
   onClose: () => void
   isFaculty?: boolean
   studentCount?: number
+  saathiSlug?: string
+  facultyName?: string
 }
 
 const STORAGE_KEY = (id: string) => `classroom-notes-${id}`
 const AUTOSAVE_MS = 30_000
 
-export function NoteBuilder({ sessionId, sessionTitle, open, onClose, isFaculty = false, studentCount = 0 }: Props) {
+export function NoteBuilder({ sessionId, sessionTitle, open, onClose, isFaculty = false, studentCount = 0, saathiSlug, facultyName }: Props) {
+  const saathi = SAATHIS.find(s => s.id === saathiSlug) ?? null
   const editorRef = useRef<HTMLDivElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [lastSaved, setLastSaved] = useState<string>('')
@@ -75,19 +79,36 @@ export function NoteBuilder({ sessionId, sessionTitle, open, onClose, isFaculty 
     const content = editorRef.current?.innerHTML ?? ''
     const printWindow = window.open('', '_blank')
     if (!printWindow) return
+    const accent = saathi?.primary ?? '#B8860B'
+    const dateStr = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
     printWindow.document.write(`<!DOCTYPE html><html><head><title>Notes — ${sessionTitle}</title>
 <style>
   body { font-family: 'Plus Jakarta Sans', sans-serif; max-width: 700px; margin: 40px auto; padding: 0 24px; color: #1A1814; }
-  h1 { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
-  .meta { font-size: 12px; color: #7A7570; margin: 0 0 24px; }
-  .notes { font-size: 14px; line-height: 1.8; }
+  .header { margin-bottom: 24px; }
+  .saathi-name { font-size: 20px; font-weight: 800; margin: 0; color: ${accent}; }
+  .saathi-tagline { font-size: 12px; font-style: italic; color: #7A7570; margin: 2px 0 8px; }
+  .accent-line { height: 3px; background: ${accent}; border-radius: 2px; margin: 0 0 12px; }
+  .session-meta { font-size: 13px; color: #4A4740; margin: 0 0 2px; }
+  .session-meta-sub { font-size: 11px; color: #7A7570; margin: 0; }
+  .notes { font-size: 14px; line-height: 1.8; margin-top: 20px; }
   .notes h3 { font-size: 15px; font-weight: 700; margin: 16px 0 4px; }
   .notes ul, .notes ol { padding-left: 20px; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #E5E5E0; text-align: center; }
+  .footer p { font-size: 10px; color: #A8A49E; margin: 0; }
   @media print { body { margin: 20px; } }
 </style></head><body>
-  <h1>${sessionTitle}</h1>
-  <p class="meta">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+  <div class="header">
+    <p class="saathi-name">${saathi?.emoji ?? '✦'} ${saathi?.name ?? 'EdUsaathiAI'}</p>
+    <p class="saathi-tagline">${saathi?.tagline ?? 'Your learning companion'}</p>
+    <div class="accent-line"></div>
+    <p class="session-meta">${sessionTitle}</p>
+    <p class="session-meta-sub">${facultyName ? `${facultyName} · ` : ''}${dateStr}</p>
+  </div>
   <div class="notes">${content}</div>
+  <div class="footer">
+    <p>EdUsaathiAI · edusaathiai.in</p>
+    <p>${saathi?.name ?? ''} — ${saathi?.tagline ?? ''}</p>
+  </div>
 </body></html>`)
     printWindow.document.close()
     printWindow.print()

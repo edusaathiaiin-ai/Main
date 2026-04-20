@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { SAATHIS } from '@/constants/saathis'
 
 /**
  * Share faculty notes with all booked students via WhatsApp + Email.
@@ -57,10 +58,14 @@ export async function POST(req: NextRequest) {
   // Get Saathi name
   const { data: vertical } = await admin
     .from('verticals')
-    .select('name')
+    .select('name, slug')
     .eq('id', session.vertical_id)
     .single()
   const saathiName = vertical?.name ?? 'Saathi'
+  const saathi = SAATHIS.find(s => s.id === vertical?.slug) ?? null
+  const saathiEmoji = saathi?.emoji ?? '✦'
+  const saathiTagline = saathi?.tagline ?? 'Your learning companion'
+  const saathiColor = saathi?.primary ?? '#B8860B'
 
   // Get booked students with contact info
   const { data: bookings } = await admin
@@ -88,8 +93,9 @@ export async function POST(req: NextRequest) {
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID
   const resendKey = process.env.RESEND_API_KEY
 
-  // Truncate for WhatsApp template (max 1024 chars per param)
-  const noteSnippet = plainText.slice(0, 900)
+  // WhatsApp: branded header + truncated notes (max 1024 chars per param)
+  const waHeader = `${saathiEmoji} *${saathiName}*\n_${saathiTagline}_\n\n`
+  const noteSnippet = plainText.slice(0, 900 - waHeader.length)
 
   // ── WhatsApp delivery ──
   if ((channel === 'whatsapp' || channel === 'both') && waToken && phoneNumberId) {
@@ -114,9 +120,9 @@ export async function POST(req: NextRequest) {
               components: [{
                 type: 'body',
                 parameters: [
-                  { type: 'text', text: saathiName },
+                  { type: 'text', text: `${saathiEmoji} ${saathiName}` },
                   { type: 'text', text: session.title ?? 'Classroom Session' },
-                  { type: 'text', text: noteSnippet },
+                  { type: 'text', text: `${waHeader}${noteSnippet}` },
                 ],
               }],
             },
@@ -187,28 +193,34 @@ export async function POST(req: NextRequest) {
               to: student.email,
               subject: `📒 Notes from ${saathiName} session — ${facultyName} — ${sessionDate}`,
               html: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="font-family:'Plus Jakarta Sans',Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px 20px;color:#1A1814;background:#FFFFFF;">
-  <h1 style="font-family:Georgia,serif;font-size:22px;font-weight:800;color:#B8860B;margin:0 0 4px;">EdUsaathiAI</h1>
-  <p style="font-size:11px;color:#A8A49E;margin:0 0 24px;">Session notes from your classroom</p>
-
-  <p style="font-size:15px;color:#1A1814;margin:0 0 20px;">Hi ${firstName},</p>
-
-  <p style="font-size:13px;color:#4A4740;margin:0 0 6px;">Here are your notes from today's <strong>${saathiName}</strong> session with <strong>${facultyName}</strong>.</p>
-  <p style="font-size:11px;color:#7A7570;margin:0 0 20px;">${sessionDate}</p>
-
-  <div style="padding:20px;border-radius:12px;background:#F5F4F0;border:1px solid rgba(26,24,20,0.08);font-size:14px;line-height:1.8;color:#1A1814;">
-    ${notesHtml}
+<body style="font-family:'Plus Jakarta Sans',Arial,sans-serif;max-width:600px;margin:0 auto;padding:0;color:#1A1814;background:#FFFFFF;">
+  <!-- Saathi branded header band -->
+  <div style="background:${saathiColor};padding:20px 24px;border-radius:0 0 16px 16px;">
+    <p style="font-size:24px;margin:0 0 2px;color:#fff;">${saathiEmoji} <strong>${saathiName}</strong></p>
+    <p style="font-size:12px;font-style:italic;color:rgba(255,255,255,0.75);margin:0;">${saathiTagline}</p>
   </div>
 
-  ${artifactHtml}
+  <div style="padding:24px 24px 32px;">
+    <p style="font-size:15px;color:#1A1814;margin:0 0 16px;">Hi ${firstName},</p>
 
-  <div style="text-align:center;margin:28px 0;">
-    <a href="https://www.edusaathiai.in/chat" style="display:inline-block;padding:12px 28px;border-radius:10px;background:#B8860B;color:#fff;font-size:13px;font-weight:700;text-decoration:none;">Continue with ${saathiName} →</a>
-    <p style="font-size:10px;color:#A8A49E;margin:8px 0 0;">Your Saathi remembers where you left off.</p>
+    <p style="font-size:13px;color:#4A4740;margin:0 0 4px;">Here are your notes from today's <strong>${saathiName}</strong> session with <strong>${facultyName}</strong>.</p>
+    <p style="font-size:11px;color:#7A7570;margin:0 0 20px;">${sessionDate}</p>
+
+    <div style="padding:20px;border-radius:12px;background:#F5F4F0;border:1px solid rgba(26,24,20,0.08);font-size:14px;line-height:1.8;color:#1A1814;">
+      ${notesHtml}
+    </div>
+
+    ${artifactHtml}
+
+    <div style="text-align:center;margin:28px 0;">
+      <a href="https://www.edusaathiai.in/chat" style="display:inline-block;padding:12px 28px;border-radius:10px;background:${saathiColor};color:#fff;font-size:13px;font-weight:700;text-decoration:none;">Continue with ${saathiName} →</a>
+      <p style="font-size:10px;color:#A8A49E;margin:8px 0 0;">Your Saathi remembers where you left off.</p>
   </div>
 
-  <div style="border-top:1px solid rgba(26,24,20,0.06);padding-top:16px;text-align:center;">
-    <p style="font-size:10px;color:#A8A49E;margin:0;">EdUsaathiAI · Ahmedabad, Gujarat, India</p>
+    <div style="border-top:1px solid rgba(26,24,20,0.06);padding-top:16px;text-align:center;">
+      <p style="font-size:10px;color:#A8A49E;margin:0 0 2px;">EdUsaathiAI · edusaathiai.in</p>
+      <p style="font-size:9px;color:#C8C4BE;margin:0;">${saathiEmoji} ${saathiName} — ${saathiTagline}</p>
+    </div>
   </div>
 </body></html>`,
             }),
