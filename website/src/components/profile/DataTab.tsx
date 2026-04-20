@@ -57,12 +57,12 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h3 className="font-playfair mb-1 text-2xl font-bold text-white">
+        <h3 className="font-playfair mb-1 text-2xl font-bold">
           Your data. Your rights.
         </h3>
         <p
           className="text-sm leading-relaxed"
-          style={{ color: 'rgba(255,255,255,0.45)' }}
+          style={{ color: 'var(--text-tertiary)' }}
         >
           Under India&apos;s Digital Personal Data Protection Act 2023, you have
           full control over your personal data.
@@ -73,8 +73,8 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
       <section
         className="rounded-2xl p-6"
         style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--bg-base)',
+          border: '1px solid var(--border-subtle)',
         }}
       >
         <h4
@@ -96,15 +96,15 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
                   className="text-sm font-semibold"
                   style={{
                     color: cat.stored
-                      ? 'rgba(255,255,255,0.75)'
-                      : 'rgba(255,255,255,0.4)',
+                      ? 'var(--text-primary)'
+                      : 'var(--text-tertiary)',
                   }}
                 >
                   {cat.label}
                 </p>
                 <p
                   className="text-xs"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   {cat.detail}
                 </p>
@@ -127,16 +127,16 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
         <div
           className="rounded-xl p-5"
           style={{
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--bg-base)',
+            border: '1px solid var(--border-subtle)',
           }}
         >
-          <p className="mb-1 text-sm font-semibold text-white">
+          <p className="mb-1 text-sm font-semibold text-[var(--text-primary)]">
             📄 View your data
           </p>
           <p
             className="mb-3 text-xs"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             See all data we hold about you in readable format.
           </p>
@@ -153,16 +153,16 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
         <div
           className="rounded-xl p-5"
           style={{
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--bg-base)',
+            border: '1px solid var(--border-subtle)',
           }}
         >
-          <p className="mb-1 text-sm font-semibold text-white">
+          <p className="mb-1 text-sm font-semibold text-[var(--text-primary)]">
             ✏️ Correct your data
           </p>
           <p
             className="mb-3 text-xs"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             Update any information that is inaccurate or incomplete.
           </p>
@@ -179,16 +179,16 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
         <div
           className="rounded-xl p-5"
           style={{
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--bg-base)',
+            border: '1px solid var(--border-subtle)',
           }}
         >
-          <p className="mb-1 text-sm font-semibold text-white">
+          <p className="mb-1 text-sm font-semibold text-[var(--text-primary)]">
             ⬇️ Download your data
           </p>
           <p
             className="mb-3 text-xs"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             Get a complete copy of your personal data as a JSON file.
           </p>
@@ -199,16 +199,16 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
         <div
           className="rounded-xl p-5"
           style={{
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--bg-base)',
+            border: '1px solid var(--border-subtle)',
           }}
         >
-          <p className="mb-1 text-sm font-semibold text-white">
+          <p className="mb-1 text-sm font-semibold text-[var(--text-primary)]">
             🔕 Manage consent
           </p>
           <p
             className="mb-3 text-xs"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             Control whether we may send you non-essential communications
             (newsletters, feature updates).
@@ -233,7 +233,7 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
             </div>
             <span
               className="text-xs"
-              style={{ color: 'rgba(255,255,255,0.6)' }}
+              style={{ color: 'var(--text-secondary)' }}
             >
               {consentWithdrawn
                 ? 'Marketing consent withdrawn'
@@ -264,22 +264,22 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
       <section
         className="rounded-xl p-5"
         style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--bg-base)',
+          border: '1px solid var(--border-subtle)',
         }}
       >
         <h4
           className="mb-4 text-xs font-bold tracking-widest uppercase"
-          style={{ color: 'rgba(255,255,255,0.35)' }}
+          style={{ color: 'var(--text-tertiary)' }}
         >
           Contact & Grievance
         </h4>
         <div
           className="space-y-1 text-xs"
-          style={{ color: 'rgba(255,255,255,0.45)' }}
+          style={{ color: 'var(--text-tertiary)' }}
         >
           <p>Questions about your data? Reach our Grievance Officer.</p>
-          <p className="font-semibold text-white">Jaydeep Buch</p>
+          <p className="font-semibold text-[var(--text-primary)]">Jaydeep Buch</p>
           <p>
             <a
               href="mailto:privacy@edusaathiai.in"

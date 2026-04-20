@@ -98,15 +98,17 @@ export function ProfileClient() {
     return (
       <div
         className="flex h-screen items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div
-          className="h-8 w-8 animate-spin rounded-full border-2 border-white/10"
-          style={{ borderTopColor: '#C9993A' }}
+          className="h-8 w-8 animate-spin rounded-full border-2"
+          style={{ borderColor: 'var(--border-medium)', borderTopColor: 'var(--saathi-primary)' }}
         />
       </div>
     )
   }
+
+  const color = activeSaathi.primary
 
   const TABS: { id: Tab; label: string }[] = [
     { id: 'profile', label: 'My Profile' },
@@ -118,7 +120,7 @@ export function ProfileClient() {
   return (
     <div
       className="flex h-screen w-full overflow-hidden"
-      style={{ background: '#060F1D' }}
+      style={{ background: 'var(--bg-base)' }}
     >
       <Sidebar
         profile={profile}
@@ -137,20 +139,28 @@ export function ProfileClient() {
         <div className="mx-auto max-w-3xl px-6 py-8">
           {/* ── Page header ─────────────────────────────────────── */}
           <div className="mb-8">
-            <h1 className="font-playfair mb-1 text-3xl font-bold text-white">
-              Your Space
-            </h1>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              Control your profile, understand your soul, and manage your data.
-            </p>
+            <div className="mb-3 flex items-center gap-3">
+              <span className="text-3xl">{activeSaathi.emoji}</span>
+              <div>
+                <h1
+                  className="font-display text-2xl font-bold"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  Your Space
+                </h1>
+                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                  {activeSaathi.name} · Profile, soul, and data
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* ── Tab navigation ──────────────────────────────────── */}
           <div
             className="mb-8 flex gap-1 rounded-xl p-1"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-subtle)',
             }}
           >
             {TABS.map((tab) => {
@@ -161,14 +171,14 @@ export function ProfileClient() {
                   onClick={() => setActiveTab(tab.id)}
                   className="relative flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors duration-150"
                   style={{
-                    color: active ? '#060F1D' : 'rgba(255,255,255,0.45)',
+                    color: active ? '#fff' : 'var(--text-tertiary)',
                   }}
                 >
                   {active && (
                     <motion.div
                       layoutId="profile-tab-pill"
                       className="absolute inset-0 rounded-lg"
-                      style={{ background: '#C9993A' }}
+                      style={{ background: color }}
                       transition={{
                         type: 'spring',
                         stiffness: 400,

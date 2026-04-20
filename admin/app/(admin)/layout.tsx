@@ -1,9 +1,22 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
+import { getAdminClient } from '@/lib/supabase-admin'
 import { LogoutButton } from '@/components/LogoutButton'
 
-type NavItem = { href: string; label: string; emoji: string }
+type NavItem = { href: string; label: string; emoji: string; badge?: number | null }
 type NavSection = { title?: string; items: NavItem[] }
+
+async function getPendingCounts() {
+  const admin = getAdminClient()
+  const [apps, noms] = await Promise.all([
+    admin.from('faculty_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    admin.from('faculty_nominations').select('id', { count: 'exact', head: true }).eq('status', 'invited'),
+  ])
+  return {
+    pendingApplications: apps.count ?? 0,
+    pendingNominations: noms.count ?? 0,
+  }
+}
 
 const NAV_SECTIONS: NavSection[] = [
   {
@@ -21,6 +34,7 @@ const NAV_SECTIONS: NavSection[] = [
       { href: '/suspensions', label: 'Suspensions', emoji: '🚨' },
       { href: '/faculty', label: 'Faculty', emoji: '👨‍🏫' },
       { href: '/faculty/nominations', label: 'Nominations', emoji: '🎓' },
+      { href: '/faculty/applications', label: 'Applications', emoji: '📋' },
       { href: '/sessions', label: 'Sessions (1:1)', emoji: '🔍' },
       { href: '/live', label: 'Live Lectures', emoji: '🎙️' },
       { href: '/requests', label: 'Requests', emoji: '✉️' },
@@ -53,6 +67,18 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   await requireAdmin()
+  const { pendingApplications, pendingNominations } = await getPendingCounts()
+
+  // Inject live badge counts into nav items
+  const sections = NAV_SECTIONS.map((s) => ({
+    ...s,
+    items: s.items.map((n) => {
+      if (n.href === '/faculty/applications') return { ...n, badge: pendingApplications || null }
+      if (n.href === '/faculty/nominations') return { ...n, badge: pendingNominations || null }
+      return n
+    }),
+  }))
+
   return (
     <div className="flex h-full min-h-screen">
       {/* Sidebar */}
@@ -63,7 +89,7 @@ export default async function AdminLayout({
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
-          {NAV_SECTIONS.map((section, si) => (
+          {sections.map((section, si) => (
             <div key={si}>
               {section.title && (
                 <div className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
@@ -78,7 +104,12 @@ export default async function AdminLayout({
                     className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
                   >
                     <span className="text-base leading-none">{n.emoji}</span>
-                    <span>{n.label}</span>
+                    <span className="flex-1">{n.label}</span>
+                    {n.badge != null && n.badge > 0 && (
+                      <span style={{ background: '#EF4444', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontSize: '10px', fontWeight: 700, marginLeft: '6px' }}>
+                        {n.badge}
+                      </span>
+                    )}
                   </Link>
                 ))}
               </div>

@@ -212,6 +212,47 @@ function CallbackInner() {
           trackSignupCompleted(method, 0)
         }
 
+        // ── Auto-detect faculty: applications, nominations, or approved status ──
+        // Check ALL possible faculty signals — not just applications.
+        if (role !== 'faculty' && resolvedSession.user.email) {
+          try {
+            const userEmail = resolvedSession.user.email.toLowerCase()
+
+            // 1. Pending or approved faculty application
+            const { data: application } = await supabase
+              .from('faculty_applications')
+              .select('id, status')
+              .eq('email', userEmail)
+              .in('status', ['pending', 'approved'])
+              .maybeSingle()
+
+            // 2. Faculty nomination (invited, applied, verified, eminent)
+            const { data: nomination } = await supabase
+              .from('faculty_nominations')
+              .select('id, status')
+              .eq('faculty_email', userEmail)
+              .neq('status', 'declined')
+              .maybeSingle()
+
+            if (application || nomination) {
+              await supabase
+                .from('profiles')
+                .update({ role: 'faculty' })
+                .eq('id', resolvedSession.user.id)
+
+              // If nomination exists, update its status to 'applied'
+              if (nomination && nomination.status === 'invited') {
+                await supabase
+                  .from('faculty_nominations')
+                  .update({ status: 'applied' })
+                  .eq('id', nomination.id)
+              }
+            }
+          } catch {
+            // Non-critical — they can still complete onboarding manually
+          }
+        }
+
         // ── Saathi instant bonding ────────────────────────────────────────────
         // primary_saathi_id is UUID FK → verticals(id). Resolve slug → UUID before saving.
         if (saathiSlug) {
@@ -234,7 +275,20 @@ function CallbackInner() {
         // Never blocks navigation.
         sendWelcomeWithRetry(resolvedSession).catch(() => {})
 
+        // Re-read role in case we auto-upgraded to faculty above
+        const { data: freshProfile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', resolvedSession.user.id)
+          .single()
+        const finalRole = freshProfile?.role ?? roleParam ?? role
+
         if (!isActive) {
+          // Faculty applicants go straight to faculty onboarding
+          if (finalRole === 'faculty') {
+            router.replace('/onboard/faculty')
+            return
+          }
           // Build onboard URL preserving role + saathi params
           const onboardUrl = new URL('/onboard', window.location.origin)
           if (roleParam) onboardUrl.searchParams.set('role', roleParam)

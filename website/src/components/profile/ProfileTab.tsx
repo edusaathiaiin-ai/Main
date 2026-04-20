@@ -246,7 +246,7 @@ export default function ProfileTab({
     ? 'rgba(239,68,68,0.6)'
     : showNameValid
       ? 'rgba(74,222,128,0.5)'
-      : 'rgba(255,255,255,0.1)'
+      : 'var(--border-subtle)'
 
   async function handleSave() {
     if (!profile) return
@@ -322,13 +322,13 @@ export default function ProfileTab({
   }
 
   const inputStyle = {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    color: '#fff',
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--border-subtle)',
+    color: 'var(--text-primary)',
     fontFamily: 'var(--font-dm-sans)',
   }
 
-  const labelStyle = { color: 'rgba(255,255,255,0.45)' }
+  const labelStyle = { color: 'var(--text-tertiary)' }
 
   return (
     <div className="space-y-8">
@@ -351,7 +351,7 @@ export default function ProfileTab({
 
       {/* ── Identity ────────────────────────────────────────────── */}
       <section>
-        <h3 className="font-playfair mb-4 text-lg font-bold text-white">
+        <h3 className="font-playfair mb-4 text-lg font-bold">
           Identity
         </h3>
 
@@ -368,10 +368,10 @@ export default function ProfileTab({
             {(fullName || profile.email || 'U').charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="font-semibold text-white">
+            <p className="font-semibold">
               {fullName || 'Your name'}
             </p>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
               {profile.email}
             </p>
             <div className="mt-1.5 flex gap-2">
@@ -384,8 +384,8 @@ export default function ProfileTab({
               <span
                 className="rounded-full px-2 py-0.5 text-[10px]"
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  color: 'rgba(255,255,255,0.4)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-tertiary)',
                 }}
               >
                 Member since{' '}
@@ -646,7 +646,7 @@ export default function ProfileTab({
       {/* ── Your Saathi (locked) ──────────────────────────────────── */}
       {currentSaathi && (
         <section>
-          <h3 className="font-playfair mb-4 text-lg font-bold text-white">
+          <h3 className="font-playfair mb-4 text-lg font-bold">
             Your Saathi
           </h3>
           <div
@@ -659,12 +659,12 @@ export default function ProfileTab({
             <div className="mb-3 flex items-center gap-4">
               <span className="text-4xl">{currentSaathi.emoji}</span>
               <div>
-                <p className="text-base font-bold text-white">
+                <p className="text-base font-bold">
                   {currentSaathi.name}
                 </p>
                 <p
                   className="text-xs"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   {currentSaathi.tagline}
                 </p>
@@ -686,12 +686,12 @@ export default function ProfileTab({
               <button
                 onClick={() => setShowSaathiChange(true)}
                 className="mt-1 text-xs transition-colors"
-                style={{ color: 'rgba(255,255,255,0.2)' }}
+                style={{ color: 'var(--text-ghost)' }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.color = 'rgba(244,63,94,0.6)')
                 }
                 onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = 'rgba(255,255,255,0.2)')
+                  (e.currentTarget.style.color = 'var(--text-ghost)')
                 }
               >
                 Changed your academic journey? Request Saathi change...
@@ -703,7 +703,7 @@ export default function ProfileTab({
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                   className="mt-4 pt-4"
-                  style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+                  style={{ borderTop: '1px solid var(--bg-elevated)' }}
                 >
                   {/* Gate: free users cannot change */}
                   {isFreeUser ? (
@@ -720,14 +720,14 @@ export default function ProfileTab({
                       </p>
                       <p
                         className="text-xs"
-                        style={{ color: 'rgba(255,255,255,0.4)' }}
+                        style={{ color: 'var(--text-tertiary)' }}
                       >
                         Free accounts are locked to their chosen Saathi. To
                         change your Saathi, upgrade to a paid plan first.
                       </p>
                       <p
                         className="mt-2 text-xs"
-                        style={{ color: 'rgba(255,255,255,0.3)' }}
+                        style={{ color: 'var(--text-ghost)' }}
                       >
                         Alternatively, you can create a new account with a
                         different email and phone number to start fresh with a
@@ -748,7 +748,7 @@ export default function ProfileTab({
                         <button
                           onClick={() => setShowSaathiChange(false)}
                           className="text-xs underline"
-                          style={{ color: 'rgba(255,255,255,0.3)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           Cancel
                         </button>
@@ -768,7 +768,7 @@ export default function ProfileTab({
                       </p>
                       <p
                         className="text-xs"
-                        style={{ color: 'rgba(255,255,255,0.4)' }}
+                        style={{ color: 'var(--text-tertiary)' }}
                       >
                         You can change your Saathi after your current
                         subscription expires on{' '}
@@ -787,7 +787,7 @@ export default function ProfileTab({
                       <button
                         onClick={() => setShowSaathiChange(false)}
                         className="mt-3 text-xs underline"
-                        style={{ color: 'rgba(255,255,255,0.3)' }}
+                        style={{ color: 'var(--text-ghost)' }}
                       >
                         Cancel
                       </button>
@@ -810,7 +810,7 @@ export default function ProfileTab({
                         </p>
                         <ul
                           className="space-y-1 text-xs"
-                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           <li>
                             All soul matching data with {currentSaathi.name}{' '}
@@ -832,7 +832,7 @@ export default function ProfileTab({
                       {/* New Saathi picker */}
                       <p
                         className="mb-2 text-xs font-semibold"
-                        style={{ color: 'rgba(255,255,255,0.5)' }}
+                        style={{ color: 'var(--text-secondary)' }}
                       >
                         Choose your new Saathi:
                       </p>
@@ -848,12 +848,12 @@ export default function ProfileTab({
                                 style={{
                                   background: selected
                                     ? `${s.primary}25`
-                                    : 'rgba(255,255,255,0.03)',
-                                  border: `1px solid ${selected ? s.primary : 'rgba(255,255,255,0.06)'}`,
+                                    : 'var(--bg-elevated)',
+                                  border: `1px solid ${selected ? s.primary : 'var(--bg-elevated)'}`,
                                 }}
                               >
                                 <span className="block text-lg">{s.emoji}</span>
-                                <p className="mt-0.5 truncate text-[10px] font-bold text-white">
+                                <p className="mt-0.5 truncate text-[10px] font-bold">
                                   {s.name}
                                 </p>
                               </button>
@@ -867,7 +867,7 @@ export default function ProfileTab({
                         <div className="space-y-3">
                           <p
                             className="text-xs"
-                            style={{ color: 'rgba(255,255,255,0.4)' }}
+                            style={{ color: 'var(--text-tertiary)' }}
                           >
                             Type{' '}
                             <strong style={{ color: '#F43F5E' }}>CHANGE</strong>{' '}
@@ -889,9 +889,9 @@ export default function ProfileTab({
                             placeholder="Type CHANGE"
                             className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                             style={{
-                              background: 'rgba(255,255,255,0.04)',
-                              border: `1px solid ${confirmText === 'CHANGE' ? 'rgba(244,63,94,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                              color: '#fff',
+                              background: 'var(--bg-elevated)',
+                              border: `1px solid ${confirmText === 'CHANGE' ? 'rgba(244,63,94,0.5)' : 'var(--border-subtle)'}`,
+                              color: 'var(--text-primary)',
                             }}
                           />
                           <div className="flex gap-2">
@@ -915,8 +915,8 @@ export default function ProfileTab({
                               }}
                               className="rounded-xl px-4 text-sm"
                               style={{
-                                color: 'rgba(255,255,255,0.4)',
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                color: 'var(--text-tertiary)',
+                                border: '1px solid var(--border-subtle)',
                               }}
                             >
                               Cancel
@@ -936,10 +936,10 @@ export default function ProfileTab({
       {/* ── My Saathis ──────────────────────────────────────────── */}
       {profile.role === 'student' && (
         <section id="my-saathis">
-          <h3 className="font-playfair mb-1 text-lg font-bold text-white">
+          <h3 className="font-playfair mb-1 text-lg font-bold">
             My Saathis
           </h3>
-          <p className="mb-4 text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <p className="mb-4 text-xs" style={{ color: 'var(--text-tertiary)' }}>
             Add up to 2 extra Saathis to your learning journey.
           </p>
 
@@ -954,10 +954,10 @@ export default function ProfileTab({
             >
               <span className="text-2xl">{currentSaathi.emoji}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">
+                <p className="text-sm font-semibold truncate">
                   {currentSaathi.name}
                 </p>
-                <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
                   Primary Saathi
                 </p>
               </div>
@@ -1006,14 +1006,14 @@ export default function ProfileTab({
               <p className="text-sm font-semibold" style={{ color: '#C9993A' }}>
                 Add Extra Saathi
               </p>
-              <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
                 ₹99/month per add-on · or 500 SP earned free
               </p>
             </div>
             <span style={{ color: 'rgba(201,153,58,0.5)', fontSize: '14px' }}>→</span>
           </a>
 
-          <p className="mt-2 text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+          <p className="mt-2 text-[10px]" style={{ color: 'var(--text-ghost)' }}>
             Extra Saathis share your soul profile. Each learns who you are over time.
             You can have up to 3 Saathis active simultaneously.
           </p>
@@ -1022,7 +1022,7 @@ export default function ProfileTab({
 
       {/* ── Academic Journey ─────────────────────────────────────── */}
       <section>
-        <h3 className="font-playfair mb-4 text-lg font-bold text-white">
+        <h3 className="font-playfair mb-4 text-lg font-bold">
           Academic Journey
         </h3>
         <div className="mb-4">
@@ -1043,9 +1043,9 @@ export default function ProfileTab({
                   style={{
                     background: active
                       ? 'rgba(201,153,58,0.15)'
-                      : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${active ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
-                    color: active ? '#E5B86A' : 'rgba(255,255,255,0.5)',
+                      : 'var(--bg-elevated)',
+                    border: `1px solid ${active ? 'rgba(201,153,58,0.5)' : 'var(--border-subtle)'}`,
+                    color: active ? '#E5B86A' : 'var(--text-secondary)',
                   }}
                 >
                   {lvl.label}
@@ -1058,7 +1058,7 @@ export default function ProfileTab({
 
       {/* ── Learning Preferences ─────────────────────────────────── */}
       <section>
-        <h3 className="font-playfair mb-4 text-lg font-bold text-white">
+        <h3 className="font-playfair mb-4 text-lg font-bold">
           Learning Preferences
         </h3>
 
@@ -1080,22 +1080,22 @@ export default function ProfileTab({
                   style={{
                     background: active
                       ? 'rgba(201,153,58,0.12)'
-                      : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${active ? 'rgba(201,153,58,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                      : 'var(--bg-elevated)',
+                    border: `1px solid ${active ? 'rgba(201,153,58,0.4)' : 'var(--border-subtle)'}`,
                   }}
                 >
                   <div className="mb-1 text-xl">{s.label.split(' ')[0]}</div>
                   <div
                     className="text-xs font-semibold"
                     style={{
-                      color: active ? '#E5B86A' : 'rgba(255,255,255,0.5)',
+                      color: active ? '#E5B86A' : 'var(--text-secondary)',
                     }}
                   >
                     {s.label.split(' ').slice(1).join(' ')}
                   </div>
                   <div
                     className="mt-0.5 text-[10px]"
-                    style={{ color: 'rgba(255,255,255,0.3)' }}
+                    style={{ color: 'var(--text-ghost)' }}
                   >
                     {s.desc}
                   </div>
@@ -1123,7 +1123,7 @@ export default function ProfileTab({
 
       {/* ── Interests ───────────────────────────────────────────── */}
       <section>
-        <h3 className="font-playfair mb-4 text-lg font-bold text-white">
+        <h3 className="font-playfair mb-4 text-lg font-bold">
           Interests
         </h3>
 
@@ -1234,7 +1234,7 @@ export default function ProfileTab({
         <div className="mb-2 flex items-center justify-between">
           <p
             className="text-xs font-semibold"
-            style={{ color: 'rgba(255,255,255,0.5)' }}
+            style={{ color: 'var(--text-secondary)' }}
           >
             Your Saathi knows{' '}
             <span style={{ color: '#C9993A' }}>{completeness}%</span> of your
@@ -1246,7 +1246,7 @@ export default function ProfileTab({
         </div>
         <div
           className="h-2 overflow-hidden rounded-full"
-          style={{ background: 'rgba(255,255,255,0.06)' }}
+          style={{ background: 'var(--bg-elevated)' }}
         >
           <motion.div
             className="h-full rounded-full"
@@ -1282,10 +1282,10 @@ export default function ProfileTab({
             gap: '10px',
             width: '100%',
             padding: '12px 16px',
-            background: 'rgba(255,255,255,0.03)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--border-subtle)',
             borderRadius: '10px',
-            color: 'rgba(255,255,255,0.55)',
+            color: 'var(--text-secondary)',
             fontSize: '13px',
             cursor: 'pointer',
             textAlign: 'left',

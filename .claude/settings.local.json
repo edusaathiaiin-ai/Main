@@ -9,7 +9,12 @@
       "Bash(nslookup -type=NS edusaathiai.in)",
       "Bash(nslookup www.edusaathiai.in)",
       "Bash(git stash:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(xargs grep:*)",
+      "Bash(npx tsc *)",
+      "WebFetch(domain:sketchfab.com)",
+      "WebFetch(domain:api.sketchfab.com)",
+      "mcp__claude_ai_Supabase__execute_sql"
     ]
   }
 }

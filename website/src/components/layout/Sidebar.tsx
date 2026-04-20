@@ -54,6 +54,7 @@ function ExpandableSidebarItem({
   accentColor,
   description,
   iconClassName,
+  dataTour,
 }: {
   id:             string
   icon:           ReactNode
@@ -63,6 +64,7 @@ function ExpandableSidebarItem({
   badge?:         ReactNode
   onClick?:       () => void
   accentColor?:   string
+  dataTour?:      string
   description?:   string
   iconClassName?: string
 }) {
@@ -148,9 +150,9 @@ function ExpandableSidebarItem({
   )
 
   if (href) {
-    return <Link href={href} style={{ textDecoration: 'none' }} onClick={onClick}>{inner}</Link>
+    return <Link href={href} style={{ textDecoration: 'none' }} onClick={onClick} data-tour={dataTour}>{inner}</Link>
   }
-  return inner
+  return <div data-tour={dataTour}>{inner}</div>
 }
 
 // ─── Upgrade pill ─────────────────────────────────────────────────────────────
@@ -277,7 +279,8 @@ export function Sidebar({
           href="/chat"
           isActive={pathname === '/chat'}
           accentColor="var(--saathi-primary)"
-          description="Chat with your Saathi. Ask anything — it remembers you."
+          description="Your main chat — ask anything."
+          dataTour="nav-chat"
         />
         <ExpandableSidebarItem
           id="new-board"
@@ -286,6 +289,7 @@ export function Sidebar({
           href="/chat"
           onClick={() => window.dispatchEvent(new CustomEvent('board:new'))}
           accentColor="var(--saathi-primary)"
+          description="Create a focused study space — separate boards for each topic keep your learning organised."
         />
 
         <Divider />
@@ -299,6 +303,7 @@ export function Sidebar({
           href="/board"
           isActive={pathname === '/board'}
           accentColor="#818CF8"
+          dataTour="nav-board"
         />
         <ExpandableSidebarItem
           id="news"
@@ -316,6 +321,7 @@ export function Sidebar({
             onClick={() => setExploreOpen(p => !p)}
             isActive={exploreOpen}
             accentColor="#A78BFA"
+            dataTour="nav-explore"
           />
           <div style={{
             maxHeight:  exploreOpen ? '600px' : '0px',
@@ -345,6 +351,7 @@ export function Sidebar({
           href="/profile"
           isActive={pathname === '/profile'}
           accentColor="#FB923C"
+          dataTour="nav-profile"
         />
 
         {/* Upgrade pill — free plan only */}

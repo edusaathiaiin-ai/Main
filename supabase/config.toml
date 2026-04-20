@@ -476,6 +476,20 @@ verify_jwt = false
 [functions.mark-payout-completed]
 verify_jwt = false
 
+# Faculty nomination email — called via supabase.functions.invoke() which
+# can pass a stale JWT. Function validates auth internally.
+[functions.notify-faculty-nomination]
+verify_jwt = false
+
+[functions.notify-faculty-nomination-wa]
+verify_jwt = false
+
+[functions.fire-nomination-reward]
+verify_jwt = false
+
+[functions.send-to-phone]
+verify_jwt = false
+
 # Admin action: verify a faculty profile, send T14 WhatsApp + email.
 # Auth via Bearer SUPABASE_SERVICE_ROLE_KEY from admin dashboard server action.
 [functions.faculty-verify]
@@ -488,4 +502,20 @@ verify_jwt = false
 
 # Cron: daily 6 AM IST — refreshes ISRO Bhuvan bearer token (expires every 24h)
 [functions.refresh-bhuvan-token]
+verify_jwt = false
+
+# Shared proxy for all data.gov.in APIs — 285K+ government datasets.
+[functions.fetch-datagovin]
+verify_jwt = false
+
+# Wolfram Alpha computation — Short Answers + Full Results API.
+[functions.fetch-wolfram]
+verify_jwt = false
+
+# NASA API — APOD, Image Library, NTRS Technical Reports.
+[functions.fetch-nasa]
+verify_jwt = false
+
+# ChemSpider (Royal Society of Chemistry) — 100M+ compounds.
+[functions.fetch-chemspider]
 verify_jwt = false

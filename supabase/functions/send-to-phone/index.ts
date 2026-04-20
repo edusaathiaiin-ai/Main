@@ -74,6 +74,7 @@ Deno.serve(async (req: Request) => {
   // ── Send via WhatsApp Cloud API ───────────────────────────────────────────
   const cleanPhone = phone.replace(/\D/g, '');
 
+  // Try free-form text first (works inside 24hr window)
   const waRes = await fetch(
     `https://graph.facebook.com/v25.0/${WHATSAPP_PHONE_ID}/messages`,
     {
@@ -91,26 +92,82 @@ Deno.serve(async (req: Request) => {
     }
   );
 
-  if (!waRes.ok) {
-    let errorBody: { error?: { code?: number; message?: string } } = {};
-    try { errorBody = await waRes.json(); } catch { /* not JSON */ }
-    const errCode = errorBody?.error?.code;
-    console.error('[send-to-phone] WhatsApp API error:', JSON.stringify(errorBody));
+  let waBody: Record<string, unknown> = {};
+  try { waBody = await waRes.json(); } catch { /* not JSON */ }
+  console.log('[send-to-phone] WhatsApp response:', waRes.status, JSON.stringify(waBody));
 
-    // 131047 = outside 24hr conversation window — student hasn't messaged bot recently
-    if (errCode === 131047) {
-      return new Response(JSON.stringify({
-        error: 'outside_window',
-        message: 'Open WhatsApp Saathi to activate sending, then try again.',
-      }), {
-        status: 422,
-        headers: { ...CORS, 'Content-Type': 'application/json' },
+  const errCode = !waRes.ok ? (waBody as { error?: { code?: number } })?.error?.code : null;
+
+  // If outside 24hr window (131047) — fallback to template message
+  if (errCode === 131047 || errCode === 131026) {
+    console.log('[send-to-phone] Outside window, falling back to template');
+
+    // Truncate content for template parameter (max 1024 chars per param)
+    const noteContent = message
+      .replace(/📒.*\n─+\n/s, '')
+      .replace(/\n─+\n.*$/s, '')
+      .trim()
+      .slice(0, 900);
+
+    const templateRes = await fetch(
+      `https://graph.facebook.com/v25.0/${WHATSAPP_PHONE_ID}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: cleanPhone,
+          type: 'template',
+          template: {
+            name: 'edusaathiai_study_notes',
+            language: { code: 'en' },
+            components: [{
+              type: 'body',
+              parameters: [
+                { type: 'text', text: saathiSlug ?? 'Saathi' },
+                { type: 'text', text: boardName ?? 'General' },
+                { type: 'text', text: noteContent },
+              ],
+            }],
+          },
+        }),
+      }
+    );
+
+    let templateBody: Record<string, unknown> = {};
+    try { templateBody = await templateRes.json(); } catch { /* */ }
+    console.log('[send-to-phone] Template response:', templateRes.status, JSON.stringify(templateBody));
+
+    if (templateRes.ok) {
+      // Template sent — log and return success
+      admin.from('whatsapp_sends').insert({
+        user_id: user.id, type: 'chat_note_template',
+        saathi_slug: saathiSlug ?? null, board_name: boardName ?? null,
+        sent_at: new Date().toISOString(),
+      }).then(() => {}).catch(() => {});
+
+      return new Response(JSON.stringify({ success: true, method: 'template' }), {
+        status: 200, headers: { ...CORS, 'Content-Type': 'application/json' },
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Send failed' }), {
-      status: 500,
-      headers: { ...CORS, 'Content-Type': 'application/json' },
+    // Template also failed — likely not approved yet
+    console.error('[send-to-phone] Template also failed:', JSON.stringify(templateBody));
+    return new Response(JSON.stringify({
+      error: 'outside_window',
+      message: 'Send "Hi" to +91 98255 93204 on WhatsApp to activate, then try again.',
+    }), {
+      status: 422, headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (!waRes.ok) {
+    console.error('[send-to-phone] WhatsApp API error:', JSON.stringify(waBody));
+    return new Response(JSON.stringify({ error: 'Send failed', detail: waBody }), {
+      status: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
     });
   }
 

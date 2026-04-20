@@ -84,22 +84,40 @@ export default function NominationsClient({
     }
     setLoading(nomination.id + 'wa')
 
-    const { error } = await supabase.functions.invoke(
-      'notify-faculty-nomination-wa',
-      { body: { nominationId: nomination.id } }
-    )
-
-    if (error) {
-      alert('WhatsApp send failed: ' + error.message)
-    } else {
-      setList((prev) =>
-        prev.map((n) =>
-          n.id === nomination.id
-            ? { ...n, whatsapp_sent_at: new Date().toISOString() }
-            : n
-        )
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notify-faculty-nomination-wa`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nominationId: nomination.id }),
+        }
       )
-      alert('WhatsApp sent')
+      const body = await res.json().catch(() => ({})) as Record<string, unknown>
+
+      if (body.error === 'outside_window') {
+        alert(
+          '⚠️ Outside WhatsApp window.\n\n' +
+          'This faculty member has not messaged EdUsaathiAI before.\n\n' +
+          'Ask them to WhatsApp us at +91 98255 93204 first, ' +
+          'then retry sending.'
+        )
+      } else if (!res.ok) {
+        alert('WhatsApp send failed: ' + (body.error ?? res.statusText))
+      } else if (body.skipped) {
+        alert('Already sent — skipped.')
+      } else {
+        setList((prev) =>
+          prev.map((n) =>
+            n.id === nomination.id
+              ? { ...n, whatsapp_sent_at: new Date().toISOString() }
+              : n
+          )
+        )
+        alert('WhatsApp sent ✓')
+      }
+    } catch (err) {
+      alert('WhatsApp send failed: ' + (err instanceof Error ? err.message : 'Network error'))
     }
     setLoading(null)
   }

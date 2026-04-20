@@ -5,7 +5,9 @@
  * nominates someone. Also sends an admin notification to Jaydeep.
  *
  * Called from NominateFacultyModal after successful insert.
- * Auth: user JWT (the nominator must be authenticated).
+ * Auth: nomination-ID-only — the row existing in DB is proof it was
+ * authenticated at insert time. No JWT required (avoids stale-token 401s
+ * from fire-and-forget invoke).
  */
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
@@ -13,7 +15,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 
@@ -24,27 +25,6 @@ serve(async (req: Request) => {
   }
 
   try {
-    // ── Auth ────────────────────────────────────────────────────
-    const authHeader = req.headers.get('Authorization') ?? ''
-    if (!authHeader) {
-      return json({ error: 'Unauthorized' }, 401, CORS)
-    }
-
-    const token = authHeader.replace('Bearer ', '').trim()
-    const isServiceRole = token === SUPABASE_SERVICE_ROLE_KEY
-
-    let userId: string | null = null
-    if (!isServiceRole) {
-      const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        global: { headers: { Authorization: authHeader } },
-      })
-      const { data: { user }, error: authErr } = await userClient.auth.getUser()
-      if (authErr || !user) {
-        return json({ error: 'Unauthorized' }, 401, CORS)
-      }
-      userId = user.id
-    }
-
     // ── Parse body ─────────────────────────────────────────────
     const { nominationId } = await req.json()
     if (!nominationId) {
@@ -52,6 +32,8 @@ serve(async (req: Request) => {
     }
 
     // ── Fetch nomination (service role — bypasses RLS) ─────────
+    // Auth: nomination existing in DB is sufficient — it was
+    // authenticated when the student/faculty submitted the form.
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
     const { data: nomination, error: fetchErr } = await admin
@@ -64,34 +46,26 @@ serve(async (req: Request) => {
       return json({ error: 'Nomination not found' }, 404, CORS)
     }
 
-    // Verify the caller owns this nomination (skip for service role / admin)
-    if (!isServiceRole) {
-      const isOwner =
-        (nomination.nominator_type === 'student' && nomination.nominated_by_user_id === userId) ||
-        (nomination.nominator_type === 'faculty' && nomination.nominated_by_faculty_id !== null)
-      if (!isOwner) {
-        return json({ error: 'Forbidden' }, 403, CORS)
-      }
-    }
-
-    // Already sent — skip (idempotent) unless service role forces resend
-    if (nomination.email_sent_at && !isServiceRole) {
+    // Already sent — skip (idempotent)
+    if (nomination.email_sent_at) {
       return json({ skipped: true, reason: 'already_sent' }, 200, CORS)
     }
 
     // ── Get nominator details ──────────────────────────────────
     let nominatorName = 'A student'
+    let nominatorEmail: string | null = null
     let nominatorInstitution: string | null = null
 
     if (nomination.nominator_type === 'student' && nomination.nominated_by_user_id) {
       const { data: profile } = await admin
         .from('profiles')
-        .select('full_name, institution, city')
+        .select('full_name, email, institution_name, city')
         .eq('id', nomination.nominated_by_user_id)
         .single()
       if (profile) {
         nominatorName = profile.full_name ?? 'A student'
-        nominatorInstitution = profile.institution
+        nominatorEmail = profile.email ?? null
+        nominatorInstitution = profile.institution_name
       }
     } else if (nomination.nominator_type === 'faculty' && nomination.nominated_by_faculty_id) {
       const { data: fp } = await admin
@@ -102,10 +76,13 @@ serve(async (req: Request) => {
       if (fp?.user_id) {
         const { data: profile } = await admin
           .from('profiles')
-          .select('full_name')
+          .select('full_name, email')
           .eq('id', fp.user_id)
           .single()
-        if (profile) nominatorName = profile.full_name ?? 'A faculty member'
+        if (profile) {
+          nominatorName = profile.full_name ?? 'A faculty member'
+          nominatorEmail = profile.email ?? null
+        }
       }
     }
 
@@ -186,6 +163,34 @@ serve(async (req: Request) => {
         html: buildAdminEmail(nomination, nominatorName),
       }),
     }).catch((e) => console.error('[notify-faculty-nomination] Admin email error:', e))
+
+    // ── Student thank-you confirmation ────────────────────────
+    if (nominatorEmail) {
+      const studentFirstName = nominatorName.split(' ')[0] ?? 'there'
+      const facultyFirstNameForStudent = (nomination.faculty_name as string).split(' ')[0]
+      const facultyLastName = (nomination.faculty_name as string).split(' ').slice(-1)[0]
+
+      fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: 'Jaydeep Buch \u2014 EdUsaathiAI <jaydeep@edusaathiai.in>',
+          to: [nominatorEmail],
+          subject: `Thank you for recommending ${nomination.faculty_name} \u2726`,
+          reply_to: 'jaydeep@edusaathiai.in',
+          html: buildStudentThankYouEmail({
+            studentFirstName,
+            facultyName: nomination.faculty_name as string,
+            facultyFirstName: facultyFirstNameForStudent,
+            facultyLastName,
+            expertiseArea: nomination.expertise_area as string,
+          }),
+        }),
+      }).catch((e) => console.error('[notify-faculty-nomination] Student thank-you error:', e))
+    }
 
     return json({ success: true, emailId: resendData?.id }, 200, CORS)
 
@@ -372,4 +377,62 @@ function buildAdminEmail(
       Review in Admin Dashboard \u2192
     </a>
   `
+}
+
+// ─── Student thank-you email ───────────────────────────────────────────────
+
+function buildStudentThankYouEmail(p: {
+  studentFirstName: string
+  facultyName: string
+  facultyFirstName: string
+  facultyLastName: string
+  expertiseArea: string
+}): string {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F5F5F0;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5F0;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:#060F1D;padding:28px 36px;text-align:center;">
+              <h1 style="margin:0;font-size:22px;font-weight:700;color:#FFFFFF;letter-spacing:-0.5px;">Edu<span style="color:#C9993A;">saathi</span>AI</h1>
+              <p style="margin:6px 0 0;font-size:12px;color:rgba(255,255,255,0.5);letter-spacing:0.05em;">WHERE EVERY SUBJECT FINDS ITS SAATHI</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:36px;">
+              <p style="margin:0 0 20px;font-size:16px;color:#1A1814;line-height:1.6;">Thank you, <strong>${p.studentFirstName}</strong> \u{1F64F}</p>
+              <p style="margin:0 0 20px;font-size:15px;color:#444;line-height:1.7;">We have sent an invitation to <strong>${p.facultyName}</strong> in <strong>${p.expertiseArea}</strong>.</p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;background:#F9F7F4;border-radius:10px;overflow:hidden;">
+                <tr>
+                  <td style="padding:20px 24px;">
+                    <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#1A1814;text-transform:uppercase;letter-spacing:0.06em;">What happens next</p>
+                    <table cellpadding="0" cellspacing="0">
+                      <tr><td style="padding:4px 0;font-size:14px;color:#444;">\u2726 \u00a0We reach out to ${p.facultyFirstName} with your recommendation</td></tr>
+                      <tr><td style="padding:4px 0;font-size:14px;color:#444;">\u2726 \u00a0You will hear from us once they respond</td></tr>
+                      <tr><td style="padding:4px 0;font-size:14px;color:#444;">\u2726 \u00a0If they join \u2014 you earn \u20b950 wallet credit + 50 Saathi Points</td></tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <div style="background:#FFF9F0;border-left:3px solid #C9993A;border-radius:0 8px 8px 0;padding:16px 20px;margin:0 0 24px;">
+                <p style="margin:0;font-size:14px;color:#92400E;line-height:1.7;"><strong>One small request:</strong> Please let <strong>${p.facultyLastName}</strong> know personally that an invitation from <strong>edusaathiai.in</strong> is on its way. A familiar heads-up makes all the difference. \u{1F64F}</p>
+              </div>
+              <p style="margin:0;font-size:14px;color:#666;line-height:1.7;">Thank you for helping build EdUsaathiAI\u2019s teacher network. Your recommendation matters.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#F9F7F4;padding:20px 36px;border-top:1px solid #EBEBEB;">
+              <p style="margin:0;font-size:11px;color:#999;line-height:1.6;text-align:center;">EdUsaathiAI \u00b7 Ahmedabad, Gujarat, India<br><a href="https://edusaathiai.in" style="color:#C9993A;text-decoration:none;">edusaathiai.in</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
 }

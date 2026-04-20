@@ -23,16 +23,19 @@ import { SaathiHeader } from './SaathiHeader'
 import { MessageBubble } from './MessageBubble'
 import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
+import { YesterdaySummary } from './YesterdaySummary'
+import { ThinkingBubble } from './ThinkingBubble'
 import { IceBreaker } from './IceBreaker'
 import { canUseSplitView } from '@/lib/canUseSplitView'
 import BoardNavigator, { type BoardInfo } from '@/components/chat/BoardNavigator'
 import { NewBoardModal } from '@/components/chat/NewBoardModal'
-import { ChatColumn, LockedColumn } from '@/components/chat/ChatColumn'
+import { ChatColumn } from '@/components/chat/ChatColumn'
 import { ColumnResizer } from '@/components/chat/ColumnResizer'
 import { getColumnLimit } from '@/lib/columnLimit'
 import { QuotaBanner } from './QuotaBanner'
 import { CoolingBanner } from './CoolingBanner'
 import NominateFacultyModal from '@/components/faculty/NominateFacultyModal'
+import { TourManager } from '@/components/tour/TourManager'
 import { FreePlanBar } from './FreePlanBar'
 import { WaLinkTip } from './WaLinkTip'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -300,6 +303,7 @@ export function ChatWindow() {
   const [activeBoardInfo, setActiveBoardInfo] = useState<BoardInfo | null>(null)
   const [showNewBoardModal, setShowNewBoardModal] = useState(false)
   const [showNominateModal, setShowNominateModal] = useState(false)
+  const [showTour, setShowTour] = useState(false)
   const [boardRefreshKey, setBoardRefreshKey] = useState(0)
 
   // Mobile detection — single column only on small screens
@@ -451,6 +455,14 @@ export function ChatWindow() {
       document.body.removeAttribute('data-saathi')
     }
   }, [saathiId])
+
+  // Apply day/night mode to body so CSS [data-mode] selectors respond
+  useEffect(() => {
+    document.body.setAttribute('data-mode', mode === 'light' ? 'day' : 'night')
+    return () => {
+      document.body.removeAttribute('data-mode')
+    }
+  }, [mode])
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -1015,51 +1027,10 @@ export function ChatWindow() {
           onSlotChange={handleSlotChange}
           onLockedTap={handleLockedTap}
           onSuggestFaculty={() => setShowNominateModal(true)}
+          onEmailDigest={() => handleEmailDigest()}
+          digestState={digestState}
+          onWalkthrough={() => setShowTour(true)}
         />
-
-        <BoardNavigator
-          userId={profile.id}
-          saathiSlug={saathiId}
-          saathiColor={activeSaathi.primary}
-          activeBoardId={activeChatboardId}
-          onSelectBoard={switchBoard}
-          onNewBoard={() => setShowNewBoardModal(true)}
-          refreshKey={boardRefreshKey}
-        />
-
-        {canUseSplitView(profile.plan_id) && (
-          <div
-            className="flex items-center justify-end px-4 py-1.5"
-            style={{
-              borderBottom: '0.5px solid var(--border-subtle, rgba(0,0,0,0.06))',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() =>
-                setSplitView((v) => {
-                  const next = !v
-                  if (next) trackMultipaneActivated(profile.plan_id)
-                  return next
-                })
-              }
-              aria-pressed={splitView}
-              title={splitView ? 'Exit Split View' : 'Open Split View'}
-              className="rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors"
-              style={{
-                background: splitView
-                  ? `${activeSaathi.primary}1f`
-                  : 'transparent',
-                color: splitView
-                  ? activeSaathi.primary
-                  : 'var(--text-tertiary)',
-                border: `1px solid ${splitView ? `${activeSaathi.primary}55` : 'transparent'}`,
-              }}
-            >
-              ⊞ Split View
-            </button>
-          </div>
-        )}
 
         {/* Free plan ambient quota bar — always visible, hides during cooling */}
         <FreePlanBar
@@ -1171,12 +1142,6 @@ export function ChatWindow() {
                 )}
               </div>
             ))}
-            {/* Locked placeholder columns — fill remaining slots up to 3 */}
-            {!isMobile && openColumns.length < 3 && (
-              <div style={{ flex: 1, minWidth: '280px', display: 'flex' }}>
-                <LockedColumn saathi={activeSaathi} planId={profile.plan_id} />
-              </div>
-            )}
           </div>
         ) : (
         <>
@@ -1190,46 +1155,7 @@ export function ChatWindow() {
         >
           <ChatWatermark saathiSlug={saathiId} />
 
-          {/* Active board header */}
-          {activeBoardInfo && (
-            <div
-              className="mb-3 flex items-center gap-2 rounded-lg px-3 py-2"
-              style={{
-                background: 'var(--bg-elevated, rgba(0,0,0,0.03))',
-                borderLeft: `2px solid ${activeSaathi.primary}`,
-              }}
-            >
-              <span className="text-sm">{activeBoardInfo.emoji}</span>
-              <span
-                className="text-xs font-semibold"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                {activeBoardInfo.name}
-              </span>
-              {activeBoardInfo.focus_statement && (
-                <span
-                  className="text-[11px]"
-                  style={{ color: 'var(--text-ghost)', marginLeft: '4px' }}
-                >
-                  {activeBoardInfo.focus_statement}
-                </span>
-              )}
-              <button
-                onClick={() => handleEmailDigest()}
-                disabled={digestState === 'sending'}
-                className="ml-auto shrink-0 rounded-md px-2 py-0.5 text-[11px] font-medium transition-colors"
-                style={{
-                  color: digestState === 'sent' ? 'var(--success)' : digestState === 'error' ? 'var(--error)' : 'var(--text-ghost)',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: digestState === 'sending' ? 'not-allowed' : 'pointer',
-                }}
-                title={`Email today's ${activeBoardInfo.name} chat`}
-              >
-                {digestState === 'sending' ? '⏳' : digestState === 'sent' ? '✓ Sent' : digestState === 'error' ? 'No chat today' : '📧'}
-              </button>
-            </div>
-          )}
+
 
           <div style={{ position: 'relative', zIndex: 1 }}>
             {messages.length === 0 && !isStreaming ? (
@@ -1269,6 +1195,7 @@ export function ChatWindow() {
                     }}
                   />
                 )}
+                <YesterdaySummary />
                 <EmptyState
                   saathiId={saathiId}
                   saathiEmoji={activeSaathi.emoji}
@@ -1301,8 +1228,17 @@ export function ChatWindow() {
                   )
                 })}
 
-                {/* Streaming bubble */}
-                {isStreaming && (
+                {/* Thinking bubble — shows before first token */}
+                {isStreaming && !streamingText && (
+                  <ThinkingBubble
+                    saathiName={activeSaathi.name}
+                    saathiEmoji={activeSaathi.emoji}
+                    saathiSlug={saathiId}
+                  />
+                )}
+
+                {/* Streaming bubble — shows once first token arrives */}
+                {isStreaming && streamingText && (
                   <MessageBubble
                     key="streaming"
                     message={{
@@ -1435,6 +1371,11 @@ export function ChatWindow() {
           }
         }}
       />
+
+      {/* Walkthrough tour */}
+      {showTour && (
+        <TourManager forceShow={showTour} onClose={() => setShowTour(false)} />
+      )}
 
       {/* Nominate Faculty modal */}
       {showNominateModal && (

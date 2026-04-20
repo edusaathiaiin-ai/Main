@@ -43,10 +43,10 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
     return (
       <div className="py-16 text-center">
         <div className="mb-4 text-4xl">🧠</div>
-        <p className="mb-2 font-semibold text-white">
+        <p className="mb-2 font-semibold">
           Your soul profile is being built
         </p>
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
           Start a conversation with your Saathi. After a few sessions,
           you&apos;ll see your living soul profile here.
         </p>
@@ -63,10 +63,10 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h3 className="font-playfair mb-1 text-2xl font-bold text-white">
+        <h3 className="font-playfair mb-1 text-2xl font-bold">
           What your Saathi knows
         </h3>
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
           Your Saathi builds this understanding over every session. This is your
           living soul profile.
         </p>
@@ -76,8 +76,8 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
       <section
         className="space-y-6 rounded-2xl p-6"
         style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--bg-base)',
+          border: '1px solid var(--border-subtle)',
         }}
       >
         <h4
@@ -91,7 +91,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
           <div className="sm:col-span-2">
             <p
               className="mb-3 text-xs font-semibold"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               Your flame stage
             </p>
@@ -103,7 +103,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
             <PassionMeter value={depth} label="Depth calibration" />
             <p
               className="mt-2 text-center text-[10px]"
-              style={{ color: 'rgba(255,255,255,0.3)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               0 = beginner → 100 = researcher
             </p>
@@ -115,7 +115,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
           <div>
             <p
               className="mb-2 text-xs font-semibold"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               Predicted trajectory
             </p>
@@ -133,7 +133,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
               </span>
               <span
                 className="text-xs"
-                style={{ color: 'rgba(255,255,255,0.3)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 Based on your patterns across {sessionCount} session
                 {sessionCount !== 1 ? 's' : ''}
@@ -172,9 +172,9 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
             <span
               className="rounded-full px-3 py-1 text-xs font-semibold"
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.5)',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--text-ghost)',
+                color: 'var(--text-secondary)',
               }}
             >
               💬 {soul.preferred_tone} tone detected
@@ -187,8 +187,8 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
       <section
         className="space-y-5 rounded-2xl p-6"
         style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--bg-base)',
+          border: '1px solid var(--border-subtle)',
         }}
       >
         <h4
@@ -201,7 +201,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
         <div>
           <p
             className="mb-2 text-xs font-semibold"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             Topics you return to most
           </p>
@@ -224,7 +224,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
           ) : (
             <p
               className="text-xs italic"
-              style={{ color: 'rgba(255,255,255,0.3)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               Emerges after a few sessions
             </p>
@@ -234,7 +234,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
         <div>
           <p
             className="mb-2 text-xs font-semibold"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             Topics we&apos;re working on together
           </p>
@@ -268,12 +268,12 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
           <div>
             <p
               className="mb-1 text-xs font-semibold"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               Your declared direction
             </p>
             <div className="flex items-center gap-3">
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold">
                 {soul.career_interest}
               </p>
               <button
@@ -292,8 +292,8 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
       <section
         className="space-y-4 rounded-2xl p-6"
         style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--bg-base)',
+          border: '1px solid var(--border-subtle)',
         }}
       >
         <h4
@@ -310,7 +310,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
           >
             {sessionCount}
           </div>
-          <p className="text-sm text-white">
+          <p className="text-sm text-[var(--text-primary)]">
             session{sessionCount !== 1 ? 's' : ''} together
           </p>
         </div>
@@ -319,19 +319,19 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
           <div
             className="rounded-xl p-4"
             style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--bg-elevated)',
             }}
           >
             <p
               className="mb-2 text-xs font-semibold"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               From your last session
             </p>
             <p
               className="text-sm leading-relaxed italic"
-              style={{ color: 'rgba(255,255,255,0.55)' }}
+              style={{ color: 'var(--text-secondary)' }}
             >
               &ldquo;{soul.last_session_summary}&rdquo;
             </p>
@@ -354,7 +354,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
             </p>
             <p
               className="text-xs leading-relaxed"
-              style={{ color: 'rgba(255,255,255,0.55)' }}
+              style={{ color: 'var(--text-secondary)' }}
             >
               On{' '}
               {new Date(soul.shell_broken_at).toLocaleDateString('en-IN', {
@@ -363,7 +363,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
                 year: 'numeric',
               })}
               , you declared your interest in{' '}
-              <strong className="text-white">{soul.career_interest}</strong>.
+              <strong className="text-[var(--text-primary)]">{soul.career_interest}</strong>.
               Your Saathi has been building toward this ever since.
             </p>
           </motion.div>
@@ -375,8 +375,8 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
         <section
           className="rounded-2xl p-6"
           style={{
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--bg-base)',
+            border: '1px solid var(--border-subtle)',
           }}
         >
           <h4
@@ -397,7 +397,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
               {soul.academic_level.replace('_', ' ')}
             </span>
             {soul.peer_mode && (
-              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                 Peer mode active — your Saathi treats you as an intellectual
                 equal
               </p>

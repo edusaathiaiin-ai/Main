@@ -7,7 +7,7 @@ import type { Profile } from '@/types'
 import { getPlan, getPlanTier } from '@/constants/plans'
 
 const PLAN_COLORS: Record<string, string> = {
-  free: 'rgba(255,255,255,0.3)',
+  free: 'var(--text-ghost)',
   plus: '#C9993A',
   pro: '#7C3AED',
   unlimited: '#EF4444',
@@ -50,7 +50,7 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
       transition={{ delay: 0.2 }}
       className="rounded-2xl p-6"
       style={{
-        background: 'rgba(255,255,255,0.02)',
+        background: 'var(--bg-base)',
         border: `1px solid ${planColor}40`,
         boxShadow: `0 0 30px ${planColor}10`,
       }}
@@ -59,12 +59,12 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
         <div>
           <p
             className="mb-1 text-xs font-semibold tracking-widest uppercase"
-            style={{ color: 'rgba(255,255,255,0.35)' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             Current plan
           </p>
           <div className="flex items-center gap-2">
-            <span className="font-playfair text-2xl font-bold text-white">
+            <span className="font-playfair text-2xl font-bold">
               {plan.name}
             </span>
             <span
@@ -89,7 +89,7 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
           {expiresAt && (
             <p
               className="mt-0.5 text-xs"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               {isPaused ? 'Paused until' : 'Renews'} {expiresAt}
             </p>
@@ -116,7 +116,7 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
           </div>
           <div
             className="h-1.5 overflow-hidden rounded-full"
-            style={{ background: 'rgba(255,255,255,0.08)' }}
+            style={{ background: 'var(--border-subtle)' }}
           >
             <div
               className="h-full rounded-full transition-all"
@@ -144,9 +144,9 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
             onClick={() => router.push('/pricing')}
             className="flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: 'rgba(255,255,255,0.6)',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-secondary)',
             }}
           >
             Manage subscription
@@ -155,9 +155,9 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
             onClick={() => router.push('/pricing')}
             className="flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: 'rgba(255,255,255,0.6)',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-secondary)',
             }}
           >
             View billing →

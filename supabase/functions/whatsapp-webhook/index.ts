@@ -854,6 +854,10 @@ async function handleChat(
   // Build WhatsApp-optimised system prompt (with per-Saathi subject boundaries)
   const systemPrompt = buildWhatsAppPrompt(soul, profile, saathi as VerticalRow | null);
 
+  // Instant acknowledgment — student sees response immediately
+  sendWhatsAppMessage(from, `✦ ${saathi?.name ?? 'Your Saathi'} is preparing your answer...`)
+    .catch(() => {}) // fire-and-forget — don't block AI call
+
   // Call Claude Haiku — fast + cheap for WhatsApp
   const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',

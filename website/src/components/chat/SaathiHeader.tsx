@@ -23,6 +23,9 @@ type Props = {
   onSlotChange:  (slot: 1 | 2 | 3 | 4 | 5) => void
   onLockedTap:   (botName: string) => void
   onSuggestFaculty?: () => void
+  onEmailDigest?: () => void
+  digestState?: 'idle' | 'sending' | 'sent' | 'error'
+  onWalkthrough?: () => void
 }
 
 export function SaathiHeader({
@@ -37,6 +40,9 @@ export function SaathiHeader({
   onSlotChange,
   onLockedTap,
   onSuggestFaculty,
+  onEmailDigest,
+  digestState = 'idle',
+  onWalkthrough,
 }: Props) {
   const { mode, toggleMode } = useThemeStore()
   const { fontSize, setFontSize } = useFontStore()
@@ -84,8 +90,44 @@ export function SaathiHeader({
           </div>
         </div>
 
-        {/* Right: notifications + font size + theme */}
+        {/* Right: actions + controls */}
         <div className="flex items-center gap-2">
+          {/* Email today's chat */}
+          {onEmailDigest && (
+            <button
+              onClick={onEmailDigest}
+              disabled={digestState === 'sending'}
+              title="Email today's chat as a study summary — key concepts + homework for tomorrow"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all"
+              style={{
+                background: digestState === 'sent' ? 'var(--success-bg)' : 'var(--bg-elevated)',
+                border: `1px solid ${digestState === 'sent' ? 'var(--success)' : 'var(--border-medium)'}`,
+                color: digestState === 'sent' ? 'var(--success)' : digestState === 'error' ? 'var(--error)' : 'var(--text-secondary)',
+                cursor: digestState === 'sending' ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {digestState === 'sending' ? '⏳' : digestState === 'sent' ? '✓' : digestState === 'error' ? '✗' : '📧'}
+              {digestState === 'sent' ? 'Sent to your email!' : digestState === 'error' ? 'No chat today' : digestState === 'sending' ? 'Sending...' : "Email today's chat"}
+            </button>
+          )}
+
+          {/* Walkthrough */}
+          {onWalkthrough && (
+            <button
+              onClick={onWalkthrough}
+              title="Take a guided tour of all features"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all"
+              style={{
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-medium)',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+              }}
+            >
+              🎓 Guided tour
+            </button>
+          )}
+
           <NotificationBell />
 
           {/* Font size: three Aa buttons */}

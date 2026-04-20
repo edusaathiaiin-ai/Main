@@ -26,6 +26,10 @@ import { Scene360Viewer } from './Scene360Viewer'
 import { SketchResult } from './SketchResult'
 import { ReportErrorButton } from './ReportErrorButton'
 import { SendToPhone } from './SendToPhone'
+import { CaseLawCard } from './CaseLawCard'
+import { WolframCard } from './WolframCard'
+import { NasaCard } from './NasaCard'
+import { ChemSpiderCard } from './ChemSpiderCard'
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -47,6 +51,10 @@ type Segment =
   | { type: 'golden_ratio'; width: number; height: number }
   | { type: 'scene360'; name: string }
   | { type: 'sketch'; content: string }
+  | { type: 'case_law'; caseName: string; court: string; year: string; url: string }
+  | { type: 'wolfram'; query: string }
+  | { type: 'nasa'; query: string }
+  | { type: 'chemspider'; query: string }
   | {
       type: 'plot'
       expression: string
@@ -250,6 +258,52 @@ function parseMessageContent(text: string): Segment[] {
           max: parseFloat(plotMatch[4]),
           label: plotMatch[5]?.trim(),
         },
+      }
+    }
+
+    // 4n. Case law tag [CASE:name|court|year|url]
+    const caseMatch = /\[CASE:([^|]+)\|([^|]+)\|([^|]+)\|([^\]]+)\]/.exec(remaining)
+    if (caseMatch && caseMatch.index < currentIndex()) {
+      earliest = {
+        index: caseMatch.index,
+        length: caseMatch[0].length,
+        segment: {
+          type: 'case_law' as const,
+          caseName: caseMatch[1].trim(),
+          court: caseMatch[2].trim(),
+          year: caseMatch[3].trim(),
+          url: caseMatch[4].trim(),
+        },
+      }
+    }
+
+    // 4o. Wolfram tag [WOLFRAM:query]
+    const wolframMatch = /\[WOLFRAM:([^\]]+)\]/.exec(remaining)
+    if (wolframMatch && wolframMatch.index < currentIndex()) {
+      earliest = {
+        index: wolframMatch.index,
+        length: wolframMatch[0].length,
+        segment: { type: 'wolfram' as const, query: wolframMatch[1].trim() },
+      }
+    }
+
+    // 4p. ChemSpider tag [CHEMSPIDER:query]
+    const chemspiderMatch = /\[CHEMSPIDER:([^\]]+)\]/.exec(remaining)
+    if (chemspiderMatch && chemspiderMatch.index < currentIndex()) {
+      earliest = {
+        index: chemspiderMatch.index,
+        length: chemspiderMatch[0].length,
+        segment: { type: 'chemspider' as const, query: chemspiderMatch[1].trim() },
+      }
+    }
+
+    // 4q. NASA tag [NASA:query]
+    const nasaMatch = /\[NASA:([^\]]+)\]/.exec(remaining)
+    if (nasaMatch && nasaMatch.index < currentIndex()) {
+      earliest = {
+        index: nasaMatch.index,
+        length: nasaMatch[0].length,
+        segment: { type: 'nasa' as const, query: nasaMatch[1].trim() },
       }
     }
 
@@ -466,6 +520,26 @@ function RenderSegments({
                 max={seg.max}
                 label={seg.label}
                 saathiColor={primaryColor}
+              />
+            )
+
+          case 'wolfram':
+            return <WolframCard key={i} query={seg.query} />
+
+          case 'chemspider':
+            return <ChemSpiderCard key={i} query={seg.query} />
+
+          case 'nasa':
+            return <NasaCard key={i} query={seg.query} />
+
+          case 'case_law':
+            return (
+              <CaseLawCard
+                key={i}
+                caseName={seg.caseName}
+                court={seg.court}
+                year={seg.year}
+                url={seg.url}
               />
             )
 
