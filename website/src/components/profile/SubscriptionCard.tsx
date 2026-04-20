@@ -84,7 +84,7 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
             className="font-playfair text-xl font-bold"
             style={{ color: planColor }}
           >
-            {isFree ? 'Free' : `₹${plan.priceMonthly}/mo`}
+            {isFree ? 'Free' : `₹${plan.introPrice ?? plan.priceMonthly}/mo`}
           </p>
           {expiresAt && (
             <p
