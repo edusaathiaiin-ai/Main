@@ -24,7 +24,56 @@ type Props = {
   viewAs?: 'faculty' | 'student'
 }
 
-function getStarters(saathiSlug: string, boardName: string, saathiName: string): string[] {
+function getStarters(
+  saathiSlug: string,
+  boardName: string,
+  saathiName: string,
+  viewAs?: 'faculty' | 'student',
+  activeBotSlot?: number,
+): string[] {
+  // Faculty-mode starters — peer-level, subject-aware. Per slot.
+  if (viewAs === 'faculty') {
+    const subject = saathiName.replace('Saathi', '')
+    switch (activeBotSlot) {
+      case 1: // My Saathi — peer chat
+        return [
+          `Recent developments in ${subject} worth discussing`,
+          `What open problems in ${subject} are most worth a student's time?`,
+          `Help me think through a methodology question`,
+          `What's a non-obvious take on ${subject} I might enjoy?`,
+        ]
+      case 2: // Lesson Prep
+        return [
+          `Draft a 60-min lecture outline for an intro ${subject} class`,
+          `Give me 3 example problems (easy / core / stretch) for my next class`,
+          `What misconceptions do students have about this topic?`,
+          `Suggest an unusual analogy to explain a core ${subject} idea`,
+        ]
+      case 3: // Research
+        return [
+          `Recent peer-reviewed papers on [topic]`,
+          `Help me frame a hypothesis about [X]`,
+          `Which methodology best fits a small-N study on [question]?`,
+          `What reviews should I read to scope a new area?`,
+        ]
+      case 4: // Student Insight
+        return [
+          `What are my ${subject} students most struggling with?`,
+          `Which topics are coming up repeatedly?`,
+          `Where should I redesign my teaching this term?`,
+          `Common misconceptions I should address early`,
+        ]
+      case 5: // Question Paper
+        return [
+          `Draft 5 MCQs on [topic] with plausible distractors`,
+          `One case study with 3 scaffolded sub-questions`,
+          `5 questions of increasing difficulty for a 20-mark section`,
+          `A higher-order thinking question on [topic]`,
+        ]
+    }
+  }
+
+  // Student-mode starters (original behaviour)
   const topics = SUBJECT_CHIPS[saathiSlug] ?? []
   if (boardName === 'General') {
     return [
@@ -65,7 +114,7 @@ export function ChatColumn({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, streamingText])
 
-  const starters = getStarters(saathiSlug, board.name, saathi.name)
+  const starters = getStarters(saathiSlug, board.name, saathi.name, viewAs, activeBotSlot)
 
   const sendMessage = useCallback(async (text?: string) => {
     const msg = (text ?? input).trim()

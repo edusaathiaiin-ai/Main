@@ -10,7 +10,7 @@ import { useChatStore } from '@/stores/chatStore'
 import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
 import { toSlug } from '@/constants/verticalIds'
-import { BOTS } from '@/constants/bots'
+import { BOTS, FACULTY_BOTS } from '@/constants/bots'
 import { getPlanTier, isInFreeTrial } from '@/constants/plans'
 import { todayIST } from '@/lib/quota'
 import { getSaathiTheme } from '@/lib/saathiThemes'
@@ -443,7 +443,9 @@ export function ChatWindow() {
     SAATHIS[0].id
   const activeSaathi: Saathi =
     SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
-  const activeBot = BOTS.find((b) => b.slot === activeBotSlot) ?? BOTS[0]
+  const isFacultyView = profile?.role === 'faculty' && viewAs === 'faculty'
+  const activeBotList = isFacultyView ? FACULTY_BOTS : BOTS
+  const activeBot = activeBotList.find((b) => b.slot === activeBotSlot) ?? activeBotList[0]
   const theme = getSaathiTheme(saathiId, mode)
 
   // Legal theme = KanoonSaathi in day (light) mode
@@ -1030,7 +1032,7 @@ export function ChatWindow() {
           createdAt={profile.created_at}
           onSlotChange={handleSlotChange}
           onLockedTap={handleLockedTap}
-          onSuggestFaculty={() => setShowNominateModal(true)}
+          onSuggestFaculty={profile.role === 'faculty' ? undefined : () => setShowNominateModal(true)}
           onEmailDigest={() => handleEmailDigest()}
           digestState={digestState}
           onWalkthrough={() => setShowTour(true)}
