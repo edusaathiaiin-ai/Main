@@ -295,7 +295,7 @@ export default function FacultyPage() {
     return (
       <main
         className="flex min-h-screen items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div
           className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
@@ -313,13 +313,13 @@ export default function FacultyPage() {
       className="min-h-screen"
       style={{
         background:
-          'linear-gradient(180deg, #060F1D 0%, #0B1F3A 60%, #060F1D 100%)',
+          'var(--bg-base)',
       }}
     >
       {/* Top nav */}
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <span
           className="font-playfair text-xl font-bold"
@@ -331,10 +331,10 @@ export default function FacultyPage() {
           <button
             onClick={() => router.push('/chat')}
             className="text-sm transition-colors"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            style={{ color: 'var(--text-tertiary)' }}
             onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
             onMouseLeave={(e) =>
-              (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')
+              (e.currentTarget.style.color = 'var(--text-tertiary)')
             }
           >
             Open Saathi →
@@ -347,8 +347,8 @@ export default function FacultyPage() {
             }}
             className="rounded-lg px-3 py-1.5 text-xs transition-colors"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'rgba(255,255,255,0.4)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-tertiary)',
             }}
           >
             Sign out
@@ -360,29 +360,16 @@ export default function FacultyPage() {
       <div className="mx-auto max-w-4xl px-6 pt-4">
         <div className="flex flex-wrap gap-2">
           {[
+            { href: '/faculty/live', icon: '🎙️', label: 'Live Sessions' },
+            { href: '/faculty/requests', icon: '📋', label: 'Requests' },
+            { href: '/faculty/sessions', icon: '📅', label: '1:1 Sessions' },
             { href: '/chat', icon: '\u{1F4AC}', label: 'My Saathi' },
             { href: '/faculty', icon: '\u{1F4CB}', label: 'Board' },
             { href: '/faculty/demand', icon: '🔥', label: 'Student Demand' },
-            {
-              href: '/faculty/analytics',
-              icon: '\u{1F4CA}',
-              label: 'Analytics',
-            },
-            {
-              href: '/faculty/question-paper',
-              icon: '\u{1F4DD}',
-              label: 'Question Paper',
-            },
-            {
-              href: '/faculty/create-material',
-              icon: '\u{1F4DA}',
-              label: 'Study Material',
-            },
-            {
-              href: '/faculty/research',
-              icon: '🔬',
-              label: 'Research Interns',
-            },
+            { href: '/faculty/analytics', icon: '\u{1F4CA}', label: 'Analytics' },
+            { href: '/faculty/question-paper', icon: '\u{1F4DD}', label: 'Question Paper' },
+            { href: '/faculty/create-material', icon: '\u{1F4DA}', label: 'Study Material' },
+            { href: '/faculty/research', icon: '🔬', label: 'Research Interns' },
             { href: '/profile', icon: '\u{1F464}', label: 'Profile' },
           ].map((item) => (
             <Link
@@ -390,9 +377,9 @@ export default function FacultyPage() {
               href={item.href}
               className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all"
               style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '0.5px solid rgba(255,255,255,0.08)',
-                color: 'rgba(255,255,255,0.5)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-subtle)',
+                color: 'var(--text-secondary)',
                 textDecoration: 'none',
               }}
             >
@@ -433,19 +420,19 @@ export default function FacultyPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 rounded-2xl p-6"
           style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--border-subtle)',
           }}
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p
                 className="mb-1 text-xs font-semibold"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 {designation} · {faculty?.institution_name ?? 'Institution'}
               </p>
-              <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
+              <h1 className="font-playfair mb-2 text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
                 Welcome, {displayName.split(' ')[0]}
               </h1>
               <div className="flex flex-wrap items-center gap-2">
@@ -467,11 +454,11 @@ export default function FacultyPage() {
             <div className="text-right">
               <p
                 className="text-xs"
-                style={{ color: 'rgba(255,255,255,0.25)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 {faculty?.years_experience ?? 0} yrs experience
               </p>
-              <p className="mt-1 text-sm font-medium text-white/60">
+              <p className="mt-1 text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
                 {faculty?.department ?? 'Department'}
               </p>
             </div>
@@ -519,16 +506,16 @@ export default function FacultyPage() {
         <div
           className="mb-6 rounded-2xl p-5"
           style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--border-subtle)',
           }}
         >
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-white">Payout UPI ID</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Payout UPI ID</p>
               <p
                 className="mt-0.5 text-xs"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 Add this so we can transfer your session earnings directly
               </p>
@@ -556,7 +543,7 @@ export default function FacultyPage() {
             ) : (
               <p
                 className="text-sm"
-                style={{ color: 'rgba(255,255,255,0.25)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 Not set — optional, but required before we can pay you
               </p>
@@ -569,10 +556,11 @@ export default function FacultyPage() {
                 onChange={(e) => setUpiEdit(e.target.value)}
                 placeholder="e.g. yourname@upi"
                 autoFocus
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm text-white outline-none"
+                className="flex-1 rounded-xl px-4 py-2.5 text-sm outline-none"
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
+                  background: 'var(--bg-elevated)',
                   border: '0.5px solid rgba(201,153,58,0.4)',
+                  color: 'var(--text-primary)',
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') saveUpi()
@@ -583,7 +571,7 @@ export default function FacultyPage() {
                 onClick={saveUpi}
                 disabled={upiSaving}
                 className="rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50"
-                style={{ background: '#C9993A', color: '#060F1D' }}
+                style={{ background: '#C9993A', color: 'var(--bg-base)' }}
               >
                 {upiSaving ? 'Saving…' : 'Save'}
               </button>
@@ -591,8 +579,8 @@ export default function FacultyPage() {
                 onClick={() => setUpiEdit(null)}
                 className="rounded-xl px-3 py-2.5 text-sm transition-all"
                 style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  color: 'rgba(255,255,255,0.4)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-tertiary)',
                 }}
               >
                 Cancel
@@ -620,8 +608,8 @@ export default function FacultyPage() {
         <div
           className="mb-6 flex gap-1 rounded-xl p-1"
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '0.5px solid rgba(255,255,255,0.06)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
             width: 'fit-content',
           }}
         >
@@ -632,7 +620,7 @@ export default function FacultyPage() {
               className="rounded-lg px-5 py-2 text-sm font-medium transition-all duration-200"
               style={{
                 background: tab === t ? '#C9993A' : 'transparent',
-                color: tab === t ? '#060F1D' : 'rgba(255,255,255,0.45)',
+                color: tab === t ? 'var(--bg-base)' : 'var(--text-tertiary)',
               }}
             >
               {t === 'questions' ? '❓ Questions' : '✍️ My Answers'}
@@ -654,9 +642,9 @@ export default function FacultyPage() {
                     background:
                       qFilter === f
                         ? 'rgba(201,153,58,0.2)'
-                        : 'rgba(255,255,255,0.04)',
-                    border: `0.5px solid ${qFilter === f ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
-                    color: qFilter === f ? '#E5B86A' : 'rgba(255,255,255,0.45)',
+                        : 'var(--bg-elevated)',
+                    border: `0.5px solid ${qFilter === f ? 'rgba(201,153,58,0.5)' : 'var(--border-subtle)'}`,
+                    color: qFilter === f ? '#E5B86A' : 'var(--text-tertiary)',
                   }}
                 >
                   {f === 'unanswered' ? 'Unanswered' : 'All Questions'}
@@ -666,10 +654,10 @@ export default function FacultyPage() {
 
             {questions.length === 0 ? (
               <div className="py-20 text-center">
-                <p className="font-playfair mb-2 text-xl text-white/30">
+                <p className="font-playfair mb-2 text-xl text-[var(--text-ghost)]">
                   No questions right now
                 </p>
-                <p className="text-sm text-white/20">
+                <p className="text-sm text-[var(--text-ghost)]">
                   Check back soon — students ask every day.
                 </p>
               </div>
@@ -682,17 +670,17 @@ export default function FacultyPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="rounded-2xl p-5"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-subtle)',
                     }}
                   >
                     {/* Question */}
-                    <p className="mb-3 text-sm leading-relaxed text-white">
+                    <p className="mb-3 text-sm leading-relaxed">
                       {q.body}
                     </p>
                     <p
                       className="mb-3 text-xs"
-                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       {new Date(q.created_at).toLocaleDateString('en-IN', {
                         day: 'numeric',
@@ -707,7 +695,7 @@ export default function FacultyPage() {
                       <button
                         onClick={() => toggleAi(q.id)}
                         className="mb-3 text-xs underline underline-offset-2"
-                        style={{ color: 'rgba(255,255,255,0.35)' }}
+                        style={{ color: 'var(--text-tertiary)' }}
                       >
                         {expandedAi.has(q.id)
                           ? '▲ Hide AI answer'
@@ -722,8 +710,8 @@ export default function FacultyPage() {
                           exit={{ opacity: 0, height: 0 }}
                           className="mb-3 rounded-xl p-3 text-xs leading-relaxed"
                           style={{
-                            background: 'rgba(255,255,255,0.04)',
-                            color: 'rgba(255,255,255,0.55)',
+                            background: 'var(--bg-elevated)',
+                            color: 'var(--text-secondary)',
                           }}
                         >
                           {q.ai_answer}
@@ -773,10 +761,10 @@ export default function FacultyPage() {
                         }
                         placeholder="Add your expert answer…"
                         rows={3}
-                        className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
+                        className="w-full resize-none rounded-xl px-4 py-3 text-sm transition-all outline-none"
                         style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: '0.5px solid rgba(255,255,255,0.1)',
+                          background: 'var(--bg-elevated)',
+                          border: '0.5px solid var(--border-subtle)',
                         }}
                         onFocus={(e) =>
                           (e.currentTarget.style.borderColor =
@@ -784,7 +772,7 @@ export default function FacultyPage() {
                         }
                         onBlur={(e) =>
                           (e.currentTarget.style.borderColor =
-                            'rgba(255,255,255,0.1)')
+                            'var(--border-subtle)')
                         }
                       />
                       <div className="mt-2 flex justify-end">
@@ -794,7 +782,7 @@ export default function FacultyPage() {
                             !answerText[q.id]?.trim() || submitting === q.id
                           }
                           className="rounded-xl px-5 py-2 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
-                          style={{ background: '#C9993A', color: '#060F1D' }}
+                          style={{ background: '#C9993A', color: 'var(--bg-base)' }}
                         >
                           {submitting === q.id ? 'Posting…' : 'Post Answer →'}
                         </button>
@@ -812,10 +800,10 @@ export default function FacultyPage() {
           <div className="space-y-4">
             {myAnswers.length === 0 ? (
               <div className="py-20 text-center">
-                <p className="font-playfair mb-2 text-xl text-white/30">
+                <p className="font-playfair mb-2 text-xl text-[var(--text-ghost)]">
                   No answers yet
                 </p>
-                <p className="text-sm text-white/20">
+                <p className="text-sm text-[var(--text-ghost)]">
                   Answer student questions in the Questions tab.
                 </p>
               </div>
@@ -825,8 +813,8 @@ export default function FacultyPage() {
                   key={a.id}
                   className="rounded-2xl p-5"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '0.5px solid rgba(255,255,255,0.08)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-subtle)',
                   }}
                 >
                   <div className="mb-3 flex items-center gap-2">
@@ -853,12 +841,12 @@ export default function FacultyPage() {
                     )}
                     <span
                       className="text-xs"
-                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       {new Date(a.created_at).toLocaleDateString('en-IN')}
                     </span>
                   </div>
-                  <p className="text-sm leading-relaxed text-white">{a.body}</p>
+                  <p className="text-sm leading-relaxed">{a.body}</p>
                 </div>
               ))
             )}
