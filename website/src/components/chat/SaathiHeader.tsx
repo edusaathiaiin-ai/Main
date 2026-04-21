@@ -5,8 +5,10 @@ import { useThemeStore } from '@/stores/themeStore'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 import { useFontStore, useFontStoreSync } from '@/stores/fontStore'
 import type { FontSize } from '@/stores/fontStore'
-import { BOTS } from '@/constants/bots'
+import { BOTS, FACULTY_BOTS } from '@/constants/bots'
 import { isInFreeTrial, getPlanTier } from '@/constants/plans'
+import { useViewAsStore } from '@/stores/viewAsStore'
+import { ViewAsToggle } from './ViewAsToggle'
 import type { UserRole } from '@/types'
 
 type Props = {
@@ -33,9 +35,10 @@ export function SaathiHeader({
   botName,
   sessionCount,
   onCheckin,
-  isLegalTheme = false,
+  isLegalTheme: _isLegalTheme = false,
   activeSlot,
   planId,
+  userRole,
   createdAt,
   onSlotChange,
   onLockedTap,
@@ -47,8 +50,15 @@ export function SaathiHeader({
   const { mode, toggleMode } = useThemeStore()
   const { fontSize, setFontSize } = useFontStore()
   useFontStoreSync()
+  const { viewAs } = useViewAsStore()
+
+  const isFacultyUser = userRole === 'faculty'
+  const effectiveRole = isFacultyUser ? viewAs : 'student'
+  const bots = effectiveRole === 'faculty' ? FACULTY_BOTS : BOTS
 
   function isUnlocked(slot: number): boolean {
+    // Faculty modes: every slot unlocked (verified, not paywalled)
+    if (effectiveRole === 'faculty') return true
     if (slot === 1 || slot === 5) return true
     const tier = getPlanTier(planId)
     if (tier === 'free' && isInFreeTrial(createdAt)) return true
@@ -129,6 +139,9 @@ export function SaathiHeader({
           )}
 
           <NotificationBell />
+
+          {/* Viewing-as toggle — faculty only */}
+          {isFacultyUser && <ViewAsToggle />}
 
           {/* Font size: three Aa buttons */}
           <div style={{
@@ -225,7 +238,7 @@ export function SaathiHeader({
           background:    'var(--bg-surface)',
         }}
       >
-        {BOTS.map((bot) => {
+        {bots.map((bot) => {
           const active   = activeSlot === bot.slot
           const unlocked = isUnlocked(bot.slot)
           return (

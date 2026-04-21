@@ -30,6 +30,7 @@ import { CaseLawCard } from './CaseLawCard'
 import { WolframCard } from './WolframCard'
 import { NasaCard } from './NasaCard'
 import { ChemSpiderCard } from './ChemSpiderCard'
+import { PubmedCitationCard } from './PubmedCitationCard'
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ type Segment =
   | { type: 'wolfram'; query: string }
   | { type: 'nasa'; query: string }
   | { type: 'chemspider'; query: string }
+  | { type: 'pubmed'; query: string }
   | {
       type: 'plot'
       expression: string
@@ -307,6 +309,16 @@ function parseMessageContent(text: string): Segment[] {
       }
     }
 
+    // 4r. PubMed tag [PUBMED:query] — faculty research mode
+    const pubmedMatch = /\[PUBMED:([^\]]+)\]/.exec(remaining)
+    if (pubmedMatch && pubmedMatch.index < currentIndex()) {
+      earliest = {
+        index: pubmedMatch.index,
+        length: pubmedMatch[0].length,
+        segment: { type: 'pubmed' as const, query: pubmedMatch[1].trim() },
+      }
+    }
+
     // 5. Inline math $...$ (guard against $$)
     const inlineMath = /(?<!\$)\$([^$\n]+?)\$(?!\$)/.exec(remaining)
     if (inlineMath && inlineMath.index < currentIndex()) {
@@ -531,6 +543,9 @@ function RenderSegments({
 
           case 'nasa':
             return <NasaCard key={i} query={seg.query} />
+
+          case 'pubmed':
+            return <PubmedCitationCard key={i} query={seg.query} />
 
           case 'case_law':
             return (
