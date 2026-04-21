@@ -144,14 +144,14 @@ function StepIndicator({ step }: { step: OnboardStep }) {
                     ? '#C9993A'
                     : active
                       ? 'rgba(201,153,58,0.2)'
-                      : 'var(--bg-elevated)',
+                      : 'rgba(255,255,255,0.06)',
                   borderColor:
-                    done || active ? '#C9993A' : 'var(--border-medium)',
+                    done || active ? '#C9993A' : 'rgba(255,255,255,0.12)',
                   color: done
                     ? '#060F1D'
                     : active
                       ? '#C9993A'
-                      : 'var(--text-ghost)',
+                      : 'rgba(255,255,255,0.25)',
                 }}
                 style={{ border: '1.5px solid' }}
                 transition={spring}
@@ -160,7 +160,7 @@ function StepIndicator({ step }: { step: OnboardStep }) {
               </motion.div>
               <span
                 className="hidden text-[9px] sm:block"
-                style={{ color: active ? '#C9993A' : 'var(--text-ghost)' }}
+                style={{ color: active ? '#C9993A' : 'rgba(255,255,255,0.25)' }}
               >
                 {labels[i]}
               </span>
@@ -169,7 +169,7 @@ function StepIndicator({ step }: { step: OnboardStep }) {
               <motion.div
                 className="mb-3 h-px w-8"
                 animate={{
-                  background: done ? '#C9993A' : 'var(--border-medium)',
+                  background: done ? '#C9993A' : 'rgba(255,255,255,0.1)',
                 }}
                 transition={spring}
               />
@@ -186,12 +186,12 @@ function BackButton({ onClick }: { onClick: () => void }) {
     <button
       onClick={onClick}
       className="flex items-center gap-1.5 text-sm transition-colors duration-150"
-      style={{ color: 'var(--text-ghost)' }}
+      style={{ color: 'rgba(255,255,255,0.35)' }}
       onMouseEnter={(e) =>
-        (e.currentTarget.style.color = 'var(--text-secondary)')
+        (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')
       }
       onMouseLeave={(e) =>
-        (e.currentTarget.style.color = 'var(--text-ghost)')
+        (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')
       }
     >
       ← Back
@@ -212,7 +212,7 @@ function InputField({
     <div>
       <label
         className="mb-1.5 block text-xs font-medium"
-        style={{ color: 'var(--text-secondary)' }}
+        style={{ color: 'rgba(255,255,255,0.5)' }}
       >
         {label}
         {required && (
@@ -227,8 +227,8 @@ function InputField({
 }
 
 const inputStyle = {
-  background: 'var(--bg-elevated)',
-  border: '0.5px solid var(--border-medium)',
+  background: 'rgba(255,255,255,0.05)',
+  border: '0.5px solid rgba(255,255,255,0.1)',
   color: '#fff',
 } as const
 
@@ -298,8 +298,8 @@ function AcademicLevelStep({
               style={{
                 background: isSelected
                   ? `${card.color}22`
-                  : 'var(--bg-elevated)',
-                border: `1.5px solid ${isSelected ? card.color : 'var(--bg-elevated)'}`,
+                  : 'rgba(255,255,255,0.03)',
+                border: `1.5px solid ${isSelected ? card.color : 'rgba(255,255,255,0.07)'}`,
                 boxShadow: isSelected ? `0 0 24px ${card.color}33` : undefined,
               }}
             >
@@ -319,7 +319,7 @@ function AcademicLevelStep({
               </p>
               <p
                 className="mb-1.5 text-[11px]"
-                style={{ color: 'var(--text-tertiary)' }}
+                style={{ color: 'rgba(255,255,255,0.45)' }}
               >
                 {card.subtitle}
               </p>
@@ -376,9 +376,9 @@ function AcademicLevelStep({
                       style={{
                         background: isYearActive
                           ? selected.color
-                          : 'var(--bg-elevated)',
-                        border: `0.5px solid ${isYearActive ? selected.color : 'var(--border-medium)'}`,
-                        color: isYearActive ? '#fff' : 'var(--text-secondary)',
+                          : 'rgba(255,255,255,0.06)',
+                        border: `0.5px solid ${isYearActive ? selected.color : 'rgba(255,255,255,0.12)'}`,
+                        color: isYearActive ? '#fff' : 'rgba(255,255,255,0.6)',
                       }}
                     >
                       {opt}
@@ -395,7 +395,7 @@ function AcademicLevelStep({
         animate={{
           opacity: canProceed ? 1 : 0.4,
           background:
-            canProceed && selected ? selected.color : 'var(--border-medium)',
+            canProceed && selected ? selected.color : 'rgba(255,255,255,0.1)',
         }}
         onClick={handleContinue}
         disabled={!canProceed || saving}
@@ -461,7 +461,7 @@ function SaathiStep({
         >
           Your Saathi is here to show you who you&apos;re becoming.
         </h2>
-        <p className="text-sm" style={{ color: 'var(--text-ghost)' }}>
+        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>
           Choose the subject you are studying. One student. One soul. One
           Saathi.
         </p>
@@ -496,8 +496,8 @@ function SaathiStep({
               style={{
                 background: isSelected
                   ? `${saathi.primary}33`
-                  : 'var(--bg-elevated)',
-                border: `1.5px solid ${isSelected ? '#C9993A' : 'var(--bg-elevated)'}`,
+                  : 'rgba(255,255,255,0.03)',
+                border: `1.5px solid ${isSelected ? '#C9993A' : 'rgba(255,255,255,0.07)'}`,
                 boxShadow: isSelected
                   ? '0 0 20px rgba(201,153,58,0.2)'
                   : undefined,
@@ -534,7 +534,7 @@ function SaathiStep({
               </p>
               <p
                 className="line-clamp-2 text-[10px] leading-relaxed"
-                style={{ color: 'var(--text-tertiary)' }}
+                style={{ color: 'rgba(255,255,255,0.38)' }}
               >
                 {saathi.tagline}
               </p>
@@ -547,7 +547,7 @@ function SaathiStep({
         <motion.button
           animate={{
             opacity: selected ? 1 : 0.4,
-            background: selected?.primary ?? 'var(--border-medium)',
+            background: selected?.primary ?? 'rgba(255,255,255,0.1)',
           }}
           onClick={() => selected && onContinue(selected.id)}
           disabled={!selected || saving}
@@ -568,7 +568,7 @@ function SaathiStep({
           <p
             style={{
               fontSize: '11px',
-              color: 'var(--text-ghost)',
+              color: 'rgba(255,255,255,0.3)',
               textAlign: 'center',
               maxWidth: '320px',
               lineHeight: '1.5',
@@ -584,7 +584,7 @@ function SaathiStep({
           <p
             style={{
               fontSize: '12px',
-              color: 'var(--text-ghost)',
+              color: 'rgba(255,255,255,0.25)',
               margin: 0,
             }}
           >
@@ -644,7 +644,7 @@ function ExamStep({
         </h1>
         <p
           className="mb-8 text-sm"
-          style={{ color: 'var(--text-secondary)' }}
+          style={{ color: 'rgba(255,255,255,0.55)' }}
         >
           Optional — pick if it applies, otherwise skip. You can always add this
           later from your profile.
@@ -664,9 +664,9 @@ function ExamStep({
             disabled={saving}
             className="rounded-xl px-5 py-3 text-sm font-medium transition-colors"
             style={{
-              color: 'var(--text-secondary)',
+              color: 'rgba(255,255,255,0.5)',
               background: 'transparent',
-              border: '0.5px solid var(--border-medium)',
+              border: '0.5px solid rgba(255,255,255,0.12)',
             }}
           >
             ← Back
@@ -679,9 +679,9 @@ function ExamStep({
               disabled={saving}
               className="rounded-xl px-5 py-3 text-sm font-medium transition-colors"
               style={{
-                color: 'var(--text-secondary)',
+                color: 'rgba(255,255,255,0.5)',
                 background: 'transparent',
-                border: '0.5px solid var(--border-medium)',
+                border: '0.5px solid rgba(255,255,255,0.12)',
               }}
             >
               Skip for now
@@ -738,7 +738,7 @@ function NameStep({
       <div
         className="w-full rounded-2xl p-8"
         style={{
-          background: 'var(--bg-elevated)',
+          background: 'rgba(255,255,255,0.04)',
           border: '0.5px solid rgba(201,153,58,0.2)',
         }}
       >
@@ -748,7 +748,7 @@ function NameStep({
         <h2 className="mb-2 font-playfair text-2xl font-bold text-white">
           What should your Saathi call you?
         </h2>
-        <p className="mb-6 text-sm" style={{ color: 'var(--text-secondary)' }}>
+        <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
           Your Saathi greets you by name every session. Enter the name you'd like to hear.
         </p>
 
@@ -763,7 +763,7 @@ function NameStep({
               maxLength={40}
               className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
               style={{
-                background: 'var(--bg-elevated)',
+                background: 'rgba(255,255,255,0.07)',
                 border: `1px solid ${error ? 'rgba(239,68,68,0.6)' : 'rgba(201,153,58,0.25)'}`,
               }}
             />
@@ -840,7 +840,7 @@ export function ProfileStep({
     ? 'rgba(239,68,68,0.6)'
     : showNameValid
       ? 'rgba(74,222,128,0.5)'
-      : 'var(--border-medium)'
+      : 'rgba(255,255,255,0.1)'
 
   const canSubmit = nameValid && form.city !== ''
 
@@ -884,7 +884,7 @@ export function ProfileStep({
         <h2 className="font-playfair mb-2 text-3xl font-bold text-white md:text-4xl">
           Tell your Saathi about you
         </h2>
-        <p className="mb-6 text-sm" style={{ color: 'var(--text-tertiary)' }}>
+        <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
           The more you share, the more personal your Saathi becomes.
         </p>
       </motion.div>
@@ -940,7 +940,7 @@ export function ProfileStep({
             className="w-full appearance-none rounded-xl px-4 py-3 text-sm transition-all outline-none"
             style={{
               ...inputStyle,
-              color: form.city ? '#fff' : 'var(--text-ghost)',
+              color: form.city ? '#fff' : 'rgba(255,255,255,0.35)',
             }}
           >
             <option value="" disabled style={{ background: 'var(--bg-surface)' }}>
@@ -992,7 +992,7 @@ export function ProfileStep({
                   (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
                 }
                 onBlur={(e) =>
-                  (e.currentTarget.style.borderColor = 'var(--border-medium)')
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
                 }
               />
             </InputField>
@@ -1008,7 +1008,7 @@ export function ProfileStep({
                   (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
                 }
                 onBlur={(e) =>
-                  (e.currentTarget.style.borderColor = 'var(--border-medium)')
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
                 }
               />
             </InputField>
@@ -1030,7 +1030,7 @@ export function ProfileStep({
                   (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
                 }
                 onBlur={(e) =>
-                  (e.currentTarget.style.borderColor = 'var(--border-medium)')
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
                 }
               />
             </InputField>
@@ -1046,7 +1046,7 @@ export function ProfileStep({
                   (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
                 }
                 onBlur={(e) =>
-                  (e.currentTarget.style.borderColor = 'var(--border-medium)')
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
                 }
               />
             </InputField>
@@ -1068,7 +1068,7 @@ export function ProfileStep({
                   (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
                 }
                 onBlur={(e) =>
-                  (e.currentTarget.style.borderColor = 'var(--border-medium)')
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
                 }
               />
             </InputField>
@@ -1085,9 +1085,9 @@ export function ProfileStep({
                       style={{
                         background: isActive
                           ? '#C9993A'
-                          : 'var(--bg-elevated)',
-                        border: `0.5px solid ${isActive ? '#C9993A' : 'var(--border-medium)'}`,
-                        color: isActive ? '#060F1D' : 'var(--text-secondary)',
+                          : 'rgba(255,255,255,0.05)',
+                        border: `0.5px solid ${isActive ? '#C9993A' : 'rgba(255,255,255,0.1)'}`,
+                        color: isActive ? '#060F1D' : 'rgba(255,255,255,0.6)',
                       }}
                     >
                       {d}
@@ -1114,7 +1114,7 @@ export function ProfileStep({
                   (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
                 }
                 onBlur={(e) =>
-                  (e.currentTarget.style.borderColor = 'var(--border-medium)')
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
                 }
               />
             </InputField>
@@ -1130,7 +1130,7 @@ export function ProfileStep({
                   (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
                 }
                 onBlur={(e) =>
-                  (e.currentTarget.style.borderColor = 'var(--border-medium)')
+                  (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
                 }
               />
             </InputField>
@@ -1161,7 +1161,7 @@ export function ProfileStep({
                 (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)')
               }
               onBlur={(e) =>
-                (e.currentTarget.style.borderColor = 'var(--border-medium)')
+                (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')
               }
             />
           </InputField>
@@ -1195,12 +1195,12 @@ export function ProfileStep({
           <button
             onClick={onSkip}
             className="text-xs underline underline-offset-2 transition-colors duration-150"
-            style={{ color: 'var(--text-ghost)' }}
+            style={{ color: 'rgba(255,255,255,0.25)' }}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.color = 'var(--text-tertiary)')
+              (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.color = 'var(--text-ghost)')
+              (e.currentTarget.style.color = 'rgba(255,255,255,0.25)')
             }
           >
             Skip for now — I&apos;ll complete this later
@@ -2020,7 +2020,7 @@ function OnboardInner() {
                         </p>
                         <p
                           className="text-[10px]"
-                          style={{ color: 'var(--text-ghost)' }}
+                          style={{ color: 'rgba(255,255,255,0.35)' }}
                         >
                           Students see this when they find you on Faculty Finder
                         </p>
@@ -2093,7 +2093,7 @@ function OnboardInner() {
                       <div>
                         <label
                           className="mb-1.5 block text-[10px] font-semibold"
-                          style={{ color: 'var(--text-tertiary)' }}
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
                         >
                           I am currently...
                         </label>
@@ -2128,8 +2128,8 @@ function OnboardInner() {
                                     ? opt.id === 'retired'
                                       ? 'rgba(201,153,58,0.12)'
                                       : 'rgba(22,163,74,0.1)'
-                                    : 'var(--bg-elevated)',
-                                border: `1px solid ${facultyEmployment === opt.id ? (opt.id === 'retired' ? 'rgba(201,153,58,0.5)' : 'rgba(22,163,74,0.4)') : 'var(--bg-elevated)'}`,
+                                    : 'rgba(255,255,255,0.03)',
+                                border: `1px solid ${facultyEmployment === opt.id ? (opt.id === 'retired' ? 'rgba(201,153,58,0.5)' : 'rgba(22,163,74,0.4)') : 'rgba(255,255,255,0.06)'}`,
                               }}
                             >
                               <span className="mb-0.5 block text-lg">
@@ -2143,14 +2143,14 @@ function OnboardInner() {
                                       ? opt.id === 'retired'
                                         ? '#C9993A'
                                         : '#4ADE80'
-                                      : 'var(--text-secondary)',
+                                      : 'rgba(255,255,255,0.5)',
                                 }}
                               >
                                 {opt.label}
                               </p>
                               <p
                                 className="text-[9px]"
-                                style={{ color: 'var(--text-ghost)' }}
+                                style={{ color: 'rgba(255,255,255,0.25)' }}
                               >
                                 {opt.desc}
                               </p>
@@ -2176,7 +2176,7 @@ function OnboardInner() {
                           </p>
                           <p
                             className="mb-3 text-[10px]"
-                            style={{ color: 'var(--text-tertiary)' }}
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
                           >
                             Your decades of experience are exactly what students
                             need. No institutional email required.
@@ -2186,7 +2186,7 @@ function OnboardInner() {
                               <div>
                                 <label
                                   className="mb-1 block text-[9px] font-semibold"
-                                  style={{ color: 'var(--text-ghost)' }}
+                                  style={{ color: 'rgba(255,255,255,0.35)' }}
                                 >
                                   Former institution *
                                 </label>
@@ -2196,8 +2196,8 @@ function OnboardInner() {
                                   placeholder="e.g. Gujarat University"
                                   className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none"
                                   inputStyle={{
-                                    background: 'var(--bg-elevated)',
-                                    border: '0.5px solid var(--border-medium)',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '0.5px solid rgba(255,255,255,0.1)',
                                     color: '#fff',
                                   }}
                                 />
@@ -2205,7 +2205,7 @@ function OnboardInner() {
                               <div>
                                 <label
                                   className="mb-1 block text-[9px] font-semibold"
-                                  style={{ color: 'var(--text-ghost)' }}
+                                  style={{ color: 'rgba(255,255,255,0.35)' }}
                                 >
                                   Retirement year
                                 </label>
@@ -2220,15 +2220,15 @@ function OnboardInner() {
                                   max="2026"
                                   className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none"
                                   style={{
-                                    background: 'var(--bg-elevated)',
-                                    border: '0.5px solid var(--border-medium)',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '0.5px solid rgba(255,255,255,0.1)',
                                   }}
                                 />
                               </div>
                             </div>
                             <p
                               className="text-[9px]"
-                              style={{ color: 'var(--text-ghost)' }}
+                              style={{ color: 'rgba(255,255,255,0.25)' }}
                             >
                               Upload your verification document (retirement
                               letter, pension slip, or appointment letter) from
@@ -2256,7 +2256,7 @@ function OnboardInner() {
                           </p>
                           <p
                             className="mb-3 text-[10px]"
-                            style={{ color: 'var(--text-tertiary)' }}
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
                           >
                             Tell us about your credentials. Our team reviews
                             within 48 hours and issues an Expert Verified badge.
@@ -2265,7 +2265,7 @@ function OnboardInner() {
                             <div>
                               <label
                                 className="mb-1 block text-[9px] font-semibold"
-                                style={{ color: 'var(--text-ghost)' }}
+                                style={{ color: 'rgba(255,255,255,0.35)' }}
                               >
                                 Your credentials *
                               </label>
@@ -2280,13 +2280,13 @@ function OnboardInner() {
                                 rows={3}
                                 className="w-full resize-none rounded-lg px-3 py-2 text-xs text-white outline-none"
                                 style={{
-                                  background: 'var(--bg-elevated)',
-                                  border: '0.5px solid var(--border-medium)',
+                                  background: 'rgba(255,255,255,0.05)',
+                                  border: '0.5px solid rgba(255,255,255,0.1)',
                                 }}
                               />
                               <p
                                 className="mt-0.5 text-[9px]"
-                                style={{ color: 'var(--text-ghost)' }}
+                                style={{ color: 'rgba(255,255,255,0.2)' }}
                               >
                                 {300 - facultyIndependentCredential.length}{' '}
                                 chars remaining
@@ -2295,7 +2295,7 @@ function OnboardInner() {
                             <div>
                               <label
                                 className="mb-1 block text-[9px] font-semibold"
-                                style={{ color: 'var(--text-ghost)' }}
+                                style={{ color: 'rgba(255,255,255,0.35)' }}
                               >
                                 LinkedIn URL (strongly recommended)
                               </label>
@@ -2307,8 +2307,8 @@ function OnboardInner() {
                                 placeholder="linkedin.com/in/yourprofile"
                                 className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none"
                                 style={{
-                                  background: 'var(--bg-elevated)',
-                                  border: '0.5px solid var(--border-medium)',
+                                  background: 'rgba(255,255,255,0.05)',
+                                  border: '0.5px solid rgba(255,255,255,0.1)',
                                 }}
                               />
                             </div>
@@ -2321,7 +2321,7 @@ function OnboardInner() {
                         <div>
                           <label
                             className="mb-1 block text-[10px] font-semibold"
-                            style={{ color: 'var(--text-tertiary)' }}
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
                           >
                             Designation *
                           </label>
@@ -2332,11 +2332,11 @@ function OnboardInner() {
                             }
                             className="w-full appearance-none rounded-xl px-4 py-3 text-sm outline-none"
                             style={{
-                              background: 'var(--bg-elevated)',
-                              border: '0.5px solid var(--border-medium)',
+                              background: 'rgba(255,255,255,0.05)',
+                              border: '0.5px solid rgba(255,255,255,0.1)',
                               color: facultyDesignation
                                 ? '#fff'
-                                : 'var(--text-ghost)',
+                                : 'rgba(255,255,255,0.35)',
                             }}
                           >
                             <option value="" style={{ background: 'var(--bg-surface)' }}>
@@ -2365,7 +2365,7 @@ function OnboardInner() {
                         <div>
                           <label
                             className="mb-1 block text-[10px] font-semibold"
-                            style={{ color: 'var(--text-tertiary)' }}
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
                           >
                             Highest qualification
                           </label>
@@ -2376,11 +2376,11 @@ function OnboardInner() {
                             }
                             className="w-full appearance-none rounded-xl px-4 py-3 text-sm outline-none"
                             style={{
-                              background: 'var(--bg-elevated)',
-                              border: '0.5px solid var(--border-medium)',
+                              background: 'rgba(255,255,255,0.05)',
+                              border: '0.5px solid rgba(255,255,255,0.1)',
                               color: facultyQualification
                                 ? '#fff'
-                                : 'var(--text-ghost)',
+                                : 'rgba(255,255,255,0.35)',
                             }}
                           >
                             <option value="" style={{ background: 'var(--bg-surface)' }}>
@@ -2409,7 +2409,7 @@ function OnboardInner() {
                       <div>
                         <label
                           className="mb-1 block text-[10px] font-semibold"
-                          style={{ color: 'var(--text-tertiary)' }}
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
                         >
                           Department / Subject area *
                         </label>
@@ -2419,8 +2419,8 @@ function OnboardInner() {
                           placeholder="e.g. Physics, Constitutional Law, Pharmacology"
                           className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                           style={{
-                            background: 'var(--bg-elevated)',
-                            border: '0.5px solid var(--border-medium)',
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '0.5px solid rgba(255,255,255,0.1)',
                           }}
                         />
                       </div>
@@ -2429,7 +2429,7 @@ function OnboardInner() {
                       <div>
                         <label
                           className="mb-1 block text-[10px] font-semibold"
-                          style={{ color: 'var(--text-tertiary)' }}
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
                         >
                           Institution *
                         </label>
@@ -2439,8 +2439,8 @@ function OnboardInner() {
                           placeholder="Start typing your institution name..."
                           className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                           inputStyle={{
-                            background: 'var(--bg-elevated)',
-                            border: '0.5px solid var(--border-medium)',
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '0.5px solid rgba(255,255,255,0.1)',
                             color: '#fff',
                           }}
                         />
@@ -2451,7 +2451,7 @@ function OnboardInner() {
                         <div>
                           <label
                             className="mb-1 block text-[10px] font-semibold"
-                            style={{ color: 'var(--text-tertiary)' }}
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
                           >
                             Years teaching
                           </label>
@@ -2464,15 +2464,15 @@ function OnboardInner() {
                             max="50"
                             className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                             style={{
-                              background: 'var(--bg-elevated)',
-                              border: '0.5px solid var(--border-medium)',
+                              background: 'rgba(255,255,255,0.05)',
+                              border: '0.5px solid rgba(255,255,255,0.1)',
                             }}
                           />
                         </div>
                         <div>
                           <label
                             className="mb-1 block text-[10px] font-semibold"
-                            style={{ color: 'var(--text-tertiary)' }}
+                            style={{ color: 'rgba(255,255,255,0.4)' }}
                           >
                             Speciality areas
                           </label>
@@ -2480,8 +2480,8 @@ function OnboardInner() {
                             placeholder="e.g. Quantum Optics, Fluid Dynamics"
                             className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                             style={{
-                              background: 'var(--bg-elevated)',
-                              border: '0.5px solid var(--border-medium)',
+                              background: 'rgba(255,255,255,0.05)',
+                              border: '0.5px solid rgba(255,255,255,0.1)',
                             }}
                             onKeyDown={(e) => {
                               if (
@@ -2522,7 +2522,7 @@ function OnboardInner() {
                           )}
                           <p
                             className="mt-1 text-[9px]"
-                            style={{ color: 'var(--text-ghost)' }}
+                            style={{ color: 'rgba(255,255,255,0.2)' }}
                           >
                             Press Enter to add (max 5)
                           </p>
@@ -2533,7 +2533,7 @@ function OnboardInner() {
                       <div
                         style={{
                           height: '0.5px',
-                          background: 'var(--bg-elevated)',
+                          background: 'rgba(255,255,255,0.06)',
                           margin: '4px 0',
                         }}
                       />
@@ -2542,7 +2542,7 @@ function OnboardInner() {
                       <div>
                         <label
                           className="mb-1 block text-[10px] font-semibold"
-                          style={{ color: 'var(--text-tertiary)' }}
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
                         >
                           What are you currently researching?
                         </label>
@@ -2555,13 +2555,13 @@ function OnboardInner() {
                           rows={2}
                           className="w-full resize-none rounded-xl px-4 py-3 text-xs text-white outline-none"
                           style={{
-                            background: 'var(--bg-elevated)',
-                            border: '0.5px solid var(--border-medium)',
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '0.5px solid rgba(255,255,255,0.1)',
                           }}
                         />
                         <p
                           className="mt-0.5 text-[9px]"
-                          style={{ color: 'var(--text-ghost)' }}
+                          style={{ color: 'rgba(255,255,255,0.2)' }}
                         >
                           Students looking for research guidance will see this
                         </p>
@@ -2571,7 +2571,7 @@ function OnboardInner() {
                       <div>
                         <label
                           className="mb-1 block text-[10px] font-semibold"
-                          style={{ color: 'var(--text-tertiary)' }}
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
                         >
                           PhD/Masters thesis title (optional)
                         </label>
@@ -2583,8 +2583,8 @@ function OnboardInner() {
                           placeholder="e.g. Quantum entanglement in topological materials"
                           className="w-full rounded-xl px-4 py-3 text-xs text-white outline-none"
                           style={{
-                            background: 'var(--bg-elevated)',
-                            border: '0.5px solid var(--border-medium)',
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '0.5px solid rgba(255,255,255,0.1)',
                           }}
                         />
                       </div>
@@ -2593,7 +2593,7 @@ function OnboardInner() {
                       <div
                         style={{
                           height: '0.5px',
-                          background: 'var(--bg-elevated)',
+                          background: 'rgba(255,255,255,0.06)',
                           margin: '4px 0',
                         }}
                       />
@@ -2602,7 +2602,7 @@ function OnboardInner() {
                       <div>
                         <label
                           className="mb-1 block text-[10px] font-semibold"
-                          style={{ color: 'var(--text-tertiary)' }}
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
                         >
                           Academic links (optional but recommended)
                         </label>
@@ -2619,8 +2619,8 @@ function OnboardInner() {
                               placeholder="LinkedIn profile URL"
                               className="flex-1 rounded-xl px-4 py-2.5 text-xs text-white outline-none"
                               style={{
-                                background: 'var(--bg-elevated)',
-                                border: '0.5px solid var(--border-medium)',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '0.5px solid rgba(255,255,255,0.1)',
                               }}
                             />
                           </div>
@@ -2636,15 +2636,15 @@ function OnboardInner() {
                               placeholder="Google Scholar profile URL"
                               className="flex-1 rounded-xl px-4 py-2.5 text-xs text-white outline-none"
                               style={{
-                                background: 'var(--bg-elevated)',
-                                border: '0.5px solid var(--border-medium)',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '0.5px solid rgba(255,255,255,0.1)',
                               }}
                             />
                           </div>
                         </div>
                         <p
                           className="mt-1 text-[9px]"
-                          style={{ color: 'var(--text-ghost)' }}
+                          style={{ color: 'rgba(255,255,255,0.2)' }}
                         >
                           Helps students trust your expertise. Verified badge
                           comes faster with these.
@@ -2654,7 +2654,7 @@ function OnboardInner() {
 
                     <p
                       className="mt-4 text-[10px]"
-                      style={{ color: 'var(--text-ghost)' }}
+                      style={{ color: 'rgba(255,255,255,0.25)' }}
                     >
                       {'\u{1F512}'} Submitted for admin review. Faculty Verified
                       badge within 48 hours. Institutional email speeds up
@@ -2686,8 +2686,8 @@ function OnboardInner() {
                         placeholder="Organisation name *"
                         className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                         style={{
-                          background: 'var(--bg-elevated)',
-                          border: '0.5px solid var(--border-medium)',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
                         }}
                       />
                       <select
@@ -2695,9 +2695,9 @@ function OnboardInner() {
                         onChange={(e) => setOrgType(e.target.value)}
                         className="w-full appearance-none rounded-xl px-4 py-3 text-sm outline-none"
                         style={{
-                          background: 'var(--bg-elevated)',
-                          border: '0.5px solid var(--border-medium)',
-                          color: orgType ? '#fff' : 'var(--text-ghost)',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
+                          color: orgType ? '#fff' : 'rgba(255,255,255,0.35)',
                         }}
                       >
                         <option value="" style={{ background: 'var(--bg-surface)' }}>
@@ -2725,8 +2725,8 @@ function OnboardInner() {
                         placeholder="Website (optional)"
                         className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                         style={{
-                          background: 'var(--bg-elevated)',
-                          border: '0.5px solid var(--border-medium)',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
                         }}
                       />
                       <input
@@ -2735,8 +2735,8 @@ function OnboardInner() {
                         placeholder="Contact person name"
                         className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                         style={{
-                          background: 'var(--bg-elevated)',
-                          border: '0.5px solid var(--border-medium)',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
                         }}
                       />
                       <input
@@ -2746,8 +2746,8 @@ function OnboardInner() {
                         type="email"
                         className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                         style={{
-                          background: 'var(--bg-elevated)',
-                          border: '0.5px solid var(--border-medium)',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
                         }}
                       />
                       <input
@@ -2756,8 +2756,8 @@ function OnboardInner() {
                         placeholder="City"
                         className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                         style={{
-                          background: 'var(--bg-elevated)',
-                          border: '0.5px solid var(--border-medium)',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
                         }}
                       />
                       <textarea
@@ -2768,14 +2768,14 @@ function OnboardInner() {
                         rows={3}
                         className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none"
                         style={{
-                          background: 'var(--bg-elevated)',
-                          border: '0.5px solid var(--border-medium)',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
                         }}
                       />
                     </div>
                     <p
                       className="mt-3 text-xs"
-                      style={{ color: 'var(--text-ghost)' }}
+                      style={{ color: 'rgba(255,255,255,0.3)' }}
                     >
                       Flagged for admin verification. Our team will reach out
                       within 24 hours.

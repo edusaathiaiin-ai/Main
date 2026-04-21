@@ -68,7 +68,7 @@ function FacultyOnboardInner() {
     return (
       <main
         className="flex min-h-screen items-center justify-center"
-        style={{ background: 'var(--bg-base)' }}
+        style={{ background: '#060F1D' }}
       >
         <div
           className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
@@ -94,7 +94,7 @@ export default function FacultyOnboardPage() {
       fallback={
         <main
           className="flex min-h-screen items-center justify-center"
-          style={{ background: 'var(--bg-base)' }}
+          style={{ background: '#060F1D' }}
         >
           <div
             className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"

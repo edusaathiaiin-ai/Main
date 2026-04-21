@@ -186,7 +186,7 @@ function LoginForm() {
         className="rounded-2xl p-8"
         style={{
           background: 'rgba(11, 31, 58, 0.8)',
-          border: '0.5px solid var(--bg-elevated)',
+          border: '0.5px solid rgba(255,255,255,0.08)',
           backdropFilter: 'blur(20px)',
         }}
       >
@@ -231,7 +231,7 @@ function LoginForm() {
 
               <p
                 className="mt-4 text-sm leading-relaxed"
-                style={{ color: 'var(--text-secondary)' }}
+                style={{ color: 'rgba(255,255,255,0.5)' }}
               >
                 Check your inbox — it usually arrives within 2 minutes.
               </p>
@@ -239,12 +239,12 @@ function LoginForm() {
               <div
                 className="mx-auto mt-4 max-w-xs rounded-xl px-4 py-3 text-left text-xs leading-relaxed"
                 style={{
-                  background: 'var(--bg-elevated)',
-                  border: '0.5px solid var(--bg-elevated)',
-                  color: 'var(--text-ghost)',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  color: 'rgba(255,255,255,0.35)',
                 }}
               >
-                <p className="mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
+                <p className="mb-1 font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>
                   Using a corporate or institutional email?
                 </p>
                 <p>
@@ -258,7 +258,7 @@ function LoginForm() {
                   onClick={handleResend}
                   disabled={resendCountdown > 0 || magicLoading}
                   className="text-sm font-medium transition-all disabled:opacity-40"
-                  style={{ color: resendCountdown > 0 ? 'var(--text-ghost)' : '#C9993A' }}
+                  style={{ color: resendCountdown > 0 ? 'rgba(255,255,255,0.25)' : '#C9993A' }}
                 >
                   {magicLoading
                     ? 'Sending…'
@@ -272,7 +272,7 @@ function LoginForm() {
                     setEmail('')
                   }}
                   className="text-xs underline underline-offset-2"
-                  style={{ color: 'var(--text-ghost)' }}
+                  style={{ color: 'rgba(255,255,255,0.3)' }}
                 >
                   Try a different email instead →
                 </button>
@@ -286,15 +286,15 @@ function LoginForm() {
                 disabled={googleLoading || magicLoading}
                 className="flex w-full items-center justify-center gap-3 rounded-xl py-3.5 text-sm font-medium transition-all duration-200 disabled:opacity-50"
                 style={{
-                  background: 'var(--bg-elevated)',
-                  border: '0.5px solid var(--border-medium)',
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '0.5px solid rgba(255,255,255,0.12)',
                   color: '#fff',
                 }}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = 'var(--border-medium)')
+                  (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')
                 }
                 onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = 'var(--bg-elevated)')
+                  (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')
                 }
               >
                 {googleLoading ? (
@@ -309,17 +309,17 @@ function LoginForm() {
               <div className="my-6 flex items-center gap-4">
                 <div
                   className="h-px flex-1"
-                  style={{ background: 'var(--bg-elevated)' }}
+                  style={{ background: 'rgba(255,255,255,0.06)' }}
                 />
                 <span
                   className="text-xs"
-                  style={{ color: 'var(--text-ghost)' }}
+                  style={{ color: 'rgba(255,255,255,0.25)' }}
                 >
                   or
                 </span>
                 <div
                   className="h-px flex-1"
-                  style={{ background: 'var(--bg-elevated)' }}
+                  style={{ background: 'rgba(255,255,255,0.06)' }}
                 />
               </div>
 
@@ -337,15 +337,15 @@ function LoginForm() {
                   disabled={magicLoading}
                   className="w-full rounded-xl px-4 py-3.5 text-sm transition-all duration-200 outline-none disabled:opacity-50"
                   style={{
-                    background: 'var(--bg-elevated)',
-                    border: '0.5px solid var(--border-medium)',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '0.5px solid rgba(255,255,255,0.1)',
                     color: '#fff',
                   }}
                   onFocus={(e) =>
                     (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.5)')
                   }
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border-medium)'
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
                     emailAvailability.onBlur(email)
                   }}
                 />
@@ -418,17 +418,17 @@ function LoginForm() {
           style={{
             flex: 1,
             height: '0.5px',
-            background: 'var(--border-medium)',
+            background: 'rgba(255,255,255,0.1)',
           }}
         />
-        <span style={{ fontSize: '11px', color: 'var(--text-ghost)' }}>
+        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
           or
         </span>
         <div
           style={{
             flex: 1,
             height: '0.5px',
-            background: 'var(--border-medium)',
+            background: 'rgba(255,255,255,0.1)',
           }}
         />
       </div>
@@ -462,7 +462,7 @@ function LoginForm() {
       <p
         style={{
           fontSize: '11px',
-          color: 'var(--text-ghost)',
+          color: 'rgba(255,255,255,0.3)',
           textAlign: 'center',
           marginTop: '8px',
         }}
@@ -474,7 +474,7 @@ function LoginForm() {
       <p
         style={{
           fontSize: '11px',
-          color: 'var(--text-ghost)',
+          color: 'rgba(255,255,255,0.3)',
           marginTop: '12px',
           textAlign: 'center',
         }}
@@ -487,7 +487,7 @@ function LoginForm() {
       <p
         style={{
           fontSize: '13px',
-          color: 'var(--text-ghost)',
+          color: 'rgba(255,255,255,0.35)',
           textAlign: 'center',
           marginTop: '12px',
         }}
@@ -496,7 +496,7 @@ function LoginForm() {
         <Link
           href="/"
           style={{
-            color: 'var(--text-secondary)',
+            color: 'rgba(255,255,255,0.6)',
             textDecoration: 'underline',
             textUnderlineOffset: '3px',
           }}
@@ -509,7 +509,7 @@ function LoginForm() {
       <p
         style={{
           fontSize: '11px',
-          color: 'var(--text-ghost)',
+          color: 'rgba(255,255,255,0.35)',
           textAlign: 'center',
           marginTop: '12px',
         }}
@@ -517,7 +517,7 @@ function LoginForm() {
         By signing in you agree to our{' '}
         <a
           href="/terms"
-          style={{ color: 'var(--text-secondary)' }}
+          style={{ color: 'rgba(255,255,255,0.5)' }}
           className="transition-colors hover:text-white"
         >
           Terms of Service
@@ -525,7 +525,7 @@ function LoginForm() {
         and{' '}
         <a
           href="/privacy"
-          style={{ color: 'var(--text-secondary)' }}
+          style={{ color: 'rgba(255,255,255,0.5)' }}
           className="transition-colors hover:text-white"
         >
           Privacy Policy
@@ -572,7 +572,7 @@ export default function LoginPage() {
               className="h-64 animate-pulse rounded-2xl p-8"
               style={{
                 background: 'rgba(11,31,58,0.8)',
-                border: '0.5px solid var(--bg-elevated)',
+                border: '0.5px solid rgba(255,255,255,0.08)',
               }}
             />
           </div>
