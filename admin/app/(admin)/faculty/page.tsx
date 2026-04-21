@@ -14,6 +14,33 @@ export const dynamic = 'force-dynamic'
 
 type SearchParams = Promise<{ tab?: string }>
 
+function getFacultyCompleteness(f: Record<string, unknown>): number {
+  const weights: [boolean, number][] = [
+    [!!((f.subject_expertise as string[])?.length), 20],
+    [!!(f.institution_name), 15],
+    [!!(f.bio), 15],
+    [!!(f.session_fee_doubt), 10],
+    [!!(f.payout_upi_id), 10],
+    [!!(f.years_experience), 10],
+    [!!((f.teaching_style as string[])?.length), 5],
+    [!!(f.linkedin_url), 5],
+    [!!(f.google_scholar_url), 5],
+    [!!(f.designation), 5],
+  ]
+  return weights.reduce((sum, [ok, w]) => sum + (ok ? w : 0), 0)
+}
+
+function CompletenessChip({ pct }: { pct: number }) {
+  const icon = pct >= 100 ? '✅' : pct >= 70 ? '💡' : '⚠️'
+  const color = pct >= 100 ? 'text-emerald-400' : pct >= 70 ? 'text-amber-300' : 'text-red-400'
+  const bg = pct >= 100 ? 'bg-emerald-500/15' : pct >= 70 ? 'bg-amber-500/15' : 'bg-red-500/15'
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${bg} ${color}`}>
+      {pct}% {icon}
+    </span>
+  )
+}
+
 const STATUS_CHIP: Record<string, string> = {
   verified: 'bg-emerald-500/20 text-emerald-400',
   pending: 'bg-amber-500/20 text-amber-400',
@@ -51,6 +78,14 @@ export default async function FacultyPage({
       total_earned_paise,
       session_active,
       created_at,
+      subject_expertise,
+      years_experience,
+      bio,
+      payout_upi_id,
+      session_fee_doubt,
+      teaching_style,
+      linkedin_url,
+      google_scholar_url,
       profiles!inner ( full_name, email, plan_id, primary_saathi_id )
     `
     )
@@ -181,8 +216,9 @@ export default async function FacultyPage({
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1 flex-1">
-                    <div className="text-white font-semibold">
+                    <div className="flex items-center gap-2 text-white font-semibold">
                       {(profile?.full_name as string) ?? '—'}
+                      <CompletenessChip pct={getFacultyCompleteness(f as Record<string, unknown>)} />
                     </div>
                     <div className="text-slate-400 text-sm">
                       {profile?.email as string}
@@ -279,8 +315,9 @@ export default async function FacultyPage({
                       className="border-b border-slate-800/50 hover:bg-slate-800/20"
                     >
                       <td className="px-5 py-3.5">
-                        <div className="text-sm text-white">
+                        <div className="flex items-center gap-2 text-sm text-white">
                           {(profile?.full_name as string) ?? '—'}
+                          <CompletenessChip pct={getFacultyCompleteness(f as Record<string, unknown>)} />
                         </div>
                         <div className="text-xs text-slate-500">
                           {profile?.email as string}
@@ -566,8 +603,9 @@ export default async function FacultyPage({
                       className="border-b border-slate-800/50 hover:bg-slate-800/20"
                     >
                       <td className="px-5 py-3.5">
-                        <div className="text-sm text-white">
+                        <div className="flex items-center gap-2 text-sm text-white">
                           {(profile?.full_name as string) ?? '—'}
+                          <CompletenessChip pct={getFacultyCompleteness(f as Record<string, unknown>)} />
                         </div>
                         <div className="text-xs text-slate-500">
                           {profile?.email as string}
