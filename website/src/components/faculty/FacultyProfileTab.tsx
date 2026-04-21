@@ -60,6 +60,20 @@ function ChipSelect({ options, selected, onChange, max }: {
   )
 }
 
+function getFacultyProfileHint(d: FacultyData): string | null {
+  if (!(d.subject_expertise?.length)) return 'Add your primary subject — students search by subject first'
+  if (!d.institution_name) return 'Add your institution — it builds student trust immediately'
+  if (!d.bio) return 'Add a bio — it\'s the first thing students read'
+  if (!d.session_fee_doubt) return 'Set your session fee — students can\'t book without it'
+  if (!d.payout_upi_id) return 'Add your UPI ID — required before we can pay you'
+  if (!d.years_experience) return 'Add your years of experience — it builds credibility'
+  if (!(d.teaching_style?.length)) return 'Add your teaching style — helps us match you with students'
+  if (!d.linkedin_url) return 'Add your LinkedIn — students verify faculty before booking'
+  if (!d.google_scholar_url) return 'Add Google Scholar — shows your research credentials'
+  if (!d.designation) return 'Add your designation — gives students context'
+  return null
+}
+
 function getFacultyProfileCompleteness(d: FacultyData): number {
   const weights: [boolean, number][] = [
     [!!d.institution_name,                15],
@@ -179,11 +193,14 @@ export function FacultyProfileTab() {
                 background: pct >= 80 ? 'var(--success)' : 'var(--saathi-primary)',
               }} />
             </div>
-            {pct < 80 && (
-              <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '8px 0 0' }}>
-                Complete your profile to build trust with students. Add {!data.bio ? 'a bio' : !data.payout_upi_id ? 'UPI ID' : !data.linkedin_url ? 'LinkedIn' : 'missing fields'} to increase visibility.
-              </p>
-            )}
+            {(() => {
+              const hint = getFacultyProfileHint(data)
+              return hint ? (
+                <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '8px 0 0' }}>
+                  💡 {hint}
+                </p>
+              ) : null
+            })()}
           </div>
         )
       })()}
