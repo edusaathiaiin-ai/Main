@@ -180,7 +180,7 @@ function ApplyModal({
         exit={{ opacity: 0, y: 40 }}
         className="w-full max-w-lg rounded-2xl p-6"
         style={{
-          background: '#0B1F3A',
+          background: 'var(--bg-surface)',
           border: '0.5px solid rgba(255,255,255,0.1)',
         }}
       >
@@ -601,7 +601,7 @@ export default function ResearchPage() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: '#060F1D', color: '#fff' }}
+      style={{ background: 'var(--bg-base)', color: '#fff' }}
     >
       <div className="mx-auto max-w-3xl px-4 py-8">
         {/* Header */}

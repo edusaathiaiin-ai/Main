@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { TourManager } from '@/components/tour/TourManager'
+import { ThemeBridge } from '@/components/layout/ThemeBridge'
 
 // Force all protected routes to be server-rendered on demand (never statically collected)
 export const dynamic = 'force-dynamic'
@@ -36,6 +37,7 @@ export default async function AppLayout({
 
   return (
     <>
+      <ThemeBridge />
       {children}
       <TourManager />
     </>

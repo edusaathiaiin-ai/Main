@@ -224,7 +224,7 @@ export function DailyChallengeWidget({
               transition={{ type: 'spring', stiffness: 300, damping: 28 }}
               onClick={(e) => e.stopPropagation()}
               style={{
-                background: '#0B1F3A',
+                background: 'var(--bg-surface)',
                 border: `0.5px solid ${primaryColor}30`,
                 borderRadius: '20px',
                 padding: '24px',

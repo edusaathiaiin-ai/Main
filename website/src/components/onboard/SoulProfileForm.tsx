@@ -1080,7 +1080,7 @@ export function SoulProfileForm({
                       top: 'calc(100% + 4px)',
                       left: 0,
                       right: 0,
-                      background: '#0B1F3A',
+                      background: 'var(--bg-surface)',
                       border: '0.5px solid rgba(201,153,58,0.3)',
                       borderRadius: '12px',
                       maxHeight: '200px',

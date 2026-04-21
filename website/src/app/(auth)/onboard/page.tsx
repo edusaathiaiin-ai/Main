@@ -943,14 +943,14 @@ export function ProfileStep({
               color: form.city ? '#fff' : 'rgba(255,255,255,0.35)',
             }}
           >
-            <option value="" disabled style={{ background: '#0B1F3A' }}>
+            <option value="" disabled style={{ background: 'var(--bg-surface)' }}>
               Select your city
             </option>
             {CITIES.map((c) => (
               <option
                 key={c}
                 value={c}
-                style={{ background: '#0B1F3A', color: '#fff' }}
+                style={{ background: 'var(--bg-surface)', color: '#fff' }}
               >
                 {c}
               </option>
@@ -1219,7 +1219,7 @@ export default function OnboardPage() {
       fallback={
         <main
           className="flex min-h-screen items-center justify-center"
-          style={{ background: '#060F1D' }}
+          style={{ background: 'var(--bg-base)' }}
         >
           <div
             className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
@@ -1870,7 +1870,7 @@ function OnboardInner() {
     return (
       <main
         className="flex min-h-screen items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div
           className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
@@ -2339,7 +2339,7 @@ function OnboardInner() {
                                 : 'rgba(255,255,255,0.35)',
                             }}
                           >
-                            <option value="" style={{ background: '#0B1F3A' }}>
+                            <option value="" style={{ background: 'var(--bg-surface)' }}>
                               Select designation
                             </option>
                             {[
@@ -2355,7 +2355,7 @@ function OnboardInner() {
                               <option
                                 key={d}
                                 value={d}
-                                style={{ background: '#0B1F3A', color: '#fff' }}
+                                style={{ background: 'var(--bg-surface)', color: '#fff' }}
                               >
                                 {d}
                               </option>
@@ -2383,7 +2383,7 @@ function OnboardInner() {
                                 : 'rgba(255,255,255,0.35)',
                             }}
                           >
-                            <option value="" style={{ background: '#0B1F3A' }}>
+                            <option value="" style={{ background: 'var(--bg-surface)' }}>
                               Select qualification
                             </option>
                             {[
@@ -2396,7 +2396,7 @@ function OnboardInner() {
                               <option
                                 key={q}
                                 value={q}
-                                style={{ background: '#0B1F3A', color: '#fff' }}
+                                style={{ background: 'var(--bg-surface)', color: '#fff' }}
                               >
                                 {q}
                               </option>
@@ -2700,7 +2700,7 @@ function OnboardInner() {
                           color: orgType ? '#fff' : 'rgba(255,255,255,0.35)',
                         }}
                       >
-                        <option value="" style={{ background: '#0B1F3A' }}>
+                        <option value="" style={{ background: 'var(--bg-surface)' }}>
                           Organisation type *
                         </option>
                         {[
@@ -2713,7 +2713,7 @@ function OnboardInner() {
                           <option
                             key={val}
                             value={val}
-                            style={{ background: '#0B1F3A', color: '#fff' }}
+                            style={{ background: 'var(--bg-surface)', color: '#fff' }}
                           >
                             {label}
                           </option>

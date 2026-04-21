@@ -331,7 +331,7 @@ export default function FacultyProfilePage() {
     return (
       <main
         className="flex min-h-screen items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div
           className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
@@ -345,7 +345,7 @@ export default function FacultyProfilePage() {
     return (
       <main
         className="flex min-h-screen items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div className="text-center">
           <p className="mb-4 text-5xl">{'\u{1F50D}'}</p>
@@ -380,7 +380,7 @@ export default function FacultyProfilePage() {
     (fp[`session_fee_${selectedType}` as keyof typeof fp] as number) ?? 100000
 
   return (
-    <main className="min-h-screen" style={{ background: '#060F1D' }}>
+    <main className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       {/* Nav */}
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
@@ -1095,7 +1095,7 @@ export default function FacultyProfilePage() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="w-full max-w-md rounded-2xl p-6"
               style={{
-                background: '#0B1F3A',
+                background: 'var(--bg-surface)',
                 border: '0.5px solid rgba(255,255,255,0.1)',
               }}
               onClick={(e) => e.stopPropagation()}

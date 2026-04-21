@@ -461,13 +461,8 @@ export function ChatWindow() {
     }
   }, [saathiId])
 
-  // Apply day/night mode to body so CSS [data-mode] selectors respond
-  useEffect(() => {
-    document.body.setAttribute('data-mode', mode === 'light' ? 'day' : 'night')
-    return () => {
-      document.body.removeAttribute('data-mode')
-    }
-  }, [mode])
+  // data-mode is now set at the (app)/layout level via <ThemeBridge />
+  // so the user's theme preference applies platform-wide, not just /chat.
 
   // Scroll to bottom on new messages
   useEffect(() => {

@@ -173,7 +173,7 @@ export default function LivePage() {
   }
 
   return (
-    <main className="min-h-screen" style={{ background: '#060F1D' }}>
+    <main className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       {/* Hero */}
       <div
         style={{
@@ -266,11 +266,11 @@ export default function LivePage() {
             onChange={(e) => setFilterSaathi(e.target.value)}
             style={selectStyle}
           >
-            <option value="all" style={{ background: '#0B1F3A' }}>
+            <option value="all" style={{ background: 'var(--bg-surface)' }}>
               All Subjects
             </option>
             {SAATHIS.map((s) => (
-              <option key={s.id} value={s.id} style={{ background: '#0B1F3A' }}>
+              <option key={s.id} value={s.id} style={{ background: 'var(--bg-surface)' }}>
                 {s.emoji} {s.name}
               </option>
             ))}
@@ -280,11 +280,11 @@ export default function LivePage() {
             onChange={(e) => setFilterFormat(e.target.value)}
             style={selectStyle}
           >
-            <option value="all" style={{ background: '#0B1F3A' }}>
+            <option value="all" style={{ background: 'var(--bg-surface)' }}>
               All Formats
             </option>
             {Object.entries(FORMAT_LABELS).map(([k, v]) => (
-              <option key={k} value={k} style={{ background: '#0B1F3A' }}>
+              <option key={k} value={k} style={{ background: 'var(--bg-surface)' }}>
                 {v.emoji} {v.label}
               </option>
             ))}

@@ -181,7 +181,7 @@ export default function FacultyFinderPage() {
   }
 
   return (
-    <main className="min-h-screen" style={{ background: '#060F1D' }}>
+    <main className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       {/* Hero */}
       <div
         style={{
@@ -316,11 +316,11 @@ export default function FacultyFinderPage() {
             onChange={(e) => setFilterSaathi(e.target.value)}
             style={selectStyle}
           >
-            <option value="all" style={{ background: '#0B1F3A' }}>
+            <option value="all" style={{ background: 'var(--bg-surface)' }}>
               All Subjects
             </option>
             {SAATHIS.map((s) => (
-              <option key={s.id} value={s.id} style={{ background: '#0B1F3A' }}>
+              <option key={s.id} value={s.id} style={{ background: 'var(--bg-surface)' }}>
                 {s.emoji} {s.name}
               </option>
             ))}
@@ -330,16 +330,16 @@ export default function FacultyFinderPage() {
             onChange={(e) => setFilterSession(e.target.value)}
             style={selectStyle}
           >
-            <option value="all" style={{ background: '#0B1F3A' }}>
+            <option value="all" style={{ background: 'var(--bg-surface)' }}>
               All Session Types
             </option>
-            <option value="doubt" style={{ background: '#0B1F3A' }}>
+            <option value="doubt" style={{ background: 'var(--bg-surface)' }}>
               Doubt Clearing
             </option>
-            <option value="research" style={{ background: '#0B1F3A' }}>
+            <option value="research" style={{ background: 'var(--bg-surface)' }}>
               Research Guidance
             </option>
-            <option value="deepdive" style={{ background: '#0B1F3A' }}>
+            <option value="deepdive" style={{ background: 'var(--bg-surface)' }}>
               Topic Deep Dive
             </option>
           </select>
@@ -348,16 +348,16 @@ export default function FacultyFinderPage() {
             onChange={(e) => setSortBy(e.target.value)}
             style={selectStyle}
           >
-            <option value="rating" style={{ background: '#0B1F3A' }}>
+            <option value="rating" style={{ background: 'var(--bg-surface)' }}>
               Top Rated
             </option>
-            <option value="sessions" style={{ background: '#0B1F3A' }}>
+            <option value="sessions" style={{ background: 'var(--bg-surface)' }}>
               Most Sessions
             </option>
-            <option value="price_low" style={{ background: '#0B1F3A' }}>
+            <option value="price_low" style={{ background: 'var(--bg-surface)' }}>
               Price: Low to High
             </option>
-            <option value="experience" style={{ background: '#0B1F3A' }}>
+            <option value="experience" style={{ background: 'var(--bg-surface)' }}>
               Most Experienced
             </option>
           </select>

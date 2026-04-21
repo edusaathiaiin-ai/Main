@@ -267,7 +267,7 @@ export default function LiveSessionDetailPage() {
     return (
       <main
         className="flex min-h-screen items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div
           className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
@@ -281,7 +281,7 @@ export default function LiveSessionDetailPage() {
     return (
       <main
         className="flex min-h-screen items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div className="text-center">
           <p className="mb-4 text-5xl">{'\u{1F4FA}'}</p>
@@ -312,7 +312,7 @@ export default function LiveSessionDetailPage() {
     : 0
 
   return (
-    <main className="min-h-screen" style={{ background: '#060F1D' }}>
+    <main className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
         style={{ borderColor: 'rgba(255,255,255,0.06)' }}

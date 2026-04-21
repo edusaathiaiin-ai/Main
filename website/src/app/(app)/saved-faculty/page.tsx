@@ -121,7 +121,7 @@ export default function SavedFacultyPage() {
   }
 
   return (
-    <main className="min-h-screen" style={{ background: '#060F1D' }}>
+    <main className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       {/* Header */}
       <div
         style={{
