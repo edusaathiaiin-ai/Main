@@ -53,9 +53,9 @@ export default async function RootPage() {
         .hero-content{position:relative;z-index:10;max-width:900px}
         .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(201,153,58,0.1);border:0.5px solid rgba(201,153,58,0.3);border-radius:100px;padding:6px 16px;font-size:12px;font-weight:500;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:32px;animation:fadeUp 0.8s ease both}
         @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-        .hero-title{font-family:'Playfair Display',serif;font-size:clamp(48px,7vw,96px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:12px;animation:fadeUp 0.8s ease 0.1s both}
+        .hero-title{font-family:'Playfair Display',serif;font-size:clamp(48px,7vw,96px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:12px;animation:fadeUp 0.8s ease 0.1s both;color:#fff}
         .hero-title-line2{font-family:'Playfair Display',serif;font-size:clamp(48px,7vw,96px);font-weight:900;font-style:italic;line-height:1.05;letter-spacing:-2px;color:var(--gold);margin-bottom:12px;animation:fadeUp 0.8s ease 0.2s both}
-        .hero-title-line3{font-family:'Playfair Display',serif;font-size:clamp(48px,7vw,96px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:32px;animation:fadeUp 0.8s ease 0.3s both}
+        .hero-title-line3{font-family:'Playfair Display',serif;font-size:clamp(48px,7vw,96px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:32px;animation:fadeUp 0.8s ease 0.3s both;color:#fff}
         .hero-subtitle{font-size:clamp(16px,2vw,20px);font-weight:300;color:rgba(255,255,255,0.65);line-height:1.7;max-width:600px;margin:0 auto 48px;animation:fadeUp 0.8s ease 0.4s both}
         .hero-subtitle strong{color:#fff;font-weight:500}
         .hero-ctas{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;animation:fadeUp 0.8s ease 0.5s both}
