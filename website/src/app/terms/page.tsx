@@ -47,9 +47,26 @@ export default function TermsPage() {
 
   return (
     <div
-      className="min-h-screen font-sans"
+      className="legal-page min-h-screen font-sans"
       style={{ backgroundColor: '#0B1F3A', color: '#FAF7F2' }}
     >
+      {/* Scoped overrides — globals.css targets bare h1/h2/h3/p with
+          light-mode colors that would make body text invisible here.
+          The legal pages are intentionally dark and own their palette. */}
+      <style>{`
+        .legal-page p,
+        .legal-page ul,
+        .legal-page ol,
+        .legal-page li,
+        .legal-page strong,
+        .legal-page em,
+        .legal-page a {
+          color: inherit;
+        }
+        .legal-page p { margin: 0 0 12px; line-height: 1.7; font-size: 15px; }
+        .legal-page a { text-decoration: underline; }
+        .legal-page a:hover { opacity: 0.8; }
+      `}</style>
       <div className="mx-auto max-w-[800px] px-6 py-16 md:py-24">
         {/* Header */}
         <Link
