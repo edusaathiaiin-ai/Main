@@ -14,7 +14,12 @@
       "Bash(npx tsc *)",
       "WebFetch(domain:sketchfab.com)",
       "WebFetch(domain:api.sketchfab.com)",
-      "mcp__claude_ai_Supabase__execute_sql"
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__deploy_edge_function",
+      "Bash(node -e \"const fs = require\\('fs'\\); const content = fs.readFileSync\\(0, 'utf8'\\); const escaped = JSON.stringify\\(content\\); process.stdout.write\\(escaped.length + ' chars in JSON'\\);\")",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)"
     ]
   }
 }
