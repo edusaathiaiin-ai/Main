@@ -39,7 +39,7 @@ export default async function RootPage() {
         .land-nav-links a:hover{color:#fff}
         .land-nav-cta{background:var(--gold);color:var(--navy-deep)!important;font-weight:600!important;padding:10px 24px;border-radius:8px;transition:background 0.2s,transform 0.2s!important}
         .land-nav-cta:hover{background:var(--gold-light)!important;transform:translateY(-1px)}
-        .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;overflow:hidden}
+        .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:140px 24px 80px;overflow:hidden}
         .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(201,153,58,0.12) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 20% 80%,rgba(11,31,58,0.8) 0%,transparent 60%),linear-gradient(180deg,#060F1D 0%,#0B1F3A 40%,#060F1D 100%)}
         .orb{position:absolute;border-radius:50%;filter:blur(80px)}
         .orb-1{width:400px;height:400px;background:rgba(201,153,58,0.08);top:-100px;left:50%;animation:float1 8s ease-in-out infinite}
