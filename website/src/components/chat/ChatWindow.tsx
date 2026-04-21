@@ -16,6 +16,7 @@ import { todayIST } from '@/lib/quota'
 import { getSaathiTheme } from '@/lib/saathiThemes'
 import { useThemeStore } from '@/stores/themeStore'
 import { useFontStore, getChatFontStyle } from '@/stores/fontStore'
+import { useViewAsStore } from '@/stores/viewAsStore'
 import { trackChatSent, trackMultipaneActivated, trackColumnAdded, trackColumnRemoved, trackColumnResized, trackUpgradeNudgeShown } from '@/lib/analytics'
 // ── Always-visible — eager ────────────────────────────────────────────────────
 import { ChatWatermark } from './ChatWatermark'
@@ -39,6 +40,7 @@ import { TourManager } from '@/components/tour/TourManager'
 import { FreePlanBar } from './FreePlanBar'
 import { WaLinkTip } from './WaLinkTip'
 import { Sidebar } from '@/components/layout/Sidebar'
+import { SendToQuestionPaper } from './SendToQuestionPaper'
 // ── Below-fold / conditional — lazy ───────────────────────────────────────────
 const DidYouKnow            = dynamic(() => import('./DidYouKnow').then(m => ({ default: m.DidYouKnow })), { ssr: false })
 const CompanionshipCard     = dynamic(() => import('./CompanionshipCard').then(m => ({ default: m.CompanionshipCard })), { ssr: false })
@@ -272,6 +274,7 @@ export function ChatWindow() {
 
   const { mode, setMode } = useThemeStore()
   const { fontSize, fontType, fontColor, highContrast, reduceMotion } = useFontStore()
+  const { viewAs } = useViewAsStore()
   const searchParams = useSearchParams()
 
   const [quota, setQuota] = useState<QuotaState>(DEFAULT_QUOTA)
@@ -817,6 +820,7 @@ export function ChatWindow() {
           accessToken: session.access_token,
           ...(imageBase64 ? { imageBase64 } : {}),
           ...(activeChatboardId ? { chatboardId: activeChatboardId } : {}),
+          ...(profile.role === 'faculty' ? { viewAs } : {}),
         })) {
           appendStreamChunk(delta)
         }
@@ -1135,6 +1139,7 @@ export function ChatWindow() {
                     onFocus={() => setActiveColumnIndex(idx)}
                     onClose={() => removeColumn(col.id)}
                     onEmailDigest={handleEmailDigest}
+                    viewAs={profile.role === 'faculty' ? viewAs : undefined}
                   />
                 </div>
                 {idx < openColumns.length - 1 && (
@@ -1257,6 +1262,18 @@ export function ChatWindow() {
                     isLegalTheme={isLegalTheme}
                   />
                 )}
+                {/* Faculty Slot 5 handoff — appears below the latest draft */}
+                {profile.role === 'faculty' && viewAs === 'faculty' && activeBotSlot === 5 &&
+                  (() => {
+                    const last = [...messages].reverse().find((m) => m.role === 'assistant')
+                    if (!last?.content) return null
+                    return (
+                      <div style={{ padding: '0 20px' }}>
+                        <SendToQuestionPaper draft={last.content} />
+                      </div>
+                    )
+                  })()
+                }
                 <div ref={messagesEndRef} />
               </div>
             )}

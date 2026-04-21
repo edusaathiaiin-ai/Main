@@ -21,6 +21,7 @@ type Props = {
   onFocus: () => void
   onClose: () => void
   onEmailDigest: (boardId: string | null, boardName: string) => void
+  viewAs?: 'faculty' | 'student'
 }
 
 function getStarters(saathiSlug: string, boardName: string, saathiName: string): string[] {
@@ -52,6 +53,7 @@ export function ChatColumn({
   onFocus,
   onClose,
   onEmailDigest,
+  viewAs,
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
@@ -93,6 +95,7 @@ export function ChatColumn({
         history,
         accessToken,
         ...(board.id ? { chatboardId: board.id } : {}),
+        ...(viewAs ? { viewAs } : {}),
       })) {
         fullText += delta
         setStreamingText(fullText)

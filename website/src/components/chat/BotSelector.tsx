@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { BOTS } from '@/constants/bots'
+import { BOTS, type BotDefinition } from '@/constants/bots'
 import { isInFreeTrial, getPlanTier } from '@/constants/plans'
 import type { UserRole } from '@/types'
 
@@ -14,6 +14,9 @@ type Props = {
   onSelect: (slot: 1 | 2 | 3 | 4 | 5) => void
   onLockedTap: (botName: string) => void
   isLegalTheme?: boolean
+  bots?: BotDefinition[]
+  // When bots = FACULTY_BOTS, every slot is free (faculty are verified, not paywalled)
+  allUnlocked?: boolean
 }
 
 function isUnlocked(
@@ -37,6 +40,8 @@ export function BotSelector({
   onSelect,
   onLockedTap,
   isLegalTheme = false,
+  bots = BOTS,
+  allUnlocked = false,
 }: Props) {
   return (
     <div className="flex flex-col gap-0.5 px-3">
@@ -49,9 +54,9 @@ export function BotSelector({
         Saathi Modes
       </p>
 
-      {BOTS.map((bot) => {
+      {bots.map((bot) => {
         const active  = activeSlot === bot.slot
-        const unlocked = isUnlocked(bot.slot, planId, userRole, createdAt)
+        const unlocked = allUnlocked || isUnlocked(bot.slot, planId, userRole, createdAt)
         const accent  = bot.color
 
         return (

@@ -26,6 +26,7 @@ import { checkRateLimit } from '../_shared/rateLimit.ts';
 import { posthogCapture } from '../_shared/posthog.ts';
 import { getRandomPersonality, getPersonalityById, buildPersonalityPrompt } from '../_shared/saathiPersonalities.ts';
 import { buildExamContextBlock } from '../_shared/examRegistry.ts';
+import { buildFacultyPrompt, facultyPrefersClaude, type FacultyPromptInput } from '../_shared/facultyPrompts.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -613,6 +614,73 @@ type RawProfile = {
 };
 
 type RawNews = { source: unknown; title: unknown };
+
+// ─── Faculty prompt builder ─────────────────────────────────────────────────
+// Assembled server-side. Pulls from faculty_profiles (not student_soul).
+// For botSlot=4 (Student Insight) also pulls the anonymised struggle cache.
+async function buildFacultySystemPrompt(
+  admin: SupabaseClientType,
+  userId: string,
+  verticalId: string,
+  verticalSlug: string,
+  verticalName: string,
+  botSlot: 1 | 2 | 3 | 4 | 5,
+): Promise<string> {
+  const [profileRes, facultyRes, struggleRes] = await Promise.all([
+    admin.from('profiles').select('full_name').eq('id', userId).maybeSingle(),
+    admin
+      .from('faculty_profiles')
+      .select('institution_name, department, designation, subject_expertise, years_experience')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    botSlot === 4
+      ? admin
+          .from('saathi_struggle_cache')
+          .select('topic, student_count, refreshed_at')
+          .eq('vertical_id', verticalId)
+          .order('student_count', { ascending: false })
+          .limit(15)
+      : Promise.resolve({ data: null as null | Array<{ topic: string; student_count: number; refreshed_at: string }> }),
+  ]);
+
+  const profileRow = profileRes.data as { full_name?: string } | null;
+  const facultyRow = facultyRes.data as {
+    institution_name?: string;
+    department?: string;
+    designation?: string | null;
+    subject_expertise?: string[];
+    years_experience?: number | null;
+  } | null;
+
+  const struggleRows = (struggleRes.data ?? []) as Array<{ topic: string; student_count: number; refreshed_at: string }>;
+
+  const displayName: string = (() => {
+    const raw = typeof profileRow?.full_name === 'string' ? profileRow.full_name.trim() : '';
+    if (!raw) return 'Professor';
+    return raw.split(' ')[0];
+  })();
+
+  // Stale = refreshed more than 26 hours ago (cron runs nightly at 02:15 IST)
+  const strugglePatternsStale = struggleRows.length > 0
+    ? (Date.now() - new Date(struggleRows[0].refreshed_at).getTime()) > 26 * 3600 * 1000
+    : false;
+
+  const input: FacultyPromptInput = {
+    displayName,
+    saathiName: verticalName,
+    saathiSlug: verticalSlug,
+    institutionName: typeof facultyRow?.institution_name === 'string' ? facultyRow.institution_name : null,
+    department: typeof facultyRow?.department === 'string' ? facultyRow.department : null,
+    designation: typeof facultyRow?.designation === 'string' ? facultyRow.designation : null,
+    yearsExperience: typeof facultyRow?.years_experience === 'number' ? facultyRow.years_experience : null,
+    subjectExpertise: Array.isArray(facultyRow?.subject_expertise) ? facultyRow.subject_expertise as string[] : [],
+    botSlot,
+    strugglePatterns: struggleRows.map((r) => ({ topic: r.topic, student_count: r.student_count })),
+    strugglePatternsStale,
+  };
+
+  return buildFacultyPrompt(input);
+}
 
 async function buildSystemPrompt(
   admin: SupabaseClientType,
@@ -1795,6 +1863,7 @@ Deno.serve(async (req: Request) => {
       message: string;
       history: MessageParam[];
       imageBase64?: string;   // data URL — present when student uploads a sketch
+      viewAs?: 'faculty' | 'student'; // faculty-only; server ignores for other roles
     };
 
     const [chatAllowed, profileResult, body, suspension] = await Promise.all([
@@ -1854,7 +1923,13 @@ Deno.serve(async (req: Request) => {
       : CHAT_RATE_MAX_REQUESTS;
 
     // ── Request body ────────────────────────────────────────────────────────
-    const { saathiId, botSlot, chatboardId, message, history, imageBase64 } = body;
+    const { saathiId, botSlot, chatboardId, message, history, imageBase64, viewAs } = body;
+
+    // Faculty mode: explicit opt-in. The client MUST send viewAs === 'faculty'.
+    // - Students cannot escalate (role guard is authoritative).
+    // - Faculty on an older client (no viewAs sent) keep the legacy student-chat
+    //   experience until they hit the new UI — backward compatible.
+    const isFacultyMode = role === 'faculty' && viewAs === 'faculty';
 
     if (!saathiId || !botSlot || !message) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -2067,8 +2142,11 @@ Deno.serve(async (req: Request) => {
 
     // ── Build system prompt + fetch fact corrections in parallel ───────────
     // Both depend on verticalId but not on each other.
+    // Faculty mode skips student_soul and pulls faculty_profiles / struggle cache instead.
     const [baseSystemPrompt, { data: corrections }] = await Promise.all([
-      buildSystemPrompt(admin, userId, verticalId, botSlot, verticalSlug, chatboardId ?? null),
+      isFacultyMode
+        ? buildFacultySystemPrompt(admin, userId, verticalId, verticalSlug, verticalName, botSlot as 1 | 2 | 3 | 4 | 5)
+        : buildSystemPrompt(admin, userId, verticalId, botSlot, verticalSlug, chatboardId ?? null),
       admin
         .from('fact_corrections')
         .select('wrong_claim, correct_claim, topic')
@@ -2078,9 +2156,10 @@ Deno.serve(async (req: Request) => {
         .limit(20),
     ]);
 
-    // Personality mode — consistent historical figure per session (bot slot 1 only)
+    // Personality mode — consistent historical figure per session (bot slot 1 only).
+    // Faculty mode skips personality — no historical-figure roleplay for peers.
     let personality = null as ReturnType<typeof getRandomPersonality>;
-    if (botSlot === 1) {
+    if (botSlot === 1 && !isFacultyMode) {
       if (quotaRow.personality_id) {
         // Reuse the same personality throughout the session
         personality = getPersonalityById(verticalSlug, quotaRow.personality_id);
@@ -2179,8 +2258,14 @@ Deno.serve(async (req: Request) => {
 
     const slug = verticalSlug.toLowerCase();
     const forceClaudeForSaathi = CLAUDE_ALWAYS_SAATHIS.has(slug);
-    const isSpeedSlot  = !forceClaudeForSaathi && SPEED_SLOTS.has(botSlot);
-    const isGeminiFirst = !forceClaudeForSaathi && !isSpeedSlot && GEMINI_SAATHIS.has(slug);
+
+    // Faculty routing: slots 1-4 force Claude (peer reasoning), slot 5 forces Groq (structured Q generation).
+    // Overrides speed-slot and Gemini-first routing entirely.
+    const facultyForceClaude = isFacultyMode && facultyPrefersClaude(botSlot);
+    const facultyForceGroq   = isFacultyMode && !facultyPrefersClaude(botSlot);
+
+    const isSpeedSlot  = facultyForceGroq || (!facultyForceClaude && !forceClaudeForSaathi && SPEED_SLOTS.has(botSlot));
+    const isGeminiFirst = !facultyForceClaude && !facultyForceGroq && !forceClaudeForSaathi && !isSpeedSlot && GEMINI_SAATHIS.has(slug);
 
     // When a sketch image is uploaded, always use Claude Vision regardless of Saathi routing.
     // Prepend the Saathi-specific sketch prompt if one exists; otherwise plain vision description.

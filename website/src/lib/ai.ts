@@ -23,6 +23,9 @@ export type StreamChatParams = {
   imageBase64?: string
   /** Active chatboard ID — scopes message to a board */
   chatboardId?: string
+  /** Faculty-only: 'faculty' runs faculty prompts, 'student' previews student view.
+   *  Server ignores this unless profile.role === 'faculty' (no privilege escalation). */
+  viewAs?: 'faculty' | 'student'
 }
 
 const EDGE_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat`
@@ -47,6 +50,7 @@ export async function* streamChat(
       })),
       ...(params.imageBase64 ? { imageBase64: params.imageBase64 } : {}),
       ...(params.chatboardId ? { chatboardId: params.chatboardId } : {}),
+      ...(params.viewAs ? { viewAs: params.viewAs } : {}),
     }),
   })
 
