@@ -77,26 +77,43 @@ export function SaathiHeader({
       }}
     >
       {/* Top row: name + controls */}
-      <div className="flex h-11 items-center justify-between px-4">
-        {/* Left: emoji + name + tagline */}
-        <div className="flex items-center gap-2">
-          <span className="text-2xl leading-none">{saathi.emoji}</span>
-          <div>
-            <h2
-              className="font-display text-base leading-tight font-bold"
-              style={{ color: 'var(--text-primary)' }}
+      <div className="flex h-12 items-center justify-between px-4">
+        {/* Left: emoji + name + tagline
+            Using div/span (not h2/p) to sidestep globals.css heading + paragraph
+            margins which otherwise make the text column taller than the row. */}
+        <div className="flex items-center gap-2 min-w-0">
+          <span style={{ fontSize: '22px', lineHeight: 1, flexShrink: 0 }}>{saathi.emoji}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <span
+              className="font-display"
+              style={{
+                color: 'var(--text-primary)',
+                fontSize: '15px',
+                lineHeight: 1.2,
+                fontWeight: 700,
+                margin: 0,
+                whiteSpace: 'nowrap',
+              }}
             >
               {saathi.name}
-            </h2>
-            <p
-              className="mt-0.5 text-xs leading-none"
-              style={{ color: 'var(--text-secondary)' }}
+            </span>
+            <span
+              style={{
+                color: 'var(--text-secondary)',
+                fontSize: '11px',
+                lineHeight: 1.2,
+                margin: 0,
+                marginTop: '2px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
             >
               {botName} ·{' '}
               <span style={{ color: 'var(--text-tertiary)' }}>
                 {saathi.tagline}
               </span>
-            </p>
+            </span>
           </div>
         </div>
 
