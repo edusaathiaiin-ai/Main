@@ -426,9 +426,10 @@ export function RichFeaturesSection() {
               fontSize: 'clamp(32px, 4vw, 52px)',
               fontWeight: 900,
               color: '#fff',
-              lineHeight: 1.1,
+              lineHeight: 1.25,
               margin: '0 0 16px',
               letterSpacing: '-1px',
+              paddingTop: '4px',
             }}
           >
             Your Saathi shows,{' '}
