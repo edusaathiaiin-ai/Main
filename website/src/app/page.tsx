@@ -97,7 +97,7 @@ export default async function RootPage() {
         .land-section{padding:100px 48px;max-width:1200px;margin:0 auto}
         .section-eyebrow{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:10px}
         .section-eyebrow::before{content:'';display:block;width:24px;height:1px;background:var(--gold)}
-        .section-title{font-family:'Playfair Display',serif;font-size:clamp(36px,4vw,56px);font-weight:700;line-height:1.15;letter-spacing:-1px;margin-bottom:16px;color:#fff}
+        .section-title{font-family:'Playfair Display',serif;font-size:clamp(36px,4vw,56px);font-weight:700;line-height:1.25;letter-spacing:-1px;margin-bottom:16px;color:#fff;padding-top:4px}
         .section-title em{font-style:italic;color:var(--gold)}
         .section-subtitle{font-size:18px;font-weight:300;color:rgba(255,255,255,0.55);line-height:1.7;max-width:560px}
         .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(255,255,255,0.05);border-radius:24px;overflow:hidden}

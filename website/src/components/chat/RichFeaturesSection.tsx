@@ -378,11 +378,10 @@ export function RichFeaturesSection() {
     <section
       id="rich-features"
       style={{
-        padding: '80px 48px',
+        padding: '120px 48px 80px',
         background:
           'linear-gradient(180deg, #060F1D 0%, #0B1F3A 50%, #060F1D 100%)',
         position: 'relative',
-        overflow: 'hidden',
       }}
     >
       {/* Background glow */}
