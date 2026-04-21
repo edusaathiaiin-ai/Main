@@ -951,7 +951,7 @@ export function ChatWindow() {
     return (
       <div
         className="flex h-screen w-full items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div
           className="h-8 w-8 animate-spin rounded-full border-2 border-white/10"
@@ -968,7 +968,7 @@ export function ChatWindow() {
     profile.is_banned
   ) {
     return (
-      <div className="flex h-screen w-full" style={{ background: '#060F1D' }}>
+      <div className="flex h-screen w-full" style={{ background: 'var(--bg-base)' }}>
         <Sidebar
           profile={profile}
           activeSaathi={activeSaathi}

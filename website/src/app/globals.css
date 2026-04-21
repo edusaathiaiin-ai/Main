@@ -136,6 +136,13 @@ html {
   text-rendering: optimizeLegibility;
 }
 
+/* Fix viewport height on all devices — prevents top/bottom cut-off */
+html, body { height: 100%; }
+.h-screen { height: 100dvh !important; }
+@supports not (height: 100dvh) {
+  .h-screen { height: 100vh !important; }
+}
+
 body {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 1rem;
