@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { SaathiExplorer } from '@/components/saathi/SaathiExplorer'
 import { RichFeaturesSection } from '@/components/chat/RichFeaturesSection'
 import { FourJourneysSection } from '@/components/landing/FourJourneysSection'
+import { ContactLink } from '@/components/contact/ContactLink'
 
 /**
  * Root page — authenticated users go to /chat.
@@ -679,7 +680,7 @@ export default async function RootPage() {
             <Link href="/terms">Terms of Use</Link>
           </li>
           <li>
-            <a href="mailto:support@edusaathiai.in">Contact</a>
+            <ContactLink>Contact</ContactLink>
           </li>
           <li>
             <a
