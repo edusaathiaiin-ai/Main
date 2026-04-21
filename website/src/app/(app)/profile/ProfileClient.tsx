@@ -14,6 +14,7 @@ import ProfileTab from '@/components/profile/ProfileTab'
 import SoulTab from '@/components/profile/SoulTab'
 import DataTab from '@/components/profile/DataTab'
 import ArchiveTab from '@/components/profile/ArchiveTab'
+import { FacultyProfileTab } from '@/components/faculty/FacultyProfileTab'
 import SubscriptionCard from '@/components/profile/SubscriptionCard'
 import type { QuotaState, Saathi } from '@/types'
 
@@ -202,11 +203,13 @@ export function ProfileClient() {
               transition={{ duration: 0.2 }}
             >
               {activeTab === 'profile' && (
-                <ProfileTab
-                  profile={profile}
-                  soul={soul}
-                  onSaved={() => fetchSoul()}
-                />
+                profile.role === 'faculty'
+                  ? <FacultyProfileTab />
+                  : <ProfileTab
+                      profile={profile}
+                      soul={soul}
+                      onSaved={() => fetchSoul()}
+                    />
               )}
               {activeTab === 'soul' &&
                 (soulLoading ? (
