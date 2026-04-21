@@ -13,11 +13,17 @@ export type FacultyPromptInput = {
   displayName: string            // first name fallback to "Professor"
   saathiName: string             // e.g. "KanoonSaathi"
   saathiSlug: string             // e.g. "kanoonsaathi"
+  // Core identity (migration 055)
   institutionName: string | null
   department: string | null
   designation: string | null
   yearsExperience: number | null
   subjectExpertise: string[]
+  // Extended identity (migration 127 — faculty profile fields)
+  title: string | null           // e.g. "Dr.", "Prof.", "Asst. Prof."
+  teachingStyle: string[]        // e.g. ["Socratic", "Hands-on"]
+  bio: string | null             // short self-description
+  publications: string | null    // free-text research record
   botSlot: 1 | 2 | 3 | 4 | 5
   strugglePatterns?: Array<{ topic: string; student_count: number }>
   strugglePatternsStale?: boolean
@@ -32,7 +38,10 @@ No soul rules. No ambition-calibration. No childhood-friendly analogies unless a
 
 function facultyIdentityBlock(input: FacultyPromptInput): string {
   const lines: string[] = []
-  lines.push(`The faculty you are speaking with: ${input.displayName}.`)
+  const nameWithTitle = input.title
+    ? `${input.title} ${input.displayName}`.trim()
+    : input.displayName
+  lines.push(`The faculty you are speaking with: ${nameWithTitle}.`)
   if (input.designation || input.department) {
     const parts = [input.designation, input.department].filter(Boolean).join(', ')
     lines.push(`Role: ${parts}.`)
@@ -43,6 +52,14 @@ function facultyIdentityBlock(input: FacultyPromptInput): string {
   }
   if (input.subjectExpertise.length > 0) {
     lines.push(`Subject expertise: ${input.subjectExpertise.join(', ')}.`)
+  }
+  if (input.teachingStyle.length > 0) {
+    lines.push(`Teaching style (self-declared): ${input.teachingStyle.join(', ')}. Match this tone.`)
+  }
+  if (input.bio && input.bio.trim().length > 0) {
+    // Truncate to keep prompt bounded
+    const bioClean = input.bio.trim().slice(0, 400)
+    lines.push(`About them (in their own words): ${bioClean}`)
   }
   return lines.join('\n')
 }
@@ -81,11 +98,15 @@ You are assisting with lecture design and classroom preparation.
 }
 
 function slot3Research(input: FacultyPromptInput): string {
+  const publicationsBlock = input.publications && input.publications.trim().length > 0
+    ? `\n# THEIR RESEARCH RECORD\n${input.publications.trim().slice(0, 800)}\n\nUse this to calibrate depth and avoid suggesting obvious papers they've likely read or written. If a topic intersects with their own work, acknowledge it.\n`
+    : ''
+
   return `
 ${COMMON_HEADER}
 
 ${facultyIdentityBlock(input)}
-
+${publicationsBlock}
 # MODE: Research Companion
 You support literature review, hypothesis framing, and methodology discussion.
 

@@ -630,7 +630,7 @@ async function buildFacultySystemPrompt(
     admin.from('profiles').select('full_name').eq('id', userId).maybeSingle(),
     admin
       .from('faculty_profiles')
-      .select('institution_name, department, designation, subject_expertise, years_experience')
+      .select('institution_name, department, designation, subject_expertise, years_experience, title, teaching_style, bio, publications')
       .eq('user_id', userId)
       .maybeSingle(),
     botSlot === 4
@@ -650,6 +650,10 @@ async function buildFacultySystemPrompt(
     designation?: string | null;
     subject_expertise?: string[];
     years_experience?: number | null;
+    title?: string | null;
+    teaching_style?: string[] | null;
+    bio?: string | null;
+    publications?: string | null;
   } | null;
 
   const struggleRows = (struggleRes.data ?? []) as Array<{ topic: string; student_count: number; refreshed_at: string }>;
@@ -674,6 +678,10 @@ async function buildFacultySystemPrompt(
     designation: typeof facultyRow?.designation === 'string' ? facultyRow.designation : null,
     yearsExperience: typeof facultyRow?.years_experience === 'number' ? facultyRow.years_experience : null,
     subjectExpertise: Array.isArray(facultyRow?.subject_expertise) ? facultyRow.subject_expertise as string[] : [],
+    title: typeof facultyRow?.title === 'string' && facultyRow.title.trim().length > 0 ? facultyRow.title.trim() : null,
+    teachingStyle: Array.isArray(facultyRow?.teaching_style) ? facultyRow.teaching_style as string[] : [],
+    bio: typeof facultyRow?.bio === 'string' && facultyRow.bio.trim().length > 0 ? facultyRow.bio : null,
+    publications: typeof facultyRow?.publications === 'string' && facultyRow.publications.trim().length > 0 ? facultyRow.publications : null,
     botSlot,
     strugglePatterns: struggleRows.map((r) => ({ topic: r.topic, student_count: r.student_count })),
     strugglePatternsStale,

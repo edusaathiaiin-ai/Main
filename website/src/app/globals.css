@@ -207,6 +207,33 @@ p {
   margin-bottom: 8px;
 }
 
+/* ── COMPACT HEADINGS ──────────────────────────
+   For fixed-height chrome rows (chat header, toolbars, tabs).
+   Declared as formal constitution variants so components can opt in
+   without resorting to inline styles that bypass the system.
+
+   Rule: use these ONLY when height is constrained and default h2/p
+   would break the layout. Never use for content headings.
+*/
+.h-compact {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.p-compact {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 /* ── FORM ELEMENTS ─────────────────────────── */
 input,
 textarea,
