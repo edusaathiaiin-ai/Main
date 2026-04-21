@@ -78,7 +78,7 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
         }}
       >
         <h4
-          className="mb-4 text-xs font-bold tracking-widest uppercase"
+          className="mb-4 text-sm font-bold tracking-widest uppercase"
           style={{ color: '#C9993A' }}
         >
           What we store
@@ -135,7 +135,7 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
             📄 View your data
           </p>
           <p
-            className="mb-3 text-xs"
+            className="mb-3 text-sm"
             style={{ color: 'var(--text-tertiary)' }}
           >
             See all data we hold about you in readable format.
@@ -161,7 +161,7 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
             ✏️ Correct your data
           </p>
           <p
-            className="mb-3 text-xs"
+            className="mb-3 text-sm"
             style={{ color: 'var(--text-tertiary)' }}
           >
             Update any information that is inaccurate or incomplete.
@@ -187,7 +187,7 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
             ⬇️ Download your data
           </p>
           <p
-            className="mb-3 text-xs"
+            className="mb-3 text-sm"
             style={{ color: 'var(--text-tertiary)' }}
           >
             Get a complete copy of your personal data as a JSON file.
@@ -207,7 +207,7 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
             🔕 Manage consent
           </p>
           <p
-            className="mb-3 text-xs"
+            className="mb-3 text-sm"
             style={{ color: 'var(--text-tertiary)' }}
           >
             Control whether we may send you non-essential communications
@@ -269,13 +269,13 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
         }}
       >
         <h4
-          className="mb-4 text-xs font-bold tracking-widest uppercase"
+          className="mb-4 text-sm font-bold tracking-widest uppercase"
           style={{ color: 'var(--text-tertiary)' }}
         >
           Contact & Grievance
         </h4>
         <div
-          className="space-y-1 text-xs"
+          className="space-y-1 text-sm"
           style={{ color: 'var(--text-tertiary)' }}
         >
           <p>Questions about your data? Reach our Grievance Officer.</p>

@@ -90,7 +90,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
           <div className="sm:col-span-2">
             <p
-              className="mb-3 text-xs font-semibold"
+              className="mb-3 text-sm font-semibold"
               style={{ color: 'var(--text-tertiary)' }}
             >
               Your flame stage
@@ -114,7 +114,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
         {soul.career_discovery_stage && (
           <div>
             <p
-              className="mb-2 text-xs font-semibold"
+              className="mb-2 text-sm font-semibold"
               style={{ color: 'var(--text-tertiary)' }}
             >
               Predicted trajectory
@@ -146,7 +146,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
         <div className="flex flex-wrap gap-2">
           {soul.peer_mode && (
             <span
-              className="rounded-full px-3 py-1 text-xs font-semibold"
+              className="rounded-full px-3 py-1 text-sm font-semibold"
               style={{
                 background: 'rgba(124,58,237,0.15)',
                 border: '1px solid rgba(124,58,237,0.3)',
@@ -158,7 +158,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
           )}
           {soul.exam_mode && (
             <span
-              className="rounded-full px-3 py-1 text-xs font-semibold"
+              className="rounded-full px-3 py-1 text-sm font-semibold"
               style={{
                 background: 'rgba(239,68,68,0.12)',
                 border: '1px solid rgba(239,68,68,0.25)',
@@ -170,7 +170,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
           )}
           {soul.preferred_tone && (
             <span
-              className="rounded-full px-3 py-1 text-xs font-semibold"
+              className="rounded-full px-3 py-1 text-sm font-semibold"
               style={{
                 background: 'var(--bg-elevated)',
                 border: '1px solid var(--text-ghost)',
@@ -200,7 +200,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
 
         <div>
           <p
-            className="mb-2 text-xs font-semibold"
+            className="mb-2 text-sm font-semibold"
             style={{ color: 'var(--text-tertiary)' }}
           >
             Topics you return to most
@@ -210,7 +210,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
               {topTopics.map((t) => (
                 <span
                   key={t}
-                  className="rounded-full px-3 py-1 text-xs font-semibold"
+                  className="rounded-full px-3 py-1 text-sm font-semibold"
                   style={{
                     background: 'rgba(201,153,58,0.12)',
                     border: '1px solid rgba(201,153,58,0.3)',
@@ -233,7 +233,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
 
         <div>
           <p
-            className="mb-2 text-xs font-semibold"
+            className="mb-2 text-sm font-semibold"
             style={{ color: 'var(--text-tertiary)' }}
           >
             Topics we&apos;re working on together
@@ -243,7 +243,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
               {struggleTopics.map((t) => (
                 <span
                   key={t}
-                  className="rounded-full px-3 py-1 text-xs font-semibold"
+                  className="rounded-full px-3 py-1 text-sm font-semibold"
                   style={{
                     background: 'rgba(251,191,36,0.1)',
                     border: '1px solid rgba(251,191,36,0.25)',
@@ -267,7 +267,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
         {soul.career_interest && (
           <div>
             <p
-              className="mb-1 text-xs font-semibold"
+              className="mb-1 text-sm font-semibold"
               style={{ color: 'var(--text-tertiary)' }}
             >
               Your declared direction
@@ -324,7 +324,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
             }}
           >
             <p
-              className="mb-2 text-xs font-semibold"
+              className="mb-2 text-sm font-semibold"
               style={{ color: 'var(--text-tertiary)' }}
             >
               From your last session
@@ -380,14 +380,14 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
           }}
         >
           <h4
-            className="mb-4 text-xs font-bold tracking-widest uppercase"
+            className="mb-4 text-sm font-bold tracking-widest uppercase"
             style={{ color: '#C9993A' }}
           >
             Academic Context
           </h4>
           <div className="flex items-center gap-3">
             <span
-              className="rounded-full px-3 py-1.5 text-xs font-bold capitalize"
+              className="rounded-full px-3 py-1.5 text-sm font-bold capitalize"
               style={{
                 background: 'rgba(201,153,58,0.15)',
                 border: '1px solid rgba(201,153,58,0.3)',

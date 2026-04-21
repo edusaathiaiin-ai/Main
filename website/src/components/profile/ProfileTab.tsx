@@ -321,14 +321,23 @@ export default function ProfileTab({
     }
   }
 
-  const inputStyle = {
+  const inputStyle: React.CSSProperties = {
     background: 'var(--bg-elevated)',
     border: '1px solid var(--border-subtle)',
     color: 'var(--text-primary)',
-    fontFamily: 'var(--font-dm-sans)',
+    fontFamily: 'var(--font-body)',
+    fontSize: '15px',
+    padding: '10px 14px',
+    borderRadius: '10px',
   }
 
-  const labelStyle = { color: 'var(--text-tertiary)' }
+  const labelStyle: React.CSSProperties = {
+    color: 'var(--text-secondary)',
+    fontSize: '14px',
+    fontWeight: 600,
+    marginBottom: '6px',
+    display: 'block',
+  }
 
   return (
     <div className="space-y-8">
@@ -351,7 +360,7 @@ export default function ProfileTab({
 
       {/* ── Identity ────────────────────────────────────────────── */}
       <section>
-        <h3 className="font-playfair mb-4 text-lg font-bold">
+        <h3 className="font-display mb-5 text-xl font-bold">
           Identity
         </h3>
 
@@ -401,7 +410,7 @@ export default function ProfileTab({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Full name — validated */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold" style={labelStyle}>
+            <label className="mb-1.5 block text-sm font-semibold" style={labelStyle}>
               Full name
             </label>
             <div className="relative">
@@ -423,13 +432,13 @@ export default function ProfileTab({
               )}
             </div>
             {showNameError && (
-              <p className="mt-1 text-xs" style={{ color: '#F87171' }}>{nameError}</p>
+              <p className="mt-1 text-sm" style={{ color: '#F87171' }}>{nameError}</p>
             )}
           </div>
 
           {/* City */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold" style={labelStyle}>
+            <label className="mb-1.5 block text-sm font-semibold" style={labelStyle}>
               City
             </label>
             <input
@@ -443,7 +452,7 @@ export default function ProfileTab({
 
           <div>
             <label
-              className="mb-1.5 block text-xs font-semibold"
+              className="mb-1.5 block text-sm font-semibold"
               style={labelStyle}
             >
               Email (read only)
@@ -458,7 +467,7 @@ export default function ProfileTab({
 
           <div>
             <label
-              className="mb-1.5 block text-xs font-semibold"
+              className="mb-1.5 block text-sm font-semibold"
               style={labelStyle}
             >
               Institution
@@ -478,7 +487,7 @@ export default function ProfileTab({
       <section>
         <div className="mb-1.5 flex items-center justify-between">
           <div>
-            <label className="block text-xs font-semibold" style={labelStyle}>
+            <label className="block text-sm font-semibold" style={labelStyle}>
               WhatsApp Number
             </label>
             <p className="mt-0.5 text-[11px]" style={{ color: 'var(--text-tertiary, #7A7570)' }}>
@@ -488,7 +497,7 @@ export default function ProfileTab({
           {profile.wa_phone && !waEditing && (
             <button
               onClick={() => { setWaEditing(true); setWaStep('idle'); setWaInput(''); setWaError(null) }}
-              className="text-xs font-semibold"
+              className="text-sm font-semibold"
               style={{ color: 'var(--gold, #B8860B)' }}
             >
               Edit
@@ -578,7 +587,7 @@ export default function ProfileTab({
                   </button>
                 </div>
                 {waError && (
-                  <p className="mt-1.5 text-xs" style={{ color: '#EF4444' }}>
+                  <p className="mt-1.5 text-sm" style={{ color: '#EF4444' }}>
                     {waError}
                   </p>
                 )}
@@ -646,7 +655,7 @@ export default function ProfileTab({
       {/* ── Your Saathi (locked) ──────────────────────────────────── */}
       {currentSaathi && (
         <section>
-          <h3 className="font-playfair mb-4 text-lg font-bold">
+          <h3 className="font-display mb-5 text-xl font-bold">
             Your Saathi
           </h3>
           <div
@@ -685,7 +694,7 @@ export default function ProfileTab({
             {!showSaathiChange ? (
               <button
                 onClick={() => setShowSaathiChange(true)}
-                className="mt-1 text-xs transition-colors"
+                className="mt-1 text-sm transition-colors"
                 style={{ color: 'var(--text-ghost)' }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.color = 'rgba(244,63,94,0.6)')
@@ -726,7 +735,7 @@ export default function ProfileTab({
                         change your Saathi, upgrade to a paid plan first.
                       </p>
                       <p
-                        className="mt-2 text-xs"
+                        className="mt-2 text-sm"
                         style={{ color: 'var(--text-ghost)' }}
                       >
                         Alternatively, you can create a new account with a
@@ -736,7 +745,7 @@ export default function ProfileTab({
                       <div className="mt-3 flex gap-3">
                         <a
                           href="/pricing?trigger=saathi_change"
-                          className="rounded-lg px-4 py-2 text-xs font-semibold transition-all"
+                          className="rounded-lg px-4 py-2 text-sm font-semibold transition-all"
                           style={{
                             background: '#C9993A',
                             color: '#060F1D',
@@ -786,7 +795,7 @@ export default function ProfileTab({
                       </p>
                       <button
                         onClick={() => setShowSaathiChange(false)}
-                        className="mt-3 text-xs underline"
+                        className="mt-3 text-sm underline"
                         style={{ color: 'var(--text-ghost)' }}
                       >
                         Cancel
@@ -809,7 +818,7 @@ export default function ProfileTab({
                           This action is irreversible
                         </p>
                         <ul
-                          className="space-y-1 text-xs"
+                          className="space-y-1 text-sm"
                           style={{ color: 'var(--text-tertiary)' }}
                         >
                           <li>
@@ -831,7 +840,7 @@ export default function ProfileTab({
 
                       {/* New Saathi picker */}
                       <p
-                        className="mb-2 text-xs font-semibold"
+                        className="mb-2 text-sm font-semibold"
                         style={{ color: 'var(--text-secondary)' }}
                       >
                         Choose your new Saathi:
@@ -939,7 +948,7 @@ export default function ProfileTab({
           <h3 className="font-playfair mb-1 text-lg font-bold">
             My Saathis
           </h3>
-          <p className="mb-4 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          <p className="mb-4 text-sm" style={{ color: 'var(--text-tertiary)' }}>
             Add up to 2 extra Saathis to your learning journey.
           </p>
 
@@ -1022,12 +1031,12 @@ export default function ProfileTab({
 
       {/* ── Academic Journey ─────────────────────────────────────── */}
       <section>
-        <h3 className="font-playfair mb-4 text-lg font-bold">
+        <h3 className="font-display mb-5 text-xl font-bold">
           Academic Journey
         </h3>
         <div className="mb-4">
           <label
-            className="mb-2 block text-xs font-semibold"
+            className="mb-2 block text-sm font-semibold"
             style={labelStyle}
           >
             Academic level
@@ -1039,7 +1048,7 @@ export default function ProfileTab({
                 <button
                   key={lvl.value}
                   onClick={() => setAcademicLevel(lvl.value)}
-                  className="rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition-all"
+                  className="rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-all"
                   style={{
                     background: active
                       ? 'rgba(201,153,58,0.15)'
@@ -1058,13 +1067,13 @@ export default function ProfileTab({
 
       {/* ── Learning Preferences ─────────────────────────────────── */}
       <section>
-        <h3 className="font-playfair mb-4 text-lg font-bold">
+        <h3 className="font-display mb-5 text-xl font-bold">
           Learning Preferences
         </h3>
 
         <div className="mb-4">
           <label
-            className="mb-2 block text-xs font-semibold"
+            className="mb-2 block text-sm font-semibold"
             style={labelStyle}
           >
             Learning style
@@ -1086,7 +1095,7 @@ export default function ProfileTab({
                 >
                   <div className="mb-1 text-xl">{s.label.split(' ')[0]}</div>
                   <div
-                    className="text-xs font-semibold"
+                    className="text-sm font-semibold"
                     style={{
                       color: active ? '#E5B86A' : 'var(--text-secondary)',
                     }}
@@ -1107,7 +1116,7 @@ export default function ProfileTab({
 
         <div>
           <label
-            className="mb-2 block text-xs font-semibold"
+            className="mb-2 block text-sm font-semibold"
             style={labelStyle}
           >
             Exam target
@@ -1123,7 +1132,7 @@ export default function ProfileTab({
 
       {/* ── Interests ───────────────────────────────────────────── */}
       <section>
-        <h3 className="font-playfair mb-4 text-lg font-bold">
+        <h3 className="font-display mb-5 text-xl font-bold">
           Interests
         </h3>
 
@@ -1142,7 +1151,7 @@ export default function ProfileTab({
         ].map(({ label, list, setList }) => (
           <div key={label} className="mb-4">
             <label
-              className="mb-2 block text-xs font-semibold"
+              className="mb-2 block text-sm font-semibold"
               style={labelStyle}
             >
               {label}
@@ -1152,7 +1161,7 @@ export default function ProfileTab({
                 <button
                   key={chip}
                   onClick={() => setList(list.filter((c) => c !== chip))}
-                  className="flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold"
+                  className="flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold"
                   style={{
                     background: 'rgba(201,153,58,0.15)',
                     border: '1px solid rgba(201,153,58,0.35)',
@@ -1174,12 +1183,12 @@ export default function ProfileTab({
                   }
                 }}
                 placeholder="Add topic → Enter"
-                className="flex-1 rounded-xl px-3 py-2 text-xs outline-none"
+                className="flex-1 rounded-xl px-3 py-2 text-sm outline-none"
                 style={inputStyle}
               />
               <button
                 onClick={() => addChip(list, setList)}
-                className="rounded-xl px-3 py-2 text-xs font-bold"
+                className="rounded-xl px-3 py-2 text-sm font-bold"
                 style={{ background: 'rgba(201,153,58,0.2)', color: '#C9993A' }}
               >
                 +
@@ -1190,7 +1199,7 @@ export default function ProfileTab({
 
         <div>
           <label
-            className="mb-1.5 block text-xs font-semibold"
+            className="mb-1.5 block text-sm font-semibold"
             style={labelStyle}
           >
             Future research area
@@ -1207,7 +1216,7 @@ export default function ProfileTab({
 
         <div className="mt-4">
           <label
-            className="mb-1.5 block text-xs font-semibold"
+            className="mb-1.5 block text-sm font-semibold"
             style={labelStyle}
           >
             Career interest / direction
@@ -1233,7 +1242,7 @@ export default function ProfileTab({
       >
         <div className="mb-2 flex items-center justify-between">
           <p
-            className="text-xs font-semibold"
+            className="text-sm font-semibold"
             style={{ color: 'var(--text-secondary)' }}
           >
             Your Saathi knows{' '}
