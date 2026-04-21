@@ -8,8 +8,8 @@ function Heading({ id, children }: { id: string; children: React.ReactNode }) {
   return (
     <h2
       id={id}
-      className="font-playfair mt-12 mb-4 scroll-mt-8 text-2xl font-bold"
-      style={{ color: '#C9993A' }}
+      className="mt-12 mb-4 scroll-mt-8 text-2xl font-bold"
+      style={{ color: '#000' }}
     >
       {children}
     </h2>
@@ -18,10 +18,7 @@ function Heading({ id, children }: { id: string; children: React.ReactNode }) {
 
 function SubHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h3
-      className="font-playfair mt-8 mb-3 text-xl font-bold"
-      style={{ color: '#E5B86A' }}
-    >
+    <h3 className="mt-8 mb-3 text-xl font-bold" style={{ color: '#000' }}>
       {children}
     </h3>
   )
@@ -47,13 +44,21 @@ export default function TermsPage() {
 
   return (
     <div
-      className="legal-page min-h-screen font-sans"
-      style={{ backgroundColor: '#0B1F3A', color: '#FAF7F2' }}
+      className="legal-page min-h-screen"
+      style={{
+        backgroundColor: '#ffffff',
+        color: '#000000',
+        fontFamily: "'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif",
+      }}
     >
-      {/* Scoped overrides — globals.css targets bare h1/h2/h3/p with
-          light-mode colors that would make body text invisible here.
-          The legal pages are intentionally dark and own their palette. */}
+      {/* Plain legal-document styling. Black text on white. Trebuchet MS.
+          Scoped override so globals.css cannot leak decorative colors. */}
       <style>{`
+        .legal-page,
+        .legal-page h1,
+        .legal-page h2,
+        .legal-page h3,
+        .legal-page h4,
         .legal-page p,
         .legal-page ul,
         .legal-page ol,
@@ -61,11 +66,12 @@ export default function TermsPage() {
         .legal-page strong,
         .legal-page em,
         .legal-page a {
-          color: inherit;
+          font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+          color: #000;
         }
         .legal-page p { margin: 0 0 12px; line-height: 1.7; font-size: 15px; }
         .legal-page a { text-decoration: underline; }
-        .legal-page a:hover { opacity: 0.8; }
+        .legal-page a:hover { opacity: 0.7; }
       `}</style>
       <div className="mx-auto max-w-[800px] px-6 py-16 md:py-24">
         {/* Header */}
@@ -75,37 +81,28 @@ export default function TermsPage() {
         >
           &larr; Back to EdUsaathiAI
         </Link>
-        <h1
-          className="font-playfair mb-4 text-4xl font-extrabold md:text-5xl"
-          style={{ color: '#FFFFFF' }}
-        >
+        <h1 className="mb-4 text-4xl font-extrabold md:text-5xl">
           Terms of Service
         </h1>
-        <p className="mb-1 text-lg opacity-80">
+        <p className="mb-1 text-lg">
           <strong>EdUsaathiAI — Ahmedabad, India</strong>
         </p>
-        <p className="mb-12 text-sm opacity-60">Last updated: March 2026</p>
+        <p className="mb-12 text-sm opacity-70">Last updated: March 2026</p>
 
         {/* TOC */}
         <div
-          className="mb-16 rounded-2xl p-6"
-          style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.1)',
-          }}
+          className="mb-16 rounded-lg p-6"
+          style={{ border: '1px solid #000' }}
         >
-          <h2
-            className="font-playfair mb-4 text-xl font-bold"
-            style={{ color: '#fff' }}
-          >
+          <h2 className="mb-4 text-xl font-bold">
             Table of Contents
           </h2>
-          <ul className="grid grid-cols-1 gap-x-8 gap-y-2 text-sm opacity-80 md:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-x-8 gap-y-2 text-sm md:grid-cols-2">
             {sections.map((s) => (
               <li key={s.id}>
                 <a
                   href={`#${s.id}`}
-                  className="block py-0.5 transition-colors hover:text-amber-400 hover:underline"
+                  className="block py-0.5 transition-opacity hover:opacity-70"
                 >
                   {s.title}
                 </a>
@@ -133,10 +130,7 @@ export default function TermsPage() {
           <Heading id="disclaimer">3. AI Disclaimer — Important</Heading>
           <p
             className="border-l-4 px-4 py-2 font-semibold"
-            style={{
-              borderColor: '#F43F5E',
-              background: 'rgba(244,63,94,0.1)',
-            }}
+            style={{ borderColor: '#000' }}
           >
             EdUsaathiAI Saathis are AI learning companions. They are NOT
             licensed professionals.
@@ -292,25 +286,17 @@ export default function TermsPage() {
 
           <Heading id="contact">14. Contact</Heading>
           <div
-            className="mt-4 rounded-xl p-6"
-            style={{ background: 'rgba(255,255,255,0.05)' }}
+            className="mt-4 rounded-lg p-6"
+            style={{ border: '1px solid #000' }}
           >
             <p className="mb-2">For questions about these Terms:</p>
             <p className="mb-1">
               <strong>Legal:</strong>{' '}
-              <a
-                href="mailto:legal@edusaathiai.in"
-                style={{ color: '#C9993A' }}
-              >
-                legal@edusaathiai.in
-              </a>
+              <a href="mailto:legal@edusaathiai.in">legal@edusaathiai.in</a>
             </p>
             <p className="mb-1">
               <strong>Support:</strong>{' '}
-              <a
-                href="mailto:support@edusaathiai.in"
-                style={{ color: '#C9993A' }}
-              >
+              <a href="mailto:support@edusaathiai.in">
                 support@edusaathiai.in
               </a>
             </p>
