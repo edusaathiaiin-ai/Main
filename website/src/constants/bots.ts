@@ -109,13 +109,13 @@ export const FACULTY_BOTS: BotDefinition[] = [
   },
   {
     slot: 5,
-    id: 'question-paper',
-    name: 'Question Paper',
+    id: 'question-builder',
+    name: 'Question Builder',
     emoji: '📋',
     color: '#FB923C',
     availableTo: ['faculty'],
-    purpose: 'Draft questions, MCQs, case studies conversationally',
-    description: 'Chat here to draft. Hand off to the formal Question Paper page for export.',
+    purpose: 'Draft questions, MCQs, case studies conversationally — hand off to Question Papers page for formal export.',
+    description: 'Build iteratively in chat. Send the best draft to /faculty/question-paper when ready to print.',
   },
 ]
 

@@ -63,7 +63,7 @@ function getStarters(
           `Where should I redesign my teaching this term?`,
           `Common misconceptions I should address early`,
         ]
-      case 5: // Question Paper
+      case 5: // Question Builder
         return [
           `Draft 5 MCQs on [topic] with plausible distractors`,
           `One case study with 3 scaffolded sub-questions`,

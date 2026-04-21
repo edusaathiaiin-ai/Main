@@ -76,8 +76,11 @@ export function SaathiHeader({
         flexShrink: 0,
       }}
     >
-      {/* Top row: name + controls */}
-      <div className="flex h-12 items-center justify-between px-4">
+      {/* Top row: name + controls
+          h-11 (44px) is the compact chrome height set by fdee2d4.
+          Works because .h-compact (18px) + 2px gap + .p-compact (13px) = 33px
+          fits with 5.5px top/bottom padding. */}
+      <div className="flex h-11 items-center justify-between px-4">
         {/* Left: emoji + name + tagline
             Uses .h-compact / .p-compact from globals.css — the constitution's
             explicit variants for fixed-height chrome rows. Semantic tags kept. */}

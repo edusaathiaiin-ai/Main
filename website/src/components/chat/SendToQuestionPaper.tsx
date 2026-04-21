@@ -36,7 +36,7 @@ export function SendToQuestionPaper({ draft }: { draft: string }) {
       }}
     >
       <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-        Ready to format this into a printable paper?
+        Happy with the draft? Save it to your Question Papers page for formal formatting and print.
       </span>
       <Link
         href="/faculty/question-paper"
@@ -54,7 +54,7 @@ export function SendToQuestionPaper({ draft }: { draft: string }) {
           pointerEvents: hasDraft ? 'auto' : 'none',
         }}
       >
-        Send to Question Paper →
+        Save to Question Papers →
       </Link>
     </div>
   )
