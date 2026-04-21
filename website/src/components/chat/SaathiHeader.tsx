@@ -67,10 +67,10 @@ export function SaathiHeader({
       }}
     >
       {/* Top row: name + controls */}
-      <div className="flex h-14 items-center justify-between px-5">
+      <div className="flex h-11 items-center justify-between px-4">
         {/* Left: emoji + name + tagline */}
-        <div className="flex items-center gap-3">
-          <span className="text-3xl leading-none">{saathi.emoji}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-2xl leading-none">{saathi.emoji}</span>
           <div>
             <h2
               className="font-display text-base leading-tight font-bold"
@@ -217,8 +217,8 @@ export function SaathiHeader({
       <div
         style={{
           display:       'flex',
-          gap:           '6px',
-          padding:       '8px 16px',
+          gap:           '4px',
+          padding:       '4px 12px',
           borderTop:     '1px solid var(--border-subtle)',
           overflowX:     'auto',
           scrollbarWidth:'none',
@@ -241,7 +241,7 @@ export function SaathiHeader({
                 display:      'flex',
                 alignItems:   'center',
                 gap:          '5px',
-                padding:      '5px 12px',
+                padding:      '4px 10px',
                 borderRadius: '100px',
                 border:     active
                   ? '1px solid var(--saathi-border)'
@@ -285,7 +285,7 @@ export function SaathiHeader({
                 display:      'flex',
                 alignItems:   'center',
                 gap:          '5px',
-                padding:      '5px 12px',
+                padding:      '4px 10px',
                 borderRadius: '100px',
                 border:       '1px solid var(--border-subtle)',
                 background:   'transparent',

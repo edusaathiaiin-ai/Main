@@ -1013,8 +1013,8 @@ export function ChatWindow() {
       />
 
       {/* Main chat area */}
-      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden" style={{ height: '100%' }}>
-        {/* Saathi header */}
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col" style={{ height: '100%', overflow: 'hidden' }}>
+        {/* Saathi header — stays fixed at top */}
         <SaathiHeader
           saathi={activeSaathi}
           botName={activeBot.name}
