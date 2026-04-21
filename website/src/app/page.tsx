@@ -97,7 +97,7 @@ export default async function RootPage() {
         .land-section{padding:100px 48px;max-width:1200px;margin:0 auto}
         .section-eyebrow{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:10px}
         .section-eyebrow::before{content:'';display:block;width:24px;height:1px;background:var(--gold)}
-        .section-title{font-family:'Playfair Display',serif;font-size:clamp(36px,4vw,56px);font-weight:700;line-height:1.15;letter-spacing:-1px;margin-bottom:16px}
+        .section-title{font-family:'Playfair Display',serif;font-size:clamp(36px,4vw,56px);font-weight:700;line-height:1.15;letter-spacing:-1px;margin-bottom:16px;color:#fff}
         .section-title em{font-style:italic;color:var(--gold)}
         .section-subtitle{font-size:18px;font-weight:300;color:rgba(255,255,255,0.55);line-height:1.7;max-width:560px}
         .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(255,255,255,0.05);border-radius:24px;overflow:hidden}
@@ -105,7 +105,7 @@ export default async function RootPage() {
         .step:hover{background:rgba(11,31,58,1)}
         .step-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:2px;margin-bottom:24px;opacity:0.7}
         .step-icon{font-size:40px;margin-bottom:20px;display:block}
-        .step-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:12px;line-height:1.2}
+        .step-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:12px;line-height:1.2;color:#fff}
         .step-body{font-size:15px;font-weight:300;color:rgba(255,255,255,0.55);line-height:1.7}
         .saathis-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px;flex-wrap:wrap;gap:24px}
         /* SaathiGrid responsive columns: 4 → 3 → 2 */
