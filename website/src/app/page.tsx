@@ -31,7 +31,7 @@ export default async function RootPage() {
         html,body{margin:0;padding:0;box-sizing:border-box;background:var(--navy-deep);color:var(--white);font-family:'DM Sans',sans-serif;overflow-x:hidden;scroll-behavior:smooth}
         *{box-sizing:border-box}
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
-        .land-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 48px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(6,15,29,0.95),transparent);backdrop-filter:blur(12px)}
+        .land-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 48px;display:flex;align-items:center;justify-content:space-between;background:var(--navy-deep);border-bottom:0.5px solid rgba(255,255,255,0.06)}
         .land-logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;letter-spacing:-0.5px;color:#fff;text-decoration:none}
         .land-logo span{color:var(--gold)}
         .land-nav-links{display:flex;align-items:center;gap:32px;list-style:none;margin:0;padding:0}
