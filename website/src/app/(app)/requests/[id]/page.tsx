@@ -77,10 +77,10 @@ function SlotCard({
       style={{
         width: '100%', textAlign: 'left',
         padding: '16px 18px', borderRadius: '14px', cursor: 'pointer',
-        background: selected ? 'rgba(201,153,58,0.1)' : 'rgba(255,255,255,0.03)',
+        background: selected ? 'rgba(201,153,58,0.1)' : 'var(--bg-elevated)',
         border: selected
           ? '1.5px solid rgba(201,153,58,0.6)'
-          : '0.5px solid rgba(255,255,255,0.09)',
+          : '0.5px solid var(--bg-elevated)',
         transition: 'all 0.18s',
         outline: 'none',
       }}
@@ -89,18 +89,18 @@ function SlotCard({
         {/* Radio indicator */}
         <div style={{
           width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
-          border: selected ? '5px solid #C9993A' : '1.5px solid rgba(255,255,255,0.25)',
+          border: selected ? '5px solid #C9993A' : '1.5px solid var(--text-ghost)',
           background: selected ? '#C9993A' : 'transparent',
           transition: 'all 0.15s',
         }} />
         <div>
           <p style={{
-            fontSize: '14px', fontWeight: 700, color: selected ? '#fff' : 'rgba(255,255,255,0.75)',
+            fontSize: '14px', fontWeight: 700, color: selected ? '#fff' : 'var(--text-secondary)',
             margin: '0 0 2px', fontFamily: 'DM Sans, sans-serif',
           }}>
             {slot.label}
           </p>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+          <p style={{ fontSize: '11px', color: 'var(--text-ghost)', margin: 0 }}>
             {fmtDate(slot.start)} · {fmtTime(slot.start)}
           </p>
         </div>
@@ -229,7 +229,7 @@ export default function ConfirmLectureSlotPage({
     return (
       <main style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#060F1D 0%,#0B1F3A 60%,#060F1D 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ width: '36px', height: '36px', borderRadius: '50%',
-          border: '2px solid rgba(255,255,255,0.08)', borderTopColor: GOLD,
+          border: '2px solid var(--bg-elevated)', borderTopColor: GOLD,
           animation: 'spin 0.8s linear infinite' }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </main>
@@ -243,7 +243,7 @@ export default function ConfirmLectureSlotPage({
       <main style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#060F1D 0%,#0B1F3A 60%,#060F1D 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <p style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</p>
-          <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.5)' }}>{error}</p>
+          <p style={{ fontSize: '16px', color: 'var(--text-secondary)' }}>{error}</p>
           <Link href="/requests" style={{ color: GOLD, fontSize: '13px', textDecoration: 'none' }}>
             ← Back to requests
           </Link>
@@ -261,7 +261,7 @@ export default function ConfirmLectureSlotPage({
       <main style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#060F1D 0%,#0B1F3A 60%,#060F1D 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <p style={{ fontSize: '40px', marginBottom: '12px' }}>🔒</p>
-          <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.5)' }}>
+          <p style={{ fontSize: '16px', color: 'var(--text-secondary)' }}>
             This confirmation link is for the student who made the request.
           </p>
         </div>
@@ -279,7 +279,7 @@ export default function ConfirmLectureSlotPage({
           <h2 style={{ fontSize: '20px', color: '#fff', fontFamily: 'Playfair Display, serif', margin: '0 0 10px' }}>
             Waiting for faculty response
           </h2>
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', lineHeight: 1.6 }}>
             Your request for <strong style={{ color: '#fff' }}>{request.subject}</strong> has
             been sent. You'll receive an email and WhatsApp when the faculty proposes a slot.
           </p>
@@ -302,7 +302,7 @@ export default function ConfirmLectureSlotPage({
           <h2 style={{ fontSize: '20px', color: '#fff', fontFamily: 'Playfair Display, serif', margin: '0 0 10px' }}>
             Request declined
           </h2>
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', lineHeight: 1.6 }}>
             The faculty is unable to take this session. You can post your request to
             other faculty members.
           </p>
@@ -347,7 +347,7 @@ export default function ConfirmLectureSlotPage({
           }}>
             Session confirmed!
           </h1>
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: '0 0 28px', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '0 0 28px', lineHeight: 1.6 }}>
             You're booked with {request.faculty_name ?? 'your faculty'} for{' '}
             <strong style={{ color: '#fff' }}>{request.subject}</strong>.
           </p>
@@ -362,7 +362,7 @@ export default function ConfirmLectureSlotPage({
                 📅 {chosenSlot.label}
               </p>
             )}
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: '0 0 4px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 4px' }}>
               Duration: {request.proposed_duration} minutes
             </p>
             <p style={{ fontSize: '13px', color: GREEN, margin: 0, fontWeight: 600 }}>
@@ -370,7 +370,7 @@ export default function ConfirmLectureSlotPage({
             </p>
           </div>
 
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', margin: '0 0 24px', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-ghost)', margin: '0 0 24px', lineHeight: 1.6 }}>
             Your meeting link will be shared by the faculty before the session starts.
             You'll receive it via email and WhatsApp.
           </p>
@@ -390,7 +390,7 @@ export default function ConfirmLectureSlotPage({
               href="/requests"
               style={{
                 padding: '12px 18px', borderRadius: '12px',
-                background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.55)',
+                background: 'var(--bg-elevated)', color: 'var(--text-secondary)',
                 fontSize: '13px', textDecoration: 'none',
               }}
             >
@@ -416,7 +416,7 @@ export default function ConfirmLectureSlotPage({
       <nav style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '16px 24px',
-        borderBottom: '0.5px solid rgba(255,255,255,0.06)',
+        borderBottom: '0.5px solid var(--bg-elevated)',
       }}>
         <span style={{
           fontFamily: 'Playfair Display, serif', fontSize: '20px',
@@ -425,7 +425,7 @@ export default function ConfirmLectureSlotPage({
           EdUsaathiAI
         </span>
         <Link href="/requests" style={{
-          fontSize: '13px', color: 'rgba(255,255,255,0.4)', textDecoration: 'none',
+          fontSize: '13px', color: 'var(--text-tertiary)', textDecoration: 'none',
         }}>
           ← My requests
         </Link>
@@ -451,7 +451,7 @@ export default function ConfirmLectureSlotPage({
           }}>
             {request.subject}
           </h1>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: 0 }}>
             Proposed by {request.faculty_name ?? 'faculty'}
             {request.faculty_institution ? ` · ${request.faculty_institution}` : ''}
           </p>
@@ -461,15 +461,15 @@ export default function ConfirmLectureSlotPage({
         {request.proposal_message && (
           <div style={{
             padding: '16px 18px', borderRadius: '14px', marginBottom: '24px',
-            background: 'rgba(255,255,255,0.03)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
             borderLeft: `3px solid ${GOLD}`,
           }}>
             <p style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(201,153,58,0.8)',
               textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px' }}>
               Message from faculty
             </p>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.65)',
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)',
               lineHeight: 1.65, margin: 0, fontStyle: 'italic' }}>
               &ldquo;{request.proposal_message}&rdquo;
             </p>
@@ -489,19 +489,19 @@ export default function ConfirmLectureSlotPage({
             <p style={{ fontSize: '22px', fontWeight: 800, color: GREEN, margin: '0 0 3px' }}>
               {paise(request.proposed_fee_paise)}
             </p>
-            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', margin: 0 }}>
+            <p style={{ fontSize: '10px', color: 'var(--text-ghost)', margin: 0 }}>
               session fee
             </p>
           </div>
           <div style={{
             padding: '16px 18px', borderRadius: '14px',
-            background: 'rgba(255,255,255,0.03)',
-            border: '0.5px solid rgba(255,255,255,0.07)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
           }}>
             <p style={{ fontSize: '22px', fontWeight: 800, color: '#fff', margin: '0 0 3px' }}>
               {request.proposed_duration} min
             </p>
-            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', margin: 0 }}>
+            <p style={{ fontSize: '10px', color: 'var(--text-ghost)', margin: 0 }}>
               session duration
             </p>
           </div>
@@ -511,7 +511,7 @@ export default function ConfirmLectureSlotPage({
         <div style={{ marginBottom: '28px' }}>
           <p style={{
             fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em',
-            textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)',
+            textTransform: 'uppercase', color: 'var(--text-ghost)',
             margin: '0 0 12px',
           }}>
             Choose your time slot
@@ -527,7 +527,7 @@ export default function ConfirmLectureSlotPage({
             ))}
           </div>
           {slots.length === 0 && (
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-ghost)' }}>
               No slots available — please contact support.
             </p>
           )}
@@ -536,10 +536,10 @@ export default function ConfirmLectureSlotPage({
         {/* What happens next */}
         <div style={{
           padding: '14px 18px', borderRadius: '12px', marginBottom: '24px',
-          background: 'rgba(255,255,255,0.02)',
-          border: '0.5px solid rgba(255,255,255,0.06)',
+          background: 'var(--bg-elevated)',
+          border: '0.5px solid var(--bg-elevated)',
         }}>
-          <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.3)',
+          <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-ghost)',
             textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
             What happens next
           </p>
@@ -553,7 +553,7 @@ export default function ConfirmLectureSlotPage({
               <span style={{ fontSize: '12px', color: GOLD, fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>
                 {i + 1}.
               </span>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.5 }}>
                 {step}
               </p>
             </div>
@@ -585,8 +585,8 @@ export default function ConfirmLectureSlotPage({
           style={{
             width: '100%', padding: '16px',
             borderRadius: '14px', border: 'none',
-            background: selectedSlot && !confirming ? GOLD : 'rgba(255,255,255,0.06)',
-            color: selectedSlot && !confirming ? NAVY : 'rgba(255,255,255,0.25)',
+            background: selectedSlot && !confirming ? GOLD : 'var(--bg-elevated)',
+            color: selectedSlot && !confirming ? NAVY : 'var(--text-ghost)',
             fontSize: '15px', fontWeight: 700,
             cursor: selectedSlot && !confirming ? 'pointer' : 'not-allowed',
             fontFamily: 'DM Sans, sans-serif',
@@ -610,7 +610,7 @@ export default function ConfirmLectureSlotPage({
         </button>
 
         <p style={{
-          fontSize: '11px', color: 'rgba(255,255,255,0.2)', textAlign: 'center',
+          fontSize: '11px', color: 'var(--text-ghost)', textAlign: 'center',
           marginTop: '12px', lineHeight: 1.5,
         }}>
           By confirming you agree to EdUsaathiAI's session terms.

@@ -262,7 +262,7 @@ export function VoiceOutput({
 
   const idleColor = isLegalTheme
     ? 'rgba(0,0,0,0.2)'
-    : 'rgba(255,255,255,0.22)'
+    : 'var(--text-ghost)'
 
   return (
     <button

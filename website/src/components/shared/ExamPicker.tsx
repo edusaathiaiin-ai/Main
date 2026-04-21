@@ -54,18 +54,18 @@ export function ExamPicker({
     background: active
       ? `${primaryColor}${dark ? '33' : '1f'}`
       : dark
-        ? 'rgba(255,255,255,0.04)'
+        ? 'var(--bg-elevated)'
         : 'rgba(0,0,0,0.04)',
     color: active
       ? primaryColor
       : dark
-        ? 'rgba(255,255,255,0.7)'
+        ? 'var(--text-secondary)'
         : 'var(--text-secondary)',
     border: `1px solid ${
       active
         ? `${primaryColor}80`
         : dark
-          ? 'rgba(255,255,255,0.1)'
+          ? 'var(--border-medium)'
           : 'rgba(0,0,0,0.08)'
     }`,
     cursor: disabled ? 'not-allowed' : 'pointer',
@@ -124,9 +124,9 @@ export function ExamPicker({
             padding: '10px 12px',
             borderRadius: 10,
             fontSize: 14,
-            background: dark ? 'rgba(255,255,255,0.04)' : '#FFFFFF',
-            color: dark ? 'rgba(255,255,255,0.9)' : 'var(--text-primary)',
-            border: `1px solid ${dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)'}`,
+            background: dark ? 'var(--bg-elevated)' : '#FFFFFF',
+            color: dark ? 'var(--text-primary)' : 'var(--text-primary)',
+            border: `1px solid ${dark ? 'var(--border-medium)' : 'rgba(0,0,0,0.12)'}`,
             outline: 'none',
           }}
         />
@@ -142,7 +142,7 @@ export function ExamPicker({
             border: 'none',
             cursor: 'pointer',
             fontSize: 12,
-            color: dark ? 'rgba(255,255,255,0.4)' : 'var(--text-tertiary)',
+            color: dark ? 'var(--text-tertiary)' : 'var(--text-tertiary)',
             padding: 0,
           }}
         >

@@ -189,7 +189,7 @@ function MatchBar({ score }: { score: number }) {
     <div className="flex items-center gap-2">
       <div
         className="h-1.5 flex-1 rounded-full"
-        style={{ background: 'rgba(255,255,255,0.08)' }}
+        style={{ background: 'var(--bg-elevated)' }}
       >
         <div
           className="h-1.5 rounded-full transition-all"
@@ -575,7 +575,7 @@ export default function InstitutionPage() {
     return (
       <main
         className="flex min-h-screen items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div
           className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
@@ -596,7 +596,7 @@ export default function InstitutionPage() {
       {/* Top nav */}
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <span
           className="font-playfair text-xl font-bold"
@@ -612,8 +612,8 @@ export default function InstitutionPage() {
           }}
           className="rounded-lg px-3 py-1.5 text-xs"
           style={{
-            background: 'rgba(255,255,255,0.05)',
-            color: 'rgba(255,255,255,0.4)',
+            background: 'var(--bg-elevated)',
+            color: 'var(--text-tertiary)',
           }}
         >
           Sign out
@@ -630,7 +630,7 @@ export default function InstitutionPage() {
           <div>
             <p
               className="mb-1 text-xs font-semibold"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               {inst?.org_type
                 ? inst.org_type.charAt(0).toUpperCase() + inst.org_type.slice(1)
@@ -696,8 +696,8 @@ export default function InstitutionPage() {
               key={label}
               className="rounded-2xl p-4 text-center"
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '0.5px solid rgba(255,255,255,0.07)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--bg-elevated)',
               }}
             >
               <p className="font-playfair text-3xl font-bold text-white">
@@ -705,7 +705,7 @@ export default function InstitutionPage() {
               </p>
               <p
                 className="mt-1 text-xs"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 {label}
               </p>
@@ -742,8 +742,8 @@ export default function InstitutionPage() {
                     key={l.id}
                     className="rounded-2xl p-5"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--bg-elevated)',
                     }}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -766,7 +766,7 @@ export default function InstitutionPage() {
                         </div>
                         <p
                           className="text-xs"
-                          style={{ color: 'rgba(255,255,255,0.35)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           {l.total_applicants} applicants · {l.seats_available}{' '}
                           seats · {l.is_remote ? 'Remote' : 'On-site'}
@@ -777,7 +777,7 @@ export default function InstitutionPage() {
                         {l.application_deadline && (
                           <p
                             className="mt-1 text-xs"
-                            style={{ color: 'rgba(255,255,255,0.25)' }}
+                            style={{ color: 'var(--text-ghost)' }}
                           >
                             Deadline:{' '}
                             {new Date(
@@ -806,11 +806,11 @@ export default function InstitutionPage() {
                             background:
                               l.status === 'active'
                                 ? 'rgba(34,197,94,0.1)'
-                                : 'rgba(255,255,255,0.05)',
+                                : 'var(--bg-elevated)',
                             color:
                               l.status === 'active'
                                 ? '#4ADE80'
-                                : 'rgba(255,255,255,0.3)',
+                                : 'var(--text-ghost)',
                           }}
                         >
                           {l.status}
@@ -831,7 +831,7 @@ export default function InstitutionPage() {
               <button
                 onClick={() => setView('listings')}
                 className="text-sm transition-colors"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 ← Back
               </button>
@@ -864,7 +864,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Title <span style={{ color: '#C9993A' }}>*</span>
                 </label>
@@ -874,8 +874,8 @@ export default function InstitutionPage() {
                   placeholder="e.g. Research Intern — Fluid Mechanics"
                   className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                   }}
                 />
               </div>
@@ -884,7 +884,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Description <span style={{ color: '#C9993A' }}>*</span>
                 </label>
@@ -896,13 +896,13 @@ export default function InstitutionPage() {
                   maxLength={500}
                   className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                   }}
                 />
                 <p
                   className="mt-1 text-right text-xs"
-                  style={{ color: 'rgba(255,255,255,0.25)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   {form.description.length}/500
                 </p>
@@ -912,7 +912,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Subject Area (Saathi)
                 </label>
@@ -921,11 +921,11 @@ export default function InstitutionPage() {
                   onChange={(e) => setF('required_saathi_slug', e.target.value)}
                   className="w-full appearance-none rounded-xl px-4 py-3 text-sm outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                     color: form.required_saathi_slug
                       ? '#fff'
-                      : 'rgba(255,255,255,0.35)',
+                      : 'var(--text-ghost)',
                   }}
                 >
                   <option value="">Any subject</option>
@@ -933,7 +933,7 @@ export default function InstitutionPage() {
                     <option
                       key={s.id}
                       value={s.id}
-                      style={{ background: '#0B1F3A' }}
+                      style={{ background: 'var(--bg-surface)' }}
                     >
                       {s.name}
                     </option>
@@ -945,7 +945,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-2 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Academic level required
                 </label>
@@ -966,13 +966,13 @@ export default function InstitutionPage() {
                           form.required_academic_level === lvl ||
                           (lvl === 'any' && !form.required_academic_level)
                             ? '#C9993A'
-                            : 'rgba(255,255,255,0.05)',
-                        border: `0.5px solid ${form.required_academic_level === lvl || (lvl === 'any' && !form.required_academic_level) ? '#C9993A' : 'rgba(255,255,255,0.1)'}`,
+                            : 'var(--bg-elevated)',
+                        border: `0.5px solid ${form.required_academic_level === lvl || (lvl === 'any' && !form.required_academic_level) ? '#C9993A' : 'var(--border-medium)'}`,
                         color:
                           form.required_academic_level === lvl ||
                           (lvl === 'any' && !form.required_academic_level)
                             ? '#060F1D'
-                            : 'rgba(255,255,255,0.6)',
+                            : 'var(--text-secondary)',
                       }}
                     >
                       {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
@@ -985,7 +985,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-2 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Min profile completeness:{' '}
                   <span style={{ color: '#E5B86A' }}>
@@ -1005,7 +1005,7 @@ export default function InstitutionPage() {
                 />
                 <p
                   className="mt-1 text-xs"
-                  style={{ color: 'rgba(255,255,255,0.25)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Students below this threshold won&apos;t see your listing.
                 </p>
@@ -1015,7 +1015,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Skills needed (comma-separated)
                 </label>
@@ -1025,8 +1025,8 @@ export default function InstitutionPage() {
                   placeholder="e.g. Python, Research writing, Data analysis"
                   className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                   }}
                 />
               </div>
@@ -1036,7 +1036,7 @@ export default function InstitutionPage() {
                 <div className="flex-1">
                   <label
                     className="mb-1.5 block text-xs font-medium"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Stipend (₹/mo)
                   </label>
@@ -1048,15 +1048,15 @@ export default function InstitutionPage() {
                     placeholder="Leave blank = unpaid"
                     className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '0.5px solid rgba(255,255,255,0.1)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-medium)',
                     }}
                   />
                 </div>
                 <div className="flex-1">
                   <label
                     className="mb-1.5 block text-xs font-medium"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Seats available
                   </label>
@@ -1069,8 +1069,8 @@ export default function InstitutionPage() {
                     }
                     className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '0.5px solid rgba(255,255,255,0.1)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-medium)',
                     }}
                   />
                 </div>
@@ -1081,7 +1081,7 @@ export default function InstitutionPage() {
                 <div>
                   <label
                     className="mb-2 block text-xs font-medium"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Duration
                   </label>
@@ -1096,12 +1096,12 @@ export default function InstitutionPage() {
                           background:
                             form.duration_months === d
                               ? 'rgba(201,153,58,0.2)'
-                              : 'rgba(255,255,255,0.05)',
-                          border: `0.5px solid ${form.duration_months === d ? '#C9993A' : 'rgba(255,255,255,0.1)'}`,
+                              : 'var(--bg-elevated)',
+                          border: `0.5px solid ${form.duration_months === d ? '#C9993A' : 'var(--border-medium)'}`,
                           color:
                             form.duration_months === d
                               ? '#E5B86A'
-                              : 'rgba(255,255,255,0.6)',
+                              : 'var(--text-secondary)',
                         }}
                       >
                         {d}mo
@@ -1112,7 +1112,7 @@ export default function InstitutionPage() {
                 <div>
                   <label
                     className="mb-3 block text-xs font-medium"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Location
                   </label>
@@ -1123,7 +1123,7 @@ export default function InstitutionPage() {
                     style={{
                       color: form.is_remote
                         ? '#4ADE80'
-                        : 'rgba(255,255,255,0.4)',
+                        : 'var(--text-tertiary)',
                     }}
                   >
                     <span
@@ -1131,7 +1131,7 @@ export default function InstitutionPage() {
                       style={{
                         background: form.is_remote
                           ? '#4ADE80'
-                          : 'rgba(255,255,255,0.1)',
+                          : 'var(--border-medium)',
                       }}
                     >
                       <span
@@ -1148,7 +1148,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Application deadline
                 </label>
@@ -1158,8 +1158,8 @@ export default function InstitutionPage() {
                   onChange={(e) => setF('deadline_date', e.target.value)}
                   className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                   }}
                 />
               </div>
@@ -1189,14 +1189,14 @@ export default function InstitutionPage() {
                   setSelectedListing(null)
                 }}
                 className="text-sm transition-colors"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 ← Listings
               </button>
               <h2 className="font-playfair text-xl text-white">Applicants</h2>
               <span
                 className="text-sm"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 ({applicants.length} matched)
               </span>
@@ -1218,8 +1218,8 @@ export default function InstitutionPage() {
                     key={a.id}
                     className="rounded-2xl p-5"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--bg-elevated)',
                     }}
                   >
                     <div className="mb-3 flex items-start justify-between gap-3">
@@ -1229,7 +1229,7 @@ export default function InstitutionPage() {
                         </p>
                         <p
                           className="mt-0.5 text-xs"
-                          style={{ color: 'rgba(255,255,255,0.35)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           {a.student_academic_level} · {a.student_city}
                         </p>
@@ -1237,7 +1237,7 @@ export default function InstitutionPage() {
                       <div className="text-right">
                         <p
                           className="text-xs"
-                          style={{ color: 'rgba(255,255,255,0.25)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           Profile {a.student_completeness}% complete
                         </p>
@@ -1251,8 +1251,8 @@ export default function InstitutionPage() {
                             key={k}
                             className="rounded-full px-2 py-0.5 text-xs"
                             style={{
-                              background: 'rgba(255,255,255,0.05)',
-                              color: 'rgba(255,255,255,0.4)',
+                              background: 'var(--bg-elevated)',
+                              color: 'var(--text-tertiary)',
                             }}
                           >
                             {k.replace(/_/g, ' ')}: +{v}
@@ -1278,7 +1278,7 @@ export default function InstitutionPage() {
                 </h2>
                 <p
                   className="mt-1 text-xs"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Soul-matched postings · students sorted by match score
                 </p>
@@ -1299,8 +1299,8 @@ export default function InstitutionPage() {
               <div
                 className="rounded-2xl py-20 text-center"
                 style={{
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '0.5px solid rgba(255,255,255,0.06)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--bg-elevated)',
                 }}
               >
                 <p className="mb-4 text-4xl">🎯</p>
@@ -1331,8 +1331,8 @@ export default function InstitutionPage() {
                       key={p.id}
                       className="rounded-2xl p-5"
                       style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: `0.5px solid ${p.listing_plan === 'featured' ? 'rgba(201,153,58,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                        background: 'var(--bg-elevated)',
+                        border: `0.5px solid ${p.listing_plan === 'featured' ? 'rgba(201,153,58,0.4)' : 'var(--bg-elevated)'}`,
                       }}
                     >
                       <div className="mb-2 flex items-start justify-between gap-3">
@@ -1366,11 +1366,11 @@ export default function InstitutionPage() {
                                 background:
                                   p.status === 'open'
                                     ? 'rgba(34,197,94,0.1)'
-                                    : 'rgba(255,255,255,0.05)',
+                                    : 'var(--bg-elevated)',
                                 color:
                                   p.status === 'open'
                                     ? '#4ADE80'
-                                    : 'rgba(255,255,255,0.35)',
+                                    : 'var(--text-ghost)',
                               }}
                             >
                               {p.status}
@@ -1381,7 +1381,7 @@ export default function InstitutionPage() {
                           </h3>
                           <p
                             className="mt-0.5 text-xs"
-                            style={{ color: 'rgba(255,255,255,0.35)' }}
+                            style={{ color: 'var(--text-ghost)' }}
                           >
                             {p.total_applications} applied · {p.total_seats}{' '}
                             seat{p.total_seats !== 1 ? 's' : ''}
@@ -1421,7 +1421,7 @@ export default function InstitutionPage() {
               <button
                 onClick={() => setView('intern_finder')}
                 className="text-sm"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 ← Back
               </button>
@@ -1449,7 +1449,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Company / Organisation name
                 </label>
@@ -1459,8 +1459,8 @@ export default function InstitutionPage() {
                   placeholder={inst?.org_name ?? 'Your company name'}
                   className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                   }}
                 />
               </div>
@@ -1468,7 +1468,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Position title <span style={{ color: '#C9993A' }}>*</span>
                 </label>
@@ -1478,8 +1478,8 @@ export default function InstitutionPage() {
                   placeholder="e.g. Data Science Intern"
                   className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                   }}
                 />
               </div>
@@ -1487,7 +1487,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Description <span style={{ color: '#C9993A' }}>*</span> (max
                   500 chars)
@@ -1502,13 +1502,13 @@ export default function InstitutionPage() {
                   placeholder="What is the internship about? What can they expect?"
                   className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                   }}
                 />
                 <p
                   className="mt-1 text-right text-[10px]"
-                  style={{ color: 'rgba(255,255,255,0.25)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   {ifForm.description.length}/500
                 </p>
@@ -1517,7 +1517,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Responsibilities (what intern will do)
                 </label>
@@ -1528,8 +1528,8 @@ export default function InstitutionPage() {
                   placeholder="Daily tasks, projects, meetings..."
                   className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                   }}
                 />
               </div>
@@ -1537,7 +1537,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Requirements (what they need)
                 </label>
@@ -1548,8 +1548,8 @@ export default function InstitutionPage() {
                   placeholder="Skills, experience, coursework required..."
                   className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                   }}
                 />
               </div>
@@ -1557,7 +1557,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Subject area (Saathi)
                 </label>
@@ -1566,11 +1566,11 @@ export default function InstitutionPage() {
                   onChange={(e) => setIfF('vertical_id', e.target.value)}
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                     color: ifForm.vertical_id
                       ? '#fff'
-                      : 'rgba(255,255,255,0.35)',
+                      : 'var(--text-ghost)',
                   }}
                 >
                   <option value="">Any subject</option>
@@ -1578,7 +1578,7 @@ export default function InstitutionPage() {
                     <option
                       key={s.id}
                       value={s.id}
-                      style={{ background: '#0B1F3A' }}
+                      style={{ background: 'var(--bg-surface)' }}
                     >
                       {s.emoji} {s.name}
                     </option>
@@ -1589,7 +1589,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-2 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Minimum depth calibration:{' '}
                   <span style={{ color: '#E5B86A' }}>{ifForm.min_depth}</span>
@@ -1607,7 +1607,7 @@ export default function InstitutionPage() {
                 />
                 <p
                   className="mt-1 text-[10px]"
-                  style={{ color: 'rgba(255,255,255,0.25)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Students below this depth won&apos;t see your posting.
                 </p>
@@ -1616,7 +1616,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-2 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Academic level
                 </label>
@@ -1631,11 +1631,11 @@ export default function InstitutionPage() {
                         background:
                           ifForm.min_academic_level === lvl
                             ? '#C9993A'
-                            : 'rgba(255,255,255,0.05)',
+                            : 'var(--bg-elevated)',
                         color:
                           ifForm.min_academic_level === lvl
                             ? '#060F1D'
-                            : 'rgba(255,255,255,0.6)',
+                            : 'var(--text-secondary)',
                       }}
                     >
                       {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
@@ -1647,7 +1647,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Preferred subject knowledge (comma-separated)
                 </label>
@@ -1659,8 +1659,8 @@ export default function InstitutionPage() {
                   placeholder="e.g. Python, Machine Learning, Statistics"
                   className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                   }}
                 />
               </div>
@@ -1669,7 +1669,7 @@ export default function InstitutionPage() {
                 <div>
                   <label
                     className="mb-1.5 block text-xs font-medium"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Duration (months)
                   </label>
@@ -1684,11 +1684,11 @@ export default function InstitutionPage() {
                           background:
                             ifForm.duration_months === d
                               ? 'rgba(201,153,58,0.2)'
-                              : 'rgba(255,255,255,0.05)',
+                              : 'var(--bg-elevated)',
                           color:
                             ifForm.duration_months === d
                               ? '#E5B86A'
-                              : 'rgba(255,255,255,0.6)',
+                              : 'var(--text-secondary)',
                         }}
                       >
                         {d}mo
@@ -1699,7 +1699,7 @@ export default function InstitutionPage() {
                 <div>
                   <label
                     className="mb-1.5 block text-xs font-medium"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Seats available
                   </label>
@@ -1712,8 +1712,8 @@ export default function InstitutionPage() {
                     }
                     className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '0.5px solid rgba(255,255,255,0.1)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-medium)',
                     }}
                   />
                 </div>
@@ -1722,7 +1722,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-2 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Stipend
                 </label>
@@ -1733,7 +1733,7 @@ export default function InstitutionPage() {
                     style={{
                       background: ifForm.is_paid
                         ? '#4ADE80'
-                        : 'rgba(255,255,255,0.1)',
+                        : 'var(--border-medium)',
                     }}
                   >
                     <div
@@ -1743,7 +1743,7 @@ export default function InstitutionPage() {
                   </button>
                   <span
                     className="text-sm"
-                    style={{ color: 'rgba(255,255,255,0.6)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Paid internship
                   </span>
@@ -1757,8 +1757,8 @@ export default function InstitutionPage() {
                     placeholder="Monthly stipend in ₹"
                     className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '0.5px solid rgba(255,255,255,0.1)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-medium)',
                     }}
                   />
                 )}
@@ -1768,7 +1768,7 @@ export default function InstitutionPage() {
                 <div>
                   <label
                     className="mb-1.5 block text-xs font-medium"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Work mode
                   </label>
@@ -1783,11 +1783,11 @@ export default function InstitutionPage() {
                           background:
                             ifForm.work_mode === mode
                               ? 'rgba(99,102,241,0.2)'
-                              : 'rgba(255,255,255,0.05)',
+                              : 'var(--bg-elevated)',
                           color:
                             ifForm.work_mode === mode
                               ? '#818CF8'
-                              : 'rgba(255,255,255,0.5)',
+                              : 'var(--text-secondary)',
                         }}
                       >
                         {mode}
@@ -1798,7 +1798,7 @@ export default function InstitutionPage() {
                 <div>
                   <label
                     className="mb-1.5 block text-xs font-medium"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Location / city
                   </label>
@@ -1808,8 +1808,8 @@ export default function InstitutionPage() {
                     placeholder={inst?.city ?? 'City or Remote'}
                     className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '0.5px solid rgba(255,255,255,0.1)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-medium)',
                     }}
                   />
                 </div>
@@ -1818,7 +1818,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-1.5 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Application deadline
                 </label>
@@ -1830,8 +1830,8 @@ export default function InstitutionPage() {
                   }
                   className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                   }}
                 />
               </div>
@@ -1839,7 +1839,7 @@ export default function InstitutionPage() {
               <div>
                 <label
                   className="mb-3 block text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Listing plan
                 </label>
@@ -1859,8 +1859,8 @@ export default function InstitutionPage() {
                         background:
                           ifForm.listing_plan === plan.id
                             ? 'rgba(201,153,58,0.1)'
-                            : 'rgba(255,255,255,0.03)',
-                        border: `0.5px solid ${ifForm.listing_plan === plan.id ? 'rgba(201,153,58,0.45)' : 'rgba(255,255,255,0.08)'}`,
+                            : 'var(--bg-elevated)',
+                        border: `0.5px solid ${ifForm.listing_plan === plan.id ? 'rgba(201,153,58,0.45)' : 'var(--bg-elevated)'}`,
                       }}
                     >
                       <div>
@@ -1888,7 +1888,7 @@ export default function InstitutionPage() {
                         </p>
                         <p
                           className="mt-0.5 text-xs"
-                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           {plan.desc}
                         </p>
@@ -1934,7 +1934,7 @@ export default function InstitutionPage() {
                   setIfSelectedPosting(null)
                 }}
                 className="text-sm"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 ← Postings
               </button>
@@ -1943,7 +1943,7 @@ export default function InstitutionPage() {
               </h2>
               <span
                 className="text-sm"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 ({ifApplicants.length} applicant
                 {ifApplicants.length !== 1 ? 's' : ''})
@@ -1957,7 +1957,7 @@ export default function InstitutionPage() {
                     key={i}
                     className="animate-pulse rounded-2xl"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
+                      background: 'var(--bg-elevated)',
                       height: '120px',
                     }}
                   />
@@ -1967,8 +1967,8 @@ export default function InstitutionPage() {
               <div
                 className="rounded-2xl py-20 text-center"
                 style={{
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '0.5px solid rgba(255,255,255,0.06)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--bg-elevated)',
                 }}
               >
                 <p className="font-playfair text-xl text-white/30">
@@ -1985,8 +1985,8 @@ export default function InstitutionPage() {
                     key={a.id}
                     className="rounded-2xl p-5"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--bg-elevated)',
                     }}
                   >
                     <div className="mb-3 flex items-start justify-between gap-3">
@@ -1996,7 +1996,7 @@ export default function InstitutionPage() {
                         </p>
                         <p
                           className="mt-0.5 text-xs"
-                          style={{ color: 'rgba(255,255,255,0.35)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           {a.student_academic_level} · {a.student_city}
                           {' · '}Applied{' '}
@@ -2030,7 +2030,7 @@ export default function InstitutionPage() {
                         </p>
                         <p
                           className="text-[10px]"
-                          style={{ color: 'rgba(255,255,255,0.3)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           soul match
                         </p>
@@ -2044,8 +2044,8 @@ export default function InstitutionPage() {
                             key={t}
                             className="rounded-full px-2 py-0.5 text-[10px]"
                             style={{
-                              background: 'rgba(255,255,255,0.05)',
-                              color: 'rgba(255,255,255,0.4)',
+                              background: 'var(--bg-elevated)',
+                              color: 'var(--text-tertiary)',
                             }}
                           >
                             {t}
@@ -2068,8 +2068,8 @@ export default function InstitutionPage() {
                       <p
                         className="mb-3 rounded-xl px-3 py-2 text-xs italic"
                         style={{
-                          background: 'rgba(255,255,255,0.03)',
-                          color: 'rgba(255,255,255,0.55)',
+                          background: 'var(--bg-elevated)',
+                          color: 'var(--text-secondary)',
                         }}
                       >
                         &ldquo;{a.cover_note}&rdquo;

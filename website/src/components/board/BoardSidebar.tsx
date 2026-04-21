@@ -124,8 +124,8 @@ export function BoardSidebar({
               className="pointer-events-none absolute -top-12 left-1/2 z-10 w-56 -translate-x-1/2 rounded-xl px-3 py-2 text-center text-xs opacity-0 transition-opacity group-hover:opacity-100"
               style={{
                 background: '#1A1814',
-                border: '0.5px solid rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.85)',
+                border: '0.5px solid var(--border-medium)',
+                color: 'var(--text-primary)',
               }}
             >
               Board posting available for Indian students

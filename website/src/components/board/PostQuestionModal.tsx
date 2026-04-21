@@ -218,7 +218,7 @@ export function PostQuestionModal({
             className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-lg -translate-y-1/2 rounded-3xl p-7"
             style={{
               background: 'linear-gradient(160deg,#0B1F3A 0%,#060F1D 100%)',
-              border: '0.5px solid rgba(255,255,255,0.1)',
+              border: '0.5px solid var(--border-medium)',
               boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
             }}
           >
@@ -266,7 +266,7 @@ export function PostQuestionModal({
                 <p
                   style={{
                     fontSize: '13px',
-                    color: 'rgba(255,255,255,0.5)',
+                    color: 'var(--text-secondary)',
                     margin: '0 0 6px',
                     lineHeight: 1.6,
                   }}
@@ -276,7 +276,7 @@ export function PostQuestionModal({
                 <p
                   style={{
                     fontSize: '13px',
-                    color: 'rgba(255,255,255,0.5)',
+                    color: 'var(--text-secondary)',
                     margin: '0 0 28px',
                     lineHeight: 1.6,
                   }}
@@ -317,9 +317,9 @@ export function PostQuestionModal({
                     style={{
                       padding: '12px',
                       background: 'transparent',
-                      border: '0.5px solid rgba(255,255,255,0.15)',
+                      border: '0.5px solid var(--border-strong)',
                       borderRadius: '12px',
-                      color: 'rgba(255,255,255,0.5)',
+                      color: 'var(--text-secondary)',
                       fontSize: '13px',
                       cursor: 'pointer',
                     }}
@@ -331,7 +331,7 @@ export function PostQuestionModal({
                 <p
                   style={{
                     fontSize: '11px',
-                    color: 'rgba(255,255,255,0.2)',
+                    color: 'var(--text-ghost)',
                     marginTop: '16px',
                   }}
                 >
@@ -347,8 +347,8 @@ export function PostQuestionModal({
                   onClick={handleClose}
                   className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full text-sm"
                   style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    color: 'rgba(255,255,255,0.4)',
+                    background: 'var(--bg-elevated)',
+                    color: 'var(--text-tertiary)',
                   }}
                 >
                   ✕
@@ -359,7 +359,7 @@ export function PostQuestionModal({
                 </h2>
                 <p
                   className="mb-6 text-sm"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   Your question will get an AI answer immediately, and community
                   members can reply.
@@ -370,7 +370,7 @@ export function PostQuestionModal({
                   <div className="mb-1.5 flex justify-between">
                     <label
                       className="text-xs font-medium"
-                      style={{ color: 'rgba(255,255,255,0.5)' }}
+                      style={{ color: 'var(--text-secondary)' }}
                     >
                       Your question{' '}
                       <span style={{ color: primaryColor }}>*</span>
@@ -381,7 +381,7 @@ export function PostQuestionModal({
                         color:
                           title.length > MAX_TITLE - 30
                             ? '#FCA5A5'
-                            : 'rgba(255,255,255,0.25)',
+                            : 'var(--text-ghost)',
                       }}
                     >
                       {title.length} / {MAX_TITLE}
@@ -396,8 +396,8 @@ export function PostQuestionModal({
                     rows={3}
                     className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '0.5px solid rgba(255,255,255,0.1)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-medium)',
                       fontFamily: 'var(--font-dm-sans)',
                     }}
                     onFocus={(e) =>
@@ -405,7 +405,7 @@ export function PostQuestionModal({
                     }
                     onBlur={(e) =>
                       (e.currentTarget.style.borderColor =
-                        'rgba(255,255,255,0.1)')
+                        'var(--border-medium)')
                     }
                   />
                 </div>
@@ -414,7 +414,7 @@ export function PostQuestionModal({
                 <div className="mb-5">
                   <p
                     className="mb-2 text-xs font-medium"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     Topic tag
                   </p>
@@ -429,11 +429,11 @@ export function PostQuestionModal({
                           style={{
                             background: active
                               ? primaryColor
-                              : 'rgba(255,255,255,0.05)',
-                            border: `0.5px solid ${active ? primaryColor : 'rgba(255,255,255,0.1)'}`,
+                              : 'var(--bg-elevated)',
+                            border: `0.5px solid ${active ? primaryColor : 'var(--border-medium)'}`,
                             color: active
                               ? '#060F1D'
-                              : 'rgba(255,255,255,0.55)',
+                              : 'var(--text-secondary)',
                           }}
                         >
                           {t}
@@ -447,8 +447,8 @@ export function PostQuestionModal({
                 <div
                   className="mb-6 flex items-center justify-between rounded-xl px-4 py-3"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '0.5px solid rgba(255,255,255,0.07)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--bg-elevated)',
                   }}
                 >
                   <div>
@@ -457,7 +457,7 @@ export function PostQuestionModal({
                     </p>
                     <p
                       className="text-[11px]"
-                      style={{ color: 'rgba(255,255,255,0.35)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       Shows as &quot;Anonymous Student&quot;
                     </p>
@@ -468,7 +468,7 @@ export function PostQuestionModal({
                     style={{
                       background: isAnonymous
                         ? primaryColor
-                        : 'rgba(255,255,255,0.12)',
+                        : 'var(--border-medium)',
                     }}
                   >
                     <div
@@ -504,7 +504,7 @@ export function PostQuestionModal({
                     <p
                       style={{
                         fontSize: '12px',
-                        color: 'rgba(255,255,255,0.45)',
+                        color: 'var(--text-tertiary)',
                         margin: '0 0 16px',
                         lineHeight: 1.5,
                       }}
@@ -543,9 +543,9 @@ export function PostQuestionModal({
                         style={{
                           padding: '11px',
                           background: 'transparent',
-                          border: '0.5px solid rgba(255,255,255,0.12)',
+                          border: '0.5px solid var(--border-medium)',
                           borderRadius: '10px',
-                          color: 'rgba(255,255,255,0.4)',
+                          color: 'var(--text-tertiary)',
                           fontSize: '12px',
                           cursor: 'pointer',
                         }}

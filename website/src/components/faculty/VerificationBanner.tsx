@@ -147,7 +147,7 @@ export function VerificationBanner({
         <p
           style={{
             fontSize: '12px',
-            color: 'rgba(255,255,255,0.5)',
+            color: 'var(--text-secondary)',
             margin: '0 0 14px',
             lineHeight: 1.6,
           }}
@@ -172,10 +172,10 @@ export function VerificationBanner({
           onChange={(e) => setDocType(e.target.value as DocType)}
           style={{
             padding: '8px 12px',
-            background: 'rgba(255,255,255,0.06)',
-            border: '0.5px solid rgba(255,255,255,0.15)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--border-strong)',
             borderRadius: '8px',
-            color: docType ? '#fff' : 'rgba(255,255,255,0.4)',
+            color: docType ? '#fff' : 'var(--text-tertiary)',
             fontSize: '12px',
             outline: 'none',
             width: '100%',
@@ -224,7 +224,7 @@ export function VerificationBanner({
               <p
                 style={{
                   fontSize: '13px',
-                  color: 'rgba(255,255,255,0.5)',
+                  color: 'var(--text-secondary)',
                   margin: 0,
                 }}
               >
@@ -235,7 +235,7 @@ export function VerificationBanner({
               <p
                 style={{
                   fontSize: '11px',
-                  color: 'rgba(255,255,255,0.25)',
+                  color: 'var(--text-ghost)',
                   margin: '4px 0 0',
                 }}
               >

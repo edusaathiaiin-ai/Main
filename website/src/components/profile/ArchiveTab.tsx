@@ -107,8 +107,8 @@ export default function ArchiveTab({ userId }: { userId: string }) {
     return (
       <div className="py-16 text-center">
         <p className="mb-2 text-3xl">📓</p>
-        <p className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.6)' }}>No research archives yet</p>
-        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+        <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>No research archives yet</p>
+        <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>
           Join a classroom session — your scientific notebook starts building automatically.
         </p>
       </div>
@@ -127,7 +127,7 @@ export default function ArchiveTab({ userId }: { userId: string }) {
           <div
             key={archive.id}
             className="rounded-2xl p-5"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--bg-elevated)' }}
           >
             {/* Header: Saathi dot + name + faculty + date */}
             <div className="mb-3 flex items-start justify-between">
@@ -135,21 +135,21 @@ export default function ArchiveTab({ userId }: { userId: string }) {
                 {saathi && (
                   <div className="h-3 w-3 rounded-full" style={{ background: saathi.primary }} />
                 )}
-                <span className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                   {saathi?.name ?? archive.saathi_slug}
                 </span>
                 {archive.faculty_name && (
-                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                  <span className="text-xs" style={{ color: 'var(--text-ghost)' }}>
                     · {archive.faculty_name}
                   </span>
                 )}
               </div>
               <div className="text-right">
-                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                   {new Date(archive.session_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </p>
                 {archive.session_duration && (
-                  <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                  <p className="text-[10px]" style={{ color: 'var(--text-ghost)' }}>
                     {archive.session_duration}
                   </p>
                 )}
@@ -158,7 +158,7 @@ export default function ArchiveTab({ userId }: { userId: string }) {
 
             {/* Summary */}
             {archive.summary && (
-              <p className="mb-3 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
+              <p className="mb-3 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {archive.summary}
               </p>
             )}
@@ -183,7 +183,7 @@ export default function ArchiveTab({ userId }: { userId: string }) {
                 })}
                 {remaining > 0 && (
                   <span className="rounded-md px-2 py-0.5 text-[10px] font-semibold"
-                    style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)' }}>
+                    style={{ background: 'var(--bg-elevated)', color: 'var(--text-ghost)' }}>
                     + {remaining} more
                   </span>
                 )}

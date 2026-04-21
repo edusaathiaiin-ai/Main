@@ -37,7 +37,7 @@ export function FreePlanBar({ quota, planId, isFreeTrial }: Props) {
         borderBottom:  '0.5px solid var(--border-subtle)',
         background:    allUsed
           ? 'rgba(239,68,68,0.05)'
-          : 'rgba(255,255,255,0.02)',
+          : 'var(--bg-elevated)',
         transition:    'background 0.3s ease',
         flexShrink:    0,
       }}

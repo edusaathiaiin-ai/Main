@@ -117,7 +117,7 @@ export function QuestionCard({
         background: isLegalTheme ? '#FFFFFF' : '#0A1929',
         border: isLegalTheme
           ? `1px solid ${hovered ? '#BBBBBB' : '#E0E0E0'}`
-          : `0.5px solid ${hovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
+          : `0.5px solid ${hovered ? 'var(--border-medium)' : 'var(--bg-elevated)'}`,
       }}
     >
       {/* Author row */}
@@ -185,7 +185,7 @@ export function QuestionCard({
             <p
               className="text-[10px]"
               style={{
-                color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)',
+                color: isLegalTheme ? '#AAAAAA' : 'var(--text-ghost)',
               }}
             >
               {timeAgo(question.created_at)}
@@ -243,7 +243,7 @@ export function QuestionCard({
             <motion.p
               className="overflow-hidden text-xs leading-relaxed"
               style={{
-                color: isLegalTheme ? '#444444' : 'rgba(255,255,255,0.6)',
+                color: isLegalTheme ? '#444444' : 'var(--text-secondary)',
                 maxHeight: expanded ? 500 : 60,
                 overflow: 'hidden',
               }}
@@ -272,7 +272,7 @@ export function QuestionCard({
           <span
             className="text-[10px]"
             style={{
-              color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.35)',
+              color: isLegalTheme ? '#AAAAAA' : 'var(--text-ghost)',
             }}
           >
             Awaiting AI answer…
@@ -286,7 +286,7 @@ export function QuestionCard({
           <span
             className="text-[11px]"
             style={{
-              color: isLegalTheme ? '#AAAAAA' : 'rgba(255,255,255,0.3)',
+              color: isLegalTheme ? '#AAAAAA' : 'var(--text-ghost)',
             }}
           >
             {question.answer_count ?? 0}{' '}
@@ -316,7 +316,7 @@ export function QuestionCard({
                   ? '#FCA5A5'
                   : isLegalTheme
                     ? '#BBBBBB'
-                    : 'rgba(255,255,255,0.2)',
+                    : 'var(--text-ghost)',
                 background: flagged ? 'rgba(239,68,68,0.1)' : 'transparent',
               }}
               title={flagged ? 'Flagged' : 'Flag this question'}

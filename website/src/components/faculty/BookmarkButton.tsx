@@ -70,10 +70,10 @@ export function BookmarkButton({ facultyId, facultyName, size = 'md' }: Props) {
           borderRadius: isSmall ? '8px' : '10px',
           background: bookmarked
             ? 'rgba(201,153,58,0.15)'
-            : 'rgba(255,255,255,0.06)',
+            : 'var(--bg-elevated)',
           border: bookmarked
             ? '0.5px solid rgba(201,153,58,0.5)'
-            : '0.5px solid rgba(255,255,255,0.12)',
+            : '0.5px solid var(--border-medium)',
           cursor: loading ? 'default' : 'pointer',
           transition: 'all 0.2s',
           flexShrink: 0,
@@ -84,7 +84,7 @@ export function BookmarkButton({ facultyId, facultyName, size = 'md' }: Props) {
           height={isSmall ? 14 : 18}
           viewBox="0 0 24 24"
           fill={bookmarked ? '#C9993A' : 'none'}
-          stroke={bookmarked ? '#C9993A' : 'rgba(255,255,255,0.4)'}
+          stroke={bookmarked ? '#C9993A' : 'var(--text-tertiary)'}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -105,7 +105,7 @@ export function BookmarkButton({ facultyId, facultyName, size = 'md' }: Props) {
             fontWeight: '600',
             padding: '5px 10px',
             borderRadius: '8px',
-            background: '#0B1F3A',
+            background: 'var(--bg-surface)',
             color: '#C9993A',
             border: '0.5px solid rgba(201,153,58,0.4)',
             pointerEvents: 'none',

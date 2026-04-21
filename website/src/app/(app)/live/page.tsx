@@ -163,8 +163,8 @@ export default function LivePage() {
 
   const selectStyle: React.CSSProperties = {
     padding: '8px 14px',
-    background: 'rgba(255,255,255,0.06)',
-    border: '0.5px solid rgba(255,255,255,0.12)',
+    background: 'var(--bg-elevated)',
+    border: '0.5px solid var(--border-medium)',
     borderRadius: '10px',
     color: '#fff',
     fontSize: '12px',
@@ -179,7 +179,7 @@ export default function LivePage() {
         style={{
           background: 'linear-gradient(180deg, #0B1F3A 0%, #060F1D 100%)',
           padding: '40px 24px 32px',
-          borderBottom: '0.5px solid rgba(255,255,255,0.06)',
+          borderBottom: '0.5px solid var(--bg-elevated)',
         }}
       >
         <div className="mx-auto max-w-[1100px]">
@@ -206,7 +206,7 @@ export default function LivePage() {
               </h1>
               <p
                 className="max-w-[500px] text-sm"
-                style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}
+                style={{ color: 'var(--text-secondary)', lineHeight: 1.7 }}
               >
                 Group lectures, workshops, and Q&amp;A sessions. Book your seat.
                 Show up. Learn deeply.
@@ -229,7 +229,7 @@ export default function LivePage() {
                   </p>
                   <p
                     className="text-[10px] tracking-wider uppercase"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                   >
                     {s.label}
                   </p>
@@ -250,8 +250,8 @@ export default function LivePage() {
               placeholder="Search sessions, topics, faculty..."
               className="w-full rounded-[14px] py-3 pr-4 pl-12 text-sm text-white outline-none"
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '0.5px solid rgba(255,255,255,0.12)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-medium)',
               }}
             />
           </div>
@@ -290,7 +290,7 @@ export default function LivePage() {
             ))}
           </select>
           <div className="flex-1" />
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
             {filtered.length} sessions
           </p>
         </div>
@@ -325,7 +325,7 @@ export default function LivePage() {
                 <div
                   key={i}
                   className="h-[240px] animate-pulse rounded-2xl"
-                  style={{ background: 'rgba(255,255,255,0.03)' }}
+                  style={{ background: 'var(--bg-elevated)' }}
                 />
               ))}
             </div>
@@ -337,7 +337,7 @@ export default function LivePage() {
               </p>
               <p
                 className="text-xs"
-                style={{ color: 'rgba(255,255,255,0.25)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 Check back soon — faculty announce new sessions every week.
               </p>
@@ -382,7 +382,7 @@ function SessionCard({
   const isEmeritus = s.faculty_emeritus === true
   const borderDefault = isEmeritus
     ? 'rgba(201,153,58,0.3)'
-    : 'rgba(255,255,255,0.08)'
+    : 'var(--bg-elevated)'
   const borderHover = isEmeritus ? 'rgba(201,153,58,0.5)' : `${color}40`
 
   return (
@@ -397,7 +397,7 @@ function SessionCard({
       style={{
         background: isEmeritus
           ? 'rgba(201,153,58,0.03)'
-          : 'rgba(255,255,255,0.03)',
+          : 'var(--bg-elevated)',
         border: `${isEmeritus ? '1px' : '0.5px'} solid ${borderDefault}`,
         transition: 'border-color 0.2s',
       }}
@@ -435,7 +435,7 @@ function SessionCard({
         </h3>
 
         {/* Faculty */}
-        <p className="mb-3 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+        <p className="mb-3 text-xs" style={{ color: 'var(--text-tertiary)' }}>
           {s.faculty_name ?? 'Faculty'}
           {isEmeritus && (
             <span
@@ -456,7 +456,7 @@ function SessionCard({
         {nextLecture && (
           <p
             className="mb-3 text-xs"
-            style={{ color: 'rgba(255,255,255,0.35)' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             {'\u{1F4C5}'}{' '}
             {new Date(nextLecture.scheduled_at).toLocaleDateString('en-IN', {
@@ -476,8 +476,8 @@ function SessionCard({
                 key={t}
                 className="rounded-full px-2 py-0.5 text-[9px]"
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  color: 'rgba(255,255,255,0.4)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-tertiary)',
                 }}
               >
                 {t}
@@ -497,14 +497,14 @@ function SessionCard({
             </span>
             <span
               className="text-[10px]"
-              style={{ color: 'rgba(255,255,255,0.3)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               {s.seats_booked}/{s.total_seats}
             </span>
           </div>
           <div
             className="h-1.5 overflow-hidden rounded-full"
-            style={{ background: 'rgba(255,255,255,0.06)' }}
+            style={{ background: 'var(--bg-elevated)' }}
           >
             <div
               className="h-full rounded-full transition-all duration-500"
@@ -521,7 +521,7 @@ function SessionCard({
       <div
         className="flex items-center justify-between px-5 py-3.5"
         style={{
-          borderTop: '0.5px solid rgba(255,255,255,0.06)',
+          borderTop: '0.5px solid var(--bg-elevated)',
           background: 'rgba(0,0,0,0.15)',
         }}
       >
@@ -545,8 +545,8 @@ function SessionCard({
           onClick={(e) => e.stopPropagation()}
           className="rounded-xl px-5 py-2.5 text-xs font-bold"
           style={{
-            background: isFull ? 'rgba(255,255,255,0.1)' : color,
-            color: isFull ? 'rgba(255,255,255,0.5)' : '#0B1F3A',
+            background: isFull ? 'var(--border-medium)' : color,
+            color: isFull ? 'var(--text-secondary)' : '#0B1F3A',
             textDecoration: 'none',
           }}
         >

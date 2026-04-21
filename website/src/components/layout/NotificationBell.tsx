@@ -138,8 +138,8 @@ export function NotificationBell() {
           width: '36px',
           height: '36px',
           borderRadius: '10px',
-          background: open ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.06)',
-          border: '0.5px solid rgba(255,255,255,0.12)',
+          background: open ? 'var(--border-medium)' : 'var(--bg-elevated)',
+          border: '0.5px solid var(--border-medium)',
           cursor: 'pointer',
           transition: 'all 0.2s',
         }}
@@ -149,7 +149,7 @@ export function NotificationBell() {
           height="17"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="rgba(255,255,255,0.6)"
+          stroke="var(--text-secondary)"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -196,8 +196,8 @@ export function NotificationBell() {
               right: 0,
               width: '320px',
               borderRadius: '16px',
-              background: '#0B1F3A',
-              border: '0.5px solid rgba(255,255,255,0.1)',
+              background: 'var(--bg-surface)',
+              border: '0.5px solid var(--border-medium)',
               boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
               zIndex: 200,
               overflow: 'hidden',
@@ -207,7 +207,7 @@ export function NotificationBell() {
             <div
               style={{
                 padding: '14px 16px 10px',
-                borderBottom: '0.5px solid rgba(255,255,255,0.07)',
+                borderBottom: '0.5px solid var(--bg-elevated)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -225,7 +225,7 @@ export function NotificationBell() {
               </p>
               {notifications.length > 0 && (
                 <span
-                  style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}
+                  style={{ fontSize: '10px', color: 'var(--text-ghost)' }}
                 >
                   {notifications.length} recent
                 </span>
@@ -239,7 +239,7 @@ export function NotificationBell() {
                 <p
                   style={{
                     fontSize: '13px',
-                    color: 'rgba(255,255,255,0.35)',
+                    color: 'var(--text-ghost)',
                     margin: 0,
                   }}
                 >
@@ -258,7 +258,7 @@ export function NotificationBell() {
                       display: 'block',
                       padding: '12px 16px',
                       border: 'none',
-                      borderBottom: '0.5px solid rgba(255,255,255,0.05)',
+                      borderBottom: '0.5px solid var(--bg-elevated)',
                       background: n.is_read
                         ? 'transparent'
                         : 'rgba(201,153,58,0.05)',
@@ -268,7 +268,7 @@ export function NotificationBell() {
                     onMouseEnter={(e) => {
                       if (n.action_url)
                         e.currentTarget.style.background =
-                          'rgba(255,255,255,0.04)'
+                          'var(--bg-elevated)'
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = n.is_read
@@ -297,7 +297,7 @@ export function NotificationBell() {
                           style={{
                             fontSize: '12px',
                             fontWeight: '600',
-                            color: n.is_read ? 'rgba(255,255,255,0.6)' : '#fff',
+                            color: n.is_read ? 'var(--text-secondary)' : '#fff',
                             margin: '0 0 2px',
                             lineHeight: 1.4,
                           }}
@@ -308,7 +308,7 @@ export function NotificationBell() {
                           <p
                             style={{
                               fontSize: '11px',
-                              color: 'rgba(255,255,255,0.35)',
+                              color: 'var(--text-ghost)',
                               margin: '0 0 4px',
                               lineHeight: 1.4,
                               overflow: 'hidden',
@@ -322,7 +322,7 @@ export function NotificationBell() {
                         <p
                           style={{
                             fontSize: '10px',
-                            color: 'rgba(255,255,255,0.25)',
+                            color: 'var(--text-ghost)',
                             margin: 0,
                           }}
                         >
@@ -351,7 +351,7 @@ export function NotificationBell() {
             <div
               style={{
                 padding: '10px 16px',
-                borderTop: '0.5px solid rgba(255,255,255,0.07)',
+                borderTop: '0.5px solid var(--bg-elevated)',
                 textAlign: 'center',
               }}
             >
@@ -359,7 +359,7 @@ export function NotificationBell() {
                 onClick={() => setOpen(false)}
                 style={{
                   fontSize: '11px',
-                  color: 'rgba(255,255,255,0.3)',
+                  color: 'var(--text-ghost)',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',

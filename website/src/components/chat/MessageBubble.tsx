@@ -396,7 +396,7 @@ function RenderSegments({
                 style={{
                   margin: '12px 0',
                   padding: '12px 16px',
-                  background: 'rgba(255,255,255,0.05)',
+                  background: 'var(--bg-elevated)',
                   borderRadius: '8px',
                   overflowX: 'auto',
                 }}
@@ -416,17 +416,17 @@ function RenderSegments({
                   margin: '12px 0',
                   borderRadius: '10px',
                   overflow: 'hidden',
-                  border: '0.5px solid rgba(255,255,255,0.1)',
+                  border: '0.5px solid var(--border-medium)',
                 }}
               >
                 {seg.language && seg.language !== 'text' && (
                   <div
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
+                      background: 'var(--bg-elevated)',
                       padding: '4px 12px',
                       fontSize: '11px',
-                      color: 'rgba(255,255,255,0.4)',
-                      borderBottom: '0.5px solid rgba(255,255,255,0.1)',
+                      color: 'var(--text-tertiary)',
+                      borderBottom: '0.5px solid var(--border-medium)',
                       fontFamily: 'monospace',
                     }}
                   >
@@ -593,7 +593,7 @@ function RenderSegments({
                 style={{
                   margin: '12px 0',
                   padding: '12px 16px',
-                  background: 'rgba(255,255,255,0.05)',
+                  background: 'var(--bg-elevated)',
                   borderRadius: '8px',
                   overflowX: 'auto',
                 }}
@@ -715,7 +715,7 @@ function SaveFlashcardMini({
           <label
             style={{
               fontSize: '10px',
-              color: 'rgba(255,255,255,0.35)',
+              color: 'var(--text-ghost)',
               display: 'block',
               marginBottom: '4px',
             }}
@@ -728,8 +728,8 @@ function SaveFlashcardMini({
             rows={2}
             style={{
               width: '100%',
-              background: 'rgba(255,255,255,0.05)',
-              border: '0.5px solid rgba(255,255,255,0.1)',
+              background: 'var(--bg-elevated)',
+              border: '0.5px solid var(--border-medium)',
               borderRadius: '8px',
               padding: '8px 10px',
               color: '#fff',
@@ -745,7 +745,7 @@ function SaveFlashcardMini({
           <label
             style={{
               fontSize: '10px',
-              color: 'rgba(255,255,255,0.35)',
+              color: 'var(--text-ghost)',
               display: 'block',
               marginBottom: '4px',
             }}
@@ -758,8 +758,8 @@ function SaveFlashcardMini({
             rows={3}
             style={{
               width: '100%',
-              background: 'rgba(255,255,255,0.05)',
-              border: '0.5px solid rgba(255,255,255,0.1)',
+              background: 'var(--bg-elevated)',
+              border: '0.5px solid var(--border-medium)',
               borderRadius: '8px',
               padding: '8px 10px',
               color: '#fff',
@@ -795,9 +795,9 @@ function SaveFlashcardMini({
             style={{
               padding: '8px 12px',
               borderRadius: '8px',
-              background: 'rgba(255,255,255,0.05)',
-              border: '0.5px solid rgba(255,255,255,0.1)',
-              color: 'rgba(255,255,255,0.4)',
+              background: 'var(--bg-elevated)',
+              border: '0.5px solid var(--border-medium)',
+              color: 'var(--text-tertiary)',
               fontSize: '12px',
               cursor: 'pointer',
             }}
@@ -841,7 +841,7 @@ function TypingCursor() {
   return (
     <motion.span
       className="ml-0.5 inline-block h-4 w-0.5 rounded-sm align-middle"
-      style={{ background: 'rgba(255,255,255,0.6)' }}
+      style={{ background: 'var(--text-secondary)' }}
       animate={{ opacity: [1, 0] }}
       transition={{ repeat: Infinity, duration: 0.7, ease: 'easeInOut' }}
     />
@@ -855,7 +855,7 @@ function ThreeDots() {
         <motion.span
           key={i}
           className="h-2 w-2 rounded-full"
-          style={{ background: 'rgba(255,255,255,0.5)' }}
+          style={{ background: 'var(--text-secondary)' }}
           animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
           transition={{ repeat: Infinity, duration: 1.2, delay: i * 0.2 }}
         />

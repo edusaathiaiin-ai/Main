@@ -29,9 +29,9 @@ export function FilterBar({ active, onChange, primaryColor }: Props) {
             whileTap={{ scale: 0.96 }}
             className="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 outline-none"
             style={{
-              background: isActive ? primaryColor : 'rgba(255,255,255,0.05)',
-              border: `0.5px solid ${isActive ? primaryColor : 'rgba(255,255,255,0.1)'}`,
-              color: isActive ? '#060F1D' : 'rgba(255,255,255,0.5)',
+              background: isActive ? primaryColor : 'var(--bg-elevated)',
+              border: `0.5px solid ${isActive ? primaryColor : 'var(--border-medium)'}`,
+              color: isActive ? '#060F1D' : 'var(--text-secondary)',
             }}
           >
             {f.label}

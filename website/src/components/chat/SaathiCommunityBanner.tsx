@@ -126,7 +126,7 @@ export function SaathiCommunityBanner({
               transition={{ duration: 0.28 }}
               style={{
                 fontSize: '11px',
-                color: 'rgba(255,255,255,0.58)',
+                color: 'var(--text-secondary)',
                 margin: 0,
                 lineHeight: 1.5,
               }}
@@ -146,7 +146,7 @@ export function SaathiCommunityBanner({
                 height: '4px',
                 borderRadius: '50%',
                 background:
-                  i === msgIndex ? saathiColor : 'rgba(255,255,255,0.14)',
+                  i === msgIndex ? saathiColor : 'var(--border-strong)',
                 transition: 'background 0.3s',
               }}
             />
@@ -159,7 +159,7 @@ export function SaathiCommunityBanner({
           style={{
             background: 'none',
             border: 'none',
-            color: 'rgba(255,255,255,0.2)',
+            color: 'var(--text-ghost)',
             cursor: 'pointer',
             fontSize: '14px',
             padding: '0 2px',
@@ -179,7 +179,7 @@ export function SaathiCommunityBanner({
             bottom: '3px',
             right: '28px',
             fontSize: '8px',
-            color: 'rgba(255,255,255,0.13)',
+            color: 'var(--border-strong)',
           }}
         >
           updated every 48h

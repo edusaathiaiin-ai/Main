@@ -120,12 +120,12 @@ function isPersonalEmailDomain(email: string): boolean {
 const GREEN   = '#4ADE80'
 const GOLD    = '#C9993A'
 const NAVY    = '#060F1D'
-const CARD_BG = 'rgba(255,255,255,0.04)'
-const BORDER  = '0.5px solid rgba(255,255,255,0.08)'
+const CARD_BG = 'var(--bg-elevated)'
+const BORDER  = '0.5px solid var(--bg-elevated)'
 
 const inp = {
-  background:   'rgba(255,255,255,0.05)',
-  border:       '0.5px solid rgba(255,255,255,0.1)',
+  background:   'var(--bg-elevated)',
+  border:       '0.5px solid var(--border-medium)',
   color:        '#fff',
   borderRadius: '12px',
   padding:      '12px 16px',
@@ -155,9 +155,9 @@ function StepDots({ current }: { current: Step }) {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
             <motion.div
               animate={{
-                background:  i < idx ? GOLD : i === idx ? 'rgba(201,153,58,0.2)' : 'rgba(255,255,255,0.06)',
-                borderColor: i <= idx ? GOLD : 'rgba(255,255,255,0.1)',
-                color:       i < idx ? NAVY : i === idx ? GOLD : 'rgba(255,255,255,0.2)',
+                background:  i < idx ? GOLD : i === idx ? 'rgba(201,153,58,0.2)' : 'var(--bg-elevated)',
+                borderColor: i <= idx ? GOLD : 'var(--border-medium)',
+                color:       i < idx ? NAVY : i === idx ? GOLD : 'var(--text-ghost)',
               }}
               style={{
                 width: '28px', height: '28px', borderRadius: '50%',
@@ -170,14 +170,14 @@ function StepDots({ current }: { current: Step }) {
             </motion.div>
             <span style={{
               fontSize: '9px', letterSpacing: '0.04em',
-              color: i === idx ? GOLD : 'rgba(255,255,255,0.2)',
+              color: i === idx ? GOLD : 'var(--text-ghost)',
             }}>
               {STEP_LABELS[i]}
             </span>
           </div>
           {i < STEPS.length - 1 && (
             <motion.div
-              animate={{ background: i < idx ? GOLD : 'rgba(255,255,255,0.08)' }}
+              animate={{ background: i < idx ? GOLD : 'var(--bg-elevated)' }}
               style={{ width: '24px', height: '1px', marginBottom: '12px' }}
             />
           )}
@@ -244,7 +244,7 @@ function EmploymentStep({
         }}>
           Welcome, Professor.
         </h1>
-        <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+        <p style={{ fontSize: '16px', color: 'var(--text-secondary)', margin: 0 }}>
           EdUsaathiAI partners with faculty to reach students who need you.
           <br />Tell us where you teach from.
         </p>
@@ -263,7 +263,7 @@ function EmploymentStep({
                 display: 'flex', alignItems: 'center', gap: '20px',
                 padding: '20px 24px', borderRadius: '16px', textAlign: 'left',
                 background: active ? `${opt.color}12` : CARD_BG,
-                border: active ? `1.5px solid ${opt.color}60` : '1px solid rgba(255,255,255,0.06)',
+                border: active ? `1.5px solid ${opt.color}60` : '1px solid var(--bg-elevated)',
                 cursor: 'pointer',
                 boxShadow: active ? `0 0 32px ${opt.color}15` : 'none',
                 transition: 'all 0.2s',
@@ -273,13 +273,13 @@ function EmploymentStep({
               <div style={{ flex: 1 }}>
                 <p style={{
                   fontSize: '15px', fontWeight: 700,
-                  color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                  color: active ? '#fff' : 'var(--text-secondary)',
                   margin: '0 0 3px',
                   fontFamily: 'Playfair Display, serif',
                 }}>
                   {opt.title}
                 </p>
-                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+                <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', margin: 0 }}>
                   {opt.desc}
                 </p>
               </div>
@@ -314,11 +314,11 @@ function EmploymentStep({
           <p style={{ fontSize: '14px', fontFamily: 'Playfair Display, serif', fontWeight: 700, color: '#C9993A', margin: '0 0 10px' }}>
             Your role is not to explain the subject.
           </p>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.75)', margin: '0 0 10px', lineHeight: 1.7 }}>
+          <p style={{ fontSize: '15px', color: 'var(--text-secondary)', margin: '0 0 10px', lineHeight: 1.7 }}>
             Your role is to show students what it opens.
             The Saathi handles the curriculum. You handle the possibility.
           </p>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.6 }}>
             ✦ No institutional email needed. Your career speaks for itself.
             We verify retired faculty via a retirement letter, pension slip, or
             appointment letter — uploaded after you complete this form.
@@ -382,7 +382,7 @@ function ProfileStep({
     ? 'rgba(239,68,68,0.6)'
     : showNameValid
       ? 'rgba(74,222,128,0.5)'
-      : 'rgba(255,255,255,0.1)'
+      : 'var(--border-medium)'
 
   function validate() {
     const nameCheck = validateDisplayName(form.fullName)
@@ -422,7 +422,7 @@ function ProfileStep({
       display: 'block', marginBottom: '6px',
       fontSize: '13px', fontWeight: 600,
       letterSpacing: '0.06em', textTransform: 'uppercase',
-      color: 'rgba(255,255,255,0.35)',
+      color: 'var(--text-ghost)',
     }}>
       {children}
     </label>
@@ -438,7 +438,7 @@ function ProfileStep({
         }}>
           Your professional profile
         </h2>
-        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+        <p style={{ fontSize: '15px', color: 'var(--text-tertiary)', margin: 0 }}>
           Students see this when they find you on Faculty Finder. Make it yours.
         </p>
       </motion.div>
@@ -481,7 +481,7 @@ function ProfileStep({
             <select
               value={form.city}
               onChange={(e) => set('city', e.target.value)}
-              style={{ ...inp, color: form.city ? '#fff' : 'rgba(255,255,255,0.3)', appearance: 'none' }}
+              style={{ ...inp, color: form.city ? '#fff' : 'var(--text-ghost)', appearance: 'none' }}
             >
               <option value="">Select city</option>
               {CITIES.map((c) => (
@@ -510,7 +510,7 @@ function ProfileStep({
                 <select
                   value={form.designation}
                   onChange={(e) => set('designation', e.target.value)}
-                  style={{ ...inp, appearance: 'none', color: form.designation ? '#fff' : 'rgba(255,255,255,0.3)' }}
+                  style={{ ...inp, appearance: 'none', color: form.designation ? '#fff' : 'var(--text-ghost)' }}
                 >
                   <option value="">Select</option>
                   {['Professor', 'Associate Professor', 'Assistant Professor',
@@ -525,7 +525,7 @@ function ProfileStep({
                 <select
                   value={form.qualification}
                   onChange={(e) => set('qualification', e.target.value)}
-                  style={{ ...inp, appearance: 'none', color: form.qualification ? '#fff' : 'rgba(255,255,255,0.3)' }}
+                  style={{ ...inp, appearance: 'none', color: form.qualification ? '#fff' : 'var(--text-ghost)' }}
                 >
                   <option value="">Select</option>
                   {['PhD', 'M.Phil', 'Masters', 'Post-Doctoral',
@@ -560,7 +560,7 @@ function ProfileStep({
                 placeholder="Year"
                 style={inp}
                 onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-                onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                onBlur={(e)  => (e.currentTarget.style.borderColor = 'var(--border-medium)')}
               />
             </div>
           </div>
@@ -577,7 +577,7 @@ function ProfileStep({
                 placeholder="e.g. Practising CA at Buch & Associates"
                 style={inp}
                 onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-                onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                onBlur={(e)  => (e.currentTarget.style.borderColor = 'var(--border-medium)')}
               />
             </div>
             <div>
@@ -589,9 +589,9 @@ function ProfileStep({
                 rows={3}
                 style={{ ...inp, resize: 'none' }}
                 onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-                onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                onBlur={(e)  => (e.currentTarget.style.borderColor = 'var(--border-medium)')}
               />
-              <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>
+              <p style={{ fontSize: '10px', color: 'var(--text-ghost)', marginTop: '4px' }}>
                 {400 - form.credentials.length} characters remaining
               </p>
             </div>
@@ -612,7 +612,7 @@ function ProfileStep({
               placeholder="e.g. Physics, Constitutional Law, Pharmacology"
               style={inp}
               onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-              onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+              onBlur={(e)  => (e.currentTarget.style.borderColor = 'var(--border-medium)')}
             />
           </div>
         )}
@@ -628,7 +628,7 @@ function ProfileStep({
               placeholder="e.g. 22"
               style={inp}
               onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-              onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+              onBlur={(e)  => (e.currentTarget.style.borderColor = 'var(--border-medium)')}
             />
           </div>
           <div>
@@ -671,7 +671,7 @@ function ProfileStep({
             rows={2}
             style={{ ...inp, resize: 'none' }}
             onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-            onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+            onBlur={(e)  => (e.currentTarget.style.borderColor = 'var(--border-medium)')}
           />
         </div>
 
@@ -701,7 +701,7 @@ function ProfileStep({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '5px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-ghost)' }}>
                   LinkedIn URL{isPersonalEmail ? '' : ' (optional)'}
                 </span>
                 {isPersonalEmail && (
@@ -721,12 +721,12 @@ function ProfileStep({
                   ...inp,
                   borderColor: isPersonalEmail && !linkedinValue
                     ? 'rgba(245,158,11,0.45)'
-                    : 'rgba(255,255,255,0.1)',
+                    : 'var(--border-medium)',
                 }}
                 onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
                 onBlur={(e)  => (e.currentTarget.style.borderColor = isPersonalEmail && !linkedinValue
                   ? 'rgba(245,158,11,0.45)'
-                  : 'rgba(255,255,255,0.1)')}
+                  : 'var(--border-medium)')}
               />
             </div>
             <input
@@ -735,7 +735,7 @@ function ProfileStep({
               placeholder="Google Scholar URL (optional)"
               style={inp}
               onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-              onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+              onBlur={(e)  => (e.currentTarget.style.borderColor = 'var(--border-medium)')}
             />
           </div>
         </div>
@@ -747,10 +747,10 @@ function ProfileStep({
             onClick={() => document.getElementById('faculty-resume-upload')?.click()}
             style={{
               padding: '20px 16px', borderRadius: '12px', textAlign: 'center',
-              background: form.resumeFile ? 'rgba(74,222,128,0.06)' : 'rgba(255,255,255,0.03)',
+              background: form.resumeFile ? 'rgba(74,222,128,0.06)' : 'var(--bg-elevated)',
               border: form.resumeFile
                 ? '1px solid rgba(74,222,128,0.3)'
-                : '1px dashed rgba(255,255,255,0.15)',
+                : '1px dashed var(--border-strong)',
               cursor: 'pointer', transition: 'all 0.2s',
             }}
           >
@@ -759,16 +759,16 @@ function ProfileStep({
                 <p style={{ fontSize: '13px', color: GREEN, fontWeight: 600, margin: '0 0 2px' }}>
                   📄 {form.resumeFile.name}
                 </p>
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+                <p style={{ fontSize: '11px', color: 'var(--text-ghost)', margin: 0 }}>
                   {(form.resumeFile.size / 1024).toFixed(0)} KB · Click to replace
                 </p>
               </div>
             ) : (
               <div>
-                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: '0 0 4px' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '0 0 4px' }}>
                   Click to upload PDF
                 </p>
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', margin: 0 }}>
+                <p style={{ fontSize: '11px', color: 'var(--text-ghost)', margin: 0 }}>
                   Max 5 MB · PDF only
                 </p>
               </div>
@@ -785,7 +785,7 @@ function ProfileStep({
               set('resumeUrl', '')
             }}
           />
-          <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '6px' }}>
+          <p style={{ fontSize: '10px', color: 'var(--text-ghost)', marginTop: '6px' }}>
             Your resume is only visible to EdUsaathiAI admin for verification. It is never shared with students.
           </p>
         </div>
@@ -808,8 +808,8 @@ function ProfileStep({
           <button onClick={onBack}
             style={{
               padding: '14px 20px', borderRadius: '12px',
-              background: 'rgba(255,255,255,0.04)', border: BORDER,
-              color: 'rgba(255,255,255,0.4)', fontSize: '14px',
+              background: 'var(--bg-elevated)', border: BORDER,
+              color: 'var(--text-tertiary)', fontSize: '14px',
               cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
             }}>
             ← Back
@@ -862,11 +862,11 @@ function AffiliationsStep({
         }}>
           <span style={{ color: GOLD }}>✦</span> Your Professional Standing
         </h2>
-        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', margin: '0 0 6px', lineHeight: 1.6 }}>
+        <p style={{ fontSize: '15px', color: 'var(--text-tertiary)', margin: '0 0 6px', lineHeight: 1.6 }}>
           Add memberships, fellowships, alumni status, or council positions.
           These build trust with students instantly.
         </p>
-        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.25)', margin: 0 }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-ghost)', margin: 0 }}>
           Optional — skip if not applicable
         </p>
       </motion.div>
@@ -889,7 +889,7 @@ function AffiliationsStep({
               }}>
                 {/* Drag handle */}
                 <div style={{
-                  cursor: 'grab', color: 'rgba(255,255,255,0.18)',
+                  cursor: 'grab', color: 'var(--border-strong)',
                   fontSize: '18px', paddingTop: '10px', flexShrink: 0,
                   userSelect: 'none', lineHeight: 1,
                 }}>
@@ -903,7 +903,7 @@ function AffiliationsStep({
                     placeholder="Organisation / Body name e.g. IIM Ahmedabad, ICAI, Ministry of Science"
                     style={inp}
                     onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-                    onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                    onBlur={(e)  => (e.currentTarget.style.borderColor = 'var(--border-medium)')}
                   />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 112px', gap: '6px' }}>
                     <input
@@ -912,7 +912,7 @@ function AffiliationsStep({
                       placeholder="Your role e.g. Alumni, Fellow (FCA), Chairman"
                       style={inp}
                       onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-                      onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                      onBlur={(e)  => (e.currentTarget.style.borderColor = 'var(--border-medium)')}
                     />
                     <input
                       value={aff.year}
@@ -920,7 +920,7 @@ function AffiliationsStep({
                       placeholder="Year or Current"
                       style={inp}
                       onFocus={(e) => (e.currentTarget.style.borderColor = `${GOLD}80`)}
-                      onBlur={(e)  => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                      onBlur={(e)  => (e.currentTarget.style.borderColor = 'var(--border-medium)')}
                     />
                   </div>
                 </div>
@@ -929,13 +929,13 @@ function AffiliationsStep({
                   onClick={() => removeAffiliation(idx)}
                   style={{
                     background: 'transparent', border: 'none',
-                    color: 'rgba(255,255,255,0.2)', fontSize: '20px',
+                    color: 'var(--text-ghost)', fontSize: '20px',
                     cursor: 'pointer', padding: '4px 2px', flexShrink: 0,
                     lineHeight: 1, marginTop: '6px', fontFamily: 'sans-serif',
                     transition: 'color 0.15s',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = '#F87171')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.2)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-ghost)')}
                   aria-label="Remove affiliation"
                 >
                   ×
@@ -955,9 +955,9 @@ function AffiliationsStep({
             style={{
               display: 'flex', alignItems: 'center', gap: '8px',
               padding: '12px 16px', borderRadius: '10px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '0.5px dashed rgba(255,255,255,0.15)',
-              color: 'rgba(255,255,255,0.4)', fontSize: '14px',
+              background: 'var(--bg-elevated)',
+              border: '0.5px dashed var(--border-strong)',
+              color: 'var(--text-tertiary)', fontSize: '14px',
               cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
               width: '100%', justifyContent: 'center',
             }}
@@ -966,7 +966,7 @@ function AffiliationsStep({
           </motion.button>
         )}
 
-        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '4px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '10px', color: 'var(--text-ghost)', marginTop: '4px', lineHeight: 1.5 }}>
           Self-declared — EdUsaathiAI does not independently verify affiliations
         </p>
       </div>
@@ -975,8 +975,8 @@ function AffiliationsStep({
         <button onClick={onBack}
           style={{
             padding: '14px 20px', borderRadius: '12px',
-            background: 'rgba(255,255,255,0.04)', border: BORDER,
-            color: 'rgba(255,255,255,0.4)', fontSize: '14px',
+            background: 'var(--bg-elevated)', border: BORDER,
+            color: 'var(--text-tertiary)', fontSize: '14px',
             cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
           }}>
           ← Back
@@ -1040,7 +1040,7 @@ function SaathiStep({
         }}>
           Your teaching Saathis
         </h2>
-        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: '15px', color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.6 }}>
           Your knowledge spans disciplines. Choose your{' '}
           <strong style={{ color: '#fff' }}>primary Saathi</strong> and up to{' '}
           <strong style={{ color: GOLD }}>2 additional Saathis</strong> — free.
@@ -1082,7 +1082,7 @@ function SaathiStep({
             </span>
           ))}
           {additionalSaathis.length < 2 && (
-            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>
+            <span style={{ fontSize: '12px', color: 'var(--text-ghost)' }}>
               {2 - additionalSaathis.length} more additional Saathi
               {additionalSaathis.length < 1 ? 's' : ''} available
             </span>
@@ -1135,7 +1135,7 @@ function SaathiStep({
                   ? `1.5px solid ${GOLD}60`
                   : isAdditional
                     ? '1.5px solid rgba(74,222,128,0.4)'
-                    : '0.5px solid rgba(255,255,255,0.07)',
+                    : '0.5px solid var(--bg-elevated)',
                 opacity: isDisabled ? 0.3 : 1,
                 cursor: isDisabled ? 'not-allowed' : 'pointer',
                 transition: 'all 0.18s',
@@ -1174,7 +1174,7 @@ function SaathiStep({
         })}
       </div>
 
-      <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.2)', marginBottom: '20px', textAlign: 'center' }}>
+      <p style={{ fontSize: '13px', color: 'var(--text-ghost)', marginBottom: '20px', textAlign: 'center' }}>
         Click to set primary · click another to add · click again to remove
       </p>
 
@@ -1182,8 +1182,8 @@ function SaathiStep({
         <button onClick={onBack}
           style={{
             padding: '14px 20px', borderRadius: '12px',
-            background: 'rgba(255,255,255,0.04)', border: BORDER,
-            color: 'rgba(255,255,255,0.4)', fontSize: '14px',
+            background: 'var(--bg-elevated)', border: BORDER,
+            color: 'var(--text-tertiary)', fontSize: '14px',
             cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
           }}>
           ← Back
@@ -1193,8 +1193,8 @@ function SaathiStep({
           disabled={!form.primarySaathiSlug}
           style={{
             flex: 1, padding: '14px', borderRadius: '12px',
-            background: form.primarySaathiSlug ? GOLD : 'rgba(255,255,255,0.08)',
-            color: form.primarySaathiSlug ? NAVY : 'rgba(255,255,255,0.3)',
+            background: form.primarySaathiSlug ? GOLD : 'var(--bg-elevated)',
+            color: form.primarySaathiSlug ? NAVY : 'var(--text-ghost)',
             fontSize: '15px', fontWeight: 700,
             border: 'none',
             cursor: form.primarySaathiSlug ? 'pointer' : 'not-allowed',
@@ -1244,7 +1244,7 @@ function InvitationStep({ onNext, onBack }: { onNext: () => void; onBack: () => 
         }}>
           How EdUsaathiAI works with you
         </h2>
-        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+        <p style={{ fontSize: '15px', color: 'var(--text-tertiary)', margin: 0 }}>
           Three ways students reach you. One platform that handles everything else.
         </p>
       </motion.div>
@@ -1264,7 +1264,7 @@ function InvitationStep({ onNext, onBack }: { onNext: () => void; onBack: () => 
                   {f.title}
                 </p>
                 {f.desc ? (
-                  <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.6 }}>
+                  <p style={{ fontSize: '15px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
                     {f.desc}
                   </p>
                 ) : (
@@ -1277,16 +1277,16 @@ function InvitationStep({ onNext, onBack }: { onNext: () => void; onBack: () => 
                         textAlign: 'center',
                       }}>
                         <p style={{ fontSize: '22px', fontWeight: 800, color: GOLD, margin: '0 0 2px' }}>80%</p>
-                        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>to you</p>
+                        <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', margin: 0 }}>to you</p>
                       </div>
                       <div style={{
                         padding: '10px 20px', borderRadius: '10px',
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '0.5px solid rgba(255,255,255,0.08)',
+                        background: 'var(--bg-elevated)',
+                        border: '0.5px solid var(--bg-elevated)',
                         textAlign: 'center',
                       }}>
-                        <p style={{ fontSize: '22px', fontWeight: 800, color: 'rgba(255,255,255,0.4)', margin: '0 0 2px' }}>20%</p>
-                        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>platform fee</p>
+                        <p style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-tertiary)', margin: '0 0 2px' }}>20%</p>
+                        <p style={{ fontSize: '10px', color: 'var(--text-ghost)', margin: 0 }}>platform fee</p>
                       </div>
                       <div style={{
                         padding: '10px 20px', borderRadius: '10px',
@@ -1295,13 +1295,13 @@ function InvitationStep({ onNext, onBack }: { onNext: () => void; onBack: () => 
                         textAlign: 'center',
                       }}>
                         <p style={{ fontSize: '14px', fontWeight: 700, color: GREEN, margin: '0 0 2px' }}>₹400 you earn</p>
-                        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', margin: 0 }}>from every ₹500 session</p>
+                        <p style={{ fontSize: '10px', color: 'var(--text-ghost)', margin: 0 }}>from every ₹500 session</p>
                       </div>
                     </div>
-                    <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', margin: 0, lineHeight: 1.6 }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-ghost)', margin: 0, lineHeight: 1.6 }}>
                       You set your session price. We handle payments, receipts, and transfers.
                       Any changes to the earnings model are communicated{' '}
-                      <strong style={{ color: 'rgba(255,255,255,0.6)' }}>30 days in advance</strong>{' '}
+                      <strong style={{ color: 'var(--text-secondary)' }}>30 days in advance</strong>{' '}
                       by email and in-app notification.
                     </p>
                   </div>
@@ -1316,8 +1316,8 @@ function InvitationStep({ onNext, onBack }: { onNext: () => void; onBack: () => 
         <button onClick={onBack}
           style={{
             padding: '14px 20px', borderRadius: '12px',
-            background: 'rgba(255,255,255,0.04)', border: BORDER,
-            color: 'rgba(255,255,255,0.4)', fontSize: '14px',
+            background: 'var(--bg-elevated)', border: BORDER,
+            color: 'var(--text-tertiary)', fontSize: '14px',
             cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
           }}>
           ← Back
@@ -1366,14 +1366,14 @@ function AgreementStep({
         background: form[field] ? 'rgba(74,222,128,0.06)' : CARD_BG,
         border: form[field]
           ? '1px solid rgba(74,222,128,0.3)'
-          : '0.5px solid rgba(255,255,255,0.08)',
+          : '0.5px solid var(--bg-elevated)',
         cursor: 'pointer', transition: 'all 0.18s',
       }}
     >
       <motion.div
         animate={{
-          background:  form[field] ? GREEN : 'rgba(255,255,255,0.08)',
-          borderColor: form[field] ? GREEN : 'rgba(255,255,255,0.15)',
+          background:  form[field] ? GREEN : 'var(--bg-elevated)',
+          borderColor: form[field] ? GREEN : 'var(--border-strong)',
         }}
         style={{
           width: '20px', height: '20px', borderRadius: '6px',
@@ -1389,7 +1389,7 @@ function AgreementStep({
           {label}
         </p>
         {sub && (
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.5 }}>
             {sub}
           </p>
         )}
@@ -1408,7 +1408,7 @@ function AgreementStep({
         }}>
           One last step
         </h2>
-        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+        <p style={{ fontSize: '15px', color: 'var(--text-tertiary)', margin: 0 }}>
           Four agreements. All transparent. No surprises.
         </p>
       </motion.div>
@@ -1442,7 +1442,7 @@ function AgreementStep({
         background: 'rgba(201,153,58,0.06)',
         border: '0.5px solid rgba(201,153,58,0.2)',
       }}>
-        <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.6)', margin: '0 0 12px', fontWeight: 600 }}>
+        <p style={{ fontSize: '16px', color: 'var(--text-secondary)', margin: '0 0 12px', fontWeight: 600 }}>
           ✦ What happens after you submit
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1458,7 +1458,7 @@ function AgreementStep({
               }}>
                 {time}
               </span>
-              <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
                 {desc}
               </span>
             </div>
@@ -1483,8 +1483,8 @@ function AgreementStep({
         <button onClick={onBack}
           style={{
             padding: '14px 20px', borderRadius: '12px',
-            background: 'rgba(255,255,255,0.04)', border: BORDER,
-            color: 'rgba(255,255,255,0.4)', fontSize: '14px',
+            background: 'var(--bg-elevated)', border: BORDER,
+            color: 'var(--text-tertiary)', fontSize: '14px',
             cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
           }}>
           ← Back
@@ -1495,8 +1495,8 @@ function AgreementStep({
           disabled={!allChecked || saving}
           style={{
             flex: 1, padding: '14px', borderRadius: '12px',
-            background: allChecked ? GOLD : 'rgba(255,255,255,0.08)',
-            color: allChecked ? NAVY : 'rgba(255,255,255,0.25)',
+            background: allChecked ? GOLD : 'var(--bg-elevated)',
+            color: allChecked ? NAVY : 'var(--text-ghost)',
             fontSize: '15px', fontWeight: 700,
             border: 'none',
             cursor: allChecked && !saving ? 'pointer' : 'not-allowed',

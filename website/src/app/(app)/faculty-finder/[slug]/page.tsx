@@ -384,7 +384,7 @@ export default function FacultyProfilePage() {
       {/* Nav */}
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <Link
           href="/faculty-finder"
@@ -401,7 +401,7 @@ export default function FacultyProfilePage() {
           <Link
             href="/faculty-finder"
             className="text-sm"
-            style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+            style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
           >
             &larr; All Faculty
           </Link>
@@ -418,7 +418,7 @@ export default function FacultyProfilePage() {
               animate={{ opacity: 1, y: 0 }}
               className="mb-6 rounded-2xl p-6"
               style={{
-                background: 'rgba(255,255,255,0.03)',
+                background: 'var(--bg-elevated)',
                 border: `0.5px solid ${color}25`,
                 ...(heroBorderLeft ? { borderLeft: heroBorderLeft } : {}),
               }}
@@ -441,7 +441,7 @@ export default function FacultyProfilePage() {
                   {isEmeritus ? (
                     <p
                       className="text-sm"
-                      style={{ color: 'rgba(255,255,255,0.5)' }}
+                      style={{ color: 'var(--text-secondary)' }}
                     >
                       Former: {fp.former_institution ?? fp.institution_name}
                       {fp.retirement_year
@@ -455,7 +455,7 @@ export default function FacultyProfilePage() {
                   ) : (
                     <p
                       className="text-sm"
-                      style={{ color: 'rgba(255,255,255,0.5)' }}
+                      style={{ color: 'var(--text-secondary)' }}
                     >
                       {fp.designation} &middot; {fp.institution_name}
                       {faculty.city ? ` \u00B7 ${faculty.city}` : ''}
@@ -477,8 +477,8 @@ export default function FacultyProfilePage() {
                     <span
                       className="rounded-full px-2 py-0.5 text-[10px]"
                       style={{
-                        background: 'rgba(255,255,255,0.06)',
-                        color: 'rgba(255,255,255,0.4)',
+                        background: 'var(--bg-elevated)',
+                        color: 'var(--text-tertiary)',
                       }}
                     >
                       {fp.years_experience}y experience
@@ -487,8 +487,8 @@ export default function FacultyProfilePage() {
                       <span
                         className="rounded-full px-2 py-0.5 text-[10px]"
                         style={{
-                          background: 'rgba(255,255,255,0.06)',
-                          color: 'rgba(255,255,255,0.4)',
+                          background: 'var(--bg-elevated)',
+                          color: 'var(--text-tertiary)',
                         }}
                       >
                         {fp.total_sessions_completed} sessions
@@ -512,7 +512,7 @@ export default function FacultyProfilePage() {
               {fp.session_bio && (
                 <p
                   className="mb-4 text-sm leading-relaxed"
-                  style={{ color: 'rgba(255,255,255,0.6)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   &ldquo;{fp.session_bio}&rdquo;
                 </p>
@@ -539,8 +539,8 @@ export default function FacultyProfilePage() {
               <div
                 className="mb-6 rounded-xl p-5"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--bg-elevated)',
                 }}
               >
                 <h3 className="mb-2 text-sm font-semibold text-white">
@@ -548,7 +548,7 @@ export default function FacultyProfilePage() {
                 </h3>
                 <p
                   className="text-xs leading-relaxed"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   {fp.current_research}
                 </p>
@@ -560,8 +560,8 @@ export default function FacultyProfilePage() {
               <div
                 className="mb-6 rounded-xl p-5"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--bg-elevated)',
                 }}
               >
                 <h3
@@ -598,7 +598,7 @@ export default function FacultyProfilePage() {
                           </p>
                           <p
                             className="text-xs"
-                            style={{ color: 'rgba(255,255,255,0.45)' }}
+                            style={{ color: 'var(--text-tertiary)' }}
                           >
                             {a.role}
                             {a.year ? ` \u00B7 ${a.year}` : ''}
@@ -610,7 +610,7 @@ export default function FacultyProfilePage() {
                 </div>
                 <p
                   className="mt-3 text-[10px]"
-                  style={{ color: 'rgba(255,255,255,0.2)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Self-declared — EdUsaathiAI does not independently verify
                   affiliations
@@ -630,8 +630,8 @@ export default function FacultyProfilePage() {
                       key={a.id}
                       className="rounded-xl p-4"
                       style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '0.5px solid rgba(255,255,255,0.06)',
+                        background: 'var(--bg-elevated)',
+                        border: '0.5px solid var(--bg-elevated)',
                       }}
                     >
                       <p className="line-clamp-3 text-xs text-white/60">
@@ -651,7 +651,7 @@ export default function FacultyProfilePage() {
                         )}
                         <span
                           className="text-[10px]"
-                          style={{ color: 'rgba(255,255,255,0.25)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           {new Date(a.created_at).toLocaleDateString('en-IN')}
                         </span>
@@ -670,7 +670,7 @@ export default function FacultyProfilePage() {
               {reviews.length === 0 ? (
                 <p
                   className="py-8 text-center text-xs"
-                  style={{ color: 'rgba(255,255,255,0.25)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   No reviews yet &mdash; be the first!
                 </p>
@@ -681,8 +681,8 @@ export default function FacultyProfilePage() {
                       key={i}
                       className="rounded-xl p-4"
                       style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '0.5px solid rgba(255,255,255,0.06)',
+                        background: 'var(--bg-elevated)',
+                        border: '0.5px solid var(--bg-elevated)',
                       }}
                     >
                       <p className="mb-1 text-sm" style={{ color: '#FB923C' }}>
@@ -695,7 +695,7 @@ export default function FacultyProfilePage() {
                       )}
                       <p
                         className="text-[10px]"
-                        style={{ color: 'rgba(255,255,255,0.25)' }}
+                        style={{ color: 'var(--text-ghost)' }}
                       >
                         {new Date(r.student_reviewed_at).toLocaleDateString(
                           'en-IN',
@@ -712,28 +712,28 @@ export default function FacultyProfilePage() {
             <div className="flex gap-4 text-center">
               <div
                 className="flex-1 rounded-xl p-4"
-                style={{ background: 'rgba(255,255,255,0.03)' }}
+                style={{ background: 'var(--bg-elevated)' }}
               >
                 <p className="text-lg font-bold text-white">
                   {fp.response_rate}%
                 </p>
                 <p
                   className="text-[10px]"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Response rate
                 </p>
               </div>
               <div
                 className="flex-1 rounded-xl p-4"
-                style={{ background: 'rgba(255,255,255,0.03)' }}
+                style={{ background: 'var(--bg-elevated)' }}
               >
                 <p className="text-lg font-bold text-white">
                   {fp.avg_response_hours}h
                 </p>
                 <p
                   className="text-[10px]"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Avg response
                 </p>
@@ -759,7 +759,7 @@ export default function FacultyProfilePage() {
                 </h3>
                 <p
                   className="mb-4 text-xs"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   {faculty.full_name} will review your request and confirm a
                   slot. You&apos;ll be notified by email.
@@ -780,13 +780,13 @@ export default function FacultyProfilePage() {
               <div
                 className="overflow-hidden rounded-2xl"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-medium)',
                 }}
               >
                 <div
                   className="p-5"
-                  style={{ borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}
+                  style={{ borderBottom: '0.5px solid var(--bg-elevated)' }}
                 >
                   <h3 className="mb-3 text-sm font-semibold text-white">
                     Book a session
@@ -809,15 +809,15 @@ export default function FacultyProfilePage() {
                           style={{
                             background: sel
                               ? `${color}15`
-                              : 'rgba(255,255,255,0.03)',
-                            border: `1px solid ${sel ? `${color}50` : 'rgba(255,255,255,0.06)'}`,
+                              : 'var(--bg-elevated)',
+                            border: `1px solid ${sel ? `${color}50` : 'var(--bg-elevated)'}`,
                           }}
                         >
                           <div className="flex items-center justify-between">
                             <span
                               className="text-xs font-semibold"
                               style={{
-                                color: sel ? color : 'rgba(255,255,255,0.6)',
+                                color: sel ? color : 'var(--text-secondary)',
                               }}
                             >
                               {st.emoji} {st.label}
@@ -828,7 +828,7 @@ export default function FacultyProfilePage() {
                           </div>
                           <p
                             className="mt-0.5 text-[10px]"
-                            style={{ color: 'rgba(255,255,255,0.3)' }}
+                            style={{ color: 'var(--text-ghost)' }}
                           >
                             {st.desc}
                           </p>
@@ -840,7 +840,7 @@ export default function FacultyProfilePage() {
                   {/* Topic */}
                   <label
                     className="mb-1.5 block text-xs font-semibold"
-                    style={{ color: 'rgba(255,255,255,0.45)' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                   >
                     What do you need help with?
                   </label>
@@ -851,8 +851,8 @@ export default function FacultyProfilePage() {
                     rows={3}
                     className="mb-3 w-full resize-none rounded-xl px-4 py-3 text-xs text-white outline-none"
                     style={{
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.1)',
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border-medium)',
                     }}
                   />
 
@@ -864,15 +864,15 @@ export default function FacultyProfilePage() {
                     rows={2}
                     className="mb-3 w-full resize-none rounded-xl px-4 py-3 text-xs text-white outline-none"
                     style={{
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.1)',
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border-medium)',
                     }}
                   />
 
                   {/* Time slots */}
                   <label
                     className="mb-1.5 block text-xs font-semibold"
-                    style={{ color: 'rgba(255,255,255,0.45)' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                   >
                     Suggest time slots
                   </label>
@@ -889,8 +889,8 @@ export default function FacultyProfilePage() {
                         }}
                         className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none"
                         style={{
-                          background: 'rgba(255,255,255,0.04)',
-                          border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'var(--bg-elevated)',
+                          border: '1px solid var(--border-medium)',
                           colorScheme: 'dark',
                         }}
                       />
@@ -929,7 +929,7 @@ export default function FacultyProfilePage() {
                     <p
                       key={t.text}
                       className="flex items-start gap-2 text-[10px]"
-                      style={{ color: 'rgba(255,255,255,0.35)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       <span>{t.icon}</span>
                       {t.text}
@@ -942,7 +942,7 @@ export default function FacultyProfilePage() {
             {fp.availability_note && (
               <p
                 className="mt-3 text-center text-[10px]"
-                style={{ color: 'rgba(255,255,255,0.3)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 {'\u{1F4C5}'} {fp.availability_note}
               </p>
@@ -965,7 +965,7 @@ export default function FacultyProfilePage() {
                 </p>
                 <p
                   className="mb-3 text-[11px]"
-                  style={{ color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}
+                  style={{ color: 'var(--text-tertiary)', lineHeight: 1.6 }}
                 >
                   Have a topic you&apos;d love{' '}
                   {faculty.full_name?.split(' ')[0] ?? 'this faculty'} to teach?
@@ -1004,8 +1004,8 @@ export default function FacultyProfilePage() {
                     key={r.id}
                     className="rounded-xl p-4"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--bg-elevated)',
                     }}
                   >
                     <p className="mb-1 text-sm font-semibold text-white">
@@ -1013,7 +1013,7 @@ export default function FacultyProfilePage() {
                     </p>
                     <p
                       className="mb-2 text-[10px]"
-                      style={{ color: 'rgba(255,255,255,0.35)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       Requested by {r.student_name ?? 'Student'}
                       {r.student_city ? ` \u00B7 ${r.student_city}` : ''}
@@ -1021,7 +1021,7 @@ export default function FacultyProfilePage() {
                     <p
                       className="mb-3 line-clamp-2 text-xs"
                       style={{
-                        color: 'rgba(255,255,255,0.45)',
+                        color: 'var(--text-tertiary)',
                         lineHeight: 1.6,
                       }}
                     >
@@ -1035,7 +1035,7 @@ export default function FacultyProfilePage() {
                           color:
                             r.upvote_count >= 5
                               ? '#FB923C'
-                              : 'rgba(255,255,255,0.4)',
+                              : 'var(--text-tertiary)',
                         }}
                       >
                         {r.upvote_count >= 5 ? '\u{1F525} ' : '\u25B2 '}
@@ -1096,7 +1096,7 @@ export default function FacultyProfilePage() {
               className="w-full max-w-md rounded-2xl p-6"
               style={{
                 background: 'var(--bg-surface)',
-                border: '0.5px solid rgba(255,255,255,0.1)',
+                border: '0.5px solid var(--border-medium)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -1114,7 +1114,7 @@ export default function FacultyProfilePage() {
                   </h3>
                   <p
                     className="mb-4 text-xs"
-                    style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}
+                    style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}
                   >
                     {faculty.full_name} will be notified. If other students
                     support your request, it moves to the top of their list.
@@ -1139,7 +1139,7 @@ export default function FacultyProfilePage() {
                   </h3>
                   <p
                     className="mb-5 text-[10px]"
-                    style={{ color: 'rgba(255,255,255,0.35)' }}
+                    style={{ color: 'var(--text-ghost)' }}
                   >
                     Your name and institution visible to faculty only. Public
                     requests show first name only.
@@ -1149,7 +1149,7 @@ export default function FacultyProfilePage() {
                     <div>
                       <label
                         className="mb-1 block text-[10px] font-semibold"
-                        style={{ color: 'rgba(255,255,255,0.45)' }}
+                        style={{ color: 'var(--text-tertiary)' }}
                       >
                         Topic you&apos;d like covered *
                       </label>
@@ -1161,13 +1161,13 @@ export default function FacultyProfilePage() {
                         placeholder="e.g. Landmark judgements on Right to Privacy"
                         className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                         style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: '0.5px solid rgba(255,255,255,0.1)',
+                          background: 'var(--bg-elevated)',
+                          border: '0.5px solid var(--border-medium)',
                         }}
                       />
                       <p
                         className="mt-0.5 text-right text-[9px]"
-                        style={{ color: 'rgba(255,255,255,0.2)' }}
+                        style={{ color: 'var(--text-ghost)' }}
                       >
                         {requestSubject.length}/100
                       </p>
@@ -1176,7 +1176,7 @@ export default function FacultyProfilePage() {
                     <div>
                       <label
                         className="mb-1 block text-[10px] font-semibold"
-                        style={{ color: 'rgba(255,255,255,0.45)' }}
+                        style={{ color: 'var(--text-tertiary)' }}
                       >
                         Your message to {faculty.full_name?.split(' ')[0]}
                       </label>
@@ -1189,13 +1189,13 @@ export default function FacultyProfilePage() {
                         rows={4}
                         className="w-full resize-none rounded-xl px-4 py-3 text-xs text-white outline-none"
                         style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: '0.5px solid rgba(255,255,255,0.1)',
+                          background: 'var(--bg-elevated)',
+                          border: '0.5px solid var(--border-medium)',
                         }}
                       />
                       <p
                         className="mt-0.5 text-right text-[9px]"
-                        style={{ color: 'rgba(255,255,255,0.2)' }}
+                        style={{ color: 'var(--text-ghost)' }}
                       >
                         {requestMessage.length}/500
                       </p>
@@ -1215,7 +1215,7 @@ export default function FacultyProfilePage() {
                           </p>
                           <p
                             className="text-[9px]"
-                            style={{ color: 'rgba(255,255,255,0.3)' }}
+                            style={{ color: 'var(--text-ghost)' }}
                           >
                             Others can support
                           </p>
@@ -1234,7 +1234,7 @@ export default function FacultyProfilePage() {
                           </p>
                           <p
                             className="text-[9px]"
-                            style={{ color: 'rgba(255,255,255,0.3)' }}
+                            style={{ color: 'var(--text-ghost)' }}
                           >
                             Only faculty sees
                           </p>
@@ -1248,8 +1248,8 @@ export default function FacultyProfilePage() {
                       onClick={() => setShowRequestModal(false)}
                       className="flex-1 rounded-xl py-3 text-xs"
                       style={{
-                        color: 'rgba(255,255,255,0.4)',
-                        border: '0.5px solid rgba(255,255,255,0.1)',
+                        color: 'var(--text-tertiary)',
+                        border: '0.5px solid var(--border-medium)',
                       }}
                     >
                       Cancel

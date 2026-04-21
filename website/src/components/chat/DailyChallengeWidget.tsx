@@ -188,7 +188,7 @@ export function DailyChallengeWidget({
             <p
               style={{
                 fontSize: '9px',
-                color: 'rgba(255,255,255,0.4)',
+                color: 'var(--text-tertiary)',
                 margin: 0,
               }}
             >
@@ -261,7 +261,7 @@ export function DailyChallengeWidget({
                     <p
                       style={{
                         fontSize: '10px',
-                        color: 'rgba(255,255,255,0.35)',
+                        color: 'var(--text-ghost)',
                         margin: 0,
                       }}
                     >
@@ -278,7 +278,7 @@ export function DailyChallengeWidget({
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: 'rgba(255,255,255,0.65)',
+                    color: 'var(--text-secondary)',
                     cursor: 'pointer',
                     fontSize: '18px',
                     lineHeight: 1,
@@ -354,9 +354,9 @@ export function DailyChallengeWidget({
                   const isCorrect = result ? i === result.correct_option : false
                   const isWrong = result && isSelected && !result.is_correct
 
-                  let bg = 'rgba(255,255,255,0.04)'
-                  let border = 'rgba(255,255,255,0.1)'
-                  let color = 'rgba(255,255,255,0.75)'
+                  let bg = 'var(--bg-elevated)'
+                  let border = 'var(--border-medium)'
+                  let color = 'var(--text-secondary)'
 
                   if (result) {
                     if (isCorrect) {
@@ -368,8 +368,8 @@ export function DailyChallengeWidget({
                       border = '#EF444455'
                       color = '#FCA5A5'
                     } else {
-                      bg = 'rgba(255,255,255,0.02)'
-                      color = 'rgba(255,255,255,0.65)'
+                      bg = 'var(--bg-elevated)'
+                      color = 'var(--text-secondary)'
                     }
                   } else if (isSelected) {
                     bg = `${primaryColor}18`
@@ -491,7 +491,7 @@ export function DailyChallengeWidget({
                     <p
                       style={{
                         fontSize: '13px',
-                        color: 'rgba(255,255,255,0.65)',
+                        color: 'var(--text-secondary)',
                         lineHeight: 1.6,
                         margin: 0,
                       }}

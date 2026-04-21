@@ -127,7 +127,7 @@ export default function SavedFacultyPage() {
         style={{
           background: 'linear-gradient(180deg, #0B1F3A 0%, #060F1D 100%)',
           padding: '40px 24px 28px',
-          borderBottom: '0.5px solid rgba(255,255,255,0.06)',
+          borderBottom: '0.5px solid var(--bg-elevated)',
         }}
       >
         <div className="mx-auto max-w-[1100px]">
@@ -135,7 +135,7 @@ export default function SavedFacultyPage() {
             <Link
               href="/faculty-finder"
               style={{
-                color: 'rgba(255,255,255,0.35)',
+                color: 'var(--text-ghost)',
                 fontSize: '13px',
                 textDecoration: 'none',
               }}
@@ -149,7 +149,7 @@ export default function SavedFacultyPage() {
           >
             Saved Faculty
           </h1>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
             {saved.length > 0
               ? `${saved.length} saved — book when you're ready`
               : 'No saved faculty yet'}
@@ -165,8 +165,8 @@ export default function SavedFacultyPage() {
                 key={i}
                 className="h-[220px] animate-pulse rounded-2xl"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.06)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--bg-elevated)',
                 }}
               />
             ))}
@@ -179,7 +179,7 @@ export default function SavedFacultyPage() {
             </h2>
             <p
               className="mb-6 text-sm"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               Bookmark faculty you want to revisit and book later.
             </p>
@@ -216,8 +216,8 @@ export default function SavedFacultyPage() {
                   transition={{ delay: i * 0.04 }}
                   className="flex flex-col overflow-hidden rounded-[18px]"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '0.5px solid rgba(255,255,255,0.08)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--bg-elevated)',
                   }}
                 >
                   {/* Color bar */}
@@ -247,7 +247,7 @@ export default function SavedFacultyPage() {
                         </p>
                         <p
                           className="truncate text-[11px]"
-                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           {f.designation} · {f.institution_name}
                         </p>
@@ -260,7 +260,7 @@ export default function SavedFacultyPage() {
                         style={{ color: '#FB923C' }}
                       >
                         ⭐ {f.average_rating.toFixed(1)}{' '}
-                        <span style={{ color: 'rgba(255,255,255,0.3)' }}>
+                        <span style={{ color: 'var(--text-ghost)' }}>
                           ({f.total_reviews} reviews)
                         </span>
                       </p>
@@ -325,8 +325,8 @@ export default function SavedFacultyPage() {
                         <span
                           className="rounded-full px-2 py-0.5 text-[9px]"
                           style={{
-                            background: 'rgba(255,255,255,0.06)',
-                            color: 'rgba(255,255,255,0.4)',
+                            background: 'var(--bg-elevated)',
+                            color: 'var(--text-tertiary)',
                           }}
                         >
                           {f.years_experience}y exp
@@ -357,7 +357,7 @@ export default function SavedFacultyPage() {
                   <div
                     className="flex items-center justify-between px-5 py-3.5"
                     style={{
-                      borderTop: '0.5px solid rgba(255,255,255,0.06)',
+                      borderTop: '0.5px solid var(--bg-elevated)',
                       background: 'rgba(0,0,0,0.15)',
                     }}
                   >
@@ -366,7 +366,7 @@ export default function SavedFacultyPage() {
                         <>
                           <p
                             className="text-[10px]"
-                            style={{ color: 'rgba(255,255,255,0.3)' }}
+                            style={{ color: 'var(--text-ghost)' }}
                           >
                             From
                           </p>

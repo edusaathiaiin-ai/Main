@@ -73,8 +73,8 @@ function StatCard({
   return (
     <div
       style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '0.5px solid rgba(255,255,255,0.08)',
+        background: 'var(--bg-elevated)',
+        border: '0.5px solid var(--bg-elevated)',
         borderRadius: '14px',
         padding: '16px 20px',
       }}
@@ -82,7 +82,7 @@ function StatCard({
       <p
         style={{
           fontSize: '11px',
-          color: 'rgba(255,255,255,0.35)',
+          color: 'var(--text-ghost)',
           marginBottom: '6px',
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
@@ -105,7 +105,7 @@ function StatCard({
         <p
           style={{
             fontSize: '11px',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'var(--text-ghost)',
             marginTop: '4px',
           }}
         >
@@ -124,7 +124,7 @@ function ActivityGrid({ days, color }: { days: DayActivity[]; color: string }) {
       <p
         style={{
           fontSize: '11px',
-          color: 'rgba(255,255,255,0.35)',
+          color: 'var(--text-ghost)',
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
           marginBottom: '10px',
@@ -145,11 +145,11 @@ function ActivityGrid({ days, color }: { days: DayActivity[]; color: string }) {
                 borderRadius: '6px',
                 background:
                   day.count === 0
-                    ? 'rgba(255,255,255,0.04)'
+                    ? 'var(--bg-elevated)'
                     : `${color}${Math.round(intensity * 200 + 30)
                         .toString(16)
                         .padStart(2, '0')}`,
-                border: '0.5px solid rgba(255,255,255,0.06)',
+                border: '0.5px solid var(--bg-elevated)',
                 cursor: 'default',
                 transition: 'all 0.2s',
               }}
@@ -295,7 +295,7 @@ export function ProgressDashboard({
         <p
           style={{
             fontSize: '12px',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'var(--text-ghost)',
             marginBottom: '4px',
           }}
         >
@@ -314,7 +314,7 @@ export function ProgressDashboard({
         {soul?.display_name && (
           <p
             style={{
-              color: 'rgba(255,255,255,0.45)',
+              color: 'var(--text-tertiary)',
               fontSize: '14px',
               marginTop: '6px',
             }}
@@ -370,8 +370,8 @@ export function ProgressDashboard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '0.5px solid rgba(255,255,255,0.08)',
+          background: 'var(--bg-elevated)',
+          border: '0.5px solid var(--bg-elevated)',
           borderRadius: '14px',
           padding: '20px',
           marginBottom: '16px',
@@ -387,8 +387,8 @@ export function ProgressDashboard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
           style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
             borderRadius: '14px',
             padding: '20px',
             marginBottom: '16px',
@@ -397,7 +397,7 @@ export function ProgressDashboard({
           <p
             style={{
               fontSize: '11px',
-              color: 'rgba(255,255,255,0.35)',
+              color: 'var(--text-ghost)',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
               marginBottom: '14px',
@@ -417,12 +417,12 @@ export function ProgressDashboard({
                   }}
                 >
                   <span
-                    style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}
+                    style={{ fontSize: '12px', color: 'var(--text-secondary)' }}
                   >
                     {SLOT_NAMES[Number(slot)] ?? `Bot ${slot}`}
                   </span>
                   <span
-                    style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}
+                    style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}
                   >
                     {count} msgs · {pct}%
                   </span>
@@ -430,7 +430,7 @@ export function ProgressDashboard({
                 <div
                   style={{
                     height: '4px',
-                    background: 'rgba(255,255,255,0.06)',
+                    background: 'var(--bg-elevated)',
                     borderRadius: '4px',
                     overflow: 'hidden',
                   }}
@@ -460,8 +460,8 @@ export function ProgressDashboard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
             borderRadius: '14px',
             padding: '20px',
             marginBottom: '16px',
@@ -472,7 +472,7 @@ export function ProgressDashboard({
               <p
                 style={{
                   fontSize: '11px',
-                  color: 'rgba(255,255,255,0.35)',
+                  color: 'var(--text-ghost)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
                   marginBottom: '10px',
@@ -497,7 +497,7 @@ export function ProgressDashboard({
               <p
                 style={{
                   fontSize: '11px',
-                  color: 'rgba(255,255,255,0.35)',
+                  color: 'var(--text-ghost)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
                   marginBottom: '10px',
@@ -548,7 +548,7 @@ export function ProgressDashboard({
               <p
                 style={{
                   fontSize: '11px',
-                  color: 'rgba(255,255,255,0.35)',
+                  color: 'var(--text-ghost)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
                   margin: '0 0 2px',
@@ -583,12 +583,12 @@ export function ProgressDashboard({
                 }}
               >
                 <span
-                  style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}
+                  style={{ fontSize: '12px', color: 'var(--text-secondary)' }}
                 >
                   Community avg depth
                 </span>
                 <span
-                  style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}
+                  style={{ fontSize: '12px', color: 'var(--text-secondary)' }}
                 >
                   {community.avg_depth}/100
                 </span>
@@ -596,7 +596,7 @@ export function ProgressDashboard({
               <div
                 style={{
                   height: '4px',
-                  background: 'rgba(255,255,255,0.06)',
+                  background: 'var(--bg-elevated)',
                   borderRadius: '4px',
                   overflow: 'hidden',
                   marginBottom: '8px',
@@ -606,7 +606,7 @@ export function ProgressDashboard({
                   style={{
                     height: '100%',
                     width: `${community.avg_depth}%`,
-                    background: 'rgba(255,255,255,0.2)',
+                    background: 'var(--text-ghost)',
                     borderRadius: '4px',
                   }}
                 />
@@ -620,7 +620,7 @@ export function ProgressDashboard({
                 }}
               >
                 <span
-                  style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}
+                  style={{ fontSize: '12px', color: 'var(--text-secondary)' }}
                 >
                   Your depth
                 </span>
@@ -643,7 +643,7 @@ export function ProgressDashboard({
               <div
                 style={{
                   height: '4px',
-                  background: 'rgba(255,255,255,0.06)',
+                  background: 'var(--bg-elevated)',
                   borderRadius: '4px',
                   overflow: 'hidden',
                 }}
@@ -669,7 +669,7 @@ export function ProgressDashboard({
           <p
             style={{
               fontSize: '12px',
-              color: 'rgba(255,255,255,0.35)',
+              color: 'var(--text-ghost)',
               marginBottom: community.top_topics.length > 0 ? '12px' : '0',
             }}
           >
@@ -683,7 +683,7 @@ export function ProgressDashboard({
               <p
                 style={{
                   fontSize: '11px',
-                  color: 'rgba(255,255,255,0.3)',
+                  color: 'var(--text-ghost)',
                   marginBottom: '8px',
                 }}
               >
@@ -712,7 +712,7 @@ export function ProgressDashboard({
           <p
             style={{
               fontSize: '9px',
-              color: 'rgba(255,255,255,0.15)',
+              color: 'var(--border-strong)',
               marginTop: '12px',
               marginBottom: 0,
             }}
@@ -750,7 +750,7 @@ export function ProgressDashboard({
           <p
             style={{
               fontSize: '14px',
-              color: 'rgba(255,255,255,0.7)',
+              color: 'var(--text-secondary)',
               lineHeight: 1.7,
               margin: 0,
               fontStyle: 'italic',
@@ -767,7 +767,7 @@ export function ProgressDashboard({
           style={{
             textAlign: 'center',
             padding: '60px 20px',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'var(--text-ghost)',
           }}
         >
           <p style={{ fontSize: '40px', marginBottom: '12px' }}>🌱</p>

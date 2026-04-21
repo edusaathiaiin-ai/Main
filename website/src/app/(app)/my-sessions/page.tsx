@@ -223,7 +223,7 @@ export default function MySessionsPage() {
     >
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <Link
           href="/chat"
@@ -235,7 +235,7 @@ export default function MySessionsPage() {
         <Link
           href="/chat"
           className="text-sm"
-          style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+          style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
         >
           &larr; Back to Chat
         </Link>
@@ -245,7 +245,7 @@ export default function MySessionsPage() {
         <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
           My Sessions
         </h1>
-        <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="mb-6 text-sm" style={{ color: 'var(--text-tertiary)' }}>
           Your 1:1 faculty sessions
         </p>
 
@@ -253,8 +253,8 @@ export default function MySessionsPage() {
         <div
           className="mb-6 flex w-fit gap-1 rounded-xl p-1"
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '0.5px solid rgba(255,255,255,0.06)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
           }}
         >
           {[
@@ -272,7 +272,7 @@ export default function MySessionsPage() {
               className="rounded-lg px-4 py-2 text-xs font-medium transition-all"
               style={{
                 background: tab === t.id ? '#C9993A' : 'transparent',
-                color: tab === t.id ? '#060F1D' : 'rgba(255,255,255,0.45)',
+                color: tab === t.id ? '#060F1D' : 'var(--text-tertiary)',
               }}
             >
               {t.label} {t.count > 0 && `(${t.count})`}
@@ -291,7 +291,7 @@ export default function MySessionsPage() {
           <div className="py-20 text-center">
             <p
               className="mb-4 text-sm"
-              style={{ color: 'rgba(255,255,255,0.25)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               No {tab} sessions
             </p>
@@ -318,8 +318,8 @@ export default function MySessionsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="rounded-2xl p-5"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '0.5px solid rgba(255,255,255,0.08)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--bg-elevated)',
                   }}
                 >
                   <div className="mb-2 flex items-start justify-between">
@@ -329,7 +329,7 @@ export default function MySessionsPage() {
                       </p>
                       <p
                         className="text-[10px]"
-                        style={{ color: 'rgba(255,255,255,0.35)' }}
+                        style={{ color: 'var(--text-ghost)' }}
                       >
                         {fac?.city}
                       </p>
@@ -428,11 +428,11 @@ export default function MySessionsPage() {
 
                   <div
                     className="mt-3 flex items-center justify-between pt-3"
-                    style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)' }}
+                    style={{ borderTop: '0.5px solid var(--bg-elevated)' }}
                   >
                     <span
                       className="text-xs"
-                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       {new Date(s.created_at).toLocaleDateString('en-IN')}
                     </span>

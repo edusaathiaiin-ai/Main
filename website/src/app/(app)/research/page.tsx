@@ -60,9 +60,9 @@ function BenefitChip({
       style={{
         background: highlight
           ? 'rgba(201,153,58,0.15)'
-          : 'rgba(255,255,255,0.05)',
-        border: `0.5px solid ${highlight ? 'rgba(201,153,58,0.4)' : 'rgba(255,255,255,0.12)'}`,
-        color: highlight ? '#E5B86A' : 'rgba(255,255,255,0.55)',
+          : 'var(--bg-elevated)',
+        border: `0.5px solid ${highlight ? 'rgba(201,153,58,0.4)' : 'var(--border-medium)'}`,
+        color: highlight ? '#E5B86A' : 'var(--text-secondary)',
       }}
     >
       {icon} {label}
@@ -100,9 +100,9 @@ function ApplicationStatusBadge({ status }: { status: string }) {
       label: '✕ Not selected',
     },
     withdrawn: {
-      bg: 'rgba(255,255,255,0.04)',
-      border: 'rgba(255,255,255,0.1)',
-      color: 'rgba(255,255,255,0.35)',
+      bg: 'var(--bg-elevated)',
+      border: 'var(--border-medium)',
+      color: 'var(--text-ghost)',
       label: 'Withdrawn',
     },
   }
@@ -181,7 +181,7 @@ function ApplyModal({
         className="w-full max-w-lg rounded-2xl p-6"
         style={{
           background: 'var(--bg-surface)',
-          border: '0.5px solid rgba(255,255,255,0.1)',
+          border: '0.5px solid var(--border-medium)',
         }}
       >
         <div className="mb-5 flex items-start justify-between">
@@ -191,7 +191,7 @@ function ApplyModal({
             </h3>
             <p
               className="mt-0.5 text-xs"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               {project.faculty_profile?.institution_name ?? 'Research Lab'} ·{' '}
               {SAATHIS.find((s) => s.id === toSlug(project.vertical_id))?.name ??
@@ -201,7 +201,7 @@ function ApplyModal({
           <button
             onClick={onClose}
             className="text-2xl leading-none"
-            style={{ color: 'rgba(255,255,255,0.3)' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             ×
           </button>
@@ -210,8 +210,8 @@ function ApplyModal({
         <div
           className="mb-4 rounded-xl p-4"
           style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '0.5px solid rgba(255,255,255,0.07)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
           }}
         >
           <p
@@ -222,7 +222,7 @@ function ApplyModal({
           </p>
           <p
             className="text-xs leading-relaxed"
-            style={{ color: 'rgba(255,255,255,0.6)' }}
+            style={{ color: 'var(--text-secondary)' }}
           >
             {project.what_you_will_get}
           </p>
@@ -231,10 +231,10 @@ function ApplyModal({
         <div className="mb-1">
           <label
             className="mb-2 block text-xs font-semibold"
-            style={{ color: 'rgba(255,255,255,0.6)' }}
+            style={{ color: 'var(--text-secondary)' }}
           >
             Statement of Purpose{' '}
-            <span style={{ color: 'rgba(255,255,255,0.3)' }}>
+            <span style={{ color: 'var(--text-ghost)' }}>
               — why you, why this project?
             </span>
           </label>
@@ -247,8 +247,8 @@ function ApplyModal({
             placeholder="Tell the faculty what excites you about this project, what relevant experience or skills you bring, and what you hope to contribute and learn..."
             className="w-full resize-none rounded-xl px-4 py-3 text-sm outline-none"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '0.5px solid rgba(255,255,255,0.12)',
+              background: 'var(--bg-elevated)',
+              border: '0.5px solid var(--border-medium)',
               color: '#fff',
             }}
           />
@@ -257,7 +257,7 @@ function ApplyModal({
           <p
             className="text-[10px]"
             style={{
-              color: remaining < 50 ? '#F87171' : 'rgba(255,255,255,0.25)',
+              color: remaining < 50 ? '#F87171' : 'var(--text-ghost)',
             }}
           >
             {remaining} characters remaining
@@ -287,9 +287,9 @@ function ApplyModal({
             onClick={onClose}
             className="flex-1 rounded-xl py-2.5 text-sm font-medium"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'rgba(255,255,255,0.5)',
-              border: '0.5px solid rgba(255,255,255,0.1)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-secondary)',
+              border: '0.5px solid var(--border-medium)',
             }}
           >
             Cancel
@@ -305,7 +305,7 @@ function ApplyModal({
                   : 'linear-gradient(135deg, #A855F7, #7C3AED)',
               color:
                 submitting || statement.trim().length < 50
-                  ? 'rgba(255,255,255,0.3)'
+                  ? 'var(--text-ghost)'
                   : '#fff',
               cursor:
                 submitting || statement.trim().length < 50
@@ -340,8 +340,8 @@ function ProjectCard({
       animate={{ opacity: 1, y: 0 }}
       className="rounded-2xl p-5"
       style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '0.5px solid rgba(255,255,255,0.08)',
+        background: 'var(--bg-elevated)',
+        border: '0.5px solid var(--bg-elevated)',
       }}
     >
       {/* Header */}
@@ -376,9 +376,9 @@ function ProjectCard({
               <span
                 className="rounded-full px-2 py-0.5 text-[10px] font-medium"
                 style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  color: 'rgba(255,255,255,0.45)',
-                  border: '0.5px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-tertiary)',
+                  border: '0.5px solid var(--border-medium)',
                 }}
               >
                 {project.preferred_academic_level}
@@ -390,7 +390,7 @@ function ProjectCard({
           </h3>
           <p
             className="mt-0.5 text-xs"
-            style={{ color: 'rgba(255,255,255,0.35)' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             {project.faculty_profile?.designation
               ? `${project.faculty_profile.designation} · `
@@ -405,7 +405,7 @@ function ProjectCard({
       {/* Description */}
       <p
         className="mb-3 text-xs leading-relaxed"
-        style={{ color: 'rgba(255,255,255,0.55)' }}
+        style={{ color: 'var(--text-secondary)' }}
       >
         {project.description.slice(0, 220)}
         {project.description.length > 220 ? '…' : ''}
@@ -415,19 +415,19 @@ function ProjectCard({
       <div
         className="mb-3 rounded-xl p-3"
         style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '0.5px solid rgba(255,255,255,0.06)',
+          background: 'var(--bg-elevated)',
+          border: '0.5px solid var(--bg-elevated)',
         }}
       >
         <p
           className="mb-1 text-[10px] font-semibold tracking-wider uppercase"
-          style={{ color: 'rgba(255,255,255,0.3)' }}
+          style={{ color: 'var(--text-ghost)' }}
         >
           What you&apos;ll do
         </p>
         <p
           className="text-xs leading-relaxed"
-          style={{ color: 'rgba(255,255,255,0.6)' }}
+          style={{ color: 'var(--text-secondary)' }}
         >
           {project.what_you_will_do}
         </p>
@@ -480,7 +480,7 @@ function ProjectCard({
 
       {/* Footer */}
       <div className="flex items-center justify-between">
-        <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+        <p className="text-[10px]" style={{ color: 'var(--text-ghost)' }}>
           {project.total_applicants} applied ·{' '}
           {seatsLeft > 0
             ? `${seatsLeft} seat${seatsLeft > 1 ? 's' : ''} left`
@@ -498,7 +498,7 @@ function ProjectCard({
             Apply →
           </button>
         ) : (
-          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <span className="text-xs" style={{ color: 'var(--text-ghost)' }}>
             Application submitted
           </span>
         )}
@@ -609,7 +609,7 @@ export default function ResearchPage() {
           <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
             Research Projects 🔬
           </h1>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
             Collaborate with faculty, contribute to real research, and build
             your academic profile.
           </p>
@@ -643,11 +643,11 @@ export default function ResearchPage() {
               background:
                 selectedVertical === 'all'
                   ? '#C9993A'
-                  : 'rgba(255,255,255,0.06)',
+                  : 'var(--bg-elevated)',
               color:
                 selectedVertical === 'all'
                   ? '#060F1D'
-                  : 'rgba(255,255,255,0.5)',
+                  : 'var(--text-secondary)',
               border: '0.5px solid transparent',
             }}
           >
@@ -664,11 +664,11 @@ export default function ResearchPage() {
                     background:
                       selectedVertical === s.id
                         ? s.primary
-                        : 'rgba(255,255,255,0.06)',
+                        : 'var(--bg-elevated)',
                     color:
                       selectedVertical === s.id
                         ? '#fff'
-                        : 'rgba(255,255,255,0.5)',
+                        : 'var(--text-secondary)',
                     border: `0.5px solid ${selectedVertical === s.id ? s.accent + '40' : 'transparent'}`,
                   }}
                 >
@@ -684,8 +684,8 @@ export default function ResearchPage() {
             style={{
               background: filterAuthorship
                 ? 'rgba(201,153,58,0.2)'
-                : 'rgba(255,255,255,0.06)',
-              color: filterAuthorship ? '#E5B86A' : 'rgba(255,255,255,0.4)',
+                : 'var(--bg-elevated)',
+              color: filterAuthorship ? '#E5B86A' : 'var(--text-tertiary)',
               border: `0.5px solid ${filterAuthorship ? 'rgba(201,153,58,0.4)' : 'transparent'}`,
             }}
           >
@@ -697,8 +697,8 @@ export default function ResearchPage() {
             style={{
               background: filterStipend
                 ? 'rgba(74,222,128,0.12)'
-                : 'rgba(255,255,255,0.06)',
-              color: filterStipend ? '#4ADE80' : 'rgba(255,255,255,0.4)',
+                : 'var(--bg-elevated)',
+              color: filterStipend ? '#4ADE80' : 'var(--text-tertiary)',
               border: `0.5px solid ${filterStipend ? 'rgba(74,222,128,0.35)' : 'transparent'}`,
             }}
           >
@@ -714,7 +714,7 @@ export default function ResearchPage() {
                 key={i}
                 className="animate-pulse rounded-2xl p-5"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
+                  background: 'var(--bg-elevated)',
                   height: '200px',
                 }}
               />
@@ -724,15 +724,15 @@ export default function ResearchPage() {
           <div
             className="rounded-2xl p-12 text-center"
             style={{
-              background: 'rgba(255,255,255,0.02)',
-              border: '0.5px solid rgba(255,255,255,0.06)',
+              background: 'var(--bg-elevated)',
+              border: '0.5px solid var(--bg-elevated)',
             }}
           >
             <p className="mb-4 text-4xl">🔬</p>
             <p className="font-playfair mb-2 text-xl text-white">
               No projects found
             </p>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <p className="text-sm" style={{ color: 'var(--text-ghost)' }}>
               {projects.length === 0
                 ? 'Faculty are setting up research projects. Check back soon!'
                 : 'Try removing some filters.'}

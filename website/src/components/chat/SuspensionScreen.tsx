@@ -79,7 +79,7 @@ export function SuspensionScreen({
       {/* Reason */}
       <p
         className="mb-6 max-w-[400px] text-sm"
-        style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}
+        style={{ color: 'var(--text-secondary)', lineHeight: 1.7 }}
       >
         {reason ??
           'Your account has been suspended due to a violation of our Terms of Service.'}
@@ -96,7 +96,7 @@ export function SuspensionScreen({
         >
           <p
             className="mb-1.5 text-[10px] tracking-widest uppercase"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             Suspension lifts in
           </p>
@@ -108,7 +108,7 @@ export function SuspensionScreen({
           </p>
           <p
             className="mt-1.5 text-[11px]"
-            style={{ color: 'rgba(255,255,255,0.2)' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             {untilDate.toLocaleString('en-IN', {
               timeZone: 'Asia/Kolkata',
@@ -145,7 +145,7 @@ export function SuspensionScreen({
               key={item.href}
               href={item.href}
               className="flex items-center gap-2 py-1 text-xs transition-colors hover:text-white"
-              style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}
+              style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
             >
               <span>{item.icon}</span>
               <span>{item.text}</span>
@@ -170,7 +170,7 @@ export function SuspensionScreen({
 
       <p
         className="mt-4 text-[11px]"
-        style={{ color: 'rgba(255,255,255,0.2)' }}
+        style={{ color: 'var(--text-ghost)' }}
       >
         support@edusaathiai.in
       </p>

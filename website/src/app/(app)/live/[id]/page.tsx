@@ -315,7 +315,7 @@ export default function LiveSessionDetailPage() {
     <main className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <Link
           href="/live"
@@ -327,7 +327,7 @@ export default function LiveSessionDetailPage() {
         <Link
           href="/live"
           className="text-sm"
-          style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+          style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
         >
           &larr; All Sessions
         </Link>
@@ -388,7 +388,7 @@ export default function LiveSessionDetailPage() {
                     </p>
                     <p
                       className="text-[11px]"
-                      style={{ color: 'rgba(255,255,255,0.4)' }}
+                      style={{ color: 'var(--text-tertiary)' }}
                     >
                       {faculty.designation} &middot; {faculty.institution_name}
                     </p>
@@ -458,12 +458,12 @@ export default function LiveSessionDetailPage() {
                   })()}
                   <p
                     className="truncate text-[10px]"
-                    style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Mono, monospace' }}
+                    style={{ color: 'var(--text-ghost)', fontFamily: 'DM Mono, monospace' }}
                   >
                     {session.meeting_link}
                   </p>
                   {session.meeting_link_shared_at && (
-                    <p className="mt-1 text-[9px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                    <p className="mt-1 text-[9px]" style={{ color: 'var(--text-ghost)' }}>
                       Shared by faculty on{' '}
                       {new Date(session.meeting_link_shared_at).toLocaleString('en-IN', {
                         timeZone: 'Asia/Kolkata', day: 'numeric',
@@ -485,7 +485,7 @@ export default function LiveSessionDetailPage() {
                 >
                   <div className="flex items-center gap-2">
                     <span>⏳</span>
-                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                       Your meeting link will appear here once faculty shares it.
                       You&apos;ll also receive it via email and WhatsApp.
                     </p>
@@ -502,8 +502,8 @@ export default function LiveSessionDetailPage() {
               <div
                 className="mb-6 rounded-xl p-5"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--bg-elevated)',
                 }}
               >
                 <h3 className="mb-2 text-sm font-semibold text-white">
@@ -512,7 +512,7 @@ export default function LiveSessionDetailPage() {
                 <p
                   className="text-xs leading-relaxed"
                   style={{
-                    color: 'rgba(255,255,255,0.6)',
+                    color: 'var(--text-secondary)',
                     whiteSpace: 'pre-wrap',
                   }}
                 >
@@ -532,8 +532,8 @@ export default function LiveSessionDetailPage() {
                         key={l.id}
                         className="flex items-center gap-4 rounded-xl p-4"
                         style={{
-                          background: 'rgba(255,255,255,0.03)',
-                          border: '0.5px solid rgba(255,255,255,0.06)',
+                          background: 'var(--bg-elevated)',
+                          border: '0.5px solid var(--bg-elevated)',
                         }}
                       >
                         <div
@@ -548,7 +548,7 @@ export default function LiveSessionDetailPage() {
                           </p>
                           <p
                             className="text-[10px]"
-                            style={{ color: 'rgba(255,255,255,0.4)' }}
+                            style={{ color: 'var(--text-tertiary)' }}
                           >
                             {new Date(l.scheduled_at).toLocaleDateString(
                               'en-IN',
@@ -570,11 +570,11 @@ export default function LiveSessionDetailPage() {
                             background:
                               l.status === 'completed'
                                 ? 'rgba(74,222,128,0.12)'
-                                : 'rgba(255,255,255,0.06)',
+                                : 'var(--bg-elevated)',
                             color:
                               l.status === 'completed'
                                 ? '#4ADE80'
-                                : 'rgba(255,255,255,0.4)',
+                                : 'var(--text-tertiary)',
                           }}
                         >
                           {l.status}
@@ -602,7 +602,7 @@ export default function LiveSessionDetailPage() {
                   </h3>
                   <p
                     className="text-xs leading-relaxed"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     {session.preparation_notes}
                   </p>
@@ -629,7 +629,7 @@ export default function LiveSessionDetailPage() {
                 </h3>
                 <p
                   className="mb-4 text-xs"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Meeting link will be shared 24h before the session.
                 </p>
@@ -649,8 +649,8 @@ export default function LiveSessionDetailPage() {
               <div
                 className="overflow-hidden rounded-2xl"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-medium)',
                 }}
               >
                 <div className="p-5">
@@ -677,14 +677,14 @@ export default function LiveSessionDetailPage() {
                               }
                             : {}
                         }
-                        style={{ color: 'rgba(255,255,255,0.5)' }}
+                        style={{ color: 'var(--text-secondary)' }}
                       >
                         {seatsBooked}/{session.total_seats}
                       </motion.span>
                     </div>
                     <div
                       className="h-2 overflow-hidden rounded-full"
-                      style={{ background: 'rgba(255,255,255,0.06)' }}
+                      style={{ background: 'var(--bg-elevated)' }}
                     >
                       <motion.div
                         className="h-full rounded-full"
@@ -713,7 +713,7 @@ export default function LiveSessionDetailPage() {
                       </p>
                       <p
                         className="text-[10px]"
-                        style={{ color: 'rgba(255,255,255,0.4)' }}
+                        style={{ color: 'var(--text-tertiary)' }}
                       >
                         {earlyBirdRemaining} early bird seats left
                       </p>
@@ -730,8 +730,8 @@ export default function LiveSessionDetailPage() {
                           background:
                             bookingMode === 'full'
                               ? `${color}15`
-                              : 'rgba(255,255,255,0.03)',
-                          border: `1px solid ${bookingMode === 'full' ? `${color}50` : 'rgba(255,255,255,0.06)'}`,
+                              : 'var(--bg-elevated)',
+                          border: `1px solid ${bookingMode === 'full' ? `${color}50` : 'var(--bg-elevated)'}`,
                         }}
                       >
                         <div className="flex justify-between">
@@ -741,7 +741,7 @@ export default function LiveSessionDetailPage() {
                               color:
                                 bookingMode === 'full'
                                   ? color
-                                  : 'rgba(255,255,255,0.6)',
+                                  : 'var(--text-secondary)',
                             }}
                           >
                             Full Series ({lectures.length} lectures)
@@ -768,8 +768,8 @@ export default function LiveSessionDetailPage() {
                           background:
                             bookingMode === 'single'
                               ? `${color}15`
-                              : 'rgba(255,255,255,0.03)',
-                          border: `1px solid ${bookingMode === 'single' ? `${color}50` : 'rgba(255,255,255,0.06)'}`,
+                              : 'var(--bg-elevated)',
+                          border: `1px solid ${bookingMode === 'single' ? `${color}50` : 'var(--bg-elevated)'}`,
                         }}
                       >
                         <span
@@ -778,7 +778,7 @@ export default function LiveSessionDetailPage() {
                             color:
                               bookingMode === 'single'
                                 ? color
-                                : 'rgba(255,255,255,0.6)',
+                                : 'var(--text-secondary)',
                           }}
                         >
                           Individual lectures &mdash;{' '}
@@ -797,7 +797,7 @@ export default function LiveSessionDetailPage() {
                           className="flex cursor-pointer items-center gap-3 rounded-lg p-2"
                           style={{
                             background: selectedLectures.has(l.id)
-                              ? 'rgba(255,255,255,0.06)'
+                              ? 'var(--bg-elevated)'
                               : 'transparent',
                           }}
                         >
@@ -820,7 +820,7 @@ export default function LiveSessionDetailPage() {
                             </p>
                             <p
                               className="text-[9px]"
-                              style={{ color: 'rgba(255,255,255,0.3)' }}
+                              style={{ color: 'var(--text-ghost)' }}
                             >
                               {new Date(l.scheduled_at).toLocaleDateString(
                                 'en-IN',
@@ -846,8 +846,8 @@ export default function LiveSessionDetailPage() {
                     }
                     className="w-full rounded-xl py-3.5 text-sm font-bold transition-all disabled:opacity-40"
                     style={{
-                      background: isFull ? 'rgba(255,255,255,0.1)' : color,
-                      color: isFull ? 'rgba(255,255,255,0.5)' : '#0B1F3A',
+                      background: isFull ? 'var(--border-medium)' : color,
+                      color: isFull ? 'var(--text-secondary)' : '#0B1F3A',
                     }}
                   >
                     {booking
@@ -863,7 +863,7 @@ export default function LiveSessionDetailPage() {
                 {/* Trust signals */}
                 <div
                   className="space-y-2 px-5 py-4"
-                  style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)' }}
+                  style={{ borderTop: '0.5px solid var(--bg-elevated)' }}
                 >
                   {[
                     {
@@ -876,7 +876,7 @@ export default function LiveSessionDetailPage() {
                     <p
                       key={t.text}
                       className="flex items-start gap-2 text-[10px]"
-                      style={{ color: 'rgba(255,255,255,0.35)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       <span style={{ color: '#4ADE80' }}>{t.icon}</span>
                       {t.text}

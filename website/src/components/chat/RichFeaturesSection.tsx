@@ -24,7 +24,7 @@ function HeroMermaid({ chart }: { chart: string }) {
             primaryTextColor: '#fff',
             primaryBorderColor: '#6366F1',
             lineColor: '#6366F1',
-            background: '#060F1D',
+            background: 'var(--bg-base)',
           },
         })
         _mermaidInit = true
@@ -105,11 +105,11 @@ function MockBot({ children }: { children: React.ReactNode }) {
       <div
         style={{
           background: '#0F2847',
-          border: '0.5px solid rgba(255,255,255,0.08)',
+          border: '0.5px solid var(--bg-elevated)',
           borderRadius: '3px 14px 14px 14px',
           padding: '10px 13px',
           fontSize: '12px',
-          color: 'rgba(255,255,255,0.8)',
+          color: 'var(--text-primary)',
           maxWidth: '95%',
           lineHeight: 1.6,
         }}
@@ -160,7 +160,7 @@ function MathCard() {
           <div
             style={{
               marginTop: '8px',
-              background: 'rgba(255,255,255,0.04)',
+              background: 'var(--bg-elevated)',
               borderRadius: '8px',
               padding: '8px',
               overflowX: 'auto',
@@ -181,7 +181,7 @@ function MathCard() {
         <div
           style={{
             fontSize: '10px',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'var(--text-ghost)',
             marginTop: '2px',
           }}
         >
@@ -252,7 +252,7 @@ function MoleculeCard() {
               <div
                 style={{
                   fontSize: '11px',
-                  color: 'rgba(255,255,255,0.5)',
+                  color: 'var(--text-secondary)',
                   fontFamily: 'monospace',
                 }}
               >
@@ -274,7 +274,7 @@ function MoleculeCard() {
         <div
           style={{
             fontSize: '10px',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'var(--text-ghost)',
             marginTop: '2px',
           }}
         >
@@ -343,7 +343,7 @@ function DiagramCard() {
         <div
           style={{
             fontSize: '10px',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'var(--text-ghost)',
             marginTop: '2px',
           }}
         >
@@ -437,7 +437,7 @@ export function RichFeaturesSection() {
           <p
             style={{
               fontSize: '17px',
-              color: 'rgba(255,255,255,0.5)',
+              color: 'var(--text-secondary)',
               fontWeight: 300,
               lineHeight: 1.7,
               maxWidth: '500px',
@@ -469,7 +469,7 @@ export function RichFeaturesSection() {
           <p
             style={{
               fontSize: '13px',
-              color: 'rgba(255,255,255,0.4)',
+              color: 'var(--text-tertiary)',
               marginBottom: '16px',
             }}
           >
@@ -504,7 +504,7 @@ export function RichFeaturesSection() {
           <p
             style={{
               fontSize: '13px',
-              color: 'rgba(255,255,255,0.35)',
+              color: 'var(--text-ghost)',
               marginBottom: '32px',
             }}
           >

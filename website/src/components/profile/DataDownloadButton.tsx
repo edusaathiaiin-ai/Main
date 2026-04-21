@@ -69,9 +69,9 @@ export default function DataDownloadButton({
       disabled={loading}
       className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all hover:brightness-110 disabled:opacity-60"
       style={{
-        background: 'rgba(255,255,255,0.06)',
-        border: '1px solid rgba(255,255,255,0.12)',
-        color: 'rgba(255,255,255,0.7)',
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border-medium)',
+        color: 'var(--text-secondary)',
       }}
     >
       {loading ? (

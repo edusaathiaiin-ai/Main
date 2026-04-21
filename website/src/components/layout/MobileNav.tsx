@@ -37,7 +37,7 @@ export function MobileNav() {
         className="fixed right-0 bottom-0 left-0 z-30 flex items-center justify-around px-2 py-2 md:hidden"
         style={{
           background: 'rgba(6,15,29,0.9)',
-          borderTop: '0.5px solid rgba(255,255,255,0.07)',
+          borderTop: '0.5px solid var(--bg-elevated)',
           backdropFilter: 'blur(16px)',
         }}
       >
@@ -53,7 +53,7 @@ export function MobileNav() {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: showMore ? '#C9993A' : 'rgba(255,255,255,0.35)',
+                  color: showMore ? '#C9993A' : 'var(--text-ghost)',
                 }}
               >
                 <span className="text-xl leading-none">{item.icon}</span>
@@ -80,7 +80,7 @@ export function MobileNav() {
               data-tour={tourAttr}
               className="flex flex-col items-center gap-1 rounded-xl px-3 py-1 transition-all duration-150"
               style={{
-                color: active ? '#C9993A' : 'rgba(255,255,255,0.35)',
+                color: active ? '#C9993A' : 'var(--text-ghost)',
                 pointerEvents: 'auto',
                 position: 'relative',
                 zIndex: 10,
@@ -127,8 +127,8 @@ export function MobileNav() {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                background: '#0B1F3A',
-                borderTop: '0.5px solid rgba(255,255,255,0.12)',
+                background: 'var(--bg-surface)',
+                borderTop: '0.5px solid var(--border-medium)',
                 borderRadius: '20px 20px 0 0',
                 padding: '16px 16px 48px',
                 zIndex: 50,
@@ -139,7 +139,7 @@ export function MobileNav() {
                 style={{
                   width: '40px',
                   height: '4px',
-                  background: 'rgba(255,255,255,0.2)',
+                  background: 'var(--text-ghost)',
                   borderRadius: '2px',
                   margin: '0 auto 20px',
                 }}
@@ -177,8 +177,8 @@ export function MobileNav() {
                       alignItems: 'center',
                       gap: '10px',
                       padding: '12px 14px',
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--bg-elevated)',
                       borderRadius: '12px',
                       textDecoration: 'none',
                     }}
@@ -188,7 +188,7 @@ export function MobileNav() {
                       style={{
                         fontSize: '12px',
                         fontWeight: 600,
-                        color: 'rgba(255,255,255,0.8)',
+                        color: 'var(--text-primary)',
                         lineHeight: 1.3,
                       }}
                     >
@@ -204,7 +204,7 @@ export function MobileNav() {
                   fontSize: '10px',
                   fontWeight: 700,
                   letterSpacing: '2px',
-                  color: 'rgba(255,255,255,0.3)',
+                  color: 'var(--text-ghost)',
                   textTransform: 'uppercase',
                   margin: '0 0 8px',
                 }}
@@ -237,7 +237,7 @@ export function MobileNav() {
                     <span
                       style={{
                         fontSize: '13px',
-                        color: 'rgba(255,255,255,0.55)',
+                        color: 'var(--text-secondary)',
                       }}
                     >
                       {item.label}

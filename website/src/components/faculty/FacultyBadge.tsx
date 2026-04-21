@@ -33,9 +33,9 @@ const BADGE_CONFIG: Record<
   },
   pending: {
     label: 'Pending Verification',
-    color: 'rgba(255,255,255,0.35)',
-    bg: 'rgba(255,255,255,0.05)',
-    border: 'rgba(255,255,255,0.12)',
+    color: 'var(--text-ghost)',
+    bg: 'var(--bg-elevated)',
+    border: 'var(--border-medium)',
     icon: '⏳',
   },
 }

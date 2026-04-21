@@ -246,7 +246,7 @@ export function SmartEducationInput({
       {/* Label */}
       <label
         className="mb-1.5 block text-xs font-semibold tracking-wide"
-        style={{ color: 'rgba(255,255,255,0.5)' }}
+        style={{ color: 'var(--text-secondary)' }}
       >
         Tell us about your education
       </label>
@@ -266,8 +266,8 @@ export function SmartEducationInput({
           placeholder={`e.g. "${EXAMPLES[exampleIdx]}"`}
           className="w-full resize-none rounded-xl px-4 py-3.5 text-sm text-white transition-all outline-none"
           style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: `0.5px solid ${result ? (result.confidence >= 85 ? 'rgba(34,197,94,0.4)' : result.confidence >= 60 ? `${primaryColor}66` : 'rgba(239,68,68,0.35)') : 'rgba(255,255,255,0.1)'}`,
+            background: 'var(--bg-elevated)',
+            border: `0.5px solid ${result ? (result.confidence >= 85 ? 'rgba(34,197,94,0.4)' : result.confidence >= 60 ? `${primaryColor}66` : 'rgba(239,68,68,0.35)') : 'var(--border-medium)'}`,
             fontFamily: 'var(--font-dm-sans)',
             opacity: confirmed ? 0.6 : 1,
           }}
@@ -291,7 +291,7 @@ export function SmartEducationInput({
       {!loading && !result && (
         <p
           className="mt-1.5 text-[10px]"
-          style={{ color: 'rgba(255,255,255,0.25)' }}
+          style={{ color: 'var(--text-ghost)' }}
         >
           Just type naturally — we&#39;ll figure it out
         </p>
@@ -338,7 +338,7 @@ export function SmartEducationInput({
                 {result.college && (
                   <p
                     className="mb-1 text-xs"
-                    style={{ color: 'rgba(255,255,255,0.55)' }}
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     at {result.college.name}, {result.college.city}
                     {result.college.university
@@ -349,14 +349,14 @@ export function SmartEducationInput({
                 {getSubjectPreview(result) && (
                   <p
                     className="mb-3 text-[10px]"
-                    style={{ color: 'rgba(255,255,255,0.35)' }}
+                    style={{ color: 'var(--text-ghost)' }}
                   >
                     📚 {getSubjectPreview(result)}
                   </p>
                 )}
                 <p
                   className="mb-2 text-[11px] font-medium"
-                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   Is this right?
                 </p>
@@ -376,9 +376,9 @@ export function SmartEducationInput({
                     onClick={handleCorrect}
                     className="flex-1 rounded-lg py-2 text-xs font-medium transition-all"
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '0.5px solid rgba(255,255,255,0.1)',
-                      color: 'rgba(255,255,255,0.5)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-medium)',
+                      color: 'var(--text-secondary)',
                     }}
                   >
                     Let me correct this
@@ -416,7 +416,7 @@ export function SmartEducationInput({
                     </p>
                     <p
                       className="text-[10px]"
-                      style={{ color: 'rgba(255,255,255,0.4)' }}
+                      style={{ color: 'var(--text-tertiary)' }}
                     >
                       {result.college.city}, {result.college.state}
                       {result.college.naac_grade
@@ -446,8 +446,8 @@ export function SmartEducationInput({
                     }}
                     className="mb-1.5 w-full rounded-lg px-3 py-2 text-left transition-all"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--bg-elevated)',
                     }}
                   >
                     <p className="text-xs text-white/70">{alt.name}</p>
@@ -459,7 +459,7 @@ export function SmartEducationInput({
                 <button
                   onClick={handleCorrect}
                   className="mt-1 text-[11px]"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   None of these — let me retype
                 </button>
@@ -483,7 +483,7 @@ export function SmartEducationInput({
                 </p>
                 <p
                   className="mb-3 text-[10px]"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Select the closest match below, or retype more details.
                 </p>
@@ -510,8 +510,8 @@ export function SmartEducationInput({
                       }}
                       className="mb-2 w-full rounded-lg px-3 py-2.5 text-left transition-all"
                       style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '0.5px solid rgba(255,255,255,0.1)',
+                        background: 'var(--bg-elevated)',
+                        border: '0.5px solid var(--border-medium)',
                       }}
                     >
                       <p className="text-xs font-medium text-white">
@@ -548,7 +548,7 @@ export function SmartEducationInput({
                 <button
                   onClick={handleCorrect}
                   className="mt-2 text-[11px]"
-                  style={{ color: 'rgba(255,255,255,0.3)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Retype with more details →
                 </button>
@@ -582,7 +582,7 @@ export function SmartEducationInput({
             <button
               onClick={handleCorrect}
               className="text-[10px] underline"
-              style={{ color: 'rgba(255,255,255,0.3)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               edit
             </button>
@@ -628,9 +628,9 @@ export function SmartEducationInput({
                 }
                 className="flex-1 rounded-lg py-1.5 text-[11px] transition-all"
                 style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '0.5px solid rgba(255,255,255,0.08)',
-                  color: 'rgba(255,255,255,0.4)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--bg-elevated)',
+                  color: 'var(--text-tertiary)',
                 }}
               >
                 Keep current

@@ -40,7 +40,7 @@ export function CookieBanner() {
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           className="fixed right-0 bottom-0 left-0 z-[100] px-4 py-4 shadow-2xl md:py-5"
-          style={{ background: '#0B1F3A', borderTop: '2px solid #C9993A' }}
+          style={{ background: 'var(--bg-surface)', borderTop: '2px solid #C9993A' }}
         >
           <div className="mx-auto flex max-w-4xl flex-col items-center justify-between gap-4 md:flex-row">
             <p

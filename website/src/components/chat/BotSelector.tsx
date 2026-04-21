@@ -48,7 +48,7 @@ export function BotSelector({
       <p
         className="mb-1.5 px-2 text-[10px] font-semibold tracking-widest uppercase"
         style={{
-          color: isLegalTheme ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.25)',
+          color: isLegalTheme ? 'rgba(0,0,0,0.35)' : 'var(--text-ghost)',
         }}
       >
         Saathi Modes
@@ -105,7 +105,7 @@ export function BotSelector({
                       : `${accent}0F`
                   : isLegalTheme
                     ? 'rgba(0,0,0,0.04)'
-                    : 'rgba(255,255,255,0.04)',
+                    : 'var(--bg-elevated)',
                 border: `0.5px solid ${
                   unlocked
                     ? active
@@ -113,7 +113,7 @@ export function BotSelector({
                       : `${accent}30`
                     : isLegalTheme
                       ? 'rgba(0,0,0,0.1)'
-                      : 'rgba(255,255,255,0.07)'
+                      : 'var(--bg-elevated)'
                 }`,
                 opacity: unlocked ? 1 : 0.4,
                 filter: unlocked ? 'none' : 'grayscale(0.6)',
@@ -134,10 +134,10 @@ export function BotSelector({
                     : unlocked
                       ? isLegalTheme
                         ? '#444444'
-                        : 'rgba(255,255,255,0.6)'
+                        : 'var(--text-secondary)'
                       : isLegalTheme
                         ? '#BBBBBB'
-                        : 'rgba(255,255,255,0.25)',
+                        : 'var(--text-ghost)',
                 }}
               >
                 {bot.name}

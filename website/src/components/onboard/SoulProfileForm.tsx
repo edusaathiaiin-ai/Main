@@ -145,7 +145,7 @@ function SoulCard({
         border: '0.5px solid rgba(201,153,58,0.22)',
         borderRadius: '10px',
         fontSize: '12px',
-        color: 'rgba(255,255,255,0.8)',
+        color: 'var(--text-primary)',
         lineHeight: 1.5,
         marginBottom: '8px',
       }}
@@ -161,7 +161,7 @@ function ProgressBar({ pct }: { pct: number }) {
       style={{
         width: '100%',
         height: '4px',
-        background: 'rgba(255,255,255,0.07)',
+        background: 'var(--bg-elevated)',
         borderRadius: '100px',
         overflow: 'hidden',
         marginBottom: '6px',
@@ -229,7 +229,7 @@ function ChipSelector({
           display: 'block',
           fontSize: '13px',
           fontWeight: 600,
-          color: 'rgba(255,255,255,0.85)',
+          color: 'var(--text-primary)',
           marginBottom: '4px',
         }}
       >
@@ -239,7 +239,7 @@ function ChipSelector({
         <p
           style={{
             fontSize: '11px',
-            color: 'rgba(255,255,255,0.4)',
+            color: 'var(--text-tertiary)',
             marginBottom: '12px',
           }}
         >
@@ -267,9 +267,9 @@ function ChipSelector({
                 borderRadius: '100px',
                 fontSize: '12px',
                 fontWeight: active ? 600 : 400,
-                background: active ? primaryColor : 'rgba(255,255,255,0.05)',
-                color: active ? '#060F1D' : 'rgba(255,255,255,0.65)',
-                border: active ? 'none' : '0.5px solid rgba(255,255,255,0.12)',
+                background: active ? primaryColor : 'var(--bg-elevated)',
+                color: active ? '#060F1D' : 'var(--text-secondary)',
+                border: active ? 'none' : '0.5px solid var(--border-medium)',
                 cursor:
                   selected.length >= maxSelect && !active
                     ? 'default'
@@ -298,7 +298,7 @@ function ChipSelector({
                   padding: '6px 12px',
                   borderRadius: '100px',
                   fontSize: '12px',
-                  background: 'rgba(255,255,255,0.08)',
+                  background: 'var(--bg-elevated)',
                   border: '0.5px solid rgba(201,153,58,0.5)',
                   color: '#fff',
                   outline: 'none',
@@ -329,8 +329,8 @@ function ChipSelector({
                 borderRadius: '100px',
                 fontSize: '12px',
                 background: 'transparent',
-                border: '0.5px dashed rgba(255,255,255,0.2)',
-                color: 'rgba(255,255,255,0.4)',
+                border: '0.5px dashed var(--text-ghost)',
+                color: 'var(--text-tertiary)',
                 cursor: 'pointer',
               }}
             >
@@ -338,7 +338,7 @@ function ChipSelector({
             </button>
           ))}
       </div>
-      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+      <p style={{ fontSize: '11px', color: 'var(--text-ghost)' }}>
         {selected.length} of {maxSelect} selected
       </p>
     </div>
@@ -364,8 +364,8 @@ function SoulPreviewPanel({
       style={{
         position: 'sticky',
         top: '24px',
-        background: 'rgba(255,255,255,0.02)',
-        border: '0.5px solid rgba(255,255,255,0.08)',
+        background: 'var(--bg-elevated)',
+        border: '0.5px solid var(--bg-elevated)',
         borderRadius: '20px',
         padding: '24px',
       }}
@@ -388,7 +388,7 @@ function SoulPreviewPanel({
         >
           ✦ Your Saathi knows you fully.
           <br />
-          <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px' }}>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>
             This is the beginning of something real.
           </span>
         </motion.div>
@@ -406,7 +406,7 @@ function SoulPreviewPanel({
         <p
           style={{
             fontSize: '12px',
-            color: 'rgba(255,255,255,0.5)',
+            color: 'var(--text-secondary)',
             marginTop: '8px',
             fontStyle: 'italic',
           }}
@@ -428,7 +428,7 @@ function SoulPreviewPanel({
           style={{
             fontSize: '11px',
             fontWeight: 600,
-            color: pct >= 100 ? '#C9993A' : 'rgba(255,255,255,0.5)',
+            color: pct >= 100 ? '#C9993A' : 'var(--text-secondary)',
           }}
         >
           {pct}%
@@ -436,7 +436,7 @@ function SoulPreviewPanel({
         <span
           style={{
             fontSize: '11px',
-            color: pct >= 60 ? '#C9993A' : 'rgba(255,255,255,0.4)',
+            color: pct >= 60 ? '#C9993A' : 'var(--text-tertiary)',
           }}
         >
           {milestone}
@@ -508,27 +508,27 @@ function SoulPreviewPanel({
           style={{
             marginTop: '16px',
             padding: '12px',
-            background: 'rgba(255,255,255,0.02)',
-            border: '0.5px dashed rgba(255,255,255,0.1)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px dashed var(--border-medium)',
             borderRadius: '10px',
           }}
         >
           <p
             style={{
               fontSize: '11px',
-              color: 'rgba(255,255,255,0.3)',
+              color: 'var(--text-ghost)',
               marginBottom: '6px',
             }}
           >
             🔒 Unlock at 60%
           </p>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)' }}>
+          <p style={{ fontSize: '11px', color: 'var(--text-ghost)' }}>
             Intern marketplace access
           </p>
           <div
             style={{
               marginTop: '8px',
-              background: 'rgba(255,255,255,0.04)',
+              background: 'var(--bg-elevated)',
               borderRadius: '4px',
               height: '3px',
               overflow: 'hidden',
@@ -547,7 +547,7 @@ function SoulPreviewPanel({
           <p
             style={{
               fontSize: '10px',
-              color: 'rgba(255,255,255,0.2)',
+              color: 'var(--text-ghost)',
               marginTop: '4px',
             }}
           >
@@ -559,7 +559,7 @@ function SoulPreviewPanel({
       <p
         style={{
           fontSize: '11px',
-          color: 'rgba(255,255,255,0.25)',
+          color: 'var(--text-ghost)',
           textAlign: 'center',
           marginTop: '20px',
           lineHeight: 1.6,
@@ -600,7 +600,7 @@ function SectionDivider({
       style={{
         paddingTop: '8px',
         paddingBottom: '4px',
-        borderTop: '0.5px solid rgba(255,255,255,0.07)',
+        borderTop: '0.5px solid var(--bg-elevated)',
         marginTop: '8px',
       }}
     >
@@ -629,7 +629,7 @@ function SectionDivider({
           style={{
             fontSize: '14px',
             fontWeight: 700,
-            color: 'rgba(255,255,255,0.8)',
+            color: 'var(--text-primary)',
           }}
         >
           {title}
@@ -638,7 +638,7 @@ function SectionDivider({
       <p
         style={{
           fontSize: '11px',
-          color: 'rgba(255,255,255,0.3)',
+          color: 'var(--text-ghost)',
           margin: 0,
           paddingLeft: '2px',
         }}
@@ -827,8 +827,8 @@ export function SoulProfileForm({
   // ── Shared input style ────────────────────────────────────────────────────
   const inputCls: React.CSSProperties = {
     width: '100%',
-    background: 'rgba(255,255,255,0.05)',
-    border: '0.5px solid rgba(255,255,255,0.12)',
+    background: 'var(--bg-elevated)',
+    border: '0.5px solid var(--border-medium)',
     borderRadius: '12px',
     padding: '12px 16px',
     fontSize: '14px',
@@ -883,7 +883,7 @@ export function SoulProfileForm({
         <p
           style={{
             fontSize: '15px',
-            color: 'rgba(255,255,255,0.5)',
+            color: 'var(--text-secondary)',
             fontWeight: 300,
           }}
         >
@@ -920,7 +920,7 @@ export function SoulProfileForm({
                 style={{
                   fontSize: '12px',
                   fontWeight: 600,
-                  color: 'rgba(255,255,255,0.7)',
+                  color: 'var(--text-secondary)',
                 }}
               >
                 Soul profile
@@ -935,7 +935,7 @@ export function SoulProfileForm({
             <p
               style={{
                 fontSize: '10px',
-                color: 'rgba(255,255,255,0.3)',
+                color: 'var(--text-ghost)',
                 margin: 0,
               }}
             >
@@ -980,7 +980,7 @@ export function SoulProfileForm({
             <p
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.35)',
+                color: 'var(--text-ghost)',
                 marginBottom: '12px',
               }}
             >
@@ -992,11 +992,11 @@ export function SoulProfileForm({
               onChange={(e) => setFullName(e.target.value)}
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)'
-                e.currentTarget.style.background = 'rgba(255,255,255,0.07)'
+                e.currentTarget.style.background = 'var(--bg-elevated)'
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+                e.currentTarget.style.borderColor = 'var(--border-medium)'
+                e.currentTarget.style.background = 'var(--bg-elevated)'
               }}
               placeholder="Your name — exactly as you'd like your Saathi to address you"
               style={inputCls}
@@ -1020,7 +1020,7 @@ export function SoulProfileForm({
             <p
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.35)',
+                color: 'var(--text-ghost)',
                 marginBottom: '12px',
               }}
             >
@@ -1037,14 +1037,14 @@ export function SoulProfileForm({
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)'
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.07)'
+                  e.currentTarget.style.background = 'var(--bg-elevated)'
                   setShowCityDropdown(true)
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = city
                     ? 'rgba(201,153,58,0.5)'
-                    : 'rgba(255,255,255,0.12)'
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+                    : 'var(--border-medium)'
+                  e.currentTarget.style.background = 'var(--bg-elevated)'
                   setTimeout(() => setShowCityDropdown(false), 200)
                 }}
                 placeholder="Search your city..."
@@ -1052,7 +1052,7 @@ export function SoulProfileForm({
                   ...inputCls,
                   borderColor: city
                     ? 'rgba(201,153,58,0.5)'
-                    : 'rgba(255,255,255,0.12)',
+                    : 'var(--border-medium)',
                 }}
               />
               {city && (
@@ -1105,10 +1105,10 @@ export function SoulProfileForm({
                           textAlign: 'left',
                           background: 'none',
                           border: 'none',
-                          color: 'rgba(255,255,255,0.8)',
+                          color: 'var(--text-primary)',
                           fontSize: '13px',
                           cursor: 'pointer',
-                          borderBottom: '0.5px solid rgba(255,255,255,0.05)',
+                          borderBottom: '0.5px solid var(--bg-elevated)',
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background =
@@ -1144,7 +1144,7 @@ export function SoulProfileForm({
             <p
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.35)',
+                color: 'var(--text-ghost)',
                 marginBottom: '12px',
               }}
             >
@@ -1160,11 +1160,11 @@ export function SoulProfileForm({
               }}
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)'
-                e.currentTarget.style.background = 'rgba(255,255,255,0.07)'
+                e.currentTarget.style.background = 'var(--bg-elevated)'
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+                e.currentTarget.style.borderColor = 'var(--border-medium)'
+                e.currentTarget.style.background = 'var(--bg-elevated)'
                 void parseEducation()
               }}
               placeholder={EDU_EXAMPLES[exampleIdx]}
@@ -1173,7 +1173,7 @@ export function SoulProfileForm({
             <p
               style={{
                 fontSize: '11px',
-                color: 'rgba(255,255,255,0.25)',
+                color: 'var(--text-ghost)',
                 marginTop: '6px',
               }}
             >
@@ -1191,7 +1191,7 @@ export function SoulProfileForm({
                   alignItems: 'center',
                   gap: '8px',
                   fontSize: '12px',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: 'var(--text-tertiary)',
                 }}
               >
                 <span
@@ -1201,7 +1201,7 @@ export function SoulProfileForm({
                     width: 12,
                     height: 12,
                     borderRadius: '50%',
-                    border: '1.5px solid rgba(255,255,255,0.2)',
+                    border: '1.5px solid var(--text-ghost)',
                     borderTop: '1.5px solid #C9993A',
                     animation: 'spin 1s linear infinite',
                   }}
@@ -1247,7 +1247,7 @@ export function SoulProfileForm({
                 <p
                   style={{
                     fontSize: '13px',
-                    color: 'rgba(255,255,255,0.8)',
+                    color: 'var(--text-primary)',
                     marginBottom: '12px',
                   }}
                 >
@@ -1256,7 +1256,7 @@ export function SoulProfileForm({
                     <span
                       style={{
                         fontSize: '10px',
-                        color: 'rgba(255,255,255,0.35)',
+                        color: 'var(--text-ghost)',
                         marginLeft: '6px',
                       }}
                     >
@@ -1267,7 +1267,7 @@ export function SoulProfileForm({
                 <p
                   style={{
                     fontSize: '11px',
-                    color: 'rgba(255,255,255,0.4)',
+                    color: 'var(--text-tertiary)',
                     marginBottom: '10px',
                   }}
                 >
@@ -1301,8 +1301,8 @@ export function SoulProfileForm({
                       borderRadius: '8px',
                       fontSize: '12px',
                       background: 'transparent',
-                      border: '0.5px solid rgba(255,255,255,0.2)',
-                      color: 'rgba(255,255,255,0.6)',
+                      border: '0.5px solid var(--text-ghost)',
+                      color: 'var(--text-secondary)',
                       cursor: 'pointer',
                     }}
                   >
@@ -1400,10 +1400,10 @@ export function SoulProfileForm({
                       position: 'relative',
                       background: active
                         ? `${primaryColor}18`
-                        : 'rgba(255,255,255,0.03)',
+                        : 'var(--bg-elevated)',
                       border: active
                         ? `1.5px solid ${primaryColor}`
-                        : '0.5px solid rgba(255,255,255,0.08)',
+                        : '0.5px solid var(--bg-elevated)',
                       boxShadow: active ? `0 0 20px ${primaryColor}22` : 'none',
                       transition: 'all 0.2s',
                     }}
@@ -1430,7 +1430,7 @@ export function SoulProfileForm({
                     <p
                       style={{
                         fontSize: '11px',
-                        color: 'rgba(255,255,255,0.45)',
+                        color: 'var(--text-tertiary)',
                         lineHeight: 1.5,
                         margin: 0,
                       }}
@@ -1483,7 +1483,7 @@ export function SoulProfileForm({
             <p
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.35)',
+                color: 'var(--text-ghost)',
                 marginBottom: '12px',
               }}
             >
@@ -1495,11 +1495,11 @@ export function SoulProfileForm({
               onChange={(e) => setDream(e.target.value)}
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(201,153,58,0.6)'
-                e.currentTarget.style.background = 'rgba(255,255,255,0.07)'
+                e.currentTarget.style.background = 'var(--bg-elevated)'
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+                e.currentTarget.style.borderColor = 'var(--border-medium)'
+                e.currentTarget.style.background = 'var(--bg-elevated)'
               }}
               placeholder="What excites you most — even if it feels impossibly far away?"
               rows={3}
@@ -1514,8 +1514,8 @@ export function SoulProfileForm({
               alignItems: 'flex-start',
               gap: '12px',
               padding: '16px',
-              background: 'rgba(255,255,255,0.02)',
-              border: '0.5px solid rgba(255,255,255,0.07)',
+              background: 'var(--bg-elevated)',
+              border: '0.5px solid var(--bg-elevated)',
               borderRadius: '12px',
             }}
           >
@@ -1529,10 +1529,10 @@ export function SoulProfileForm({
                 flexShrink: 0,
                 background: nudgePreference
                   ? '#C9993A'
-                  : 'rgba(255,255,255,0.08)',
+                  : 'var(--bg-elevated)',
                 border: nudgePreference
                   ? 'none'
-                  : '0.5px solid rgba(255,255,255,0.2)',
+                  : '0.5px solid var(--text-ghost)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1549,7 +1549,7 @@ export function SoulProfileForm({
               <p
                 style={{
                   fontSize: '13px',
-                  color: 'rgba(255,255,255,0.8)',
+                  color: 'var(--text-primary)',
                   margin: '0 0 3px',
                 }}
               >
@@ -1558,7 +1558,7 @@ export function SoulProfileForm({
               <p
                 style={{
                   fontSize: '11px',
-                  color: 'rgba(255,255,255,0.3)',
+                  color: 'var(--text-ghost)',
                   margin: 0,
                 }}
               >
@@ -1597,7 +1597,7 @@ export function SoulProfileForm({
                 onChange={(e) => setDpdpConsent(e.target.checked)}
                 style={{ marginTop: '2px', flexShrink: 0, accentColor: '#C9993A' }}
               />
-              <label htmlFor="dpdp-consent" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, cursor: 'pointer' }}>
+              <label htmlFor="dpdp-consent" style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6, cursor: 'pointer' }}>
                 I have read the{' '}
                 <a href="/privacy" target="_blank" style={{ color: '#C9993A', textDecoration: 'underline' }}>Privacy Notice</a>
                 {' '}and consent to EdUsaathiAI collecting my learning data to personalise my Saathi experience.
@@ -1621,8 +1621,8 @@ export function SoulProfileForm({
                 borderRadius: '14px',
                 fontSize: '16px',
                 fontWeight: 700,
-                background: canSubmit ? '#C9993A' : 'rgba(255,255,255,0.06)',
-                color: canSubmit ? '#060F1D' : 'rgba(255,255,255,0.3)',
+                background: canSubmit ? '#C9993A' : 'var(--bg-elevated)',
+                color: canSubmit ? '#060F1D' : 'var(--text-ghost)',
                 border: 'none',
                 cursor: canSubmit && !saving ? 'pointer' : 'default',
                 transition: 'all 0.2s',
@@ -1658,7 +1658,7 @@ export function SoulProfileForm({
               style={{
                 textAlign: 'center',
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.25)',
+                color: 'var(--text-ghost)',
                 marginTop: '12px',
               }}
             >
@@ -1678,7 +1678,7 @@ export function SoulProfileForm({
                 onClick={onBack}
                 style={{
                   fontSize: '13px',
-                  color: 'rgba(255,255,255,0.35)',
+                  color: 'var(--text-ghost)',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
@@ -1692,7 +1692,7 @@ export function SoulProfileForm({
                   onClick={onSkip}
                   style={{
                     fontSize: '11px',
-                    color: 'rgba(255,255,255,0.2)',
+                    color: 'var(--text-ghost)',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
@@ -1705,7 +1705,7 @@ export function SoulProfileForm({
                 <p
                   style={{
                     fontSize: '10px',
-                    color: 'rgba(255,255,255,0.15)',
+                    color: 'var(--border-strong)',
                     margin: '3px 0 0',
                   }}
                 >

@@ -26,7 +26,7 @@ export default function PassionMeter({
             cy="50"
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.06)"
+            stroke="var(--bg-elevated)"
             strokeWidth="8"
           />
           {/* Gold fill */}
@@ -71,7 +71,7 @@ export default function PassionMeter({
       </div>
       <p
         className="text-xs font-semibold tracking-wide"
-        style={{ color: 'rgba(255,255,255,0.4)' }}
+        style={{ color: 'var(--text-tertiary)' }}
       >
         {label}
       </p>

@@ -171,8 +171,8 @@ export default function FacultyFinderPage() {
 
   const selectStyle: React.CSSProperties = {
     padding: '8px 14px',
-    background: 'rgba(255,255,255,0.06)',
-    border: '0.5px solid rgba(255,255,255,0.12)',
+    background: 'var(--bg-elevated)',
+    border: '0.5px solid var(--border-medium)',
     borderRadius: '10px',
     color: '#fff',
     fontSize: '12px',
@@ -187,7 +187,7 @@ export default function FacultyFinderPage() {
         style={{
           background: 'linear-gradient(180deg, #0B1F3A 0%, #060F1D 100%)',
           padding: '40px 24px 32px',
-          borderBottom: '0.5px solid rgba(255,255,255,0.06)',
+          borderBottom: '0.5px solid var(--bg-elevated)',
         }}
       >
         <div className="mx-auto max-w-[1100px]">
@@ -209,7 +209,7 @@ export default function FacultyFinderPage() {
               </h1>
               <p
                 className="max-w-[520px] text-base"
-                style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}
+                style={{ color: 'var(--text-secondary)', lineHeight: 1.7 }}
               >
                 Connect with verified Indian academics for 1:1 sessions. Doubt
                 clearing, research guidance, deep dives.
@@ -236,7 +236,7 @@ export default function FacultyFinderPage() {
                   </p>
                   <p
                     className="text-[11px] tracking-wider uppercase"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                   >
                     {s.label}
                   </p>
@@ -256,14 +256,14 @@ export default function FacultyFinderPage() {
               placeholder="Search by name, subject, institution..."
               className="w-full rounded-[14px] py-3.5 pr-4 pl-12 text-sm text-white outline-none"
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '0.5px solid rgba(255,255,255,0.12)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-medium)',
               }}
               onFocus={(e) =>
                 (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.5)')
               }
               onBlur={(e) =>
-                (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)')
+                (e.currentTarget.style.borderColor = 'var(--border-medium)')
               }
             />
           </div>
@@ -276,8 +276,8 @@ export default function FacultyFinderPage() {
         <div
           className="mb-5 flex w-fit gap-1 rounded-xl p-1"
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '0.5px solid rgba(255,255,255,0.06)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
           }}
         >
           {[
@@ -294,14 +294,14 @@ export default function FacultyFinderPage() {
                   filterTab === t.id
                     ? t.id === 'emeritus'
                       ? '#C9993A'
-                      : 'rgba(255,255,255,0.12)'
+                      : 'var(--border-medium)'
                     : 'transparent',
                 color:
                   filterTab === t.id
                     ? t.id === 'emeritus'
                       ? '#060F1D'
                       : '#fff'
-                    : 'rgba(255,255,255,0.4)',
+                    : 'var(--text-tertiary)',
               }}
             >
               {t.label}
@@ -362,7 +362,7 @@ export default function FacultyFinderPage() {
             </option>
           </select>
           <div className="flex-1" />
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
             {filtered.length} faculty found
           </p>
         </div>
@@ -387,7 +387,7 @@ export default function FacultyFinderPage() {
               <h2 className="font-playfair mb-1 text-xl font-bold text-white">
                 India&apos;s greatest professors never really retired.
               </h2>
-              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                 They were just waiting for the right classroom.
               </p>
             </div>
@@ -425,7 +425,7 @@ export default function FacultyFinderPage() {
                         </p>
                         <p
                           className="text-[10px]"
-                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           Former {fp.designation}
                           {fp.former_institution
@@ -448,7 +448,7 @@ export default function FacultyFinderPage() {
                       </span>
                       <span
                         className="text-[10px]"
-                        style={{ color: 'rgba(255,255,255,0.35)' }}
+                        style={{ color: 'var(--text-ghost)' }}
                       >
                         {fp.years_experience}+ years experience
                       </span>
@@ -484,8 +484,8 @@ export default function FacultyFinderPage() {
                 key={i}
                 className="h-[280px] animate-pulse rounded-2xl"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.06)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--bg-elevated)',
                 }}
               />
             ))}
@@ -496,7 +496,7 @@ export default function FacultyFinderPage() {
             <h3 className="font-playfair mb-2 text-2xl text-white">
               No faculty found
             </h3>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
               Try different filters or search terms
             </p>
           </div>
@@ -527,8 +527,8 @@ export default function FacultyFinderPage() {
                     whileHover={{ y: -4 }}
                     className="flex cursor-pointer flex-col overflow-hidden rounded-[18px]"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--bg-elevated)',
                       transition: 'border-color 0.2s',
                     }}
                     onMouseEnter={(e) =>
@@ -536,7 +536,7 @@ export default function FacultyFinderPage() {
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.borderColor =
-                        'rgba(255,255,255,0.08)')
+                        'var(--bg-elevated)')
                     }
                     onClick={() => {
                       window.location.href = `/faculty-finder/${slug}`
@@ -571,7 +571,7 @@ export default function FacultyFinderPage() {
                             </p>
                             <p
                               className="text-[11px]"
-                              style={{ color: 'rgba(255,255,255,0.4)' }}
+                              style={{ color: 'var(--text-tertiary)' }}
                             >
                               {buildCredibilityLine(fp) || fp.designation}
                             </p>
@@ -587,7 +587,7 @@ export default function FacultyFinderPage() {
                             </p>
                             <p
                               className="text-[10px]"
-                              style={{ color: 'rgba(255,255,255,0.25)' }}
+                              style={{ color: 'var(--text-ghost)' }}
                             >
                               {fp.total_reviews} reviews
                             </p>
@@ -598,7 +598,7 @@ export default function FacultyFinderPage() {
                       {/* Institution */}
                       <p
                         className="mb-3 text-xs"
-                        style={{ color: 'rgba(255,255,255,0.5)' }}
+                        style={{ color: 'var(--text-secondary)' }}
                       >
                         {'\u{1F3DB}\u{FE0F}'} {fp.institution_name}
                         {f.city ? ` \u00B7 ${f.city}` : ''}
@@ -674,8 +674,8 @@ export default function FacultyFinderPage() {
                           <span
                             className="rounded-lg px-2 py-0.5 text-[10px]"
                             style={{
-                              background: 'rgba(255,255,255,0.06)',
-                              color: 'rgba(255,255,255,0.4)',
+                              background: 'var(--bg-elevated)',
+                              color: 'var(--text-tertiary)',
                             }}
                           >
                             {fp.years_experience}y exp
@@ -705,7 +705,7 @@ export default function FacultyFinderPage() {
                         <p
                           className="mb-3 line-clamp-2 text-xs"
                           style={{
-                            color: 'rgba(255,255,255,0.45)',
+                            color: 'var(--text-tertiary)',
                             lineHeight: 1.6,
                           }}
                         >
@@ -755,7 +755,7 @@ export default function FacultyFinderPage() {
                     <div
                       className="flex items-center justify-between px-5 py-3.5"
                       style={{
-                        borderTop: '0.5px solid rgba(255,255,255,0.06)',
+                        borderTop: '0.5px solid var(--bg-elevated)',
                         background: 'rgba(0,0,0,0.15)',
                       }}
                     >
@@ -764,7 +764,7 @@ export default function FacultyFinderPage() {
                           <>
                             <p
                               className="text-[10px]"
-                              style={{ color: 'rgba(255,255,255,0.3)' }}
+                              style={{ color: 'var(--text-ghost)' }}
                             >
                               From
                             </p>
@@ -772,7 +772,7 @@ export default function FacultyFinderPage() {
                               {formatFee(minFee)}
                               <span
                                 className="text-[10px] font-normal"
-                                style={{ color: 'rgba(255,255,255,0.3)' }}
+                                style={{ color: 'var(--text-ghost)' }}
                               >
                                 /session
                               </span>

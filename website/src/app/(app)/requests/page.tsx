@@ -123,8 +123,8 @@ export default function PublicRequestsPage() {
 
   const selectStyle: React.CSSProperties = {
     padding: '8px 14px',
-    background: 'rgba(255,255,255,0.06)',
-    border: '0.5px solid rgba(255,255,255,0.12)',
+    background: 'var(--bg-elevated)',
+    border: '0.5px solid var(--border-medium)',
     borderRadius: '10px',
     color: '#fff',
     fontSize: '12px',
@@ -133,12 +133,12 @@ export default function PublicRequestsPage() {
   }
 
   return (
-    <main className="min-h-screen" style={{ background: '#060F1D' }}>
+    <main className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       <div
         style={{
           background: 'linear-gradient(180deg, #0B1F3A 0%, #060F1D 100%)',
           padding: '40px 24px 32px',
-          borderBottom: '0.5px solid rgba(255,255,255,0.06)',
+          borderBottom: '0.5px solid var(--bg-elevated)',
         }}
       >
         <div className="mx-auto max-w-[900px]">
@@ -156,7 +156,7 @@ export default function PublicRequestsPage() {
           </h1>
           <p
             className="max-w-[480px] text-sm"
-            style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}
+            style={{ color: 'var(--text-secondary)', lineHeight: 1.7 }}
           >
             Browse lecture requests from students across India. Support topics
             you want too. Faculty see demand and create sessions.
@@ -171,11 +171,11 @@ export default function PublicRequestsPage() {
             onChange={(e) => setFilterSaathi(e.target.value)}
             style={selectStyle}
           >
-            <option value="all" style={{ background: '#0B1F3A' }}>
+            <option value="all" style={{ background: 'var(--bg-surface)' }}>
               All Subjects
             </option>
             {SAATHIS.map((s) => (
-              <option key={s.id} value={s.id} style={{ background: '#0B1F3A' }}>
+              <option key={s.id} value={s.id} style={{ background: 'var(--bg-surface)' }}>
                 {s.emoji} {s.name}
               </option>
             ))}
@@ -185,15 +185,15 @@ export default function PublicRequestsPage() {
             onChange={(e) => setSortBy(e.target.value as 'votes' | 'newest')}
             style={selectStyle}
           >
-            <option value="votes" style={{ background: '#0B1F3A' }}>
+            <option value="votes" style={{ background: 'var(--bg-surface)' }}>
               Most Wanted
             </option>
-            <option value="newest" style={{ background: '#0B1F3A' }}>
+            <option value="newest" style={{ background: 'var(--bg-surface)' }}>
               Newest
             </option>
           </select>
           <div className="flex-1" />
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
             {filtered.length} requests
           </p>
         </div>
@@ -213,7 +213,7 @@ export default function PublicRequestsPage() {
             </p>
             <p
               className="mb-4 text-xs"
-              style={{ color: 'rgba(255,255,255,0.25)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               Be the first to request a topic from a faculty member
             </p>
@@ -246,8 +246,8 @@ export default function PublicRequestsPage() {
                   transition={{ delay: i * 0.03 }}
                   className="rounded-xl p-5"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '0.5px solid rgba(255,255,255,0.08)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--bg-elevated)',
                   }}
                 >
                   <div className="mb-2 flex items-start justify-between">
@@ -257,7 +257,7 @@ export default function PublicRequestsPage() {
                       </h3>
                       <p
                         className="text-[10px]"
-                        style={{ color: 'rgba(255,255,255,0.35)' }}
+                        style={{ color: 'var(--text-ghost)' }}
                       >
                         Requested from{' '}
                         <Link
@@ -280,7 +280,7 @@ export default function PublicRequestsPage() {
                           color:
                             r.upvote_count >= 5
                               ? '#FB923C'
-                              : 'rgba(255,255,255,0.5)',
+                              : 'var(--text-secondary)',
                         }}
                       >
                         {r.upvote_count >= 10
@@ -318,7 +318,7 @@ export default function PublicRequestsPage() {
                   </div>
                   <p
                     className="line-clamp-2 text-xs"
-                    style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}
+                    style={{ color: 'var(--text-tertiary)', lineHeight: 1.6 }}
                   >
                     &ldquo;{r.message.slice(0, 200)}
                     {r.message.length > 200 ? '...' : ''}&rdquo;

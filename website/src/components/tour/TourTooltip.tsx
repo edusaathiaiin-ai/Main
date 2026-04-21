@@ -106,7 +106,7 @@ export function TourTooltip({
       position: 'absolute',
       width: '10px',
       height: '10px',
-      background: '#0B1F3A',
+      background: 'var(--bg-surface)',
       transform: 'rotate(45deg)',
     }
     switch (arrow) {
@@ -234,7 +234,7 @@ export function TourTooltip({
               top: pos.top,
               left: pos.left,
               width: '280px',
-              background: '#0B1F3A',
+              background: 'var(--bg-surface)',
               border: `0.5px solid ${accentColor}60`,
               borderRadius: '14px',
               padding: '14px 16px',
@@ -254,7 +254,7 @@ export function TourTooltip({
                 right: '10px',
                 background: 'none',
                 border: 'none',
-                color: 'rgba(255,255,255,0.3)',
+                color: 'var(--text-ghost)',
                 cursor: 'pointer',
                 fontSize: '14px',
                 lineHeight: 1,
@@ -282,7 +282,7 @@ export function TourTooltip({
             <p
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.55)',
+                color: 'var(--text-secondary)',
                 margin: '0 0 14px',
                 lineHeight: 1.6,
               }}
@@ -300,7 +300,7 @@ export function TourTooltip({
                     height: '6px',
                     borderRadius: '3px',
                     background:
-                      i === current ? accentColor : 'rgba(255,255,255,0.15)',
+                      i === current ? accentColor : 'var(--border-strong)',
                     transition: 'all 0.3s ease',
                   }}
                 />
@@ -320,7 +320,7 @@ export function TourTooltip({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'rgba(255,255,255,0.25)',
+                  color: 'var(--text-ghost)',
                   fontSize: '11px',
                   cursor: 'pointer',
                   padding: 0,

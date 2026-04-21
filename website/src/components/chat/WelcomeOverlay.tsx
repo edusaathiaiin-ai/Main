@@ -109,8 +109,8 @@ function WelcomeOverlay({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, duration: 0.4 }}
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '0.5px solid rgba(255,255,255,0.1)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--border-medium)',
             borderRadius: '20px',
             padding: '32px',
             marginBottom: '32px',
@@ -132,7 +132,7 @@ function WelcomeOverlay({
           <p
             style={{
               fontSize: '15px',
-              color: 'rgba(255,255,255,0.7)',
+              color: 'var(--text-secondary)',
               lineHeight: 1.75,
               marginBottom: '14px',
             }}
@@ -146,7 +146,7 @@ function WelcomeOverlay({
           <p
             style={{
               fontSize: '15px',
-              color: 'rgba(255,255,255,0.7)',
+              color: 'var(--text-secondary)',
               lineHeight: 1.75,
               marginBottom: '14px',
             }}
@@ -158,7 +158,7 @@ function WelcomeOverlay({
           <p
             style={{
               fontSize: '15px',
-              color: 'rgba(255,255,255,0.7)',
+              color: 'var(--text-secondary)',
               lineHeight: 1.75,
               marginBottom: '14px',
             }}
@@ -172,7 +172,7 @@ function WelcomeOverlay({
               fontFamily: 'var(--font-playfair, "Playfair Display", serif)',
               fontSize: '16px',
               fontStyle: 'italic',
-              color: 'rgba(255,255,255,0.85)',
+              color: 'var(--text-primary)',
               lineHeight: 1.6,
             }}
           >
@@ -226,17 +226,17 @@ function WelcomeOverlay({
             href="/profile"
             style={{
               fontSize: '13px',
-              color: 'rgba(255,255,255,0.4)',
+              color: 'var(--text-tertiary)',
               textDecoration: 'none',
               transition: 'color 0.2s',
             }}
             onMouseEnter={(e) => {
               ;(e.currentTarget as HTMLAnchorElement).style.color =
-                'rgba(255,255,255,0.7)'
+                'var(--text-secondary)'
             }}
             onMouseLeave={(e) => {
               ;(e.currentTarget as HTMLAnchorElement).style.color =
-                'rgba(255,255,255,0.4)'
+                'var(--text-tertiary)'
             }}
           >
             Tell me more about you first

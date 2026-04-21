@@ -80,7 +80,7 @@ function MatchBadge({ score }: { score: number }) {
       ? ['rgba(201,153,58,0.15)', '#E5B86A']
       : score >= 60
         ? ['rgba(34,197,94,0.12)', '#4ADE80']
-        : ['rgba(255,255,255,0.06)', 'rgba(255,255,255,0.4)']
+        : ['var(--bg-elevated)', 'var(--text-tertiary)']
   return (
     <span
       className="rounded-full px-2.5 py-1 text-xs font-bold"
@@ -98,7 +98,7 @@ function ApplicationStatusBadge({ status }: { status: string }) {
     interviewing: { color: '#C084FC', label: '🎙 Interviewing' },
     selected: { color: '#4ADE80', label: '🎉 Selected' },
     rejected: { color: '#F87171', label: '✕ Not selected' },
-    withdrawn: { color: 'rgba(255,255,255,0.35)', label: 'Withdrawn' },
+    withdrawn: { color: 'var(--text-ghost)', label: 'Withdrawn' },
   }
   const s = map[status] ?? map.applied
   return (
@@ -125,7 +125,7 @@ function DeadlineTag({ deadline }: { deadline: string | null }) {
       </span>
     )
   const color =
-    days <= 3 ? '#F87171' : days <= 7 ? '#FACC15' : 'rgba(255,255,255,0.35)'
+    days <= 3 ? '#F87171' : days <= 7 ? '#FACC15' : 'var(--text-ghost)'
   return (
     <span className="text-[10px] font-semibold" style={{ color }}>
       ⏰ {days}d left
@@ -213,8 +213,8 @@ function CompanyApplyModal({
         exit={{ opacity: 0, y: 40 }}
         className="w-full max-w-md rounded-2xl p-6"
         style={{
-          background: '#0B1F3A',
-          border: '0.5px solid rgba(255,255,255,0.1)',
+          background: 'var(--bg-surface)',
+          border: '0.5px solid var(--border-medium)',
         }}
       >
         <div className="mb-4 flex items-start justify-between">
@@ -224,7 +224,7 @@ function CompanyApplyModal({
             </h3>
             <p
               className="mt-0.5 text-xs"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               {posting.company_name ?? saathi?.name ?? 'Organisation'}
               {posting.location ? ` · ${posting.location}` : ''}
@@ -233,7 +233,7 @@ function CompanyApplyModal({
           <button
             onClick={onClose}
             className="text-2xl leading-none"
-            style={{ color: 'rgba(255,255,255,0.3)' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             ×
           </button>
@@ -242,10 +242,10 @@ function CompanyApplyModal({
         <div className="mb-4">
           <label
             className="mb-2 block text-xs font-semibold"
-            style={{ color: 'rgba(255,255,255,0.5)' }}
+            style={{ color: 'var(--text-secondary)' }}
           >
             Cover note{' '}
-            <span style={{ color: 'rgba(255,255,255,0.3)' }}>
+            <span style={{ color: 'var(--text-ghost)' }}>
               (optional, max {MAX} chars)
             </span>
           </label>
@@ -258,14 +258,14 @@ function CompanyApplyModal({
             placeholder="Why are you a great fit? What can you contribute?"
             className="w-full resize-none rounded-xl px-4 py-3 text-sm outline-none"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '0.5px solid rgba(255,255,255,0.12)',
+              background: 'var(--bg-elevated)',
+              border: '0.5px solid var(--border-medium)',
               color: '#fff',
             }}
           />
           <p
             className="mt-1 text-right text-[10px]"
-            style={{ color: 'rgba(255,255,255,0.25)' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             {MAX - coverNote.length} remaining
           </p>
@@ -289,9 +289,9 @@ function CompanyApplyModal({
             onClick={onClose}
             className="flex-1 rounded-xl py-2.5 text-sm font-medium"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'rgba(255,255,255,0.5)',
-              border: '0.5px solid rgba(255,255,255,0.1)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-secondary)',
+              border: '0.5px solid var(--border-medium)',
             }}
           >
             Cancel
@@ -304,7 +304,7 @@ function CompanyApplyModal({
               background: submitting
                 ? 'rgba(99,102,241,0.2)'
                 : 'linear-gradient(135deg, #6366F1, #4F46E5)',
-              color: submitting ? 'rgba(255,255,255,0.3)' : '#fff',
+              color: submitting ? 'var(--text-ghost)' : '#fff',
               cursor: submitting ? 'not-allowed' : 'pointer',
             }}
           >
@@ -404,8 +404,8 @@ function ResearchApplyModal({
         exit={{ opacity: 0, y: 40 }}
         className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl p-6"
         style={{
-          background: '#0B1F3A',
-          border: '0.5px solid rgba(255,255,255,0.1)',
+          background: 'var(--bg-surface)',
+          border: '0.5px solid var(--border-medium)',
         }}
       >
         <div className="mb-4 flex items-start justify-between">
@@ -415,7 +415,7 @@ function ResearchApplyModal({
             </h3>
             <p
               className="mt-0.5 text-xs"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               {posting.faculty_profile?.designation
                 ? `${posting.faculty_profile.designation} · `
@@ -426,7 +426,7 @@ function ResearchApplyModal({
           <button
             onClick={onClose}
             className="ml-4 text-2xl leading-none"
-            style={{ color: 'rgba(255,255,255,0.3)' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             ×
           </button>
@@ -436,10 +436,10 @@ function ResearchApplyModal({
           <div>
             <label
               className="mb-2 block text-xs font-semibold"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
+              style={{ color: 'var(--text-secondary)' }}
             >
               Research statement <span style={{ color: '#F87171' }}>*</span>{' '}
-              <span style={{ color: 'rgba(255,255,255,0.3)' }}>
+              <span style={{ color: 'var(--text-ghost)' }}>
                 (max 300 chars)
               </span>
             </label>
@@ -452,14 +452,14 @@ function ResearchApplyModal({
               placeholder="What is your background in this research area? What methods or tools do you bring?"
               className="w-full resize-none rounded-xl px-4 py-3 text-sm outline-none"
               style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '0.5px solid rgba(255,255,255,0.12)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-medium)',
                 color: '#fff',
               }}
             />
             <p
               className="mt-1 text-right text-[10px]"
-              style={{ color: 'rgba(255,255,255,0.25)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               {300 - statement.length} remaining
             </p>
@@ -468,10 +468,10 @@ function ResearchApplyModal({
           <div>
             <label
               className="mb-2 block text-xs font-semibold"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
+              style={{ color: 'var(--text-secondary)' }}
             >
               Why this project?{' '}
-              <span style={{ color: 'rgba(255,255,255,0.3)' }}>
+              <span style={{ color: 'var(--text-ghost)' }}>
                 (max 200 chars)
               </span>
             </label>
@@ -484,8 +484,8 @@ function ResearchApplyModal({
               placeholder="Why does this specific research excite you?"
               className="w-full resize-none rounded-xl px-4 py-3 text-sm outline-none"
               style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '0.5px solid rgba(255,255,255,0.12)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-medium)',
                 color: '#fff',
               }}
             />
@@ -494,10 +494,10 @@ function ResearchApplyModal({
           <div>
             <label
               className="mb-2 block text-xs font-semibold"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
+              style={{ color: 'var(--text-secondary)' }}
             >
               Prior experience{' '}
-              <span style={{ color: 'rgba(255,255,255,0.3)' }}>(optional)</span>
+              <span style={{ color: 'var(--text-ghost)' }}>(optional)</span>
             </label>
             <textarea
               rows={2}
@@ -506,8 +506,8 @@ function ResearchApplyModal({
               placeholder="Any relevant projects, papers, or coursework"
               className="w-full resize-none rounded-xl px-4 py-3 text-sm outline-none"
               style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '0.5px solid rgba(255,255,255,0.12)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-medium)',
                 color: '#fff',
               }}
             />
@@ -531,7 +531,7 @@ function ResearchApplyModal({
           className="mt-4 mb-4 rounded-xl px-3 py-2.5 text-xs"
           style={{
             background: 'rgba(168,85,247,0.08)',
-            color: 'rgba(255,255,255,0.5)',
+            color: 'var(--text-secondary)',
             border: '0.5px solid rgba(168,85,247,0.2)',
           }}
         >
@@ -545,9 +545,9 @@ function ResearchApplyModal({
             onClick={onClose}
             className="flex-1 rounded-xl py-2.5 text-sm font-medium"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'rgba(255,255,255,0.5)',
-              border: '0.5px solid rgba(255,255,255,0.1)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-secondary)',
+              border: '0.5px solid var(--border-medium)',
             }}
           >
             Cancel
@@ -563,7 +563,7 @@ function ResearchApplyModal({
                   : 'linear-gradient(135deg, #A855F7, #7C3AED)',
               color:
                 submitting || statement.trim().length < 30
-                  ? 'rgba(255,255,255,0.3)'
+                  ? 'var(--text-ghost)'
                   : '#fff',
               cursor:
                 submitting || statement.trim().length < 30
@@ -598,8 +598,8 @@ function CompanyCard({
       animate={{ opacity: 1, y: 0 }}
       className="rounded-2xl p-5"
       style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: `0.5px solid ${posting.listing_plan === 'featured' ? 'rgba(201,153,58,0.4)' : 'rgba(255,255,255,0.08)'}`,
+        background: 'var(--bg-elevated)',
+        border: `0.5px solid ${posting.listing_plan === 'featured' ? 'rgba(201,153,58,0.4)' : 'var(--bg-elevated)'}`,
       }}
     >
       {posting.listing_plan === 'featured' && (
@@ -620,7 +620,7 @@ function CompanyCard({
             src={posting.company_logo_url}
             alt={posting.company_name ?? ''}
             className="h-10 w-10 rounded-xl object-contain"
-            style={{ background: 'rgba(255,255,255,0.06)', padding: '4px' }}
+            style={{ background: 'var(--bg-elevated)', padding: '4px' }}
           />
         ) : (
           <div
@@ -628,7 +628,7 @@ function CompanyCard({
             style={{
               background: saathi
                 ? `${saathi.primary}25`
-                : 'rgba(255,255,255,0.06)',
+                : 'var(--bg-elevated)',
             }}
           >
             🏢
@@ -641,7 +641,7 @@ function CompanyCard({
             </h3>
             {applied && <ApplicationStatusBadge status={applied.status} />}
           </div>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
             {posting.company_name ?? 'Organisation'}
             {posting.location ? ` · ${posting.location}` : ''}
             {posting.is_remote ? ' · Remote' : ''}
@@ -654,7 +654,7 @@ function CompanyCard({
 
       <p
         className="mb-3 text-xs leading-relaxed"
-        style={{ color: 'rgba(255,255,255,0.55)' }}
+        style={{ color: 'var(--text-secondary)' }}
       >
         {posting.description.slice(0, 180)}
         {posting.description.length > 180 ? '…' : ''}
@@ -673,8 +673,8 @@ function CompanyCard({
           <span
             className="rounded-full px-2 py-0.5 text-[10px]"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'rgba(255,255,255,0.4)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-tertiary)',
             }}
           >
             🗓 {posting.duration_months}m
@@ -695,8 +695,8 @@ function CompanyCard({
           <span
             className="rounded-full px-2 py-0.5 text-[10px]"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              color: 'rgba(255,255,255,0.3)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-ghost)',
             }}
           >
             Unpaid
@@ -706,8 +706,8 @@ function CompanyCard({
           <span
             className="rounded-full px-2 py-0.5 text-[10px] capitalize"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'rgba(255,255,255,0.4)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-tertiary)',
             }}
           >
             {posting.work_mode}
@@ -719,7 +719,7 @@ function CompanyCard({
         <div className="flex items-center gap-3">
           <span
             className="text-[10px]"
-            style={{ color: 'rgba(255,255,255,0.3)' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             {seatsLeft > 0
               ? `${seatsLeft} seat${seatsLeft > 1 ? 's' : ''} left`
@@ -739,7 +739,7 @@ function CompanyCard({
             Apply Now →
           </button>
         ) : (
-          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <span className="text-xs" style={{ color: 'var(--text-ghost)' }}>
             Applied ✓
           </span>
         )}
@@ -767,7 +767,7 @@ function ResearchCard({
       animate={{ opacity: 1, y: 0 }}
       className="rounded-2xl p-5"
       style={{
-        background: 'rgba(255,255,255,0.03)',
+        background: 'var(--bg-elevated)',
         border: '0.5px solid rgba(168,85,247,0.2)',
       }}
     >
@@ -804,7 +804,7 @@ function ResearchCard({
           </h3>
           <p
             className="mt-0.5 text-xs"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            style={{ color: 'var(--text-tertiary)' }}
           >
             {posting.poster?.full_name ?? 'Faculty'}
             {posting.faculty_profile?.designation
@@ -828,7 +828,7 @@ function ResearchCard({
 
       <p
         className="mb-3 text-xs leading-relaxed"
-        style={{ color: 'rgba(255,255,255,0.55)' }}
+        style={{ color: 'var(--text-secondary)' }}
       >
         {posting.description.slice(0, 200)}
         {posting.description.length > 200 ? '…' : ''}
@@ -838,19 +838,19 @@ function ResearchCard({
         <div
           className="mb-3 rounded-xl p-3"
           style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '0.5px solid rgba(255,255,255,0.06)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
           }}
         >
           <p
             className="mb-1 text-[10px] font-semibold tracking-wider uppercase"
-            style={{ color: 'rgba(255,255,255,0.3)' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             What you&apos;ll do
           </p>
           <p
             className="text-xs leading-relaxed"
-            style={{ color: 'rgba(255,255,255,0.6)' }}
+            style={{ color: 'var(--text-secondary)' }}
           >
             {posting.responsibilities}
           </p>
@@ -860,7 +860,7 @@ function ResearchCard({
       {posting.expected_outcome && (
         <p
           className="mb-3 text-xs italic"
-          style={{ color: 'rgba(255,255,255,0.4)' }}
+          style={{ color: 'var(--text-tertiary)' }}
         >
           Outcome: {posting.expected_outcome}
         </p>
@@ -882,8 +882,8 @@ function ResearchCard({
           <span
             className="rounded-full px-2 py-0.5 text-[10px]"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              color: 'rgba(255,255,255,0.3)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-ghost)',
             }}
           >
             Unpaid
@@ -893,8 +893,8 @@ function ResearchCard({
           <span
             className="rounded-full px-2 py-0.5 text-[10px]"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'rgba(255,255,255,0.4)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-tertiary)',
             }}
           >
             {posting.duration_months}m
@@ -904,8 +904,8 @@ function ResearchCard({
           <span
             className="rounded-full px-2 py-0.5 text-[10px]"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'rgba(255,255,255,0.4)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-tertiary)',
             }}
           >
             📜 Certificate
@@ -915,8 +915,8 @@ function ResearchCard({
           <span
             className="rounded-full px-2 py-0.5 text-[10px]"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'rgba(255,255,255,0.4)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-tertiary)',
             }}
           >
             Depth {posting.min_depth}+
@@ -928,7 +928,7 @@ function ResearchCard({
         <div className="flex items-center gap-3">
           <span
             className="text-[10px]"
-            style={{ color: 'rgba(255,255,255,0.3)' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             {seatsLeft > 0
               ? `${seatsLeft} seat${seatsLeft > 1 ? 's' : ''} left`
@@ -948,7 +948,7 @@ function ResearchCard({
             Apply →
           </button>
         ) : (
-          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <span className="text-xs" style={{ color: 'var(--text-ghost)' }}>
             Applied ✓
           </span>
         )}
@@ -1099,7 +1099,7 @@ export default function InternshipsPage() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: '#060F1D', color: '#fff' }}
+      style={{ background: 'var(--bg-base)', color: '#fff' }}
     >
       <div className="mx-auto max-w-3xl px-4 py-8">
         {/* Header */}
@@ -1107,7 +1107,7 @@ export default function InternshipsPage() {
           <h1 className="font-playfair mb-1 text-3xl font-bold text-white">
             Internships & Research 🎯
           </h1>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
             Soul-matched opportunities · sorted by your profile
           </p>
         </div>
@@ -1135,7 +1135,7 @@ export default function InternshipsPage() {
         {/* Tabs */}
         <div
           className="mb-5 flex gap-1 rounded-2xl p-1"
-          style={{ background: 'rgba(255,255,255,0.04)' }}
+          style={{ background: 'var(--bg-elevated)' }}
         >
           {[
             {
@@ -1156,16 +1156,16 @@ export default function InternshipsPage() {
               style={{
                 background:
                   activeTab === tab.id
-                    ? 'rgba(255,255,255,0.1)'
+                    ? 'var(--border-medium)'
                     : 'transparent',
-                color: activeTab === tab.id ? '#fff' : 'rgba(255,255,255,0.4)',
+                color: activeTab === tab.id ? '#fff' : 'var(--text-tertiary)',
               }}
             >
               {tab.label}
               {tab.count > 0 && (
                 <span
                   className="ml-1.5 rounded-full px-1.5 py-0.5 text-[9px]"
-                  style={{ background: 'rgba(255,255,255,0.1)' }}
+                  style={{ background: 'var(--border-medium)' }}
                 >
                   {tab.count}
                 </span>
@@ -1181,9 +1181,9 @@ export default function InternshipsPage() {
             className="rounded-full px-3 py-1.5 text-xs font-semibold"
             style={{
               background:
-                filterVertical === 'all' ? '#C9993A' : 'rgba(255,255,255,0.06)',
+                filterVertical === 'all' ? '#C9993A' : 'var(--bg-elevated)',
               color:
-                filterVertical === 'all' ? '#060F1D' : 'rgba(255,255,255,0.5)',
+                filterVertical === 'all' ? '#060F1D' : 'var(--text-secondary)',
             }}
           >
             All fields
@@ -1199,11 +1199,11 @@ export default function InternshipsPage() {
                     background:
                       filterVertical === s.id
                         ? s.primary
-                        : 'rgba(255,255,255,0.06)',
+                        : 'var(--bg-elevated)',
                     color:
                       filterVertical === s.id
                         ? '#fff'
-                        : 'rgba(255,255,255,0.5)',
+                        : 'var(--text-secondary)',
                   }}
                 >
                   {s.emoji} {s.name}
@@ -1216,8 +1216,8 @@ export default function InternshipsPage() {
             style={{
               background: filterPaid
                 ? 'rgba(74,222,128,0.15)'
-                : 'rgba(255,255,255,0.06)',
-              color: filterPaid ? '#4ADE80' : 'rgba(255,255,255,0.4)',
+                : 'var(--bg-elevated)',
+              color: filterPaid ? '#4ADE80' : 'var(--text-tertiary)',
               border: `0.5px solid ${filterPaid ? 'rgba(74,222,128,0.35)' : 'transparent'}`,
             }}
           >
@@ -1229,8 +1229,8 @@ export default function InternshipsPage() {
             style={{
               background: filterRemote
                 ? 'rgba(14,165,233,0.15)'
-                : 'rgba(255,255,255,0.06)',
-              color: filterRemote ? '#38BDF8' : 'rgba(255,255,255,0.4)',
+                : 'var(--bg-elevated)',
+              color: filterRemote ? '#38BDF8' : 'var(--text-tertiary)',
               border: `0.5px solid ${filterRemote ? 'rgba(14,165,233,0.35)' : 'transparent'}`,
             }}
           >
@@ -1243,8 +1243,8 @@ export default function InternshipsPage() {
               style={{
                 background: filterCoauthor
                   ? 'rgba(201,153,58,0.15)'
-                  : 'rgba(255,255,255,0.06)',
-                color: filterCoauthor ? '#E5B86A' : 'rgba(255,255,255,0.4)',
+                  : 'var(--bg-elevated)',
+                color: filterCoauthor ? '#E5B86A' : 'var(--text-tertiary)',
                 border: `0.5px solid ${filterCoauthor ? 'rgba(201,153,58,0.35)' : 'transparent'}`,
               }}
             >
@@ -1261,7 +1261,7 @@ export default function InternshipsPage() {
                 key={i}
                 className="animate-pulse rounded-2xl"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
+                  background: 'var(--bg-elevated)',
                   height: '180px',
                 }}
               />
@@ -1272,8 +1272,8 @@ export default function InternshipsPage() {
             <div
               className="rounded-2xl p-12 text-center"
               style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '0.5px solid rgba(255,255,255,0.06)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--bg-elevated)',
               }}
             >
               <p className="mb-4 text-4xl">🏢</p>
@@ -1282,7 +1282,7 @@ export default function InternshipsPage() {
               </p>
               <p
                 className="text-sm"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 Institutions are setting up postings. Check back soon!
               </p>
@@ -1298,15 +1298,15 @@ export default function InternshipsPage() {
           <div
             className="rounded-2xl p-12 text-center"
             style={{
-              background: 'rgba(255,255,255,0.02)',
-              border: '0.5px solid rgba(255,255,255,0.06)',
+              background: 'var(--bg-elevated)',
+              border: '0.5px solid var(--bg-elevated)',
             }}
           >
             <p className="mb-4 text-4xl">🔬</p>
             <p className="font-playfair mb-2 text-xl text-white">
               No research positions yet
             </p>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <p className="text-sm" style={{ color: 'var(--text-ghost)' }}>
               Faculty are setting up research openings. Check back soon!
             </p>
           </div>
@@ -1332,8 +1332,8 @@ export default function InternshipsPage() {
                     key={app.id}
                     className="rounded-2xl p-4"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '0.5px solid rgba(255,255,255,0.07)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--bg-elevated)',
                     }}
                   >
                     <div className="flex items-center justify-between gap-3">
@@ -1343,7 +1343,7 @@ export default function InternshipsPage() {
                         </p>
                         <p
                           className="mt-0.5 text-xs"
-                          style={{ color: 'rgba(255,255,255,0.35)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           {p?.company_name ??
                             p?.faculty_profile?.institution_name ??

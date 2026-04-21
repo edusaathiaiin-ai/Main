@@ -77,11 +77,11 @@ type Filter = 'all' | Category
 
 // ── Palette (dark island; accents use per-Saathi CSS vars) ───────────────
 const BG_SURFACE = '#0F1923'
-const BG_CARD    = 'rgba(255, 255, 255, 0.03)'
-const BRD_SOFT   = 'rgba(255, 255, 255, 0.08)'
+const BG_CARD    = 'var(--bg-elevated)'
+const BRD_SOFT   = 'var(--bg-elevated)'
 const TEXT_HIGH  = '#FFFFFF'
-const TEXT_MID   = 'rgba(255, 255, 255, 0.60)'
-const TEXT_LOW   = 'rgba(255, 255, 255, 0.35)'
+const TEXT_MID   = 'var(--text-secondary)'
+const TEXT_LOW   = 'var(--text-ghost)'
 
 // ── Layout constants ─────────────────────────────────────────────────────
 const PANEL_WIDTH           = 420
@@ -381,7 +381,7 @@ export function SaathiHorizon({
           aria-label={isOpen ? 'Collapse' : 'Expand'}
           aria-expanded={isOpen}
           style={{
-            background:    'rgba(255,255,255,0.06)',
+            background:    'var(--bg-elevated)',
             border:        `1px solid ${BRD_SOFT}`,
             color:         'var(--saathi-primary, #C9993A)',
             borderRadius:  '8px',

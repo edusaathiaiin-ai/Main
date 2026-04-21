@@ -106,7 +106,7 @@ function FlipCard({
             right: 0,
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
-            background: 'rgba(255,255,255,0.03)',
+            background: 'var(--bg-elevated)',
             border: `0.5px solid ${primaryColor}25`,
             borderRadius: '16px',
             padding: '20px',
@@ -140,8 +140,8 @@ function FlipCard({
                   fontSize: '9px',
                   padding: '2px 7px',
                   borderRadius: '20px',
-                  background: 'rgba(255,255,255,0.06)',
-                  color: 'rgba(255,255,255,0.3)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-ghost)',
                 }}
               >
                 Rep {card.repetitions}
@@ -154,7 +154,7 @@ function FlipCard({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'rgba(255,255,255,0.2)',
+                  color: 'var(--text-ghost)',
                   cursor: 'pointer',
                   fontSize: '12px',
                   padding: '0',
@@ -180,7 +180,7 @@ function FlipCard({
           <p
             style={{
               fontSize: '10px',
-              color: 'rgba(255,255,255,0.2)',
+              color: 'var(--text-ghost)',
               marginTop: '12px',
               margin: '12px 0 0',
             }}
@@ -223,7 +223,7 @@ function FlipCard({
           <p
             style={{
               fontSize: '14px',
-              color: 'rgba(255,255,255,0.85)',
+              color: 'var(--text-primary)',
               lineHeight: 1.65,
               flex: 1,
               margin: '0 0 16px',
@@ -355,7 +355,7 @@ export function FlashcardsClient({ saathiId }: Props) {
     <div
       style={{
         minHeight: '100vh',
-        background: '#060F1D',
+        background: 'var(--bg-base)',
         color: '#fff',
         paddingBottom: '80px',
       }}
@@ -364,8 +364,8 @@ export function FlashcardsClient({ saathiId }: Props) {
       <div
         style={{
           padding: '20px 20px 0',
-          background: '#060F1D',
-          borderBottom: '0.5px solid rgba(255,255,255,0.07)',
+          background: 'var(--bg-base)',
+          borderBottom: '0.5px solid var(--bg-elevated)',
           paddingBottom: '0',
         }}
       >
@@ -381,7 +381,7 @@ export function FlashcardsClient({ saathiId }: Props) {
             <Link
               href="/chat"
               style={{
-                color: 'rgba(255,255,255,0.35)',
+                color: 'var(--text-ghost)',
                 textDecoration: 'none',
                 fontSize: '13px',
                 display: 'flex',
@@ -421,7 +421,7 @@ export function FlashcardsClient({ saathiId }: Props) {
               <p
                 style={{
                   fontSize: '10px',
-                  color: 'rgba(255,255,255,0.35)',
+                  color: 'var(--text-ghost)',
                   margin: 0,
                 }}
               >
@@ -442,7 +442,7 @@ export function FlashcardsClient({ saathiId }: Props) {
               <p
                 style={{
                   fontSize: '10px',
-                  color: 'rgba(255,255,255,0.35)',
+                  color: 'var(--text-ghost)',
                   margin: 0,
                 }}
               >
@@ -463,7 +463,7 @@ export function FlashcardsClient({ saathiId }: Props) {
               <p
                 style={{
                   fontSize: '10px',
-                  color: 'rgba(255,255,255,0.35)',
+                  color: 'var(--text-ghost)',
                   margin: 0,
                 }}
               >
@@ -486,7 +486,7 @@ export function FlashcardsClient({ saathiId }: Props) {
                     tab === t
                       ? `2px solid ${primaryColor}`
                       : '2px solid transparent',
-                  color: tab === t ? primaryColor : 'rgba(255,255,255,0.35)',
+                  color: tab === t ? primaryColor : 'var(--text-ghost)',
                   fontSize: '13px',
                   fontWeight: tab === t ? 700 : 400,
                   cursor: 'pointer',
@@ -531,13 +531,13 @@ export function FlashcardsClient({ saathiId }: Props) {
             <p
               style={{
                 fontSize: '16px',
-                color: 'rgba(255,255,255,0.6)',
+                color: 'var(--text-secondary)',
                 marginBottom: '8px',
               }}
             >
               {tab === 'due' ? "You're all caught up!" : 'No flashcards yet'}
             </p>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-ghost)' }}>
               {tab === 'due'
                 ? 'Come back tomorrow for more reviews.'
                 : 'Hover over any bot message in chat and tap 🃏 to save a flashcard.'}

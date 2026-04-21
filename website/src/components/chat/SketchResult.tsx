@@ -92,8 +92,8 @@ function EquationList({
       marginTop:    '12px',
       padding:      '12px 14px',
       borderRadius: '10px',
-      background:   isLegalTheme ? '#F5F5F5' : 'rgba(255,255,255,0.04)',
-      border:       isLegalTheme ? '1px solid #E8E8E8' : '0.5px solid rgba(255,255,255,0.08)',
+      background:   isLegalTheme ? '#F5F5F5' : 'var(--bg-elevated)',
+      border:       isLegalTheme ? '1px solid #E8E8E8' : '0.5px solid var(--bg-elevated)',
     }}>
       <p style={{
         fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em',
@@ -104,7 +104,7 @@ function EquationList({
       {equations.map((eq, i) => (
         <p key={i} style={{
           fontSize: '12px', fontFamily: 'Georgia, serif', fontStyle: 'italic',
-          color: isLegalTheme ? '#333333' : 'rgba(255,255,255,0.75)',
+          color: isLegalTheme ? '#333333' : 'var(--text-secondary)',
           margin: i < equations.length - 1 ? '0 0 5px' : 0, lineHeight: 1.5,
         }}>
           {eq}
@@ -158,7 +158,7 @@ export function SketchResult({
   const borderColor = isLegalTheme ? '#E0E0E0'   : `${saathiColor}25`
   const headerBg    = isLegalTheme ? '#FAFAFA'   : `${saathiColor}08`
   const textColor   = isLegalTheme ? '#1A1A1A'   : '#FFFFFF'
-  const mutedColor  = isLegalTheme ? '#666666'   : 'rgba(255,255,255,0.5)'
+  const mutedColor  = isLegalTheme ? '#666666'   : 'var(--text-secondary)'
 
   return (
     <motion.div

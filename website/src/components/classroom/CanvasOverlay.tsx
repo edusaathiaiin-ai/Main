@@ -53,7 +53,7 @@ export function CanvasOverlay({ role, saathiColor }: Props) {
               position: 'absolute',
               inset: 0,
               zIndex: 40,
-              background: 'rgba(255,255,255,0.02)',
+              background: 'var(--bg-elevated)',
             }}
           >
             <CollaborativeCanvas role={role} />

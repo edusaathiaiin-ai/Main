@@ -98,8 +98,8 @@ function IntentCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '0.5px solid rgba(255,255,255,0.08)',
+        background: 'var(--bg-elevated)',
+        border: '0.5px solid var(--bg-elevated)',
         borderRadius: '16px',
         padding: '20px',
         marginBottom: '12px',
@@ -158,7 +158,7 @@ function IntentCard({
           >
             {intent.joiner_count}
           </span>
-          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
             want this
           </span>
         </div>
@@ -169,7 +169,7 @@ function IntentCard({
         <p
           style={{
             fontSize: '13px',
-            color: 'rgba(255,255,255,0.55)',
+            color: 'var(--text-secondary)',
             margin: '0 0 12px',
             lineHeight: 1.5,
           }}
@@ -183,7 +183,7 @@ function IntentCard({
         <p
           style={{
             fontSize: '11px',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'var(--text-ghost)',
             margin: '0 0 10px',
           }}
         >
@@ -208,9 +208,9 @@ function IntentCard({
               key={tag}
               style={{
                 fontSize: '10px',
-                color: 'rgba(255,255,255,0.5)',
-                background: 'rgba(255,255,255,0.06)',
-                border: '0.5px solid rgba(255,255,255,0.1)',
+                color: 'var(--text-secondary)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-medium)',
                 borderRadius: '100px',
                 padding: '2px 8px',
               }}
@@ -246,9 +246,9 @@ function IntentCard({
         <span
           style={{
             fontSize: '10px',
-            color: 'rgba(255,255,255,0.45)',
-            background: 'rgba(255,255,255,0.05)',
-            border: '0.5px solid rgba(255,255,255,0.1)',
+            color: 'var(--text-tertiary)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--border-medium)',
             borderRadius: '100px',
             padding: '2px 8px',
           }}
@@ -258,9 +258,9 @@ function IntentCard({
         <span
           style={{
             fontSize: '10px',
-            color: 'rgba(255,255,255,0.45)',
-            background: 'rgba(255,255,255,0.05)',
-            border: '0.5px solid rgba(255,255,255,0.1)',
+            color: 'var(--text-tertiary)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--border-medium)',
             borderRadius: '100px',
             padding: '2px 8px',
           }}
@@ -454,7 +454,7 @@ function DeclareForm({
         <p
           style={{
             fontSize: '14px',
-            color: 'rgba(255,255,255,0.5)',
+            color: 'var(--text-secondary)',
             margin: '0 0 6px',
           }}
         >
@@ -463,7 +463,7 @@ function DeclareForm({
         <p
           style={{
             fontSize: '13px',
-            color: 'rgba(255,255,255,0.4)',
+            color: 'var(--text-tertiary)',
             margin: '0 0 28px',
           }}
         >
@@ -517,8 +517,8 @@ function DeclareForm({
 
   const inputStyle: React.CSSProperties = {
     width: '100%',
-    background: 'rgba(255,255,255,0.04)',
-    border: '0.5px solid rgba(255,255,255,0.1)',
+    background: 'var(--bg-elevated)',
+    border: '0.5px solid var(--border-medium)',
     borderRadius: '10px',
     padding: '12px',
     color: '#fff',
@@ -537,9 +537,9 @@ function DeclareForm({
     fontSize: '13px',
     fontWeight: active ? '700' : '400',
     cursor: 'pointer',
-    border: `0.5px solid ${active ? color : 'rgba(255,255,255,0.12)'}`,
-    background: active ? `${color}20` : 'rgba(255,255,255,0.04)',
-    color: active ? color : 'rgba(255,255,255,0.55)',
+    border: `0.5px solid ${active ? color : 'var(--border-medium)'}`,
+    background: active ? `${color}20` : 'var(--bg-elevated)',
+    color: active ? color : 'var(--text-secondary)',
     transition: 'all 0.15s',
   })
 
@@ -554,7 +554,7 @@ function DeclareForm({
               flex: 1,
               height: '3px',
               borderRadius: '100px',
-              background: s <= step ? '#C9993A' : 'rgba(255,255,255,0.1)',
+              background: s <= step ? '#C9993A' : 'var(--border-medium)',
               transition: 'background 0.3s',
             }}
           />
@@ -584,7 +584,7 @@ function DeclareForm({
             <p
               style={{
                 fontSize: '13px',
-                color: 'rgba(255,255,255,0.4)',
+                color: 'var(--text-tertiary)',
                 margin: '0 0 20px',
               }}
             >
@@ -595,7 +595,7 @@ function DeclareForm({
             <label
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.5)',
+                color: 'var(--text-secondary)',
                 display: 'block',
                 marginBottom: '6px',
               }}
@@ -615,7 +615,7 @@ function DeclareForm({
                 <option
                   key={s.id}
                   value={s.id}
-                  style={{ background: '#0B1F3A' }}
+                  style={{ background: 'var(--bg-surface)' }}
                 >
                   {s.emoji} {s.name}
                 </option>
@@ -625,7 +625,7 @@ function DeclareForm({
             <label
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.5)',
+                color: 'var(--text-secondary)',
                 display: 'block',
                 marginBottom: '6px',
               }}
@@ -642,13 +642,13 @@ function DeclareForm({
                 e.currentTarget.style.borderColor = 'rgba(201,153,58,0.5)'
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
+                e.currentTarget.style.borderColor = 'var(--border-medium)'
               }}
             />
             <p
               style={{
                 fontSize: '10px',
-                color: 'rgba(255,255,255,0.25)',
+                color: 'var(--text-ghost)',
                 margin: '0 0 20px',
                 textAlign: 'right',
               }}
@@ -667,7 +667,7 @@ function DeclareForm({
                 }}
               >
                 <label
-                  style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}
+                  style={{ fontSize: '12px', color: 'var(--text-secondary)' }}
                 >
                   Tags
                 </label>
@@ -704,13 +704,13 @@ function DeclareForm({
                         borderRadius: '100px',
                         padding: '3px 10px',
                         cursor: 'pointer',
-                        border: `0.5px solid ${tags.includes(tag) ? '#C9993A' : 'rgba(255,255,255,0.15)'}`,
+                        border: `0.5px solid ${tags.includes(tag) ? '#C9993A' : 'var(--border-strong)'}`,
                         background: tags.includes(tag)
                           ? 'rgba(201,153,58,0.15)'
-                          : 'rgba(255,255,255,0.04)',
+                          : 'var(--bg-elevated)',
                         color: tags.includes(tag)
                           ? '#C9993A'
-                          : 'rgba(255,255,255,0.5)',
+                          : 'var(--text-secondary)',
                       }}
                     >
                       {tags.includes(tag) ? '✓ ' : '+ '}
@@ -807,7 +807,7 @@ function DeclareForm({
             <p
               style={{
                 fontSize: '13px',
-                color: 'rgba(255,255,255,0.4)',
+                color: 'var(--text-tertiary)',
                 margin: '0 0 20px',
               }}
             >
@@ -824,13 +824,13 @@ function DeclareForm({
                 e.currentTarget.style.borderColor = 'rgba(201,153,58,0.5)'
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
+                e.currentTarget.style.borderColor = 'var(--border-medium)'
               }}
             />
             <p
               style={{
                 fontSize: '10px',
-                color: 'rgba(255,255,255,0.25)',
+                color: 'var(--text-ghost)',
                 margin: '0 0 20px',
                 textAlign: 'right',
               }}
@@ -841,7 +841,7 @@ function DeclareForm({
             <label
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.5)',
+                color: 'var(--text-secondary)',
                 display: 'block',
                 marginBottom: '8px',
               }}
@@ -872,7 +872,7 @@ function DeclareForm({
             <label
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.5)',
+                color: 'var(--text-secondary)',
                 display: 'block',
                 marginBottom: '8px',
               }}
@@ -955,7 +955,7 @@ function DeclareForm({
             <p
               style={{
                 fontSize: '13px',
-                color: 'rgba(255,255,255,0.4)',
+                color: 'var(--text-tertiary)',
                 margin: '0 0 20px',
               }}
             >
@@ -965,7 +965,7 @@ function DeclareForm({
             <label
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.5)',
+                color: 'var(--text-secondary)',
                 display: 'block',
                 marginBottom: '8px',
               }}
@@ -994,7 +994,7 @@ function DeclareForm({
             <label
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.5)',
+                color: 'var(--text-secondary)',
                 display: 'block',
                 marginBottom: '8px',
               }}
@@ -1071,7 +1071,7 @@ function DeclareForm({
             <p
               style={{
                 fontSize: '13px',
-                color: 'rgba(255,255,255,0.4)',
+                color: 'var(--text-tertiary)',
                 margin: '0 0 16px',
               }}
             >
@@ -1102,7 +1102,7 @@ function DeclareForm({
                 <p
                   style={{
                     fontSize: '13px',
-                    color: 'rgba(255,255,255,0.5)',
+                    color: 'var(--text-secondary)',
                     margin: '0 0 10px',
                     lineHeight: 1.5,
                   }}
@@ -1123,9 +1123,9 @@ function DeclareForm({
                     key={tag}
                     style={{
                       fontSize: '10px',
-                      color: 'rgba(255,255,255,0.5)',
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '0.5px solid rgba(255,255,255,0.1)',
+                      color: 'var(--text-secondary)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-medium)',
                       borderRadius: '100px',
                       padding: '2px 8px',
                     }}
@@ -1150,9 +1150,9 @@ function DeclareForm({
                 <span
                   style={{
                     fontSize: '10px',
-                    color: 'rgba(255,255,255,0.45)',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    color: 'var(--text-tertiary)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                     borderRadius: '100px',
                     padding: '2px 8px',
                   }}
@@ -1162,9 +1162,9 @@ function DeclareForm({
                 <span
                   style={{
                     fontSize: '10px',
-                    color: 'rgba(255,255,255,0.45)',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    color: 'var(--text-tertiary)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                     borderRadius: '100px',
                     padding: '2px 8px',
                   }}
@@ -1174,9 +1174,9 @@ function DeclareForm({
                 <span
                   style={{
                     fontSize: '10px',
-                    color: 'rgba(255,255,255,0.45)',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    color: 'var(--text-tertiary)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-medium)',
                     borderRadius: '100px',
                     padding: '2px 8px',
                   }}
@@ -1353,7 +1353,7 @@ export default function LearnPage() {
     <div
       style={{
         minHeight: '100vh',
-        background: '#060F1D',
+        background: 'var(--bg-base)',
         color: '#fff',
         fontFamily: 'DM Sans, sans-serif',
       }}
@@ -1391,7 +1391,7 @@ export default function LearnPage() {
           <p
             style={{
               fontSize: '14px',
-              color: 'rgba(255,255,255,0.45)',
+              color: 'var(--text-tertiary)',
               margin: '4px 0 0',
             }}
           >
@@ -1403,8 +1403,8 @@ export default function LearnPage() {
         <div
           style={{
             display: 'flex',
-            background: 'rgba(255,255,255,0.04)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
             borderRadius: '12px',
             padding: '4px',
             marginBottom: '28px',
@@ -1429,7 +1429,7 @@ export default function LearnPage() {
                 fontSize: '13px',
                 fontWeight: tab === id ? '600' : '400',
                 background: tab === id ? '#fff' : 'transparent',
-                color: tab === id ? '#0B1F3A' : 'rgba(255,255,255,0.45)',
+                color: tab === id ? '#0B1F3A' : 'var(--text-tertiary)',
                 transition: 'all 0.2s',
               }}
             >
@@ -1454,8 +1454,8 @@ export default function LearnPage() {
                 value={filterVertical}
                 onChange={(e) => setFilterVertical(e.target.value)}
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '0.5px solid rgba(255,255,255,0.12)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-medium)',
                   color: '#fff',
                   borderRadius: '8px',
                   padding: '6px 10px',
@@ -1463,14 +1463,14 @@ export default function LearnPage() {
                   cursor: 'pointer',
                 }}
               >
-                <option value="all" style={{ background: '#0B1F3A' }}>
+                <option value="all" style={{ background: 'var(--bg-surface)' }}>
                   All subjects
                 </option>
                 {SAATHIS.map((s) => (
                   <option
                     key={s.id}
                     value={s.id}
-                    style={{ background: '#0B1F3A' }}
+                    style={{ background: 'var(--bg-surface)' }}
                   >
                     {s.emoji} {s.name}
                   </option>
@@ -1483,8 +1483,8 @@ export default function LearnPage() {
                   setFilterFormat(e.target.value as FormatPref | 'all')
                 }
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '0.5px solid rgba(255,255,255,0.12)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-medium)',
                   color: '#fff',
                   borderRadius: '8px',
                   padding: '6px 10px',
@@ -1492,13 +1492,13 @@ export default function LearnPage() {
                   cursor: 'pointer',
                 }}
               >
-                <option value="all" style={{ background: '#0B1F3A' }}>
+                <option value="all" style={{ background: 'var(--bg-surface)' }}>
                   Any format
                 </option>
                 {(
                   ['lecture', 'series', 'workshop', 'onetoone'] as FormatPref[]
                 ).map((f) => (
-                  <option key={f} value={f} style={{ background: '#0B1F3A' }}>
+                  <option key={f} value={f} style={{ background: 'var(--bg-surface)' }}>
                     {FORMAT_LABEL[f]}
                   </option>
                 ))}
@@ -1510,8 +1510,8 @@ export default function LearnPage() {
                   setFilterDepth(e.target.value as DepthPref | 'all')
                 }
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '0.5px solid rgba(255,255,255,0.12)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-medium)',
                   color: '#fff',
                   borderRadius: '8px',
                   padding: '6px 10px',
@@ -1519,12 +1519,12 @@ export default function LearnPage() {
                   cursor: 'pointer',
                 }}
               >
-                <option value="all" style={{ background: '#0B1F3A' }}>
+                <option value="all" style={{ background: 'var(--bg-surface)' }}>
                   Any depth
                 </option>
                 {(['beginner', 'intermediate', 'advanced'] as DepthPref[]).map(
                   (d) => (
-                    <option key={d} value={d} style={{ background: '#0B1F3A' }}>
+                    <option key={d} value={d} style={{ background: 'var(--bg-surface)' }}>
                       {DEPTH_LABEL[d]}
                     </option>
                   )
@@ -1535,8 +1535,8 @@ export default function LearnPage() {
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '0.5px solid rgba(255,255,255,0.12)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-medium)',
                   color: '#fff',
                   borderRadius: '8px',
                   padding: '6px 10px',
@@ -1544,13 +1544,13 @@ export default function LearnPage() {
                   cursor: 'pointer',
                 }}
               >
-                <option value="most_wanted" style={{ background: '#0B1F3A' }}>
+                <option value="most_wanted" style={{ background: 'var(--bg-surface)' }}>
                   Most wanted
                 </option>
-                <option value="newest" style={{ background: '#0B1F3A' }}>
+                <option value="newest" style={{ background: 'var(--bg-surface)' }}>
                   Newest
                 </option>
-                <option value="expiring" style={{ background: '#0B1F3A' }}>
+                <option value="expiring" style={{ background: 'var(--bg-surface)' }}>
                   Expiring soon
                 </option>
               </select>
@@ -1561,7 +1561,7 @@ export default function LearnPage() {
                 style={{
                   textAlign: 'center',
                   padding: '60px 0',
-                  color: 'rgba(255,255,255,0.3)',
+                  color: 'var(--text-ghost)',
                 }}
               >
                 Loading intents…
@@ -1572,13 +1572,13 @@ export default function LearnPage() {
                 <p
                   style={{
                     fontSize: '15px',
-                    color: 'rgba(255,255,255,0.5)',
+                    color: 'var(--text-secondary)',
                     marginBottom: '8px',
                   }}
                 >
                   No intents yet in this filter.
                 </p>
-                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-ghost)' }}>
                   Be the first — declare what you want to learn.
                 </p>
                 <button
@@ -1616,7 +1616,7 @@ export default function LearnPage() {
                         style={{
                           fontSize: '11px',
                           fontWeight: '600',
-                          color: 'rgba(255,255,255,0.3)',
+                          color: 'var(--text-ghost)',
                           letterSpacing: '1px',
                           textTransform: 'uppercase',
                           margin: 0,

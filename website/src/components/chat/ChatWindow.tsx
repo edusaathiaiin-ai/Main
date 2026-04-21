@@ -1468,7 +1468,7 @@ export function ChatWindow() {
             <p
               style={{
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.5)',
+                color: 'var(--text-secondary)',
                 margin: 0,
                 textTransform: 'capitalize',
               }}
@@ -1520,7 +1520,7 @@ export function ChatWindow() {
               <p
                 style={{
                   fontSize: '15px',
-                  color: 'rgba(255,255,255,0.6)',
+                  color: 'var(--text-secondary)',
                   maxWidth: '320px',
                   lineHeight: 1.6,
                 }}

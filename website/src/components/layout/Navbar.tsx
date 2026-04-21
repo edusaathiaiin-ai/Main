@@ -25,7 +25,7 @@ export function Navbar({ title, showBack }: Props) {
       className="z-20 flex h-14 shrink-0 items-center justify-between px-4 md:hidden"
       style={{
         background: 'rgba(6,15,29,0.85)',
-        borderBottom: '0.5px solid rgba(255,255,255,0.07)',
+        borderBottom: '0.5px solid var(--bg-elevated)',
         backdropFilter: 'blur(16px)',
       }}
     >
@@ -33,7 +33,7 @@ export function Navbar({ title, showBack }: Props) {
         <Link
           href="/chat"
           className="text-sm"
-          style={{ color: 'rgba(255,255,255,0.5)' }}
+          style={{ color: 'var(--text-secondary)' }}
         >
           ← Chat
         </Link>

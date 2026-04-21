@@ -14,7 +14,7 @@ export function ProgressClient({ saathiId }: ProgressClientProps) {
     <div
       style={{
         minHeight: '100vh',
-        background: '#060F1D',
+        background: 'var(--bg-base)',
         color: '#fff',
       }}
     >

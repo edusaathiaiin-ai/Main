@@ -88,8 +88,8 @@ export default function CollegeAutocomplete({
   }
 
   const defaultInputStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--border-medium)',
     color: '#fff',
   }
 
@@ -122,8 +122,8 @@ export default function CollegeAutocomplete({
         <div
           className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl shadow-xl"
           style={{
-            background: '#0B1F3A',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-medium)',
             maxHeight: '240px',
             overflowY: 'auto',
           }}
@@ -134,7 +134,7 @@ export default function CollegeAutocomplete({
               type="button"
               onClick={() => handleSelect(college)}
               className="w-full px-4 py-3 text-left transition-colors"
-              style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+              style={{ borderBottom: '1px solid var(--bg-elevated)' }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.background = 'rgba(201,153,58,0.1)')
               }
@@ -147,7 +147,7 @@ export default function CollegeAutocomplete({
               </p>
               <p
                 className="mt-0.5 text-[11px]"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 {college.city}, {college.state}
                 {college.naac_grade &&
@@ -168,8 +168,8 @@ export default function CollegeAutocomplete({
           <div
             className="px-4 py-2.5 text-[10px]"
             style={{
-              color: 'rgba(255,255,255,0.25)',
-              borderTop: '1px solid rgba(255,255,255,0.06)',
+              color: 'var(--text-ghost)',
+              borderTop: '1px solid var(--bg-elevated)',
             }}
           >
             Don&apos;t see yours? Keep typing — your input will be saved as-is.

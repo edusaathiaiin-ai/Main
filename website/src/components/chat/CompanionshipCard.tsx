@@ -319,9 +319,9 @@ function AddSaathiModal({
                   disabled={spending || !canUsePoints}
                   className="w-full rounded-xl py-2.5 text-sm font-semibold transition-all disabled:opacity-50"
                   style={{
-                    background:  canUsePoints ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.04)',
-                    border:      canUsePoints ? '0.5px solid rgba(74,222,128,0.35)' : '0.5px solid rgba(255,255,255,0.08)',
-                    color:       canUsePoints ? '#4ADE80' : 'rgba(255,255,255,0.5)',
+                    background:  canUsePoints ? 'rgba(74,222,128,0.1)' : 'var(--bg-elevated)',
+                    border:      canUsePoints ? '0.5px solid rgba(74,222,128,0.35)' : '0.5px solid var(--bg-elevated)',
+                    color:       canUsePoints ? '#4ADE80' : 'var(--text-secondary)',
                   }}>
                   {spending ? 'Unlocking…'
                     : canUsePoints

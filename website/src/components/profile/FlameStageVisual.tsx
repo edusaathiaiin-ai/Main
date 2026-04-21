@@ -70,7 +70,7 @@ export default function FlameStageVisual({
               <span
                 className="text-[10px] font-semibold tracking-wide"
                 style={{
-                  color: isActive ? '#C9993A' : 'rgba(255,255,255,0.3)',
+                  color: isActive ? '#C9993A' : 'var(--text-ghost)',
                 }}
               >
                 {s.label}
@@ -90,7 +90,7 @@ export default function FlameStageVisual({
       {/* Progress bar */}
       <div
         className="h-1 overflow-hidden rounded-full"
-        style={{ background: 'rgba(255,255,255,0.08)' }}
+        style={{ background: 'var(--bg-elevated)' }}
       >
         <motion.div
           className="h-full rounded-full"
@@ -102,7 +102,7 @@ export default function FlameStageVisual({
       </div>
 
       {/* Current stage description */}
-      <p className="text-sm italic" style={{ color: 'rgba(255,255,255,0.45)' }}>
+      <p className="text-sm italic" style={{ color: 'var(--text-tertiary)' }}>
         <span style={{ color: '#E5B86A' }}>{current.label}:</span>{' '}
         {current.desc}
       </p>
