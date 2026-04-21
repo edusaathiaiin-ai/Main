@@ -60,6 +60,22 @@ function ChipSelect({ options, selected, onChange, max }: {
   )
 }
 
+function getFacultyProfileCompleteness(d: FacultyData): number {
+  const weights: [boolean, number][] = [
+    [!!d.institution_name,                15],
+    [!!d.subject_expertise?.length,       20],
+    [!!d.years_experience,                10],
+    [!!d.bio,                             15],
+    [!!d.payout_upi_id,                   10],
+    [!!d.session_fee_doubt,               10],
+    [!!d.teaching_style?.length,           5],
+    [!!d.linkedin_url,                     5],
+    [!!d.google_scholar_url,               5],
+    [!!d.designation,                      5],
+  ]
+  return weights.reduce((sum, [ok, w]) => sum + (ok ? w : 0), 0)
+}
+
 export function FacultyProfileTab() {
   const { profile } = useAuthStore()
   const [data, setData] = useState<FacultyData | null>(null)
@@ -138,6 +154,39 @@ export function FacultyProfileTab() {
           {toast}
         </div>
       )}
+
+      {/* ── Profile completeness ── */}
+      {(() => {
+        const pct = getFacultyProfileCompleteness(data)
+        return (
+          <div style={{
+            padding: '16px 20px', borderRadius: '12px',
+            background: pct >= 80 ? 'var(--success-bg)' : 'var(--bg-elevated)',
+            border: `1px solid ${pct >= 80 ? 'var(--success)' : 'var(--border-subtle)'}`,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                Your profile is {pct}% complete
+              </span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: pct >= 80 ? 'var(--success)' : 'var(--saathi-primary)' }}>
+                {pct}/100
+              </span>
+            </div>
+            <div style={{ height: '6px', borderRadius: '3px', background: 'var(--border-subtle)', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%', borderRadius: '3px', transition: 'width 0.3s ease',
+                width: `${pct}%`,
+                background: pct >= 80 ? 'var(--success)' : 'var(--saathi-primary)',
+              }} />
+            </div>
+            {pct < 80 && (
+              <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '8px 0 0' }}>
+                Complete your profile to build trust with students. Add {!data.bio ? 'a bio' : !data.payout_upi_id ? 'UPI ID' : !data.linkedin_url ? 'LinkedIn' : 'missing fields'} to increase visibility.
+              </p>
+            )}
+          </div>
+        )
+      })()}
 
       {/* ── Section 1: Professional Identity ── */}
       <Section title="Professional Identity">
