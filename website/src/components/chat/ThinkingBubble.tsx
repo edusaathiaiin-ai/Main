@@ -87,6 +87,102 @@ const SAATHI_THINKING: Record<string, string[]> = {
     'Preparing your explanation...',
     'Almost ready...',
   ],
+  nursingsaathi: [
+    'NursingSaathi is reviewing patient-care guidelines...',
+    'Checking clinical protocols...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  mechsaathi: [
+    'MechSaathi is running the numbers...',
+    'Working through forces and motion...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  civilsaathi: [
+    'CivilSaathi is checking the structure...',
+    'Working through load paths...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  elecsaathi: [
+    'ElecSaathi is tracing the circuit...',
+    'Checking voltages and currents...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  envirosaathi: [
+    'EnviroSaathi is studying the system...',
+    'Checking environmental balances...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  bizsaathi: [
+    'BizSaathi is thinking through the strategy...',
+    'Reviewing business frameworks...',
+    'Preparing your answer...',
+    'Almost ready...',
+  ],
+  mktsaathi: [
+    'MktSaathi is reading the market...',
+    'Checking consumer patterns...',
+    'Preparing your insight...',
+    'Almost ready...',
+  ],
+  hrsaathi: [
+    'HRSaathi is reviewing people-practices...',
+    'Checking the human side of this...',
+    'Preparing your answer...',
+    'Almost ready...',
+  ],
+  archsaathi: [
+    'ArchSaathi is drafting the idea...',
+    'Studying form and function...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  agrisaathi: [
+    'AgriSaathi is checking field data...',
+    'Reviewing soil and crop cycles...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  biotechsaathi: [
+    'BioTechSaathi is reviewing molecular pathways...',
+    'Checking experimental protocols...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  'chemengg-saathi': [
+    'ChemEnggSaathi is working through the process...',
+    'Checking mass and energy balances...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  electronicssaathi: [
+    'ElectronicsSaathi is tracing the signal path...',
+    'Checking components and logic...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  geosaathi: [
+    'GeoSaathi is reading the landscape...',
+    'Checking layers and processes...',
+    'Preparing your explanation...',
+    'Almost ready...',
+  ],
+  polscisaathi: [
+    'PolSciSaathi is reviewing the framework...',
+    'Checking political context...',
+    'Preparing your analysis...',
+    'Almost ready...',
+  ],
+  statssaathi: [
+    'StatsSaathi is running the numbers...',
+    'Checking distributions and tests...',
+    'Preparing your analysis...',
+    'Almost ready...',
+  ],
 }
 
 const DEFAULT_THINKING = [

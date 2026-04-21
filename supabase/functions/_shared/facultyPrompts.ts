@@ -19,6 +19,10 @@ export type FacultyPromptInput = {
   designation: string | null
   yearsExperience: number | null
   subjectExpertise: string[]
+  // Extended identity (migration 064 — faculty_profile_enrichment)
+  specialityAreas: string[]      // narrower expertise within subject
+  interestAreas: string[]        // research interests (faculty framing, not student)
+  currentResearch: string | null // what they're working on now (thesis/paper)
   // Extended identity (migration 127 — faculty profile fields)
   title: string | null           // e.g. "Dr.", "Prof.", "Asst. Prof."
   teachingStyle: string[]        // e.g. ["Socratic", "Hands-on"]
@@ -51,13 +55,18 @@ function facultyIdentityBlock(input: FacultyPromptInput): string {
     lines.push(`Teaching experience: ${input.yearsExperience} years.`)
   }
   if (input.subjectExpertise.length > 0) {
-    lines.push(`Subject expertise: ${input.subjectExpertise.join(', ')}.`)
+    lines.push(`Subject expertise (broad): ${input.subjectExpertise.join(', ')}.`)
+  }
+  if (input.specialityAreas.length > 0) {
+    lines.push(`Specialisation (narrow): ${input.specialityAreas.join(', ')}. Calibrate depth and examples toward these areas when relevant.`)
+  }
+  if (input.interestAreas.length > 0) {
+    lines.push(`Research interests: ${input.interestAreas.join(', ')}. These are the angles they care about.`)
   }
   if (input.teachingStyle.length > 0) {
     lines.push(`Teaching style (self-declared): ${input.teachingStyle.join(', ')}. Match this tone.`)
   }
   if (input.bio && input.bio.trim().length > 0) {
-    // Truncate to keep prompt bounded
     const bioClean = input.bio.trim().slice(0, 400)
     lines.push(`About them (in their own words): ${bioClean}`)
   }
@@ -98,8 +107,15 @@ You are assisting with lecture design and classroom preparation.
 }
 
 function slot3Research(input: FacultyPromptInput): string {
-  const publicationsBlock = input.publications && input.publications.trim().length > 0
-    ? `\n# THEIR RESEARCH RECORD\n${input.publications.trim().slice(0, 800)}\n\nUse this to calibrate depth and avoid suggesting obvious papers they've likely read or written. If a topic intersects with their own work, acknowledge it.\n`
+  const parts: string[] = []
+  if (input.currentResearch && input.currentResearch.trim().length > 0) {
+    parts.push(`Currently working on: ${input.currentResearch.trim().slice(0, 400)}`)
+  }
+  if (input.publications && input.publications.trim().length > 0) {
+    parts.push(`Prior record:\n${input.publications.trim().slice(0, 800)}`)
+  }
+  const publicationsBlock = parts.length > 0
+    ? `\n# THEIR RESEARCH RECORD\n${parts.join('\n\n')}\n\nUse this to calibrate depth, avoid suggesting obvious papers they've already read or written, and acknowledge topic overlap with their own work.\n`
     : ''
 
   return `

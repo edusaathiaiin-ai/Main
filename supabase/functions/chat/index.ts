@@ -630,7 +630,7 @@ async function buildFacultySystemPrompt(
     admin.from('profiles').select('full_name').eq('id', userId).maybeSingle(),
     admin
       .from('faculty_profiles')
-      .select('institution_name, department, designation, subject_expertise, years_experience, title, teaching_style, bio, publications')
+      .select('institution_name, department, designation, subject_expertise, years_experience, title, teaching_style, bio, publications, speciality_areas, interest_areas, current_research')
       .eq('user_id', userId)
       .maybeSingle(),
     botSlot === 4
@@ -654,6 +654,9 @@ async function buildFacultySystemPrompt(
     teaching_style?: string[] | null;
     bio?: string | null;
     publications?: string | null;
+    speciality_areas?: string[] | null;
+    interest_areas?: string[] | null;
+    current_research?: string | null;
   } | null;
 
   const struggleRows = (struggleRes.data ?? []) as Array<{ topic: string; student_count: number; refreshed_at: string }>;
@@ -682,6 +685,9 @@ async function buildFacultySystemPrompt(
     teachingStyle: Array.isArray(facultyRow?.teaching_style) ? facultyRow.teaching_style as string[] : [],
     bio: typeof facultyRow?.bio === 'string' && facultyRow.bio.trim().length > 0 ? facultyRow.bio : null,
     publications: typeof facultyRow?.publications === 'string' && facultyRow.publications.trim().length > 0 ? facultyRow.publications : null,
+    specialityAreas: Array.isArray(facultyRow?.speciality_areas) ? facultyRow.speciality_areas as string[] : [],
+    interestAreas: Array.isArray(facultyRow?.interest_areas) ? facultyRow.interest_areas as string[] : [],
+    currentResearch: typeof facultyRow?.current_research === 'string' && facultyRow.current_research.trim().length > 0 ? facultyRow.current_research : null,
     botSlot,
     strugglePatterns: struggleRows.map((r) => ({ topic: r.topic, student_count: r.student_count })),
     strugglePatternsStale,

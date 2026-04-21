@@ -74,6 +74,11 @@ function getFacultyProfileHint(d: FacultyData): string | null {
   return null
 }
 
+// Weights sum to exactly 100. Deliberately excludes display_name —
+// profiles.full_name is enforced at signup (always present), so it would
+// be a dead signal that never moves the needle. Keep the formula tight:
+// every weighted field must be independently incomplete-able, or it's noise.
+// Mirror copy lives on the admin side: admin/app/(admin)/faculty/page.tsx.
 function getFacultyProfileCompleteness(d: FacultyData): number {
   const weights: [boolean, number][] = [
     [!!d.institution_name,                15],

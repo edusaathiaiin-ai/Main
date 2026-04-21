@@ -111,9 +111,13 @@ export function ProfileClient() {
 
   const color = activeSaathi.primary
 
+  // "My Soul" reads student_soul (academic_level, future_research_area,
+  // career_interest) — all student framing. Hide for faculty so they
+  // don't see a tab that represents them as a learner being studied.
+  const isFaculty = profile.role === 'faculty'
   const TABS: { id: Tab; label: string }[] = [
     { id: 'profile', label: 'My Profile' },
-    { id: 'soul', label: 'My Soul' },
+    ...(isFaculty ? [] : [{ id: 'soul' as Tab, label: 'My Soul' }]),
     { id: 'data', label: 'My Data' },
     { id: 'archive', label: 'Research Archive' },
   ]
@@ -211,7 +215,7 @@ export function ProfileClient() {
                       onSaved={() => fetchSoul()}
                     />
               )}
-              {activeTab === 'soul' &&
+              {activeTab === 'soul' && !isFaculty &&
                 (soulLoading ? (
                   <div className="flex items-center justify-center py-16">
                     <div
