@@ -116,12 +116,12 @@ ${
       className="min-h-screen"
       style={{
         background:
-          'linear-gradient(180deg, #060F1D 0%, #0B1F3A 60%, #060F1D 100%)',
+          'var(--bg-base)',
       }}
     >
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <Link
           href="/faculty"
@@ -133,17 +133,17 @@ ${
         <Link
           href="/faculty"
           className="text-sm"
-          style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+          style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
         >
           &larr; Back to Dashboard
         </Link>
       </nav>
 
       <div className="mx-auto max-w-4xl px-6 py-8">
-        <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
+        <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
           Create Study Material
         </h1>
-        <p className="mb-8 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="mb-8 text-sm" style={{ color: 'var(--text-tertiary)' }}>
           AI-powered teaching material generation
         </p>
 
@@ -154,7 +154,7 @@ ${
             <div>
               <label
                 className="mb-2 block text-xs font-semibold"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 Topic
               </label>
@@ -162,10 +162,10 @@ ${
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="e.g. Fundamental Rights under Indian Constitution"
-                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                 style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-subtle)',
                 }}
               />
             </div>
@@ -174,7 +174,7 @@ ${
             <div>
               <label
                 className="mb-2 block text-xs font-semibold"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 Student level
               </label>
@@ -188,9 +188,9 @@ ${
                       background:
                         level === l
                           ? 'rgba(201,153,58,0.2)'
-                          : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${level === l ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
-                      color: level === l ? '#C9993A' : 'rgba(255,255,255,0.5)',
+                          : 'var(--bg-elevated)',
+                      border: `1px solid ${level === l ? 'rgba(201,153,58,0.5)' : 'var(--border-subtle)'}`,
+                      color: level === l ? '#C9993A' : 'var(--text-secondary)',
                     }}
                   >
                     {l}
@@ -203,7 +203,7 @@ ${
             <div>
               <label
                 className="mb-2 block text-xs font-semibold"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 Format
               </label>
@@ -217,22 +217,22 @@ ${
                       background:
                         format === f.id
                           ? 'rgba(201,153,58,0.12)'
-                          : 'rgba(255,255,255,0.03)',
-                      border: `1px solid ${format === f.id ? 'rgba(201,153,58,0.4)' : 'rgba(255,255,255,0.06)'}`,
+                          : 'var(--bg-elevated)',
+                      border: `1px solid ${format === f.id ? 'rgba(201,153,58,0.4)' : 'var(--bg-elevated)'}`,
                     }}
                   >
                     <p
                       className="text-xs font-semibold"
                       style={{
                         color:
-                          format === f.id ? '#E5B86A' : 'rgba(255,255,255,0.5)',
+                          format === f.id ? '#E5B86A' : 'var(--text-secondary)',
                       }}
                     >
                       {f.label}
                     </p>
                     <p
                       className="mt-0.5 text-[10px]"
-                      style={{ color: 'rgba(255,255,255,0.3)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       {f.desc}
                     </p>
@@ -245,7 +245,7 @@ ${
             <div>
               <label
                 className="mb-2 block text-xs font-semibold"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 Lecture duration
               </label>
@@ -259,12 +259,12 @@ ${
                       background:
                         lectureDuration === d
                           ? 'rgba(201,153,58,0.2)'
-                          : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${lectureDuration === d ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                          : 'var(--bg-elevated)',
+                      border: `1px solid ${lectureDuration === d ? 'rgba(201,153,58,0.5)' : 'var(--border-subtle)'}`,
                       color:
                         lectureDuration === d
                           ? '#C9993A'
-                          : 'rgba(255,255,255,0.5)',
+                          : 'var(--text-secondary)',
                     }}
                   >
                     {d}
@@ -283,7 +283,7 @@ ${
               />
               <span
                 className="text-xs"
-                style={{ color: 'rgba(255,255,255,0.5)' }}
+                style={{ color: 'var(--text-secondary)' }}
               >
                 Include examples from Indian context
               </span>
@@ -307,7 +307,7 @@ ${
             {material ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-white">
+                  <h2 className="text-sm font-semibold text-[var(--text-primary)]">
                     Generated Material
                   </h2>
                   <button
@@ -324,9 +324,9 @@ ${
                 <div
                   className="overflow-y-auto rounded-xl p-6 text-sm leading-relaxed"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '0.5px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.7)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-subtle)',
+                    color: 'var(--text-primary)',
                     maxHeight: '70vh',
                     whiteSpace: 'pre-wrap',
                   }}
@@ -338,14 +338,14 @@ ${
               <div
                 className="flex h-full items-center justify-center rounded-xl"
                 style={{
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px dashed rgba(255,255,255,0.06)',
+                  background: 'var(--bg-base)',
+                  border: '1px dashed var(--bg-elevated)',
                   minHeight: '300px',
                 }}
               >
                 <p
                   className="text-sm"
-                  style={{ color: 'rgba(255,255,255,0.2)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Material preview will appear here
                 </p>

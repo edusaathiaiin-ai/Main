@@ -102,8 +102,8 @@ function DemandCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       style={{
-        background: '#0D1B2E',
-        border: `0.5px solid ${isUrgent ? 'rgba(248,113,113,0.3)' : 'rgba(255,255,255,0.08)'}`,
+        background: 'var(--bg-elevated)',
+        border: `0.5px solid ${isUrgent ? 'rgba(248,113,113,0.3)' : 'var(--border-subtle)'}`,
         borderRadius: '16px',
         padding: '20px',
         position: 'relative',
@@ -181,7 +181,7 @@ function DemandCard({
         style={{
           fontSize: '16px',
           fontWeight: '700',
-          color: '#fff',
+          color: 'var(--text-primary)',
           margin: '0 0 6px',
           lineHeight: 1.3,
           paddingRight: isUrgent ? '80px' : '0',
@@ -195,7 +195,7 @@ function DemandCard({
         <p
           style={{
             fontSize: '13px',
-            color: 'rgba(255,255,255,0.5)',
+            color: 'var(--text-secondary)',
             margin: '0 0 12px',
             lineHeight: 1.6,
           }}
@@ -219,9 +219,9 @@ function DemandCard({
               key={tag}
               style={{
                 fontSize: '10px',
-                color: 'rgba(255,255,255,0.5)',
-                background: 'rgba(255,255,255,0.05)',
-                border: '0.5px solid rgba(255,255,255,0.1)',
+                color: 'var(--text-secondary)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-subtle)',
                 padding: '2px 7px',
                 borderRadius: '20px',
               }}
@@ -258,9 +258,9 @@ function DemandCard({
           style={{
             fontSize: '11px',
             fontWeight: '600',
-            color: 'rgba(255,255,255,0.55)',
-            background: 'rgba(255,255,255,0.06)',
-            border: '0.5px solid rgba(255,255,255,0.1)',
+            color: 'var(--text-secondary)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--border-subtle)',
             padding: '3px 8px',
             borderRadius: '20px',
           }}
@@ -304,7 +304,7 @@ function DemandCard({
           gap: '12px',
         }}
       >
-        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontSize: '11px', color: 'var(--text-ghost)' }}>
           {days} days left
         </span>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -427,7 +427,7 @@ export default function FacultyDemandPage() {
           href="/faculty"
           style={{
             fontSize: '12px',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'var(--text-ghost)',
             textDecoration: 'none',
             display: 'inline-flex',
             alignItems: 'center',
@@ -442,7 +442,7 @@ export default function FacultyDemandPage() {
             fontFamily: 'var(--font-playfair)',
             fontSize: '28px',
             fontWeight: '700',
-            color: '#fff',
+            color: 'var(--text-primary)',
             margin: '0 0 8px',
             lineHeight: 1.2,
           }}
@@ -452,7 +452,7 @@ export default function FacultyDemandPage() {
         <p
           style={{
             fontSize: '14px',
-            color: 'rgba(255,255,255,0.45)',
+            color: 'var(--text-tertiary)',
             margin: 0,
           }}
         >
@@ -481,8 +481,8 @@ export default function FacultyDemandPage() {
                   background:
                     filterSaathi === verticalId
                       ? `${color}18`
-                      : 'rgba(255,255,255,0.03)',
-                  border: `0.5px solid ${filterSaathi === verticalId ? `${color}40` : 'rgba(255,255,255,0.08)'}`,
+                      : 'var(--bg-elevated)',
+                  border: `0.5px solid ${filterSaathi === verticalId ? `${color}40` : 'var(--border-subtle)'}`,
                   borderRadius: '12px',
                   padding: '14px 16px',
                   cursor: 'pointer',
@@ -497,7 +497,7 @@ export default function FacultyDemandPage() {
                   style={{
                     fontSize: '12px',
                     fontWeight: '700',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     margin: '0 0 2px',
                   }}
                 >
@@ -533,9 +533,9 @@ export default function FacultyDemandPage() {
           value={filterSaathi}
           onChange={(e) => setFilterSaathi(e.target.value)}
           style={{
-            background: '#0D1B2E',
-            border: '0.5px solid rgba(255,255,255,0.12)',
-            color: '#fff',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--text-ghost)',
+            color: 'var(--text-primary)',
             borderRadius: '10px',
             padding: '8px 12px',
             fontSize: '12px',
@@ -557,9 +557,9 @@ export default function FacultyDemandPage() {
             setFilterFormat(e.target.value as FormatPref | 'all')
           }
           style={{
-            background: '#0D1B2E',
-            border: '0.5px solid rgba(255,255,255,0.12)',
-            color: '#fff',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--text-ghost)',
+            color: 'var(--text-primary)',
             borderRadius: '10px',
             padding: '8px 12px',
             fontSize: '12px',
@@ -578,9 +578,9 @@ export default function FacultyDemandPage() {
           value={filterUrgency}
           onChange={(e) => setFilterUrgency(e.target.value as Urgency | 'all')}
           style={{
-            background: '#0D1B2E',
-            border: '0.5px solid rgba(255,255,255,0.12)',
-            color: '#fff',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--text-ghost)',
+            color: 'var(--text-primary)',
             borderRadius: '10px',
             padding: '8px 12px',
             fontSize: '12px',
@@ -608,8 +608,8 @@ export default function FacultyDemandPage() {
                   cursor: 'pointer',
                   border: 'none',
                   background:
-                    sortBy === opt ? '#C9993A' : 'rgba(255,255,255,0.06)',
-                  color: sortBy === opt ? '#0B1F3A' : 'rgba(255,255,255,0.45)',
+                    sortBy === opt ? '#C9993A' : 'var(--bg-elevated)',
+                  color: sortBy === opt ? '#0B1F3A' : 'var(--text-tertiary)',
                   transition: 'all 0.2s',
                 }}
               >
@@ -633,8 +633,8 @@ export default function FacultyDemandPage() {
               style={{
                 height: '180px',
                 borderRadius: '16px',
-                background: 'rgba(255,255,255,0.03)',
-                border: '0.5px solid rgba(255,255,255,0.06)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--bg-elevated)',
                 animation: 'pulse 2s ease infinite',
               }}
             />
@@ -647,13 +647,13 @@ export default function FacultyDemandPage() {
             style={{
               fontSize: '16px',
               fontWeight: '600',
-              color: 'rgba(255,255,255,0.6)',
+              color: 'var(--text-secondary)',
               marginBottom: '8px',
             }}
           >
             No open intents match your filters
           </p>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-ghost)' }}>
             Try widening your filters — or check back tomorrow.
           </p>
         </div>
@@ -683,7 +683,7 @@ export default function FacultyDemandPage() {
         <p
           style={{
             fontSize: '13px',
-            color: 'rgba(255,255,255,0.55)',
+            color: 'var(--text-secondary)',
             margin: 0,
             lineHeight: 1.7,
           }}

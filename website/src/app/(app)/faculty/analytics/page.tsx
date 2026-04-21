@@ -132,10 +132,10 @@ export default function FacultyAnalyticsPage() {
     return (
       <main
         className="flex min-h-screen items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
+          className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--border-subtle)]"
           style={{ borderTopColor: '#C9993A' }}
         />
       </main>
@@ -150,13 +150,13 @@ export default function FacultyAnalyticsPage() {
       className="min-h-screen"
       style={{
         background:
-          'linear-gradient(180deg, #060F1D 0%, #0B1F3A 60%, #060F1D 100%)',
+          'var(--bg-base)',
       }}
     >
       {/* Nav */}
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <Link
           href="/faculty"
@@ -168,7 +168,7 @@ export default function FacultyAnalyticsPage() {
         <Link
           href="/faculty"
           className="text-sm"
-          style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+          style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
         >
           &larr; Back to Dashboard
         </Link>
@@ -176,10 +176,10 @@ export default function FacultyAnalyticsPage() {
 
       <div className="mx-auto max-w-4xl px-6 py-8">
         {/* Header */}
-        <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
+        <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
           Your Impact
         </h1>
-        <p className="mb-8 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="mb-8 text-sm" style={{ color: 'var(--text-tertiary)' }}>
           {saathi?.emoji} {saathi?.name} &middot; Faculty Analytics
         </p>
 
@@ -205,13 +205,13 @@ export default function FacultyAnalyticsPage() {
               animate={{ opacity: 1, y: 0 }}
               className="rounded-xl p-5"
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '0.5px solid rgba(255,255,255,0.08)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-subtle)',
               }}
             >
               <p
                 className="mb-1 text-xs font-semibold"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 {stat.label}
               </p>
@@ -225,12 +225,12 @@ export default function FacultyAnalyticsPage() {
         {/* Where students struggle most */}
         {struggles.length > 0 && (
           <section className="mb-10">
-            <h2 className="font-playfair mb-1 text-xl font-bold text-white">
+            <h2 className="font-playfair mb-1 text-xl font-bold text-[var(--text-primary)]">
               Where students struggle most
             </h2>
             <p
               className="mb-4 text-xs"
-              style={{ color: 'rgba(255,255,255,0.3)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               These concepts need the most attention in your subject
             </p>
@@ -238,17 +238,17 @@ export default function FacultyAnalyticsPage() {
               {struggles.map(([topic, count]) => (
                 <div key={topic}>
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="text-sm text-white">{topic}</span>
+                    <span className="text-sm text-[var(--text-primary)]">{topic}</span>
                     <span
                       className="text-xs"
-                      style={{ color: 'rgba(255,255,255,0.4)' }}
+                      style={{ color: 'var(--text-tertiary)' }}
                     >
                       {count} students
                     </span>
                   </div>
                   <div
                     className="h-2 overflow-hidden rounded-full"
-                    style={{ background: 'rgba(255,255,255,0.06)' }}
+                    style={{ background: 'var(--bg-elevated)' }}
                   >
                     <motion.div
                       className="h-full rounded-full"
@@ -268,19 +268,19 @@ export default function FacultyAnalyticsPage() {
 
         {/* What students are asking */}
         <section className="mb-10">
-          <h2 className="font-playfair mb-1 text-xl font-bold text-white">
+          <h2 className="font-playfair mb-1 text-xl font-bold text-[var(--text-primary)]">
             What students are asking
           </h2>
           <p
             className="mb-4 text-xs"
-            style={{ color: 'rgba(255,255,255,0.3)' }}
+            style={{ color: 'var(--text-ghost)' }}
           >
             Recent questions in your subject area
           </p>
           {recentQuestions.length === 0 ? (
             <p
               className="py-8 text-center text-sm"
-              style={{ color: 'rgba(255,255,255,0.25)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               No recent questions
             </p>
@@ -291,15 +291,15 @@ export default function FacultyAnalyticsPage() {
                   key={q.id}
                   className="flex items-start justify-between gap-4 rounded-xl p-4"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '0.5px solid rgba(255,255,255,0.06)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--bg-elevated)',
                   }}
                 >
                   <div className="min-w-0">
-                    <p className="line-clamp-2 text-sm text-white">{q.body}</p>
+                    <p className="line-clamp-2 text-sm text-[var(--text-primary)]">{q.body}</p>
                     <p
                       className="mt-1 text-[10px]"
-                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       {new Date(q.created_at).toLocaleDateString('en-IN', {
                         day: 'numeric',
@@ -329,13 +329,13 @@ export default function FacultyAnalyticsPage() {
 
         {/* Your top answers */}
         <section className="mb-10">
-          <h2 className="font-playfair mb-4 text-xl font-bold text-white">
+          <h2 className="font-playfair mb-4 text-xl font-bold text-[var(--text-primary)]">
             Your recent answers
           </h2>
           {topAnswers.length === 0 ? (
             <p
               className="py-8 text-center text-sm"
-              style={{ color: 'rgba(255,255,255,0.25)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               No answers yet. Head to the Board to help students.
             </p>
@@ -346,8 +346,8 @@ export default function FacultyAnalyticsPage() {
                   key={a.id}
                   className="rounded-xl p-4"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '0.5px solid rgba(255,255,255,0.06)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--bg-elevated)',
                   }}
                 >
                   <div className="mb-2 flex items-center gap-2">
@@ -374,12 +374,12 @@ export default function FacultyAnalyticsPage() {
                     )}
                     <span
                       className="text-[10px]"
-                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       {new Date(a.created_at).toLocaleDateString('en-IN')}
                     </span>
                   </div>
-                  <p className="line-clamp-3 text-sm text-white/70">{a.body}</p>
+                  <p className="line-clamp-3 text-sm text-[var(--text-primary)]">{a.body}</p>
                 </div>
               ))}
             </div>
@@ -389,7 +389,7 @@ export default function FacultyAnalyticsPage() {
         {/* Motivational */}
         <div
           className="py-6 text-center"
-          style={{ color: 'rgba(255,255,255,0.2)' }}
+          style={{ color: 'var(--text-ghost)' }}
         >
           <p className="font-playfair text-sm italic">
             &ldquo;Your answers reach students across India. Every explanation

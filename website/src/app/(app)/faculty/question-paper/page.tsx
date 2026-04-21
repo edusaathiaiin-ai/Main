@@ -121,12 +121,12 @@ Include:
       className="min-h-screen"
       style={{
         background:
-          'linear-gradient(180deg, #060F1D 0%, #0B1F3A 60%, #060F1D 100%)',
+          'var(--bg-base)',
       }}
     >
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <Link
           href="/faculty"
@@ -138,17 +138,17 @@ Include:
         <Link
           href="/faculty"
           className="text-sm"
-          style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+          style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
         >
           &larr; Back to Dashboard
         </Link>
       </nav>
 
       <div className="mx-auto max-w-4xl px-6 py-8">
-        <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
+        <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
           Question Paper Generator
         </h1>
-        <p className="mb-8 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="mb-8 text-sm" style={{ color: 'var(--text-tertiary)' }}>
           Generate professional exam papers in seconds
         </p>
 
@@ -159,7 +159,7 @@ Include:
             <div>
               <label
                 className="mb-2 block text-xs font-semibold"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 Subject
               </label>
@@ -167,10 +167,10 @@ Include:
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="e.g. Constitutional Law, Thermodynamics"
-                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                 style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-subtle)',
                 }}
               />
             </div>
@@ -179,7 +179,7 @@ Include:
             <div>
               <label
                 className="mb-2 block text-xs font-semibold"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 Topics ({topics.length} selected)
               </label>
@@ -194,9 +194,9 @@ Include:
                       style={{
                         background: sel
                           ? 'rgba(201,153,58,0.2)'
-                          : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${sel ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
-                        color: sel ? '#C9993A' : 'rgba(255,255,255,0.5)',
+                          : 'var(--bg-elevated)',
+                        border: `1px solid ${sel ? 'rgba(201,153,58,0.5)' : 'var(--border-subtle)'}`,
+                        color: sel ? '#C9993A' : 'var(--text-secondary)',
                       }}
                     >
                       {t}
@@ -211,7 +211,7 @@ Include:
               <div>
                 <label
                   className="mb-2 block text-xs font-semibold"
-                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   Total marks
                 </label>
@@ -225,10 +225,10 @@ Include:
                         background:
                           marks === m
                             ? 'rgba(201,153,58,0.2)'
-                            : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${marks === m ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                            : 'var(--bg-elevated)',
+                        border: `1px solid ${marks === m ? 'rgba(201,153,58,0.5)' : 'var(--border-subtle)'}`,
                         color:
-                          marks === m ? '#C9993A' : 'rgba(255,255,255,0.5)',
+                          marks === m ? '#C9993A' : 'var(--text-secondary)',
                       }}
                     >
                       {m}
@@ -239,7 +239,7 @@ Include:
               <div>
                 <label
                   className="mb-2 block text-xs font-semibold"
-                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   Duration
                 </label>
@@ -248,13 +248,13 @@ Include:
                   onChange={(e) => setDuration(e.target.value)}
                   className="w-full rounded-lg px-3 py-2 text-sm outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#fff',
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   {DURATIONS.map((d) => (
-                    <option key={d} value={d} style={{ background: '#0B1F3A' }}>
+                    <option key={d} value={d} style={{ background: 'var(--bg-elevated)' }}>
                       {d}
                     </option>
                   ))}
@@ -267,7 +267,7 @@ Include:
               <div>
                 <label
                   className="mb-2 block text-xs font-semibold"
-                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   Difficulty
                 </label>
@@ -281,12 +281,12 @@ Include:
                         background:
                           difficulty === d
                             ? 'rgba(201,153,58,0.2)'
-                            : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${difficulty === d ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                            : 'var(--bg-elevated)',
+                        border: `1px solid ${difficulty === d ? 'rgba(201,153,58,0.5)' : 'var(--border-subtle)'}`,
                         color:
                           difficulty === d
                             ? '#C9993A'
-                            : 'rgba(255,255,255,0.5)',
+                            : 'var(--text-secondary)',
                       }}
                     >
                       {d}
@@ -297,7 +297,7 @@ Include:
               <div>
                 <label
                   className="mb-2 block text-xs font-semibold"
-                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   University style
                 </label>
@@ -306,13 +306,13 @@ Include:
                   onChange={(e) => setStyle(e.target.value)}
                   className="w-full rounded-lg px-3 py-2 text-sm outline-none"
                   style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#fff',
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   {UNIVERSITY_STYLES.map((s) => (
-                    <option key={s} value={s} style={{ background: '#0B1F3A' }}>
+                    <option key={s} value={s} style={{ background: 'var(--bg-elevated)' }}>
                       {s}
                     </option>
                   ))}
@@ -324,7 +324,7 @@ Include:
             <div>
               <label
                 className="mb-2 block text-xs font-semibold"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 Question types
               </label>
@@ -345,7 +345,7 @@ Include:
                       }
                       className="accent-[#C9993A]"
                     />
-                    <span className="flex-1 text-xs text-white/60">
+                    <span className="flex-1 text-xs text-[var(--text-secondary)]">
                       {qt.label}
                     </span>
                     <input
@@ -362,10 +362,10 @@ Include:
                           },
                         }))
                       }
-                      className="w-14 rounded-lg px-2 py-1 text-center text-xs text-white outline-none"
+                      className="w-14 rounded-lg px-2 py-1 text-center text-xs text-[var(--text-primary)] outline-none"
                       style={{
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-subtle)',
                       }}
                     />
                   </div>
@@ -389,7 +389,7 @@ Include:
             {paper ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-white">
+                  <h2 className="text-sm font-semibold text-[var(--text-primary)]">
                     Generated Paper
                   </h2>
                   <button
@@ -406,9 +406,9 @@ Include:
                 <div
                   className="overflow-y-auto rounded-xl p-6 text-sm leading-relaxed"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '0.5px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.7)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-subtle)',
+                    color: 'var(--text-primary)',
                     maxHeight: '70vh',
                     whiteSpace: 'pre-wrap',
                   }}
@@ -420,14 +420,14 @@ Include:
               <div
                 className="flex h-full items-center justify-center rounded-xl"
                 style={{
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px dashed rgba(255,255,255,0.06)',
+                  background: 'var(--bg-base)',
+                  border: '1px dashed var(--bg-elevated)',
                   minHeight: '300px',
                 }}
               >
                 <p
                   className="text-sm"
-                  style={{ color: 'rgba(255,255,255,0.2)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Paper preview will appear here
                 </p>

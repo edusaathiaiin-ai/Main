@@ -101,11 +101,11 @@ function MeetingLinkEditor({
       animate={{ opacity: 1, y: 0 }}
       style={{
         marginTop: '12px', padding: '14px 16px', borderRadius: '12px',
-        background: 'rgba(255,255,255,0.03)',
-        border: '0.5px solid rgba(255,255,255,0.1)',
+        background: 'var(--bg-elevated)',
+        border: '0.5px solid var(--border-subtle)',
       }}
     >
-      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>
+      <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '8px' }}>
         🔗 Meeting link — shared instantly with all enrolled students via email + WhatsApp
       </p>
       <div style={{ display: 'flex', gap: '8px' }}>
@@ -114,9 +114,9 @@ function MeetingLinkEditor({
           onChange={(e) => { setLink(e.target.value); setError('') }}
           placeholder="https://meet.google.com/xxx or Zoom link"
           style={{
-            flex: 1, background: 'rgba(255,255,255,0.05)',
-            border: error ? '1px solid rgba(239,68,68,0.5)' : '0.5px solid rgba(255,255,255,0.1)',
-            color: '#fff', borderRadius: '8px', padding: '8px 12px',
+            flex: 1, background: 'var(--bg-elevated)',
+            border: error ? '1px solid rgba(239,68,68,0.5)' : '0.5px solid var(--border-subtle)',
+            color: 'var(--text-primary)', borderRadius: '8px', padding: '8px 12px',
             fontSize: '12px', outline: 'none', fontFamily: 'DM Mono, monospace',
           }}
         />
@@ -136,9 +136,9 @@ function MeetingLinkEditor({
           onClick={() => { setOpen(false); setError(''); setResult(null) }}
           style={{
             padding: '8px 10px', borderRadius: '8px', fontSize: '11px',
-            background: 'rgba(255,255,255,0.04)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
-            color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--border-subtle)',
+            color: 'var(--text-tertiary)', cursor: 'pointer',
           }}
         >
           ✕
@@ -269,12 +269,12 @@ export default function FacultyLiveDashboard() {
       className="min-h-screen"
       style={{
         background:
-          'linear-gradient(180deg, #060F1D 0%, #0B1F3A 60%, #060F1D 100%)',
+          'var(--bg-base)',
       }}
     >
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <Link
           href="/faculty"
@@ -297,10 +297,10 @@ export default function FacultyLiveDashboard() {
       </nav>
 
       <div className="mx-auto max-w-4xl px-6 py-8">
-        <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
+        <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
           Live Sessions
         </h1>
-        <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="mb-6 text-sm" style={{ color: 'var(--text-tertiary)' }}>
           Manage your group lectures and workshops
         </p>
 
@@ -327,13 +327,13 @@ export default function FacultyLiveDashboard() {
               key={s.label}
               className="rounded-xl p-4"
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '0.5px solid rgba(255,255,255,0.08)',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-subtle)',
               }}
             >
               <p
                 className="text-xs"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 {s.label}
               </p>
@@ -348,8 +348,8 @@ export default function FacultyLiveDashboard() {
         <div
           className="mb-6 flex w-fit gap-1 rounded-xl p-1"
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '0.5px solid rgba(255,255,255,0.06)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
           }}
         >
           {(['active', 'completed', 'drafts'] as const).map((t) => (
@@ -359,7 +359,7 @@ export default function FacultyLiveDashboard() {
               className="rounded-lg px-4 py-2 text-xs font-medium capitalize transition-all"
               style={{
                 background: tab === t ? '#C9993A' : 'transparent',
-                color: tab === t ? '#060F1D' : 'rgba(255,255,255,0.45)',
+                color: tab === t ? 'var(--bg-base)' : 'var(--text-tertiary)',
               }}
             >
               {t} ({tabMap[t].length})
@@ -370,7 +370,7 @@ export default function FacultyLiveDashboard() {
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <div
-              className="h-8 w-8 animate-spin rounded-full border-2 border-white/10"
+              className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border-subtle)]"
               style={{ borderTopColor: '#C9993A' }}
             />
           </div>
@@ -378,7 +378,7 @@ export default function FacultyLiveDashboard() {
           <div className="py-16 text-center">
             <p
               className="mb-4 text-sm"
-              style={{ color: 'rgba(255,255,255,0.25)' }}
+              style={{ color: 'var(--text-ghost)' }}
             >
               No {tab} sessions
             </p>
@@ -408,18 +408,18 @@ export default function FacultyLiveDashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   className="rounded-2xl p-5"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '0.5px solid rgba(255,255,255,0.08)',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-subtle)',
                   }}
                 >
                   <div className="mb-3 flex items-start justify-between">
                     <div>
-                      <h3 className="text-sm font-bold text-white">
+                      <h3 className="text-sm font-bold text-[var(--text-primary)]">
                         {s.title}
                       </h3>
                       <p
                         className="text-[10px]"
-                        style={{ color: 'rgba(255,255,255,0.35)' }}
+                        style={{ color: 'var(--text-tertiary)' }}
                       >
                         {s.session_format} &middot;{' '}
                         {new Date(s.created_at).toLocaleDateString('en-IN')}
@@ -435,7 +435,7 @@ export default function FacultyLiveDashboard() {
                         </p>
                       )}
                       {s.student_name && s.session_format === 'single' && (
-                        <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
                           👤 {s.student_name}
                         </p>
                       )}
@@ -448,13 +448,13 @@ export default function FacultyLiveDashboard() {
                             ? 'rgba(74,222,128,0.12)'
                             : s.status === 'draft'
                               ? 'rgba(234,179,8,0.12)'
-                              : 'rgba(255,255,255,0.06)',
+                              : 'var(--bg-elevated)',
                         color:
                           s.status === 'published'
                             ? '#4ADE80'
                             : s.status === 'draft'
                               ? '#FACC15'
-                              : 'rgba(255,255,255,0.4)',
+                              : 'var(--text-tertiary)',
                       }}
                     >
                       {s.status}
@@ -463,16 +463,16 @@ export default function FacultyLiveDashboard() {
                   {/* Seat bar */}
                   <div className="mb-3">
                     <div className="mb-1 flex justify-between text-[10px]">
-                      <span style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      <span style={{ color: 'var(--text-tertiary)' }}>
                         {s.seats_booked}/{s.total_seats} seats
                       </span>
-                      <span style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      <span style={{ color: 'var(--text-tertiary)' }}>
                         {Math.round(pct)}%
                       </span>
                     </div>
                     <div
                       className="h-1.5 overflow-hidden rounded-full"
-                      style={{ background: 'rgba(255,255,255,0.06)' }}
+                      style={{ background: 'var(--bg-elevated)' }}
                     >
                       <div
                         className="h-full rounded-full"
@@ -493,7 +493,7 @@ export default function FacultyLiveDashboard() {
                       <div className="flex items-center justify-between mb-2">
                         <p
                           className="text-xs"
-                          style={{ color: 'rgba(255,255,255,0.5)' }}
+                          style={{ color: 'var(--text-secondary)' }}
                         >
                           {'\u20B9'}
                           {(revenue / 100).toLocaleString('en-IN')} collected
@@ -531,7 +531,7 @@ export default function FacultyLiveDashboard() {
                           padding: '8px 16px',
                           borderRadius: '10px',
                           background: '#C9993A',
-                          color: '#fff',
+                          color: 'var(--text-primary)',
                           fontSize: '12px',
                           fontWeight: 700,
                           textDecoration: 'none',
@@ -541,7 +541,7 @@ export default function FacultyLiveDashboard() {
                         🎓 Enter Classroom
                       </Link>
                       {s.meeting_link_shared_at && (
-                        <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginTop: '6px' }}>
+                        <p style={{ fontSize: '9px', color: 'var(--text-ghost)', marginTop: '6px' }}>
                           Last shared{' '}
                           {new Date(s.meeting_link_shared_at).toLocaleString('en-IN', {
                             timeZone: 'Asia/Kolkata', day: 'numeric',

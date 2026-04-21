@@ -149,12 +149,12 @@ export default function FacultySessionsPage() {
       className="min-h-screen"
       style={{
         background:
-          'linear-gradient(180deg, #060F1D 0%, #0B1F3A 60%, #060F1D 100%)',
+          'var(--bg-base)',
       }}
     >
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <Link
           href="/faculty"
@@ -166,17 +166,17 @@ export default function FacultySessionsPage() {
         <Link
           href="/faculty"
           className="text-sm"
-          style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+          style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
         >
           &larr; Dashboard
         </Link>
       </nav>
 
       <div className="mx-auto max-w-4xl px-6 py-8">
-        <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
+        <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
           My Sessions
         </h1>
-        <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="mb-6 text-sm" style={{ color: 'var(--text-tertiary)' }}>
           Manage your 1:1 student sessions
         </p>
 
@@ -184,8 +184,8 @@ export default function FacultySessionsPage() {
         <div
           className="mb-6 flex w-fit gap-1 rounded-xl p-1"
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '0.5px solid rgba(255,255,255,0.06)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--bg-elevated)',
           }}
         >
           {TABS.map((t) => (
@@ -195,7 +195,7 @@ export default function FacultySessionsPage() {
               className="rounded-lg px-4 py-2 text-xs font-medium transition-all"
               style={{
                 background: tab === t.id ? '#C9993A' : 'transparent',
-                color: tab === t.id ? '#060F1D' : 'rgba(255,255,255,0.45)',
+                color: tab === t.id ? 'var(--bg-base)' : 'var(--text-tertiary)',
               }}
             >
               {t.label}{' '}
@@ -210,13 +210,13 @@ export default function FacultySessionsPage() {
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div
-              className="h-8 w-8 animate-spin rounded-full border-2 border-white/10"
+              className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border-subtle)]"
               style={{ borderTopColor: '#C9993A' }}
             />
           </div>
         ) : tabSessions[tab].length === 0 ? (
           <div className="py-20 text-center">
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            <p className="text-sm" style={{ color: 'var(--text-ghost)' }}>
               No {tab} sessions
             </p>
           </div>
@@ -229,8 +229,8 @@ export default function FacultySessionsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="rounded-2xl p-5"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-subtle)',
                 }}
               >
                 <div className="mb-3 flex items-start justify-between">
@@ -256,22 +256,22 @@ export default function FacultySessionsPage() {
                     </span>
                     <span
                       className="text-[10px]"
-                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       {new Date(s.created_at).toLocaleDateString('en-IN')}
                     </span>
                   </div>
-                  <span className="text-sm font-bold text-white">
+                  <span className="text-sm font-bold text-[var(--text-primary)]">
                     {'\u20B9'}
                     {(s.faculty_payout_paise / 100).toLocaleString('en-IN')}
                   </span>
                 </div>
 
-                <p className="mb-1 text-sm text-white">{s.topic}</p>
+                <p className="mb-1 text-sm text-[var(--text-primary)]">{s.topic}</p>
                 {s.student_message && (
                   <p
                     className="mb-3 text-xs"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                   >
                     {s.student_message}
                   </p>
@@ -282,7 +282,7 @@ export default function FacultySessionsPage() {
                   <div className="mt-3 space-y-2">
                     <p
                       className="text-[10px] font-semibold"
-                      style={{ color: 'rgba(255,255,255,0.4)' }}
+                      style={{ color: 'var(--text-tertiary)' }}
                     >
                       Proposed slots:
                     </p>
@@ -346,10 +346,10 @@ export default function FacultySessionsPage() {
                             [s.id]: e.target.value,
                           }))
                         }
-                        className="flex-1 rounded-lg px-3 py-2 text-xs text-white outline-none"
+                        className="flex-1 rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] outline-none"
                         style={{
-                          background: 'rgba(255,255,255,0.04)',
-                          border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'var(--bg-elevated)',
+                          border: '1px solid var(--border-subtle)',
                         }}
                       />
                       <button

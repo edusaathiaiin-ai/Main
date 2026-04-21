@@ -244,23 +244,23 @@ export default function CreateLiveSessionPage() {
   if (!profile) return null
 
   const inputStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    color: '#fff',
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--border-subtle)',
+    color: 'var(--text-primary)',
   }
-  const labelStyle: React.CSSProperties = { color: 'rgba(255,255,255,0.45)' }
+  const labelStyle: React.CSSProperties = { color: 'var(--text-tertiary)' }
 
   return (
     <main
       className="min-h-screen"
       style={{
         background:
-          'linear-gradient(180deg, #060F1D 0%, #0B1F3A 60%, #060F1D 100%)',
+          'var(--bg-base)',
       }}
     >
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <Link
           href="/faculty/live"
@@ -272,7 +272,7 @@ export default function CreateLiveSessionPage() {
         <Link
           href="/faculty/live"
           className="text-sm"
-          style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+          style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
         >
           &larr; My Live Sessions
         </Link>
@@ -286,12 +286,12 @@ export default function CreateLiveSessionPage() {
             className="py-12 text-center"
           >
             <p className="mb-4 text-5xl">{'\u{1F389}'}</p>
-            <h2 className="font-playfair mb-3 text-3xl font-bold text-white">
+            <h2 className="font-playfair mb-3 text-3xl font-bold text-[var(--text-primary)]">
               Published!
             </h2>
             <p
               className="mb-6 text-sm"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
+              style={{ color: 'var(--text-secondary)' }}
             >
               {intentId
                 ? 'Students who wanted this topic get 24 hours of priority booking access.'
@@ -300,17 +300,17 @@ export default function CreateLiveSessionPage() {
             <div
               className="mb-6 rounded-xl p-4"
               style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-subtle)',
               }}
             >
               <p
                 className="mb-1 text-xs"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 Share this link:
               </p>
-              <p className="font-mono text-sm break-all text-white">
+              <p className="font-mono text-sm break-all text-[var(--text-primary)]">
                 {sessionUrl}
               </p>
             </div>
@@ -324,7 +324,7 @@ export default function CreateLiveSessionPage() {
           </motion.div>
         ) : (
           <>
-            <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
+            <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
               Create Live Session
             </h1>
 
@@ -357,7 +357,7 @@ export default function CreateLiveSessionPage() {
                   <p
                     style={{
                       fontSize: '11px',
-                      color: 'rgba(255,255,255,0.45)',
+                      color: 'var(--text-tertiary)',
                       margin: 0,
                     }}
                   >
@@ -376,7 +376,7 @@ export default function CreateLiveSessionPage() {
                   className="h-1 flex-1 rounded-full"
                   style={{
                     background:
-                      i <= stepIdx ? '#C9993A' : 'rgba(255,255,255,0.08)',
+                      i <= stepIdx ? '#C9993A' : 'var(--border-subtle)',
                   }}
                 />
               ))}
@@ -391,7 +391,7 @@ export default function CreateLiveSessionPage() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                 >
-                  <h2 className="mb-4 text-lg font-semibold text-white">
+                  <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">
                     What kind of session?
                   </h2>
                   <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -404,8 +404,8 @@ export default function CreateLiveSessionPage() {
                           background:
                             format === f.id
                               ? 'rgba(201,153,58,0.12)'
-                              : 'rgba(255,255,255,0.03)',
-                          border: `1px solid ${format === f.id ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.06)'}`,
+                              : 'var(--bg-elevated)',
+                          border: `1px solid ${format === f.id ? 'rgba(201,153,58,0.5)' : 'var(--bg-elevated)'}`,
                         }}
                       >
                         <span className="mb-1 block text-2xl">{f.emoji}</span>
@@ -415,14 +415,14 @@ export default function CreateLiveSessionPage() {
                             color:
                               format === f.id
                                 ? '#E5B86A'
-                                : 'rgba(255,255,255,0.6)',
+                                : 'var(--text-secondary)',
                           }}
                         >
                           {f.label}
                         </p>
                         <p
                           className="text-[10px]"
-                          style={{ color: 'rgba(255,255,255,0.3)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           {f.desc}
                         </p>
@@ -497,11 +497,11 @@ export default function CreateLiveSessionPage() {
                           style={{
                             background: tags.includes(c)
                               ? 'rgba(201,153,58,0.2)'
-                              : 'rgba(255,255,255,0.04)',
-                            border: `1px solid ${tags.includes(c) ? 'rgba(201,153,58,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                              : 'var(--bg-elevated)',
+                            border: `1px solid ${tags.includes(c) ? 'rgba(201,153,58,0.5)' : 'var(--border-subtle)'}`,
                             color: tags.includes(c)
                               ? '#C9993A'
-                              : 'rgba(255,255,255,0.5)',
+                              : 'var(--text-secondary)',
                           }}
                         >
                           {c}
@@ -532,8 +532,8 @@ export default function CreateLiveSessionPage() {
                       onClick={() => setStep('type')}
                       className="flex-1 rounded-xl py-3 text-sm"
                       style={{
-                        color: 'rgba(255,255,255,0.4)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: 'var(--text-tertiary)',
+                        border: '1px solid var(--border-subtle)',
                       }}
                     >
                       &larr; Back
@@ -559,7 +559,7 @@ export default function CreateLiveSessionPage() {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-5"
                 >
-                  <h2 className="text-lg font-semibold text-white">Schedule</h2>
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">Schedule</h2>
                   {format === 'single' ||
                   format === 'workshop' ||
                   format === 'qa' ? (
@@ -594,16 +594,16 @@ export default function CreateLiveSessionPage() {
                           className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                           style={inputStyle}
                         >
-                          <option value={30} style={{ background: '#0B1F3A' }}>
+                          <option value={30} style={{ background: 'var(--bg-elevated)' }}>
                             30 min
                           </option>
-                          <option value={60} style={{ background: '#0B1F3A' }}>
+                          <option value={60} style={{ background: 'var(--bg-elevated)' }}>
                             60 min
                           </option>
-                          <option value={90} style={{ background: '#0B1F3A' }}>
+                          <option value={90} style={{ background: 'var(--bg-elevated)' }}>
                             90 min
                           </option>
-                          <option value={120} style={{ background: '#0B1F3A' }}>
+                          <option value={120} style={{ background: 'var(--bg-elevated)' }}>
                             120 min
                           </option>
                         </select>
@@ -704,7 +704,7 @@ export default function CreateLiveSessionPage() {
                     />
                     <p
                       className="mt-1 text-[9px]"
-                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       Shared only with enrolled students. You can update this later from your sessions dashboard.
                     </p>
@@ -715,8 +715,8 @@ export default function CreateLiveSessionPage() {
                       onClick={() => setStep('content')}
                       className="flex-1 rounded-xl py-3 text-sm"
                       style={{
-                        color: 'rgba(255,255,255,0.4)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: 'var(--text-tertiary)',
+                        border: '1px solid var(--border-subtle)',
                       }}
                     >
                       &larr; Back
@@ -741,7 +741,7 @@ export default function CreateLiveSessionPage() {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-5"
                 >
-                  <h2 className="text-lg font-semibold text-white">
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                     Seats &amp; Pricing
                   </h2>
                   <div className="grid grid-cols-2 gap-4">
@@ -765,7 +765,7 @@ export default function CreateLiveSessionPage() {
                       />
                       <p
                         className="mt-1 text-[9px]"
-                        style={{ color: 'rgba(255,255,255,0.25)' }}
+                        style={{ color: 'var(--text-ghost)' }}
                       >
                         Recommended: 15-30
                       </p>
@@ -809,7 +809,7 @@ export default function CreateLiveSessionPage() {
                     />
                     <p
                       className="mt-1 text-[9px]"
-                      style={{ color: 'rgba(255,255,255,0.25)' }}
+                      style={{ color: 'var(--text-ghost)' }}
                     >
                       You receive 80% ({'\u20B9'}
                       {Math.round(pricePerSeat * 0.8)})
@@ -835,7 +835,7 @@ export default function CreateLiveSessionPage() {
                       />
                       <p
                         className="mt-1 text-[9px]"
-                        style={{ color: 'rgba(255,255,255,0.25)' }}
+                        style={{ color: 'var(--text-ghost)' }}
                       >
                         {lectures.length} lectures {'\u00D7'} {'\u20B9'}
                         {pricePerSeat} = {'\u20B9'}
@@ -854,7 +854,7 @@ export default function CreateLiveSessionPage() {
                     />
                     <span
                       className="text-xs"
-                      style={{ color: 'rgba(255,255,255,0.5)' }}
+                      style={{ color: 'var(--text-secondary)' }}
                     >
                       Enable early bird pricing
                     </span>
@@ -904,8 +904,8 @@ export default function CreateLiveSessionPage() {
                       onClick={() => setStep('schedule')}
                       className="flex-1 rounded-xl py-3 text-sm"
                       style={{
-                        color: 'rgba(255,255,255,0.4)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: 'var(--text-tertiary)',
+                        border: '1px solid var(--border-subtle)',
                       }}
                     >
                       &larr; Back
@@ -930,14 +930,14 @@ export default function CreateLiveSessionPage() {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-5"
                 >
-                  <h2 className="text-lg font-semibold text-white">
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                     Preview &amp; Publish
                   </h2>
                   <div
                     className="rounded-xl p-5"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-subtle)',
                     }}
                   >
                     <p
@@ -947,12 +947,12 @@ export default function CreateLiveSessionPage() {
                       {FORMATS.find((f) => f.id === format)?.emoji}{' '}
                       {FORMATS.find((f) => f.id === format)?.label}
                     </p>
-                    <h3 className="mb-1 text-lg font-bold text-white">
+                    <h3 className="mb-1 text-lg font-bold text-[var(--text-primary)]">
                       {title || 'Untitled'}
                     </h3>
                     <p
                       className="mb-3 text-xs"
-                      style={{ color: 'rgba(255,255,255,0.5)' }}
+                      style={{ color: 'var(--text-secondary)' }}
                     >
                       {description || 'No description'}
                     </p>
@@ -991,24 +991,24 @@ export default function CreateLiveSessionPage() {
                     )}
                     <div className="grid grid-cols-3 gap-3 text-center">
                       <div>
-                        <p className="text-lg font-bold text-white">
+                        <p className="text-lg font-bold text-[var(--text-primary)]">
                           {totalSeats}
                         </p>
                         <p
                           className="text-[9px]"
-                          style={{ color: 'rgba(255,255,255,0.3)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           seats
                         </p>
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-white">
+                        <p className="text-lg font-bold text-[var(--text-primary)]">
                           {'\u20B9'}
                           {pricePerSeat}
                         </p>
                         <p
                           className="text-[9px]"
-                          style={{ color: 'rgba(255,255,255,0.3)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           per seat
                         </p>
@@ -1023,7 +1023,7 @@ export default function CreateLiveSessionPage() {
                         </p>
                         <p
                           className="text-[9px]"
-                          style={{ color: 'rgba(255,255,255,0.3)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           you earn
                         </p>
@@ -1035,8 +1035,8 @@ export default function CreateLiveSessionPage() {
                       onClick={() => setStep('pricing')}
                       className="flex-1 rounded-xl py-3 text-sm"
                       style={{
-                        color: 'rgba(255,255,255,0.4)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: 'var(--text-tertiary)',
+                        border: '1px solid var(--border-subtle)',
                       }}
                     >
                       &larr; Edit

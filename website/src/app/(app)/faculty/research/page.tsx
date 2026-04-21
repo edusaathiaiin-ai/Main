@@ -83,9 +83,9 @@ function ProjectStatusBadge({ status }: { status: ResearchProjectStatus }) {
       color: '#FACC15',
     },
     closed: {
-      bg: 'rgba(255,255,255,0.05)',
-      border: 'rgba(255,255,255,0.12)',
-      color: 'rgba(255,255,255,0.35)',
+      bg: 'var(--bg-elevated)',
+      border: 'var(--text-ghost)',
+      color: 'var(--text-tertiary)',
     },
   }
   const s = cfg[status]
@@ -137,9 +137,9 @@ function ApplicationStatusBadge({
       label: 'Rejected',
     },
     withdrawn: {
-      bg: 'rgba(255,255,255,0.04)',
-      border: 'rgba(255,255,255,0.1)',
-      color: 'rgba(255,255,255,0.35)',
+      bg: 'var(--bg-elevated)',
+      border: 'var(--border-subtle)',
+      color: 'var(--text-tertiary)',
       label: 'Withdrawn',
     },
   }
@@ -243,9 +243,9 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
   }
 
   const inputStyle = {
-    background: 'rgba(255,255,255,0.04)',
-    border: '0.5px solid rgba(255,255,255,0.12)',
-    color: '#fff',
+    background: 'var(--bg-elevated)',
+    border: '0.5px solid var(--text-ghost)',
+    color: 'var(--text-primary)',
     borderRadius: '12px',
     padding: '10px 14px',
     width: '100%',
@@ -256,7 +256,7 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
   const labelStyle = {
     fontSize: '11px',
     fontWeight: 700,
-    color: 'rgba(255,255,255,0.5)',
+    color: 'var(--text-secondary)',
     display: 'block',
     marginBottom: '6px',
     textTransform: 'uppercase' as const,
@@ -265,7 +265,7 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div className="space-y-5">
-      <h2 className="font-playfair text-xl font-bold text-white">
+      <h2 className="font-playfair text-xl font-bold text-[var(--text-primary)]">
         Post a Research Project
       </h2>
 
@@ -278,7 +278,7 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
           style={{ ...inputStyle, cursor: 'pointer' }}
         >
           {SAATHIS.map((s) => (
-            <option key={s.id} value={s.id} style={{ background: '#0B1F3A' }}>
+            <option key={s.id} value={s.id} style={{ background: 'var(--bg-elevated)' }}>
               {s.emoji} {s.name}
             </option>
           ))}
@@ -368,7 +368,7 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
             style={{ ...inputStyle, cursor: 'pointer' }}
           >
             {ACADEMIC_LEVELS.map((l) => (
-              <option key={l} value={l} style={{ background: '#0B1F3A' }}>
+              <option key={l} value={l} style={{ background: 'var(--bg-elevated)' }}>
                 {l}
               </option>
             ))}
@@ -387,7 +387,7 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
             style={{ ...inputStyle, cursor: 'pointer' }}
           >
             {DURATIONS.map((d) => (
-              <option key={d} value={d} style={{ background: '#0B1F3A' }}>
+              <option key={d} value={d} style={{ background: 'var(--bg-elevated)' }}>
                 {d} month{d > 1 ? 's' : ''}
               </option>
             ))}
@@ -415,7 +415,7 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
             onClick={() => set('is_remote', !form.is_remote)}
             className="relative h-6 w-10 rounded-full transition-all"
             style={{
-              background: form.is_remote ? '#4ADE80' : 'rgba(255,255,255,0.1)',
+              background: form.is_remote ? '#4ADE80' : 'var(--border-subtle)',
             }}
           >
             <div
@@ -423,7 +423,7 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
               style={{ left: form.is_remote ? '22px' : '2px' }}
             />
           </button>
-          <span className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             Remote
           </span>
         </div>
@@ -454,11 +454,11 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
               style={{
                 background: form[key as keyof typeof form]
                   ? 'rgba(201,153,58,0.12)'
-                  : 'rgba(255,255,255,0.03)',
-                border: `0.5px solid ${form[key as keyof typeof form] ? 'rgba(201,153,58,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                  : 'var(--bg-elevated)',
+                border: `0.5px solid ${form[key as keyof typeof form] ? 'rgba(201,153,58,0.4)' : 'var(--border-subtle)'}`,
                 color: form[key as keyof typeof form]
                   ? '#E5B86A'
-                  : 'rgba(255,255,255,0.4)',
+                  : 'var(--text-tertiary)',
                 fontSize: '12px',
                 fontWeight: 600,
               }}
@@ -466,7 +466,7 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
               <span
                 className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border text-[10px]`}
                 style={{
-                  border: `1.5px solid ${form[key as keyof typeof form] ? '#C9993A' : 'rgba(255,255,255,0.2)'}`,
+                  border: `1.5px solid ${form[key as keyof typeof form] ? '#C9993A' : 'var(--text-ghost)'}`,
                   background: form[key as keyof typeof form]
                     ? '#C9993A'
                     : 'transparent',
@@ -517,7 +517,7 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
           background: submitting
             ? 'rgba(168,85,247,0.2)'
             : 'linear-gradient(135deg, #A855F7, #7C3AED)',
-          color: submitting ? 'rgba(255,255,255,0.3)' : '#fff',
+          color: submitting ? 'var(--text-ghost)' : '#fff',
           cursor: submitting ? 'not-allowed' : 'pointer',
         }}
       >
@@ -545,12 +545,12 @@ function ApplicantsPanel({
       <div
         className="rounded-2xl p-8 text-center"
         style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '0.5px solid rgba(255,255,255,0.06)',
+          background: 'var(--bg-base)',
+          border: '0.5px solid var(--bg-elevated)',
         }}
       >
         <p className="mb-3 text-3xl">📭</p>
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
           No applications yet for &ldquo;{project.title}&rdquo;
         </p>
       </div>
@@ -559,10 +559,10 @@ function ApplicantsPanel({
 
   return (
     <div className="space-y-3">
-      <h3 className="font-playfair text-lg font-bold text-white">
+      <h3 className="font-playfair text-lg font-bold text-[var(--text-primary)]">
         {project.title}
       </h3>
-      <p className="mb-4 text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+      <p className="mb-4 text-xs" style={{ color: 'var(--text-tertiary)' }}>
         {applicants.length} application{applicants.length !== 1 ? 's' : ''} ·{' '}
         {project.seats_available} seat{project.seats_available !== 1 ? 's' : ''}
       </p>
@@ -572,19 +572,19 @@ function ApplicantsPanel({
           key={app.id}
           className="overflow-hidden rounded-2xl"
           style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--border-subtle)',
           }}
         >
           <div className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
                   {app.student?.full_name ?? 'Student'}
                 </p>
                 <p
                   className="text-xs"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   {app.student?.academic_level ?? 'Student'}
                   {app.student?.city ? ` · ${app.student.city}` : ''}
@@ -603,7 +603,7 @@ function ApplicantsPanel({
                 setExpandedId(expandedId === app.id ? null : app.id)
               }
               className="mt-2 text-xs font-medium"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               {expandedId === app.id ? '▲ Hide statement' : '▼ Read statement'}
             </button>
@@ -621,9 +621,9 @@ function ApplicantsPanel({
                   <p
                     className="mb-4 rounded-xl p-3 text-xs leading-relaxed"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      color: 'rgba(255,255,255,0.65)',
-                      border: '0.5px solid rgba(255,255,255,0.07)',
+                      background: 'var(--bg-elevated)',
+                      color: 'var(--text-secondary)',
+                      border: '0.5px solid var(--border-subtle)',
                       whiteSpace: 'pre-wrap',
                     }}
                   >
@@ -806,18 +806,18 @@ export default function FacultyResearchPage() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: '#060F1D', color: '#fff' }}
+      style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
     >
       <div className="mx-auto max-w-3xl px-4 py-8">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="font-playfair text-2xl font-bold text-white">
+            <h1 className="font-playfair text-2xl font-bold text-[var(--text-primary)]">
               Research Interns 🔬
             </h1>
             <p
               className="mt-1 text-xs"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               Post projects · find your co-authors
             </p>
@@ -827,7 +827,7 @@ export default function FacultyResearchPage() {
             className="rounded-xl px-4 py-2.5 text-sm font-bold"
             style={{
               background: 'linear-gradient(135deg, #A855F7, #7C3AED)',
-              color: '#fff',
+              color: 'var(--text-primary)',
             }}
           >
             + New Project
@@ -850,8 +850,8 @@ export default function FacultyResearchPage() {
                 key={label}
                 className="rounded-2xl p-4 text-center"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.07)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-subtle)',
                 }}
               >
                 <p
@@ -862,7 +862,7 @@ export default function FacultyResearchPage() {
                 </p>
                 <p
                   className="mt-0.5 text-xs"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   {label}
                 </p>
@@ -893,7 +893,7 @@ export default function FacultyResearchPage() {
         {/* Tab bar */}
         <div
           className="mb-6 flex gap-1 rounded-2xl p-1"
-          style={{ background: 'rgba(255,255,255,0.04)' }}
+          style={{ background: 'var(--bg-elevated)' }}
         >
           {[
             { id: 'projects', label: 'My Projects' },
@@ -913,7 +913,7 @@ export default function FacultyResearchPage() {
                   view === tab.id ||
                   (view === 'applicants' && tab.id === 'projects')
                     ? '#C084FC'
-                    : 'rgba(255,255,255,0.4)',
+                    : 'var(--text-tertiary)',
               }}
             >
               {tab.label}
@@ -931,7 +931,7 @@ export default function FacultyResearchPage() {
                 <button
                   onClick={() => setView('projects')}
                   className="mb-4 flex items-center gap-2 text-xs font-medium"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   ← Back to projects
                 </button>
@@ -951,7 +951,7 @@ export default function FacultyResearchPage() {
                       key={i}
                       className="animate-pulse rounded-2xl p-5"
                       style={{
-                        background: 'rgba(255,255,255,0.03)',
+                        background: 'var(--bg-elevated)',
                         height: '160px',
                       }}
                     />
@@ -961,17 +961,17 @@ export default function FacultyResearchPage() {
                 <div
                   className="rounded-2xl p-12 text-center"
                   style={{
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '0.5px solid rgba(255,255,255,0.06)',
+                    background: 'var(--bg-base)',
+                    border: '0.5px solid var(--bg-elevated)',
                   }}
                 >
                   <p className="mb-4 text-4xl">🔬</p>
-                  <p className="font-playfair mb-2 text-xl text-white">
+                  <p className="font-playfair mb-2 text-xl text-[var(--text-primary)]">
                     No research projects yet
                   </p>
                   <p
                     className="mb-6 text-sm"
-                    style={{ color: 'rgba(255,255,255,0.35)' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                   >
                     Post your first project and find motivated students to
                     collaborate with.
@@ -981,7 +981,7 @@ export default function FacultyResearchPage() {
                     className="rounded-xl px-6 py-3 text-sm font-bold"
                     style={{
                       background: 'linear-gradient(135deg, #A855F7, #7C3AED)',
-                      color: '#fff',
+                      color: 'var(--text-primary)',
                     }}
                   >
                     Post first project →
@@ -998,8 +998,8 @@ export default function FacultyResearchPage() {
                         key={project.id}
                         className="rounded-2xl p-5"
                         style={{
-                          background: 'rgba(255,255,255,0.03)',
-                          border: '0.5px solid rgba(255,255,255,0.08)',
+                          background: 'var(--bg-elevated)',
+                          border: '0.5px solid var(--border-subtle)',
                         }}
                       >
                         <div className="mb-2 flex items-start justify-between gap-3">
@@ -1018,7 +1018,7 @@ export default function FacultyResearchPage() {
                               )}
                               <ProjectStatusBadge status={project.status} />
                             </div>
-                            <h3 className="font-playfair text-base font-bold text-white">
+                            <h3 className="font-playfair text-base font-bold text-[var(--text-primary)]">
                               {project.title}
                             </h3>
                           </div>
@@ -1026,7 +1026,7 @@ export default function FacultyResearchPage() {
 
                         <p
                           className="mb-3 text-xs leading-relaxed"
-                          style={{ color: 'rgba(255,255,255,0.5)' }}
+                          style={{ color: 'var(--text-secondary)' }}
                         >
                           {project.description.slice(0, 160)}
                           {project.description.length > 160 ? '…' : ''}
@@ -1064,9 +1064,9 @@ export default function FacultyResearchPage() {
                             <span
                               className="rounded-full px-2 py-0.5 text-[10px]"
                               style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                color: 'rgba(255,255,255,0.4)',
-                                border: '0.5px solid rgba(255,255,255,0.1)',
+                                background: 'var(--bg-elevated)',
+                                color: 'var(--text-tertiary)',
+                                border: '0.5px solid var(--border-subtle)',
                               }}
                             >
                               🗓 {project.duration_months}m
@@ -1076,9 +1076,9 @@ export default function FacultyResearchPage() {
                             <span
                               className="rounded-full px-2 py-0.5 text-[10px]"
                               style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                color: 'rgba(255,255,255,0.4)',
-                                border: '0.5px solid rgba(255,255,255,0.1)',
+                                background: 'var(--bg-elevated)',
+                                color: 'var(--text-tertiary)',
+                                border: '0.5px solid var(--border-subtle)',
                               }}
                             >
                               🌐 Remote
@@ -1103,9 +1103,9 @@ export default function FacultyResearchPage() {
                             onClick={() => toggleProjectStatus(project)}
                             className="rounded-xl px-3 py-1.5 text-xs font-medium"
                             style={{
-                              background: 'rgba(255,255,255,0.04)',
-                              color: 'rgba(255,255,255,0.35)',
-                              border: '0.5px solid rgba(255,255,255,0.08)',
+                              background: 'var(--bg-elevated)',
+                              color: 'var(--text-tertiary)',
+                              border: '0.5px solid var(--border-subtle)',
                             }}
                           >
                             {project.status === RESEARCH_PROJECT_STATUS.OPEN

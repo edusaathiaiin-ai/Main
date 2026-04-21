@@ -84,13 +84,13 @@ function Stat({ label, value, color }: { label: string; value: number | string; 
   return (
     <div style={{
       padding: '16px', borderRadius: '14px',
-      background: 'rgba(255,255,255,0.03)',
-      border: '0.5px solid rgba(255,255,255,0.07)',
+      background: 'var(--bg-elevated)',
+      border: '0.5px solid var(--border-subtle)',
     }}>
       <p style={{ fontSize: '22px', fontWeight: 800, color: color ?? '#fff', margin: '0 0 3px' }}>
         {value}
       </p>
-      <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', margin: 0 }}>{label}</p>
+      <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', margin: 0 }}>{label}</p>
     </div>
   )
 }
@@ -174,7 +174,7 @@ function ProposePanel({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
           <div>
             <label style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em',
-              textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)',
+              textTransform: 'uppercase', color: 'var(--text-tertiary)',
               display: 'block', marginBottom: '5px' }}>
               Your fee (₹)
             </label>
@@ -184,21 +184,21 @@ function ProposePanel({
               onChange={(e) => setFeePaise(Math.round(parseFloat(e.target.value || '0') * 100))}
               style={{
                 width: '100%', padding: '10px 12px', borderRadius: '10px',
-                background: 'rgba(255,255,255,0.05)',
-                border: '0.5px solid rgba(255,255,255,0.1)',
-                color: '#fff', fontSize: '14px', outline: 'none',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-subtle)',
+                color: 'var(--text-primary)', fontSize: '14px', outline: 'none',
                 boxSizing: 'border-box',
               }}
             />
             {request.budget_paise && (
-              <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.25)', marginTop: '3px' }}>
+              <p style={{ fontSize: '9px', color: 'var(--text-ghost)', marginTop: '3px' }}>
                 Student budget: {paise(request.budget_paise)}
               </p>
             )}
           </div>
           <div>
             <label style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em',
-              textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)',
+              textTransform: 'uppercase', color: 'var(--text-tertiary)',
               display: 'block', marginBottom: '5px' }}>
               Duration (minutes)
             </label>
@@ -207,13 +207,13 @@ function ProposePanel({
               onChange={(e) => setDuration(parseInt(e.target.value))}
               style={{
                 width: '100%', padding: '10px 12px', borderRadius: '10px',
-                background: 'rgba(255,255,255,0.05)',
-                border: '0.5px solid rgba(255,255,255,0.1)',
-                color: '#fff', fontSize: '14px', outline: 'none',
+                background: 'var(--bg-elevated)',
+                border: '0.5px solid var(--border-subtle)',
+                color: 'var(--text-primary)', fontSize: '14px', outline: 'none',
                 appearance: 'none', boxSizing: 'border-box',
               }}>
               {[30, 45, 60, 90, 120].map((m) => (
-                <option key={m} value={m} style={{ background: '#0B1F3A' }}>
+                <option key={m} value={m} style={{ background: 'var(--bg-elevated)' }}>
                   {m} minutes {m === defaultDuration ? '(student preferred)' : ''}
                 </option>
               ))}
@@ -232,20 +232,20 @@ function ProposePanel({
             <p style={{ fontSize: '16px', fontWeight: 800, color: GREEN, margin: '0 0 1px' }}>
               {paise(Math.round(feePaise * 0.8))}
             </p>
-            <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+            <p style={{ fontSize: '9px', color: 'var(--text-ghost)', margin: 0 }}>
               you earn (80%)
             </p>
           </div>
-          <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.08)' }} />
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: 0 }}>
-            Student pays <strong style={{ color: '#fff' }}>{paise(feePaise)}</strong> total
+          <div style={{ width: '1px', height: '28px', background: 'var(--border-subtle)' }} />
+          <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', margin: 0 }}>
+            Student pays <strong style={{ color: 'var(--text-primary)' }}>{paise(feePaise)}</strong> total
           </p>
         </div>
 
         {/* Time slots */}
         <div style={{ marginBottom: '12px' }}>
           <label style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em',
-            textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)',
+            textTransform: 'uppercase', color: 'var(--text-tertiary)',
             display: 'block', marginBottom: '6px' }}>
             Offer time slots (student picks one)
           </label>
@@ -259,15 +259,15 @@ function ProposePanel({
                   onChange={(e) => updateSlot(i, e.target.value)}
                   style={{
                     flex: 1, padding: '9px 12px', borderRadius: '9px',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
-                    color: '#fff', fontSize: '13px', outline: 'none',
+                    background: 'var(--bg-elevated)',
+                    border: '0.5px solid var(--border-subtle)',
+                    color: 'var(--text-primary)', fontSize: '13px', outline: 'none',
                     colorScheme: 'dark',
                   }}
                 />
                 {slotInputs.length > 1 && (
                   <button onClick={() => removeSlot(i)}
-                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)',
+                    style={{ background: 'none', border: 'none', color: 'var(--text-ghost)',
                       cursor: 'pointer', fontSize: '16px', padding: '4px', flexShrink: 0 }}>
                     ✕
                   </button>
@@ -283,7 +283,7 @@ function ProposePanel({
               + Add another time option
             </button>
           )}
-          <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '5px' }}>
+          <p style={{ fontSize: '10px', color: 'var(--text-ghost)', marginTop: '5px' }}>
             Offering 2–3 slots gives students more flexibility and increases acceptance.
           </p>
         </div>
@@ -291,7 +291,7 @@ function ProposePanel({
         {/* Note to student */}
         <div style={{ marginBottom: '12px' }}>
           <label style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em',
-            textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)',
+            textTransform: 'uppercase', color: 'var(--text-tertiary)',
             display: 'block', marginBottom: '5px' }}>
             Note to student (optional)
           </label>
@@ -302,14 +302,14 @@ function ProposePanel({
             rows={3}
             style={{
               width: '100%', padding: '10px 12px', borderRadius: '10px',
-              background: 'rgba(255,255,255,0.05)',
-              border: '0.5px solid rgba(255,255,255,0.1)',
-              color: '#fff', fontSize: '13px', outline: 'none',
+              background: 'var(--bg-elevated)',
+              border: '0.5px solid var(--border-subtle)',
+              color: 'var(--text-primary)', fontSize: '13px', outline: 'none',
               resize: 'none', boxSizing: 'border-box',
               fontFamily: 'DM Sans, sans-serif',
             }}
           />
-          <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginTop: '3px' }}>
+          <p style={{ fontSize: '9px', color: 'var(--text-ghost)', marginTop: '3px' }}>
             {400 - proposalMsg.length} characters remaining
           </p>
         </div>
@@ -333,7 +333,7 @@ function ProposePanel({
           <button onClick={onCancel}
             style={{ padding: '10px 14px', borderRadius: '10px',
               background: 'none', border: 'none',
-              color: 'rgba(255,255,255,0.3)',
+              color: 'var(--text-ghost)',
               fontSize: '13px', cursor: 'pointer',
               fontFamily: 'DM Sans, sans-serif' }}>
             Cancel
@@ -382,9 +382,9 @@ function DeclinePanel({
             <button key={r} onClick={() => setReason(r)}
               style={{
                 padding: '8px 12px', borderRadius: '8px', textAlign: 'left',
-                background: reason === r ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.03)',
-                border: reason === r ? '0.5px solid rgba(239,68,68,0.35)' : '0.5px solid rgba(255,255,255,0.06)',
-                color: reason === r ? '#FCA5A5' : 'rgba(255,255,255,0.45)',
+                background: reason === r ? 'rgba(239,68,68,0.1)' : 'var(--bg-elevated)',
+                border: reason === r ? '0.5px solid rgba(239,68,68,0.35)' : '0.5px solid var(--bg-elevated)',
+                color: reason === r ? '#FCA5A5' : 'var(--text-tertiary)',
                 fontSize: '12px', cursor: 'pointer',
                 fontFamily: 'DM Sans, sans-serif',
               }}>
@@ -400,14 +400,14 @@ function DeclinePanel({
             rows={2}
             style={{
               width: '100%', padding: '9px 12px', borderRadius: '9px', marginBottom: '10px',
-              background: 'rgba(255,255,255,0.04)',
-              border: '0.5px solid rgba(255,255,255,0.1)',
-              color: '#fff', fontSize: '12px', outline: 'none', resize: 'none',
+              background: 'var(--bg-elevated)',
+              border: '0.5px solid var(--border-subtle)',
+              color: 'var(--text-primary)', fontSize: '12px', outline: 'none', resize: 'none',
               boxSizing: 'border-box', fontFamily: 'DM Sans, sans-serif',
             }}
           />
         )}
-        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginBottom: '10px' }}>
+        <p style={{ fontSize: '10px', color: 'var(--text-ghost)', marginBottom: '10px' }}>
           The student will be notified politely. They can post to other faculty.
         </p>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -415,8 +415,8 @@ function DeclinePanel({
             disabled={!finalReason || saving}
             style={{
               padding: '9px 16px', borderRadius: '9px',
-              background: finalReason ? 'rgba(239,68,68,0.75)' : 'rgba(255,255,255,0.06)',
-              color: finalReason ? '#fff' : 'rgba(255,255,255,0.3)',
+              background: finalReason ? 'rgba(239,68,68,0.75)' : 'var(--bg-elevated)',
+              color: finalReason ? '#fff' : 'var(--text-ghost)',
               fontSize: '12px', fontWeight: 600, border: 'none',
               cursor: finalReason && !saving ? 'pointer' : 'not-allowed',
               fontFamily: 'DM Sans, sans-serif',
@@ -425,7 +425,7 @@ function DeclinePanel({
           </button>
           <button onClick={onCancel}
             style={{ background: 'none', border: 'none',
-              color: 'rgba(255,255,255,0.3)', fontSize: '12px',
+              color: 'var(--text-ghost)', fontSize: '12px',
               cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
             Cancel
           </button>
@@ -635,14 +635,14 @@ export default function FacultyRequestsPage() {
   return (
     <main style={{
       minHeight: '100vh',
-      background: 'linear-gradient(180deg,#060F1D 0%,#0B1F3A 60%,#060F1D 100%)',
+      background: 'var(--bg-base)',
     }}>
 
       {/* Nav */}
       <nav style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '16px 24px',
-        borderBottom: '0.5px solid rgba(255,255,255,0.06)',
+        borderBottom: '0.5px solid var(--bg-elevated)',
       }}>
         <Link href="/faculty" style={{
           fontFamily: 'Playfair Display, serif', fontSize: '20px',
@@ -651,7 +651,7 @@ export default function FacultyRequestsPage() {
           EdUsaathiAI
         </Link>
         <Link href="/faculty" style={{
-          fontSize: '13px', color: 'rgba(255,255,255,0.4)', textDecoration: 'none',
+          fontSize: '13px', color: 'var(--text-tertiary)', textDecoration: 'none',
         }}>
           ← Dashboard
         </Link>
@@ -662,11 +662,11 @@ export default function FacultyRequestsPage() {
         {/* Header */}
         <h1 style={{
           fontFamily: 'Playfair Display, serif', fontSize: 'clamp(24px,4vw,36px)',
-          fontWeight: 800, color: '#fff', margin: '0 0 6px',
+          fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px',
         }}>
           Lecture Requests
         </h1>
-        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', margin: '0 0 28px' }}>
+        <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', margin: '0 0 28px' }}>
           Students want to learn from you. Accept a request to propose a time and fee.
         </p>
 
@@ -684,13 +684,13 @@ export default function FacultyRequestsPage() {
               Most requested
             </p>
             <p style={{
-              fontSize: '13px', color: '#fff', margin: '0 0 2px',
+              fontSize: '13px', color: 'var(--text-primary)', margin: '0 0 2px',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
               {topTopic?.subject ?? '—'}
             </p>
             {topTopic && (
-              <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+              <p style={{ fontSize: '10px', color: 'var(--text-ghost)', margin: 0 }}>
                 {topTopic.upvote_count} students
               </p>
             )}
@@ -700,10 +700,10 @@ export default function FacultyRequestsPage() {
         {/* Tabs */}
         <div style={{
           display: 'flex', gap: '6px', padding: '5px',
-          background: 'rgba(255,255,255,0.04)',
+          background: 'var(--bg-elevated)',
           borderRadius: '13px', width: 'fit-content',
           marginBottom: '24px',
-          border: '0.5px solid rgba(255,255,255,0.06)',
+          border: '0.5px solid var(--bg-elevated)',
         }}>
           {([
             { id: 'pending'   as const, label: 'Pending',   count: pending.length   },
@@ -715,7 +715,7 @@ export default function FacultyRequestsPage() {
               style={{
                 padding: '8px 16px', borderRadius: '9px',
                 background: tab === t.id ? GOLD : 'transparent',
-                color: tab === t.id ? NAVY : 'rgba(255,255,255,0.45)',
+                color: tab === t.id ? NAVY : 'var(--text-tertiary)',
                 fontSize: '12px', fontWeight: tab === t.id ? 700 : 400,
                 border: 'none', cursor: 'pointer',
                 fontFamily: 'DM Sans, sans-serif',
@@ -731,13 +731,13 @@ export default function FacultyRequestsPage() {
           <div style={{ display: 'flex', justifyContent: 'center', padding: '64px 0' }}>
             <div style={{
               width: '32px', height: '32px', borderRadius: '50%',
-              border: '2px solid rgba(255,255,255,0.1)', borderTopColor: GOLD,
+              border: '2px solid var(--border-subtle)', borderTopColor: GOLD,
               animation: 'spin 0.8s linear infinite',
             }} />
           </div>
         ) : tabMap[tab].length === 0 ? (
           <div style={{ textAlign: 'center', padding: '64px 0' }}>
-            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.2)' }}>
+            <p style={{ fontSize: '14px', color: 'var(--text-ghost)' }}>
               No {tab} requests yet
             </p>
           </div>
@@ -749,15 +749,15 @@ export default function FacultyRequestsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 style={{
                   padding: '20px', borderRadius: '18px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-subtle)',
                 }}>
 
                 {/* Card header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between',
                   alignItems: 'flex-start', marginBottom: '6px' }}>
                   <h3 style={{
-                    fontSize: '15px', fontWeight: 700, color: '#fff', margin: 0,
+                    fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0,
                     fontFamily: 'Playfair Display, serif',
                   }}>
                     {r.subject}
@@ -775,11 +775,11 @@ export default function FacultyRequestsPage() {
                       color: r.status === 'pending'      ? '#FBBF24'
                            : r.status === 'accepted'     ? GREEN
                            : r.status === 'declined'     ? '#F87171'
-                           : 'rgba(255,255,255,0.4)',
+                           : 'var(--text-tertiary)',
                       background: r.status === 'pending'  ? 'rgba(251,191,36,0.1)'
                            : r.status === 'accepted'       ? 'rgba(74,222,128,0.1)'
                            : r.status === 'declined'       ? 'rgba(239,68,68,0.1)'
-                           : 'rgba(255,255,255,0.06)',
+                           : 'var(--bg-elevated)',
                     }}>
                       {r.status === 'accepted' ? 'Proposed' : r.status}
                     </span>
@@ -787,7 +787,7 @@ export default function FacultyRequestsPage() {
                 </div>
 
                 {/* Student info */}
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.32)', margin: '0 0 10px' }}>
+                <p style={{ fontSize: '11px', color: 'var(--text-ghost)', margin: '0 0 10px' }}>
                   {r.student_name ?? 'Student'}
                   {r.student_institution ? ` · ${r.student_institution}` : ''}
                   {r.student_city ? ` · ${r.student_city}` : ''}
@@ -797,7 +797,7 @@ export default function FacultyRequestsPage() {
 
                 {/* Message */}
                 <p style={{
-                  fontSize: '13px', color: 'rgba(255,255,255,0.55)',
+                  fontSize: '13px', color: 'var(--text-secondary)',
                   lineHeight: 1.6, margin: '0 0 12px', fontStyle: 'italic',
                 }}>
                   &ldquo;{r.message}&rdquo;
@@ -809,10 +809,10 @@ export default function FacultyRequestsPage() {
                     {r.budget_paise != null && (
                       <span style={{
                         fontSize: '11px', fontWeight: 600,
-                        color: 'rgba(255,255,255,0.5)',
+                        color: 'var(--text-secondary)',
                         padding: '3px 10px', borderRadius: '100px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '0.5px solid rgba(255,255,255,0.08)',
+                        background: 'var(--bg-elevated)',
+                        border: '0.5px solid var(--border-subtle)',
                       }}>
                         Budget: {paise(r.budget_paise)}
                       </span>
@@ -820,10 +820,10 @@ export default function FacultyRequestsPage() {
                     {!!r.preferred_duration && (
                       <span style={{
                         fontSize: '11px', fontWeight: 600,
-                        color: 'rgba(255,255,255,0.5)',
+                        color: 'var(--text-secondary)',
                         padding: '3px 10px', borderRadius: '100px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '0.5px solid rgba(255,255,255,0.08)',
+                        background: 'var(--bg-elevated)',
+                        border: '0.5px solid var(--border-subtle)',
                       }}>
                         Prefers: {r.preferred_duration} min
                       </span>
@@ -841,7 +841,7 @@ export default function FacultyRequestsPage() {
                     <p style={{ fontSize: '9px', fontWeight: 700, color: GREEN, margin: '0 0 3px' }}>
                       Your response
                     </p>
-                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>
                       {r.faculty_response}
                     </p>
                   </div>
@@ -861,29 +861,29 @@ export default function FacultyRequestsPage() {
                       <span style={{ fontSize: '11px', fontWeight: 600, color: GREEN }}>
                         {paise(r.proposed_fee_paise ?? 0)}
                       </span>
-                      <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>·</span>
-                      <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--text-ghost)' }}>·</span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
                         {r.proposed_duration} min
                       </span>
                       {r.proposal_sent_at && (
                         <>
-                          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>·</span>
-                          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--text-ghost)' }}>·</span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-ghost)' }}>
                             Sent {fmtDate(r.proposal_sent_at)}
                           </span>
                         </>
                       )}
                     </div>
-                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '0 0 4px' }}>
+                    <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', margin: '0 0 4px' }}>
                       Time slots offered:
                     </p>
                     {r.proposed_slots.map((s, i) => (
-                      <p key={i} style={{ fontSize: '11px', color: 'rgba(255,255,255,0.55)', margin: '0 0 3px' }}>
+                      <p key={i} style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '0 0 3px' }}>
                         {i + 1}. {s.label}
                       </p>
                     ))}
                     {r.proposal_message && (
-                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)',
+                      <p style={{ fontSize: '11px', color: 'var(--text-tertiary)',
                         marginTop: '8px', fontStyle: 'italic' }}>
                         &ldquo;{r.proposal_message}&rdquo;
                       </p>
@@ -919,7 +919,7 @@ export default function FacultyRequestsPage() {
                     <p style={{ fontSize: '9px', fontWeight: 700, color: '#F87171', margin: '0 0 3px' }}>
                       Your decline reason
                     </p>
-                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+                    <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: 0 }}>
                       {r.decline_reason}
                     </p>
                   </div>
@@ -956,9 +956,9 @@ export default function FacultyRequestsPage() {
                           <button onClick={() => setMode(r.id, 'decline')}
                             style={{
                               padding: '9px 12px', borderRadius: '10px',
-                              background: 'rgba(255,255,255,0.03)',
-                              border: '0.5px solid rgba(255,255,255,0.07)',
-                              color: 'rgba(255,255,255,0.3)', fontSize: '12px',
+                              background: 'var(--bg-elevated)',
+                              border: '0.5px solid var(--border-subtle)',
+                              color: 'var(--text-ghost)', fontSize: '12px',
                               cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
                             }}>
                             Decline
@@ -990,9 +990,9 @@ export default function FacultyRequestsPage() {
                               rows={3}
                               style={{
                                 width: '100%', padding: '10px 14px', borderRadius: '10px',
-                                background: 'rgba(255,255,255,0.04)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                color: '#fff', fontSize: '13px', outline: 'none',
+                                background: 'var(--bg-elevated)',
+                                border: '1px solid var(--border-subtle)',
+                                color: 'var(--text-primary)', fontSize: '13px', outline: 'none',
                                 resize: 'none', boxSizing: 'border-box',
                                 fontFamily: 'DM Sans, sans-serif', marginBottom: '8px',
                               }}
@@ -1011,7 +1011,7 @@ export default function FacultyRequestsPage() {
                               </button>
                               <button onClick={() => setMode(r.id, null)}
                                 style={{ background: 'none', border: 'none',
-                                  color: 'rgba(255,255,255,0.3)', fontSize: '12px',
+                                  color: 'var(--text-ghost)', fontSize: '12px',
                                   cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
                                 Cancel
                               </button>

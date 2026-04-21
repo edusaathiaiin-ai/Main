@@ -72,7 +72,7 @@ const FLAME_EMOJI: Record<string, string> = {
 function depthColor(d: number): string {
   if (d >= 65) return '#4ADE80'
   if (d >= 40) return '#C9993A'
-  return 'rgba(255,255,255,0.25)'
+  return 'var(--text-ghost)'
 }
 
 // ── Page ───────────────────────────────────────────────────────────────────────
@@ -341,10 +341,10 @@ export default function AudienceIntelligencePage() {
     return (
       <main
         className="flex min-h-screen items-center justify-center"
-        style={{ background: '#060F1D' }}
+        style={{ background: 'var(--bg-base)' }}
       >
         <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-white/10"
+          className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--border-subtle)]"
           style={{ borderTopColor: '#C9993A' }}
         />
       </main>
@@ -353,21 +353,21 @@ export default function AudienceIntelligencePage() {
 
   const selectStyle: React.CSSProperties = {
     padding: '6px 12px',
-    background: 'rgba(255,255,255,0.06)',
-    border: '0.5px solid rgba(255,255,255,0.12)',
+    background: 'var(--bg-elevated)',
+    border: '0.5px solid var(--text-ghost)',
     borderRadius: '8px',
-    color: '#fff',
+    color: 'var(--text-primary)',
     fontSize: '11px',
     outline: 'none',
     cursor: 'pointer',
   }
 
   return (
-    <main className="min-h-screen" style={{ background: '#060F1D' }}>
+    <main className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       {/* Nav */}
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ borderColor: 'var(--bg-elevated)' }}
       >
         <Link
           href="/faculty/live"
@@ -379,7 +379,7 @@ export default function AudienceIntelligencePage() {
         <Link
           href="/faculty/live"
           className="text-sm"
-          style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+          style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
         >
           &larr; My Sessions
         </Link>
@@ -394,22 +394,22 @@ export default function AudienceIntelligencePage() {
           >
             {saathi?.emoji} {saathi?.name}
           </p>
-          <h1 className="font-playfair text-2xl font-bold text-white">
+          <h1 className="font-playfair text-2xl font-bold text-[var(--text-primary)]">
             {sessionTitle}
           </h1>
         </div>
-        <p className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+        <p className="mb-1 text-xs" style={{ color: 'var(--text-ghost)' }}>
           Student profiles are shared to help you prepare. Do not share this
           information outside EdUsaathiAI.
         </p>
-        <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="mb-6 text-sm" style={{ color: 'var(--text-tertiary)' }}>
           {students.length} students enrolled
         </p>
 
         {students.length === 0 ? (
           <div className="py-16 text-center">
             <p className="mb-3 text-4xl">{'\u{1F465}'}</p>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            <p className="text-sm" style={{ color: 'var(--text-ghost)' }}>
               No bookings yet. Share your session link!
             </p>
           </div>
@@ -421,22 +421,22 @@ export default function AudienceIntelligencePage() {
               <div
                 className="rounded-xl p-4"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-subtle)',
                 }}
               >
-                <p className="text-2xl font-bold text-white">
+                <p className="text-2xl font-bold text-[var(--text-primary)]">
                   {students.length}
                 </p>
                 <p
                   className="text-[10px]"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   students enrolled
                 </p>
                 <p
                   className="mt-1 text-[9px]"
-                  style={{ color: 'rgba(255,255,255,0.25)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   {fullCount} full series &middot; {singleCount} single
                 </p>
@@ -445,13 +445,13 @@ export default function AudienceIntelligencePage() {
               <div
                 className="rounded-xl p-4"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-subtle)',
                 }}
               >
                 <p
                   className="mb-2 text-[10px] font-semibold"
-                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   Academic levels
                 </p>
@@ -468,7 +468,7 @@ export default function AudienceIntelligencePage() {
                           background: color,
                         }}
                       />
-                      <span className="text-[9px] text-white/40 capitalize">
+                      <span className="text-[9px] text-[var(--text-tertiary)] capitalize">
                         {level} ({count})
                       </span>
                     </div>
@@ -478,22 +478,22 @@ export default function AudienceIntelligencePage() {
               <div
                 className="rounded-xl p-4"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-subtle)',
                 }}
               >
                 <p
                   className="mb-1 text-[10px] font-semibold"
-                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   Room depth
                 </p>
-                <p className="text-lg font-bold text-white">
+                <p className="text-lg font-bold text-[var(--text-primary)]">
                   {minDepth} &mdash; {maxDepth}
                 </p>
                 <p
                   className="text-[9px]"
-                  style={{ color: 'rgba(255,255,255,0.25)' }}
+                  style={{ color: 'var(--text-ghost)' }}
                 >
                   Average: {avgDepth}/100
                 </p>
@@ -502,26 +502,26 @@ export default function AudienceIntelligencePage() {
               <div
                 className="rounded-xl p-4"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-subtle)',
                 }}
               >
                 <p
                   className="mb-1 text-[10px] font-semibold"
-                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   Exam targets
                 </p>
                 {topExams.length === 0 ? (
                   <p
                     className="text-[9px]"
-                    style={{ color: 'rgba(255,255,255,0.25)' }}
+                    style={{ color: 'var(--text-ghost)' }}
                   >
                     No specific exams
                   </p>
                 ) : (
                   topExams.map(([exam, count]) => (
-                    <p key={exam} className="text-[10px] text-white/50">
+                    <p key={exam} className="text-[10px] text-[var(--text-secondary)]">
                       {exam} ({count})
                     </p>
                   ))
@@ -577,12 +577,12 @@ export default function AudienceIntelligencePage() {
                     <div key={i} className="flex gap-3">
                       <span className="text-lg">{tip.icon}</span>
                       <div>
-                        <p className="text-xs font-semibold text-white">
+                        <p className="text-xs font-semibold text-[var(--text-primary)]">
                           {tip.title}
                         </p>
                         <p
                           className="text-[11px]"
-                          style={{ color: 'rgba(255,255,255,0.5)' }}
+                          style={{ color: 'var(--text-secondary)' }}
                         >
                           {tip.detail}
                         </p>
@@ -593,17 +593,17 @@ export default function AudienceIntelligencePage() {
                 {tips.opening_suggestion && (
                   <div
                     className="mb-2 rounded-lg p-3"
-                    style={{ background: 'rgba(255,255,255,0.04)' }}
+                    style={{ background: 'var(--bg-elevated)' }}
                   >
                     <p
                       className="mb-1 text-[10px] font-semibold"
-                      style={{ color: 'rgba(255,255,255,0.45)' }}
+                      style={{ color: 'var(--text-tertiary)' }}
                     >
                       Opening suggestion
                     </p>
                     <p
                       className="text-xs"
-                      style={{ color: 'rgba(255,255,255,0.6)' }}
+                      style={{ color: 'var(--text-secondary)' }}
                     >
                       {tips.opening_suggestion}
                     </p>
@@ -612,7 +612,7 @@ export default function AudienceIntelligencePage() {
                 {tips.depth_recommendation && (
                   <p
                     className="text-[10px]"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                   >
                     {'\u{1F4CA}'} Depth: {tips.depth_recommendation}
                   </p>
@@ -627,16 +627,16 @@ export default function AudienceIntelligencePage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 style={selectStyle}
               >
-                <option value="depth_desc" style={{ background: '#0B1F3A' }}>
+                <option value="depth_desc" style={{ background: 'var(--bg-elevated)' }}>
                   Depth: High to Low
                 </option>
-                <option value="depth_asc" style={{ background: '#0B1F3A' }}>
+                <option value="depth_asc" style={{ background: 'var(--bg-elevated)' }}>
                   Depth: Low to High
                 </option>
-                <option value="name" style={{ background: '#0B1F3A' }}>
+                <option value="name" style={{ background: 'var(--bg-elevated)' }}>
                   Alphabetical
                 </option>
-                <option value="level" style={{ background: '#0B1F3A' }}>
+                <option value="level" style={{ background: 'var(--bg-elevated)' }}>
                   Academic Level
                 </option>
               </select>
@@ -646,14 +646,14 @@ export default function AudienceIntelligencePage() {
                   onChange={(e) => setFilterExam(e.target.value)}
                   style={selectStyle}
                 >
-                  <option value="all" style={{ background: '#0B1F3A' }}>
+                  <option value="all" style={{ background: 'var(--bg-elevated)' }}>
                     All Exams
                   </option>
                   {topExams.map(([exam]) => (
                     <option
                       key={exam}
                       value={exam}
-                      style={{ background: '#0B1F3A' }}
+                      style={{ background: 'var(--bg-elevated)' }}
                     >
                       {exam}
                     </option>
@@ -665,14 +665,14 @@ export default function AudienceIntelligencePage() {
                 onChange={(e) => setFilterLevel(e.target.value)}
                 style={selectStyle}
               >
-                <option value="all" style={{ background: '#0B1F3A' }}>
+                <option value="all" style={{ background: 'var(--bg-elevated)' }}>
                   All Levels
                 </option>
                 {Object.keys(levelCounts).map((l) => (
                   <option
                     key={l}
                     value={l}
-                    style={{ background: '#0B1F3A' }}
+                    style={{ background: 'var(--bg-elevated)' }}
                     className="capitalize"
                   >
                     {l}
@@ -682,7 +682,7 @@ export default function AudienceIntelligencePage() {
               <div className="flex-1" />
               <p
                 className="text-[10px]"
-                style={{ color: 'rgba(255,255,255,0.3)' }}
+                style={{ color: 'var(--text-ghost)' }}
               >
                 {displayed.length} students
               </p>
@@ -698,7 +698,7 @@ export default function AudienceIntelligencePage() {
                     ? '#4ADE80'
                     : depth >= 40
                       ? '#C9993A'
-                      : 'rgba(255,255,255,0.08)'
+                      : 'var(--border-subtle)'
 
                 return (
                   <motion.div
@@ -708,20 +708,20 @@ export default function AudienceIntelligencePage() {
                     transition={{ delay: i * 0.03 }}
                     className="rounded-xl p-4"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-subtle)',
                       borderLeft: `3px solid ${borderColor}`,
                     }}
                   >
                     {/* Name + level */}
                     <div className="mb-2 flex items-start justify-between">
                       <div>
-                        <p className="text-sm font-semibold text-white">
+                        <p className="text-sm font-semibold text-[var(--text-primary)]">
                           {'\u{1F464}'} {s.profile.full_name ?? 'Student'}
                         </p>
                         <p
                           className="text-[10px]"
-                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           {s.profile.degree_programme ??
                             s.profile.academic_level ??
@@ -732,7 +732,7 @@ export default function AudienceIntelligencePage() {
                         </p>
                         <p
                           className="text-[10px]"
-                          style={{ color: 'rgba(255,255,255,0.3)' }}
+                          style={{ color: 'var(--text-ghost)' }}
                         >
                           {s.profile.institution_name ?? ''}
                           {s.profile.city ? ` \u00B7 ${s.profile.city}` : ''}
@@ -741,8 +741,8 @@ export default function AudienceIntelligencePage() {
                       <span
                         className="rounded-full px-2 py-0.5 text-[10px]"
                         style={{
-                          background: 'rgba(255,255,255,0.06)',
-                          color: 'rgba(255,255,255,0.4)',
+                          background: 'var(--bg-elevated)',
+                          color: 'var(--text-tertiary)',
                         }}
                       >
                         {s.booking.booking_type === 'full'
@@ -756,7 +756,7 @@ export default function AudienceIntelligencePage() {
                       <span
                         className="text-[10px] font-semibold"
                         style={{
-                          color: 'rgba(255,255,255,0.45)',
+                          color: 'var(--text-tertiary)',
                           width: '40px',
                         }}
                       >
@@ -764,7 +764,7 @@ export default function AudienceIntelligencePage() {
                       </span>
                       <div
                         className="h-2 flex-1 overflow-hidden rounded-full"
-                        style={{ background: 'rgba(255,255,255,0.06)' }}
+                        style={{ background: 'var(--bg-elevated)' }}
                       >
                         <div
                           className="h-full rounded-full"
@@ -789,7 +789,7 @@ export default function AudienceIntelligencePage() {
                     {/* Flame */}
                     <p
                       className="mb-2 text-[10px]"
-                      style={{ color: 'rgba(255,255,255,0.4)' }}
+                      style={{ color: 'var(--text-tertiary)' }}
                     >
                       {FLAME_EMOJI[flame] ?? '\u{2728}'} {flame} stage
                       {s.soul?.session_count
@@ -808,7 +808,7 @@ export default function AudienceIntelligencePage() {
                         </span>
                         <span
                           className="text-[9px]"
-                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           {(s.soul?.top_topics ?? []).slice(0, 3).join(', ')}
                         </span>
@@ -824,7 +824,7 @@ export default function AudienceIntelligencePage() {
                         </span>
                         <span
                           className="text-[9px]"
-                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           {(s.soul?.struggle_topics ?? [])
                             .slice(0, 3)
@@ -839,7 +839,7 @@ export default function AudienceIntelligencePage() {
                         s.profile.exam_target !== 'None' && (
                           <p
                             className="text-[9px]"
-                            style={{ color: 'rgba(255,255,255,0.4)' }}
+                            style={{ color: 'var(--text-tertiary)' }}
                           >
                             {'\u{1F4DD}'} Exam: {s.profile.exam_target}
                           </p>
@@ -847,7 +847,7 @@ export default function AudienceIntelligencePage() {
                       {s.soul?.future_research_area && (
                         <p
                           className="text-[9px]"
-                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           {'\u{2728}'} Dream:{' '}
                           {s.soul.future_research_area.slice(0, 50)}
@@ -863,24 +863,24 @@ export default function AudienceIntelligencePage() {
             {/* ── Struggle cloud ─────────────────────────────────── */}
             {topStruggles.length > 0 && (
               <section className="mb-10">
-                <h2 className="mb-3 text-sm font-semibold text-white">
+                <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
                   Common struggle topics across your audience
                 </h2>
                 <div className="space-y-2">
                   {topStruggles.map(([topic, count]) => (
                     <div key={topic}>
                       <div className="mb-1 flex items-center justify-between">
-                        <span className="text-xs text-white">{topic}</span>
+                        <span className="text-xs text-[var(--text-primary)]">{topic}</span>
                         <span
                           className="text-[10px]"
-                          style={{ color: 'rgba(255,255,255,0.35)' }}
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           {count} students
                         </span>
                       </div>
                       <div
                         className="h-2 overflow-hidden rounded-full"
-                        style={{ background: 'rgba(255,255,255,0.06)' }}
+                        style={{ background: 'var(--bg-elevated)' }}
                       >
                         <div
                           className="h-full rounded-full"
@@ -900,24 +900,24 @@ export default function AudienceIntelligencePage() {
             {/* ── Exam breakdown ─────────────────────────────────── */}
             {topExams.length > 0 && (
               <section className="mb-10">
-                <h2 className="mb-3 text-sm font-semibold text-white">
+                <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
                   Your students are preparing for
                 </h2>
                 <div className="space-y-2">
                   {topExams.map(([exam, count]) => (
                     <div key={exam}>
                       <div className="mb-1 flex items-center justify-between">
-                        <span className="text-xs text-white">{exam}</span>
+                        <span className="text-xs text-[var(--text-primary)]">{exam}</span>
                         <span
                           className="text-[10px]"
-                          style={{ color: 'rgba(255,255,255,0.35)' }}
+                          style={{ color: 'var(--text-tertiary)' }}
                         >
                           {count} students
                         </span>
                       </div>
                       <div
                         className="h-2 overflow-hidden rounded-full"
-                        style={{ background: 'rgba(255,255,255,0.06)' }}
+                        style={{ background: 'var(--bg-elevated)' }}
                       >
                         <div
                           className="h-full rounded-full"
@@ -936,7 +936,7 @@ export default function AudienceIntelligencePage() {
             {/* ── Attendance Marking ────────────────────────────── */}
             {lectures.length > 0 && (
               <section className="mb-10">
-                <h2 className="mb-3 text-sm font-semibold text-white">
+                <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
                   Mark Attendance
                 </h2>
                 <div className="mb-4 flex flex-wrap gap-2">
@@ -954,12 +954,12 @@ export default function AudienceIntelligencePage() {
                         background:
                           attendanceLecture === l.id
                             ? `${color}20`
-                            : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${attendanceLecture === l.id ? `${color}50` : 'rgba(255,255,255,0.08)'}`,
+                            : 'var(--bg-elevated)',
+                        border: `1px solid ${attendanceLecture === l.id ? `${color}50` : 'var(--border-subtle)'}`,
                         color:
                           attendanceLecture === l.id
                             ? color
-                            : 'rgba(255,255,255,0.5)',
+                            : 'var(--text-secondary)',
                       }}
                     >
                       Lecture {l.lecture_number}
@@ -972,11 +972,11 @@ export default function AudienceIntelligencePage() {
                     animate={{ opacity: 1 }}
                     className="rounded-xl p-4"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      background: 'var(--bg-elevated)',
+                      border: '0.5px solid var(--border-subtle)',
                     }}
                   >
-                    <p className="mb-3 text-xs font-semibold text-white">
+                    <p className="mb-3 text-xs font-semibold text-[var(--text-primary)]">
                       {lectures.find((l) => l.id === attendanceLecture)
                         ?.title ?? 'Lecture'}
                     </p>
@@ -999,7 +999,7 @@ export default function AudienceIntelligencePage() {
                             }
                             className="accent-[#C9993A]"
                           />
-                          <span className="text-xs text-white/60">
+                          <span className="text-xs text-[var(--text-secondary)]">
                             {s.profile.full_name ?? 'Student'}
                           </span>
                         </label>
@@ -1019,7 +1019,7 @@ export default function AudienceIntelligencePage() {
                       <button
                         onClick={() => setAttendanceLecture(null)}
                         className="text-xs"
-                        style={{ color: 'rgba(255,255,255,0.3)' }}
+                        style={{ color: 'var(--text-ghost)' }}
                       >
                         Cancel
                       </button>
