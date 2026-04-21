@@ -16,7 +16,8 @@ const PUBLIC_PATHS = [
   '/robots',
   '/sw.js',
   '/offline',
-  '/auth',   // PKCE callback handles its own auth
+  '/auth',            // PKCE callback handles its own auth
+  '/api/contact',     // public contact form — anonymous visitors must be able to POST
 ]
 
 export async function middleware(request: NextRequest) {
