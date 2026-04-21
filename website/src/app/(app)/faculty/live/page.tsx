@@ -83,7 +83,7 @@ function MeetingLinkEditor({
         onClick={() => setOpen(true)}
         style={{
           display: 'flex', alignItems: 'center', gap: '6px',
-          fontSize: '11px', fontWeight: 600,
+          fontSize: '13px', fontWeight: 600,
           color: session.meeting_link ? '#4ADE80' : '#C9993A',
           background: session.meeting_link ? 'rgba(74,222,128,0.08)' : 'rgba(201,153,58,0.1)',
           border: `0.5px solid ${session.meeting_link ? 'rgba(74,222,128,0.25)' : 'rgba(201,153,58,0.3)'}`,
@@ -105,7 +105,7 @@ function MeetingLinkEditor({
         border: '0.5px solid var(--border-subtle)',
       }}
     >
-      <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '8px' }}>
+      <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginBottom: '8px' }}>
         🔗 Meeting link — shared instantly with all enrolled students via email + WhatsApp
       </p>
       <div style={{ display: 'flex', gap: '8px' }}>
@@ -117,14 +117,14 @@ function MeetingLinkEditor({
             flex: 1, background: 'var(--bg-elevated)',
             border: error ? '1px solid rgba(239,68,68,0.5)' : '0.5px solid var(--border-subtle)',
             color: 'var(--text-primary)', borderRadius: '8px', padding: '8px 12px',
-            fontSize: '12px', outline: 'none', fontFamily: 'DM Mono, monospace',
+            fontSize: '13px', outline: 'none', fontFamily: 'DM Mono, monospace',
           }}
         />
         <button
           onClick={handleShare}
           disabled={saving}
           style={{
-            padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
+            padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
             background: saving ? 'rgba(201,153,58,0.4)' : '#C9993A',
             color: '#060F1D', border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
             whiteSpace: 'nowrap',
@@ -135,7 +135,7 @@ function MeetingLinkEditor({
         <button
           onClick={() => { setOpen(false); setError(''); setResult(null) }}
           style={{
-            padding: '8px 10px', borderRadius: '8px', fontSize: '11px',
+            padding: '8px 10px', borderRadius: '8px', fontSize: '13px',
             background: 'var(--bg-elevated)',
             border: '0.5px solid var(--border-subtle)',
             color: 'var(--text-tertiary)', cursor: 'pointer',
@@ -145,12 +145,12 @@ function MeetingLinkEditor({
         </button>
       </div>
       {error && (
-        <p style={{ fontSize: '11px', color: '#FCA5A5', marginTop: '6px' }}>⚠️ {error}</p>
+        <p style={{ fontSize: '13px', color: '#FCA5A5', marginTop: '6px' }}>⚠️ {error}</p>
       )}
       {result && (
         <motion.p
           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          style={{ fontSize: '11px', color: '#4ADE80', marginTop: '6px' }}
+          style={{ fontSize: '13px', color: '#4ADE80', marginTop: '6px' }}
         >
           ✓ Link shared with {result.notified} student{result.notified !== 1 ? 's' : ''} via email + WhatsApp
         </motion.p>
@@ -418,14 +418,14 @@ export default function FacultyLiveDashboard() {
                         {s.title}
                       </h3>
                       <p
-                        className="text-[10px]"
+                        className="text-[13px]"
                         style={{ color: 'var(--text-tertiary)' }}
                       >
                         {s.session_format} &middot;{' '}
                         {new Date(s.created_at).toLocaleDateString('en-IN')}
                       </p>
                       {s.next_scheduled_at && (
-                        <p className="text-[10px] mt-0.5" style={{ color: '#C9993A' }}>
+                        <p className="text-[13px] mt-0.5" style={{ color: '#C9993A' }}>
                           📅{' '}
                           {new Date(s.next_scheduled_at).toLocaleString('en-IN', {
                             timeZone: 'Asia/Kolkata', weekday: 'short',
@@ -435,13 +435,13 @@ export default function FacultyLiveDashboard() {
                         </p>
                       )}
                       {s.student_name && s.session_format === 'single' && (
-                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                        <p className="text-[13px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
                           👤 {s.student_name}
                         </p>
                       )}
                     </div>
                     <span
-                      className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                      className="rounded-full px-2 py-0.5 text-[13px] font-bold"
                       style={{
                         background:
                           s.status === 'published'
@@ -462,7 +462,7 @@ export default function FacultyLiveDashboard() {
                   </div>
                   {/* Seat bar */}
                   <div className="mb-3">
-                    <div className="mb-1 flex justify-between text-[10px]">
+                    <div className="mb-1 flex justify-between text-[13px]">
                       <span style={{ color: 'var(--text-tertiary)' }}>
                         {s.seats_booked}/{s.total_seats} seats
                       </span>
@@ -503,7 +503,7 @@ export default function FacultyLiveDashboard() {
                         {s.seats_booked > 0 && (
                           <Link
                             href={`/faculty/live/${s.id}/audience`}
-                            className="rounded-lg px-3 py-1.5 text-[10px] font-semibold"
+                            className="rounded-lg px-3 py-1.5 text-[13px] font-semibold"
                             style={{
                               background: 'rgba(201,153,58,0.12)',
                               border: '0.5px solid rgba(201,153,58,0.25)',
@@ -532,7 +532,7 @@ export default function FacultyLiveDashboard() {
                           borderRadius: '10px',
                           background: '#C9993A',
                           color: 'var(--text-primary)',
-                          fontSize: '12px',
+                          fontSize: '13px',
                           fontWeight: 700,
                           textDecoration: 'none',
                         }}

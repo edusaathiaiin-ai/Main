@@ -247,20 +247,20 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
     border: '0.5px solid var(--text-ghost)',
     color: 'var(--text-primary)',
     borderRadius: '12px',
-    padding: '10px 14px',
+    padding: '12px 16px',
     width: '100%',
-    fontSize: '13px',
+    fontSize: '15px',
     outline: 'none',
   }
 
   const labelStyle = {
-    fontSize: '11px',
+    fontSize: '13px',
     fontWeight: 700,
-    color: 'var(--text-secondary)',
+    color: 'var(--text-primary)',
     display: 'block',
-    marginBottom: '6px',
+    marginBottom: '8px',
     textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
+    letterSpacing: '0.06em',
   }
 
   return (
@@ -459,12 +459,12 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
                 color: form[key as keyof typeof form]
                   ? '#E5B86A'
                   : 'var(--text-tertiary)',
-                fontSize: '12px',
+                fontSize: '13px',
                 fontWeight: 600,
               }}
             >
               <span
-                className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border text-[10px]`}
+                className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border text-[13px]`}
                 style={{
                   border: `1.5px solid ${form[key as keyof typeof form] ? '#C9993A' : 'var(--text-ghost)'}`,
                   background: form[key as keyof typeof form]
@@ -1035,7 +1035,7 @@ export default function FacultyResearchPage() {
                         <div className="mb-4 flex flex-wrap gap-1.5">
                           {project.includes_authorship && (
                             <span
-                              className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                              className="rounded-full px-2 py-0.5 text-[13px] font-semibold"
                               style={{
                                 background: 'rgba(201,153,58,0.12)',
                                 color: '#E5B86A',
@@ -1048,7 +1048,7 @@ export default function FacultyResearchPage() {
                           {project.includes_stipend &&
                             project.stipend_amount && (
                               <span
-                                className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                                className="rounded-full px-2 py-0.5 text-[13px] font-semibold"
                                 style={{
                                   background: 'rgba(74,222,128,0.1)',
                                   color: '#4ADE80',
@@ -1062,7 +1062,7 @@ export default function FacultyResearchPage() {
                             )}
                           {project.duration_months && (
                             <span
-                              className="rounded-full px-2 py-0.5 text-[10px]"
+                              className="rounded-full px-2 py-0.5 text-[13px]"
                               style={{
                                 background: 'var(--bg-elevated)',
                                 color: 'var(--text-tertiary)',
@@ -1074,7 +1074,7 @@ export default function FacultyResearchPage() {
                           )}
                           {project.is_remote && (
                             <span
-                              className="rounded-full px-2 py-0.5 text-[10px]"
+                              className="rounded-full px-2 py-0.5 text-[13px]"
                               style={{
                                 background: 'var(--bg-elevated)',
                                 color: 'var(--text-tertiary)',

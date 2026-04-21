@@ -132,7 +132,7 @@ function DemandCard({
             }}
           />
           <span
-            style={{ fontSize: '10px', fontWeight: '700', color: '#F87171' }}
+            style={{ fontSize: '13px', fontWeight: '700', color: '#F87171' }}
           >
             URGENT
           </span>
@@ -150,7 +150,7 @@ function DemandCard({
       >
         <span
           style={{
-            fontSize: '10px',
+            fontSize: '13px',
             fontWeight: '700',
             color: color,
             background: `${color}18`,
@@ -163,7 +163,7 @@ function DemandCard({
         </span>
         <span
           style={{
-            fontSize: '11px',
+            fontSize: '13px',
             fontWeight: '700',
             color: '#FF6B35',
             display: 'flex',
@@ -218,7 +218,7 @@ function DemandCard({
             <span
               key={tag}
               style={{
-                fontSize: '10px',
+                fontSize: '13px',
                 color: 'var(--text-secondary)',
                 background: 'var(--bg-elevated)',
                 border: '0.5px solid var(--border-subtle)',
@@ -243,7 +243,7 @@ function DemandCard({
       >
         <span
           style={{
-            fontSize: '11px',
+            fontSize: '13px',
             fontWeight: '600',
             color: DEPTH_COLOR[intent.depth_preference],
             background: `${DEPTH_COLOR[intent.depth_preference]}15`,
@@ -256,7 +256,7 @@ function DemandCard({
         </span>
         <span
           style={{
-            fontSize: '11px',
+            fontSize: '13px',
             fontWeight: '600',
             color: 'var(--text-secondary)',
             background: 'var(--bg-elevated)',
@@ -269,7 +269,7 @@ function DemandCard({
         </span>
         <span
           style={{
-            fontSize: '11px',
+            fontSize: '13px',
             fontWeight: '600',
             color: URGENCY_COLOR[intent.urgency],
             background: `${URGENCY_COLOR[intent.urgency]}15`,
@@ -282,7 +282,7 @@ function DemandCard({
         </span>
         <span
           style={{
-            fontSize: '11px',
+            fontSize: '13px',
             fontWeight: '700',
             color: '#4ADE80',
             background: 'rgba(74,222,128,0.1)',
@@ -304,14 +304,14 @@ function DemandCard({
           gap: '12px',
         }}
       >
-        <span style={{ fontSize: '11px', color: 'var(--text-ghost)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--text-ghost)' }}>
           {days} days left
         </span>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Link
             href={`/faculty/live/create?intent=${intent.id}&topic=${encodeURIComponent(intent.topic)}&saathi=${intent.vertical_id}`}
             style={{
-              fontSize: '12px',
+              fontSize: '13px',
               fontWeight: '700',
               color: '#0B1F3A',
               background: color,
@@ -426,7 +426,7 @@ export default function FacultyDemandPage() {
         <Link
           href="/faculty"
           style={{
-            fontSize: '12px',
+            fontSize: '13px',
             color: 'var(--text-ghost)',
             textDecoration: 'none',
             display: 'inline-flex',
@@ -495,7 +495,7 @@ export default function FacultyDemandPage() {
                 </p>
                 <p
                   style={{
-                    fontSize: '12px',
+                    fontSize: '13px',
                     fontWeight: '700',
                     color: 'var(--text-primary)',
                     margin: '0 0 2px',
@@ -505,7 +505,7 @@ export default function FacultyDemandPage() {
                 </p>
                 <p
                   style={{
-                    fontSize: '11px',
+                    fontSize: '13px',
                     color: color,
                     margin: 0,
                     fontWeight: '600',
@@ -538,7 +538,7 @@ export default function FacultyDemandPage() {
             color: 'var(--text-primary)',
             borderRadius: '10px',
             padding: '8px 12px',
-            fontSize: '12px',
+            fontSize: '13px',
             cursor: 'pointer',
             outline: 'none',
           }}
@@ -562,7 +562,7 @@ export default function FacultyDemandPage() {
             color: 'var(--text-primary)',
             borderRadius: '10px',
             padding: '8px 12px',
-            fontSize: '12px',
+            fontSize: '13px',
             cursor: 'pointer',
             outline: 'none',
           }}
@@ -583,7 +583,7 @@ export default function FacultyDemandPage() {
             color: 'var(--text-primary)',
             borderRadius: '10px',
             padding: '8px 12px',
-            fontSize: '12px',
+            fontSize: '13px',
             cursor: 'pointer',
             outline: 'none',
           }}
@@ -601,7 +601,7 @@ export default function FacultyDemandPage() {
                 key={opt}
                 onClick={() => setSortBy(opt)}
                 style={{
-                  fontSize: '11px',
+                  fontSize: '13px',
                   fontWeight: '600',
                   padding: '7px 12px',
                   borderRadius: '20px',

@@ -236,7 +236,7 @@ export default function FacultySessionsPage() {
                 <div className="mb-3 flex items-start justify-between">
                   <div>
                     <span
-                      className="mr-2 rounded-full px-2 py-0.5 text-[10px] font-bold"
+                      className="mr-2 rounded-full px-2 py-0.5 text-[13px] font-bold"
                       style={{
                         background:
                           s.session_type === 'doubt'
@@ -255,7 +255,7 @@ export default function FacultySessionsPage() {
                       {s.session_type}
                     </span>
                     <span
-                      className="text-[10px]"
+                      className="text-[13px]"
                       style={{ color: 'var(--text-ghost)' }}
                     >
                       {new Date(s.created_at).toLocaleDateString('en-IN')}
@@ -281,7 +281,7 @@ export default function FacultySessionsPage() {
                 {s.status === 'requested' && (
                   <div className="mt-3 space-y-2">
                     <p
-                      className="text-[10px] font-semibold"
+                      className="text-[13px] font-semibold"
                       style={{ color: 'var(--text-tertiary)' }}
                     >
                       Proposed slots:

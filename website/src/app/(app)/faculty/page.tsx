@@ -267,15 +267,15 @@ export default function FacultyPage() {
             <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
               <div>
                 <p style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>{stats.sessions}</p>
-                <p style={{ fontSize: '10px', opacity: 0.7, margin: 0 }}>Sessions</p>
+                <p style={{ fontSize: '13px', opacity: 0.7, margin: 0 }}>Sessions</p>
               </div>
               <div>
                 <p style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>{stats.students}</p>
-                <p style={{ fontSize: '10px', opacity: 0.7, margin: 0 }}>Students helped</p>
+                <p style={{ fontSize: '13px', opacity: 0.7, margin: 0 }}>Students helped</p>
               </div>
               <div>
                 <p style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>₹{stats.earnings}</p>
-                <p style={{ fontSize: '10px', opacity: 0.7, margin: 0 }}>Earnings</p>
+                <p style={{ fontSize: '13px', opacity: 0.7, margin: 0 }}>Earnings</p>
               </div>
             </div>
           </div>

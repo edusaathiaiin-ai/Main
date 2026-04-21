@@ -231,7 +231,7 @@ ${
                       {f.label}
                     </p>
                     <p
-                      className="mt-0.5 text-[10px]"
+                      className="mt-0.5 text-[13px]"
                       style={{ color: 'var(--text-ghost)' }}
                     >
                       {f.desc}

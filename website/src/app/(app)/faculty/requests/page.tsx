@@ -90,7 +90,7 @@ function Stat({ label, value, color }: { label: string; value: number | string; 
       <p style={{ fontSize: '22px', fontWeight: 800, color: color ?? '#fff', margin: '0 0 3px' }}>
         {value}
       </p>
-      <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', margin: 0 }}>{label}</p>
+      <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: 0 }}>{label}</p>
     </div>
   )
 }
@@ -166,14 +166,14 @@ function ProposePanel({
         background: 'rgba(201,153,58,0.06)',
         border: '1px solid rgba(201,153,58,0.2)',
       }}>
-        <p style={{ fontSize: '12px', fontWeight: 700, color: GOLD, margin: '0 0 14px' }}>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: GOLD, margin: '0 0 14px' }}>
           ✦ Propose a 1:1 session
         </p>
 
         {/* Fee + Duration */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
           <div>
-            <label style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em',
+            <label style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em',
               textTransform: 'uppercase', color: 'var(--text-tertiary)',
               display: 'block', marginBottom: '5px' }}>
               Your fee (₹)
@@ -197,7 +197,7 @@ function ProposePanel({
             )}
           </div>
           <div>
-            <label style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em',
+            <label style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em',
               textTransform: 'uppercase', color: 'var(--text-tertiary)',
               display: 'block', marginBottom: '5px' }}>
               Duration (minutes)
@@ -237,14 +237,14 @@ function ProposePanel({
             </p>
           </div>
           <div style={{ width: '1px', height: '28px', background: 'var(--border-subtle)' }} />
-          <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', margin: 0 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: 0 }}>
             Student pays <strong style={{ color: 'var(--text-primary)' }}>{paise(feePaise)}</strong> total
           </p>
         </div>
 
         {/* Time slots */}
         <div style={{ marginBottom: '12px' }}>
-          <label style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em',
+          <label style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em',
             textTransform: 'uppercase', color: 'var(--text-tertiary)',
             display: 'block', marginBottom: '6px' }}>
             Offer time slots (student picks one)
@@ -278,19 +278,19 @@ function ProposePanel({
           {slotInputs.length < 5 && (
             <button onClick={addSlot}
               style={{ marginTop: '6px', background: 'none', border: 'none',
-                color: 'rgba(201,153,58,0.7)', fontSize: '12px', cursor: 'pointer',
+                color: 'rgba(201,153,58,0.7)', fontSize: '13px', cursor: 'pointer',
                 padding: '4px 0', fontFamily: 'DM Sans, sans-serif' }}>
               + Add another time option
             </button>
           )}
-          <p style={{ fontSize: '10px', color: 'var(--text-ghost)', marginTop: '5px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-ghost)', marginTop: '5px' }}>
             Offering 2–3 slots gives students more flexibility and increases acceptance.
           </p>
         </div>
 
         {/* Note to student */}
         <div style={{ marginBottom: '12px' }}>
-          <label style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em',
+          <label style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em',
             textTransform: 'uppercase', color: 'var(--text-tertiary)',
             display: 'block', marginBottom: '5px' }}>
             Note to student (optional)
@@ -315,7 +315,7 @@ function ProposePanel({
         </div>
 
         {error && (
-          <p style={{ fontSize: '12px', color: '#FCA5A5', marginBottom: '10px' }}>⚠️ {error}</p>
+          <p style={{ fontSize: '13px', color: '#FCA5A5', marginBottom: '10px' }}>⚠️ {error}</p>
         )}
 
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -374,7 +374,7 @@ function DeclinePanel({
         background: 'rgba(239,68,68,0.05)',
         border: '0.5px solid rgba(239,68,68,0.2)',
       }}>
-        <p style={{ fontSize: '11px', fontWeight: 700, color: '#F87171', margin: '0 0 10px' }}>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: '#F87171', margin: '0 0 10px' }}>
           Decline this request
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px' }}>
@@ -385,7 +385,7 @@ function DeclinePanel({
                 background: reason === r ? 'rgba(239,68,68,0.1)' : 'var(--bg-elevated)',
                 border: reason === r ? '0.5px solid rgba(239,68,68,0.35)' : '0.5px solid var(--bg-elevated)',
                 color: reason === r ? '#FCA5A5' : 'var(--text-tertiary)',
-                fontSize: '12px', cursor: 'pointer',
+                fontSize: '13px', cursor: 'pointer',
                 fontFamily: 'DM Sans, sans-serif',
               }}>
               {r}
@@ -402,12 +402,12 @@ function DeclinePanel({
               width: '100%', padding: '9px 12px', borderRadius: '9px', marginBottom: '10px',
               background: 'var(--bg-elevated)',
               border: '0.5px solid var(--border-subtle)',
-              color: 'var(--text-primary)', fontSize: '12px', outline: 'none', resize: 'none',
+              color: 'var(--text-primary)', fontSize: '13px', outline: 'none', resize: 'none',
               boxSizing: 'border-box', fontFamily: 'DM Sans, sans-serif',
             }}
           />
         )}
-        <p style={{ fontSize: '10px', color: 'var(--text-ghost)', marginBottom: '10px' }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-ghost)', marginBottom: '10px' }}>
           The student will be notified politely. They can post to other faculty.
         </p>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -417,7 +417,7 @@ function DeclinePanel({
               padding: '9px 16px', borderRadius: '9px',
               background: finalReason ? 'rgba(239,68,68,0.75)' : 'var(--bg-elevated)',
               color: finalReason ? '#fff' : 'var(--text-ghost)',
-              fontSize: '12px', fontWeight: 600, border: 'none',
+              fontSize: '13px', fontWeight: 600, border: 'none',
               cursor: finalReason && !saving ? 'pointer' : 'not-allowed',
               fontFamily: 'DM Sans, sans-serif',
             }}>
@@ -425,7 +425,7 @@ function DeclinePanel({
           </button>
           <button onClick={onCancel}
             style={{ background: 'none', border: 'none',
-              color: 'var(--text-ghost)', fontSize: '12px',
+              color: 'var(--text-ghost)', fontSize: '13px',
               cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
             Cancel
           </button>
@@ -680,7 +680,7 @@ export default function FacultyRequestsPage() {
             background: 'rgba(201,153,58,0.06)',
             border: '0.5px solid rgba(201,153,58,0.2)',
           }}>
-            <p style={{ fontSize: '11px', fontWeight: 700, color: GOLD, margin: '0 0 4px' }}>
+            <p style={{ fontSize: '13px', fontWeight: 700, color: GOLD, margin: '0 0 4px' }}>
               Most requested
             </p>
             <p style={{
@@ -690,7 +690,7 @@ export default function FacultyRequestsPage() {
               {topTopic?.subject ?? '—'}
             </p>
             {topTopic && (
-              <p style={{ fontSize: '10px', color: 'var(--text-ghost)', margin: 0 }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-ghost)', margin: 0 }}>
                 {topTopic.upvote_count} students
               </p>
             )}
@@ -716,7 +716,7 @@ export default function FacultyRequestsPage() {
                 padding: '8px 16px', borderRadius: '9px',
                 background: tab === t.id ? GOLD : 'transparent',
                 color: tab === t.id ? NAVY : 'var(--text-tertiary)',
-                fontSize: '12px', fontWeight: tab === t.id ? 700 : 400,
+                fontSize: '13px', fontWeight: tab === t.id ? 700 : 400,
                 border: 'none', cursor: 'pointer',
                 fontFamily: 'DM Sans, sans-serif',
                 transition: 'all 0.18s',
@@ -764,7 +764,7 @@ export default function FacultyRequestsPage() {
                   </h3>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
                     {r.upvote_count >= 5 && (
-                      <span style={{ fontSize: '11px', color: '#FB923C' }}>
+                      <span style={{ fontSize: '13px', color: '#FB923C' }}>
                         🔥 {r.upvote_count} students
                       </span>
                     )}
@@ -787,7 +787,7 @@ export default function FacultyRequestsPage() {
                 </div>
 
                 {/* Student info */}
-                <p style={{ fontSize: '11px', color: 'var(--text-ghost)', margin: '0 0 10px' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-ghost)', margin: '0 0 10px' }}>
                   {r.student_name ?? 'Student'}
                   {r.student_institution ? ` · ${r.student_institution}` : ''}
                   {r.student_city ? ` · ${r.student_city}` : ''}
@@ -808,7 +808,7 @@ export default function FacultyRequestsPage() {
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                     {r.budget_paise != null && (
                       <span style={{
-                        fontSize: '11px', fontWeight: 600,
+                        fontSize: '13px', fontWeight: 600,
                         color: 'var(--text-secondary)',
                         padding: '3px 10px', borderRadius: '100px',
                         background: 'var(--bg-elevated)',
@@ -819,7 +819,7 @@ export default function FacultyRequestsPage() {
                     )}
                     {!!r.preferred_duration && (
                       <span style={{
-                        fontSize: '11px', fontWeight: 600,
+                        fontSize: '13px', fontWeight: 600,
                         color: 'var(--text-secondary)',
                         padding: '3px 10px', borderRadius: '100px',
                         background: 'var(--bg-elevated)',
@@ -841,7 +841,7 @@ export default function FacultyRequestsPage() {
                     <p style={{ fontSize: '9px', fontWeight: 700, color: GREEN, margin: '0 0 3px' }}>
                       Your response
                     </p>
-                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
                       {r.faculty_response}
                     </p>
                   </div>
@@ -854,36 +854,36 @@ export default function FacultyRequestsPage() {
                     background: 'rgba(201,153,58,0.07)',
                     border: '0.5px solid rgba(201,153,58,0.2)',
                   }}>
-                    <p style={{ fontSize: '10px', fontWeight: 700, color: GOLD, margin: '0 0 8px' }}>
+                    <p style={{ fontSize: '13px', fontWeight: 700, color: GOLD, margin: '0 0 8px' }}>
                       ✦ Proposal sent · waiting for student to confirm
                     </p>
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: GREEN }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: GREEN }}>
                         {paise(r.proposed_fee_paise ?? 0)}
                       </span>
-                      <span style={{ fontSize: '11px', color: 'var(--text-ghost)' }}>·</span>
-                      <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
+                      <span style={{ fontSize: '13px', color: 'var(--text-ghost)' }}>·</span>
+                      <span style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
                         {r.proposed_duration} min
                       </span>
                       {r.proposal_sent_at && (
                         <>
-                          <span style={{ fontSize: '11px', color: 'var(--text-ghost)' }}>·</span>
-                          <span style={{ fontSize: '11px', color: 'var(--text-ghost)' }}>
+                          <span style={{ fontSize: '13px', color: 'var(--text-ghost)' }}>·</span>
+                          <span style={{ fontSize: '13px', color: 'var(--text-ghost)' }}>
                             Sent {fmtDate(r.proposal_sent_at)}
                           </span>
                         </>
                       )}
                     </div>
-                    <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', margin: '0 0 4px' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '0 0 4px' }}>
                       Time slots offered:
                     </p>
                     {r.proposed_slots.map((s, i) => (
-                      <p key={i} style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '0 0 3px' }}>
+                      <p key={i} style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 3px' }}>
                         {i + 1}. {s.label}
                       </p>
                     ))}
                     {r.proposal_message && (
-                      <p style={{ fontSize: '11px', color: 'var(--text-tertiary)',
+                      <p style={{ fontSize: '13px', color: 'var(--text-tertiary)',
                         marginTop: '8px', fontStyle: 'italic' }}>
                         &ldquo;{r.proposal_message}&rdquo;
                       </p>
@@ -899,11 +899,11 @@ export default function FacultyRequestsPage() {
                     border: '0.5px solid rgba(74,222,128,0.2)',
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   }}>
-                    <p style={{ fontSize: '12px', color: GREEN, margin: 0, fontWeight: 600 }}>
+                    <p style={{ fontSize: '13px', color: GREEN, margin: 0, fontWeight: 600 }}>
                       ✓ Session created · student paid
                     </p>
                     <Link href={`/faculty/sessions/${r.linked_session_id}`}
-                      style={{ fontSize: '12px', color: GREEN, textDecoration: 'none', fontWeight: 600 }}>
+                      style={{ fontSize: '13px', color: GREEN, textDecoration: 'none', fontWeight: 600 }}>
                       View session →
                     </Link>
                   </div>
@@ -919,7 +919,7 @@ export default function FacultyRequestsPage() {
                     <p style={{ fontSize: '9px', fontWeight: 700, color: '#F87171', margin: '0 0 3px' }}>
                       Your decline reason
                     </p>
-                    <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: 0 }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: 0 }}>
                       {r.decline_reason}
                     </p>
                   </div>
@@ -938,7 +938,7 @@ export default function FacultyRequestsPage() {
                               padding: '9px 18px', borderRadius: '10px',
                               background: 'rgba(74,222,128,0.12)',
                               border: '0.5px solid rgba(74,222,128,0.3)',
-                              color: GREEN, fontSize: '12px', fontWeight: 700,
+                              color: GREEN, fontSize: '13px', fontWeight: 700,
                               cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
                             }}>
                             Accept — propose time &amp; fee →
@@ -948,7 +948,7 @@ export default function FacultyRequestsPage() {
                               padding: '9px 14px', borderRadius: '10px',
                               background: 'rgba(201,153,58,0.1)',
                               border: '0.5px solid rgba(201,153,58,0.25)',
-                              color: GOLD, fontSize: '12px', fontWeight: 600,
+                              color: GOLD, fontSize: '13px', fontWeight: 600,
                               cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
                             }}>
                             Reply only
@@ -958,7 +958,7 @@ export default function FacultyRequestsPage() {
                               padding: '9px 12px', borderRadius: '10px',
                               background: 'var(--bg-elevated)',
                               border: '0.5px solid var(--border-subtle)',
-                              color: 'var(--text-ghost)', fontSize: '12px',
+                              color: 'var(--text-ghost)', fontSize: '13px',
                               cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
                             }}>
                             Decline
@@ -1003,7 +1003,7 @@ export default function FacultyRequestsPage() {
                                 style={{
                                   padding: '9px 18px', borderRadius: '10px',
                                   background: GOLD, color: NAVY,
-                                  fontSize: '12px', fontWeight: 700, border: 'none',
+                                  fontSize: '13px', fontWeight: 700, border: 'none',
                                   cursor: 'pointer', opacity: saving === r.id ? 0.6 : 1,
                                   fontFamily: 'DM Sans, sans-serif',
                                 }}>
@@ -1011,7 +1011,7 @@ export default function FacultyRequestsPage() {
                               </button>
                               <button onClick={() => setMode(r.id, null)}
                                 style={{ background: 'none', border: 'none',
-                                  color: 'var(--text-ghost)', fontSize: '12px',
+                                  color: 'var(--text-ghost)', fontSize: '13px',
                                   cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
                                 Cancel
                               </button>

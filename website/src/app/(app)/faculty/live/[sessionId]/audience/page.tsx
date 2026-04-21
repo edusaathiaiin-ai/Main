@@ -357,7 +357,7 @@ export default function AudienceIntelligencePage() {
     border: '0.5px solid var(--text-ghost)',
     borderRadius: '8px',
     color: 'var(--text-primary)',
-    fontSize: '11px',
+    fontSize: '13px',
     outline: 'none',
     cursor: 'pointer',
   }
@@ -389,7 +389,7 @@ export default function AudienceIntelligencePage() {
         {/* Header */}
         <div className="mb-2">
           <p
-            className="mb-1 text-[10px] font-bold tracking-wider uppercase"
+            className="mb-1 text-[13px] font-bold tracking-wider uppercase"
             style={{ color }}
           >
             {saathi?.emoji} {saathi?.name}
@@ -429,7 +429,7 @@ export default function AudienceIntelligencePage() {
                   {students.length}
                 </p>
                 <p
-                  className="text-[10px]"
+                  className="text-[13px]"
                   style={{ color: 'var(--text-tertiary)' }}
                 >
                   students enrolled
@@ -450,7 +450,7 @@ export default function AudienceIntelligencePage() {
                 }}
               >
                 <p
-                  className="mb-2 text-[10px] font-semibold"
+                  className="mb-2 text-[13px] font-semibold"
                   style={{ color: 'var(--text-tertiary)' }}
                 >
                   Academic levels
@@ -483,7 +483,7 @@ export default function AudienceIntelligencePage() {
                 }}
               >
                 <p
-                  className="mb-1 text-[10px] font-semibold"
+                  className="mb-1 text-[13px] font-semibold"
                   style={{ color: 'var(--text-tertiary)' }}
                 >
                   Room depth
@@ -507,7 +507,7 @@ export default function AudienceIntelligencePage() {
                 }}
               >
                 <p
-                  className="mb-1 text-[10px] font-semibold"
+                  className="mb-1 text-[13px] font-semibold"
                   style={{ color: 'var(--text-tertiary)' }}
                 >
                   Exam targets
@@ -521,7 +521,7 @@ export default function AudienceIntelligencePage() {
                   </p>
                 ) : (
                   topExams.map(([exam, count]) => (
-                    <p key={exam} className="text-[10px] text-[var(--text-secondary)]">
+                    <p key={exam} className="text-[13px] text-[var(--text-secondary)]">
                       {exam} ({count})
                     </p>
                   ))
@@ -581,7 +581,7 @@ export default function AudienceIntelligencePage() {
                           {tip.title}
                         </p>
                         <p
-                          className="text-[11px]"
+                          className="text-[13px]"
                           style={{ color: 'var(--text-secondary)' }}
                         >
                           {tip.detail}
@@ -596,7 +596,7 @@ export default function AudienceIntelligencePage() {
                     style={{ background: 'var(--bg-elevated)' }}
                   >
                     <p
-                      className="mb-1 text-[10px] font-semibold"
+                      className="mb-1 text-[13px] font-semibold"
                       style={{ color: 'var(--text-tertiary)' }}
                     >
                       Opening suggestion
@@ -611,7 +611,7 @@ export default function AudienceIntelligencePage() {
                 )}
                 {tips.depth_recommendation && (
                   <p
-                    className="text-[10px]"
+                    className="text-[13px]"
                     style={{ color: 'var(--text-tertiary)' }}
                   >
                     {'\u{1F4CA}'} Depth: {tips.depth_recommendation}
@@ -681,7 +681,7 @@ export default function AudienceIntelligencePage() {
               </select>
               <div className="flex-1" />
               <p
-                className="text-[10px]"
+                className="text-[13px]"
                 style={{ color: 'var(--text-ghost)' }}
               >
                 {displayed.length} students
@@ -720,7 +720,7 @@ export default function AudienceIntelligencePage() {
                           {'\u{1F464}'} {s.profile.full_name ?? 'Student'}
                         </p>
                         <p
-                          className="text-[10px]"
+                          className="text-[13px]"
                           style={{ color: 'var(--text-tertiary)' }}
                         >
                           {s.profile.degree_programme ??
@@ -731,7 +731,7 @@ export default function AudienceIntelligencePage() {
                             : ''}
                         </p>
                         <p
-                          className="text-[10px]"
+                          className="text-[13px]"
                           style={{ color: 'var(--text-ghost)' }}
                         >
                           {s.profile.institution_name ?? ''}
@@ -739,7 +739,7 @@ export default function AudienceIntelligencePage() {
                         </p>
                       </div>
                       <span
-                        className="rounded-full px-2 py-0.5 text-[10px]"
+                        className="rounded-full px-2 py-0.5 text-[13px]"
                         style={{
                           background: 'var(--bg-elevated)',
                           color: 'var(--text-tertiary)',
@@ -754,7 +754,7 @@ export default function AudienceIntelligencePage() {
                     {/* Depth bar */}
                     <div className="mb-2 flex items-center gap-3">
                       <span
-                        className="text-[10px] font-semibold"
+                        className="text-[13px] font-semibold"
                         style={{
                           color: 'var(--text-tertiary)',
                           width: '40px',
@@ -775,7 +775,7 @@ export default function AudienceIntelligencePage() {
                         />
                       </div>
                       <span
-                        className="text-[10px] font-bold"
+                        className="text-[13px] font-bold"
                         style={{
                           color: depthColor(depth),
                           width: '35px',
@@ -788,7 +788,7 @@ export default function AudienceIntelligencePage() {
 
                     {/* Flame */}
                     <p
-                      className="mb-2 text-[10px]"
+                      className="mb-2 text-[13px]"
                       style={{ color: 'var(--text-tertiary)' }}
                     >
                       {FLAME_EMOJI[flame] ?? '\u{2728}'} {flame} stage
@@ -872,7 +872,7 @@ export default function AudienceIntelligencePage() {
                       <div className="mb-1 flex items-center justify-between">
                         <span className="text-xs text-[var(--text-primary)]">{topic}</span>
                         <span
-                          className="text-[10px]"
+                          className="text-[13px]"
                           style={{ color: 'var(--text-tertiary)' }}
                         >
                           {count} students
@@ -909,7 +909,7 @@ export default function AudienceIntelligencePage() {
                       <div className="mb-1 flex items-center justify-between">
                         <span className="text-xs text-[var(--text-primary)]">{exam}</span>
                         <span
-                          className="text-[10px]"
+                          className="text-[13px]"
                           style={{ color: 'var(--text-tertiary)' }}
                         >
                           {count} students

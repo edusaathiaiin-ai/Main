@@ -248,7 +248,7 @@ export default function CreateLiveSessionPage() {
     border: '1px solid var(--border-subtle)',
     color: 'var(--text-primary)',
   }
-  const labelStyle: React.CSSProperties = { color: 'var(--text-tertiary)' }
+  const labelStyle: React.CSSProperties = { color: 'var(--text-secondary)' }
 
   return (
     <main
@@ -346,7 +346,7 @@ export default function CreateLiveSessionPage() {
                 <div>
                   <p
                     style={{
-                      fontSize: '12px',
+                      fontSize: '13px',
                       fontWeight: '700',
                       color: '#4ADE80',
                       margin: '0 0 1px',
@@ -356,7 +356,7 @@ export default function CreateLiveSessionPage() {
                   </p>
                   <p
                     style={{
-                      fontSize: '11px',
+                      fontSize: '13px',
                       color: 'var(--text-tertiary)',
                       margin: 0,
                     }}
@@ -421,7 +421,7 @@ export default function CreateLiveSessionPage() {
                           {f.label}
                         </p>
                         <p
-                          className="text-[10px]"
+                          className="text-[13px]"
                           style={{ color: 'var(--text-ghost)' }}
                         >
                           {f.desc}
@@ -618,7 +618,7 @@ export default function CreateLiveSessionPage() {
                         >
                           <div>
                             <label
-                              className="mb-1 block text-[10px]"
+                              className="mb-1 block text-[13px]"
                               style={labelStyle}
                             >
                               Title
@@ -634,7 +634,7 @@ export default function CreateLiveSessionPage() {
                           </div>
                           <div>
                             <label
-                              className="mb-1 block text-[10px]"
+                              className="mb-1 block text-[13px]"
                               style={labelStyle}
                             >
                               Date/time
@@ -651,7 +651,7 @@ export default function CreateLiveSessionPage() {
                           </div>
                           <div>
                             <label
-                              className="mb-1 block text-[10px]"
+                              className="mb-1 block text-[13px]"
                               style={labelStyle}
                             >
                               Min
@@ -941,7 +941,7 @@ export default function CreateLiveSessionPage() {
                     }}
                   >
                     <p
-                      className="mb-2 text-[10px] font-bold"
+                      className="mb-2 text-[13px] font-bold"
                       style={{ color: '#C9993A' }}
                     >
                       {FORMATS.find((f) => f.id === format)?.emoji}{' '}
@@ -982,7 +982,7 @@ export default function CreateLiveSessionPage() {
                       >
                         <span style={{ fontSize: '14px' }}>🔗</span>
                         <p
-                          className="truncate text-[11px]"
+                          className="truncate text-[13px]"
                           style={{ color: '#93C5FD' }}
                         >
                           {meetingLink.trim()}

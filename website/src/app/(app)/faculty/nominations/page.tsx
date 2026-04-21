@@ -122,7 +122,7 @@ export default function FacultyNominationsPage() {
             <div style={{ fontSize: '22px', fontWeight: 700, color: item.color }}>
               {item.value}
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
               {item.label}
             </div>
           </div>
@@ -220,7 +220,7 @@ export default function FacultyNominationsPage() {
                     </div>
                     <div
                       style={{
-                        fontSize: '12px',
+                        fontSize: '13px',
                         color: 'var(--text-tertiary)',
                         marginTop: '2px',
                       }}
@@ -239,7 +239,7 @@ export default function FacultyNominationsPage() {
                     style={{
                       padding: '3px 10px',
                       borderRadius: '12px',
-                      fontSize: '11px',
+                      fontSize: '13px',
                       fontWeight: 600,
                       background:
                         nom.status === 'eminent' || nom.status === 'verified'
@@ -266,7 +266,7 @@ export default function FacultyNominationsPage() {
 
                 {/* Reward status */}
                 {nom.reward_fired && (
-                  <div style={{ marginTop: '8px', fontSize: '12px', color: '#C9993A' }}>
+                  <div style={{ marginTop: '8px', fontSize: '13px', color: '#C9993A' }}>
                     ₹50 wallet credit + 50 Saathi Points earned
                   </div>
                 )}
@@ -275,7 +275,7 @@ export default function FacultyNominationsPage() {
                 <div
                   style={{
                     marginTop: '6px',
-                    fontSize: '11px',
+                    fontSize: '13px',
                     color: 'var(--text-tertiary)',
                   }}
                 >

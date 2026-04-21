@@ -298,7 +298,7 @@ export default function FacultyAnalyticsPage() {
                   <div className="min-w-0">
                     <p className="line-clamp-2 text-sm text-[var(--text-primary)]">{q.body}</p>
                     <p
-                      className="mt-1 text-[10px]"
+                      className="mt-1 text-[13px]"
                       style={{ color: 'var(--text-ghost)' }}
                     >
                       {new Date(q.created_at).toLocaleDateString('en-IN', {
@@ -353,7 +353,7 @@ export default function FacultyAnalyticsPage() {
                   <div className="mb-2 flex items-center gap-2">
                     {a.faculty_verified ? (
                       <span
-                        className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                        className="rounded-full px-2 py-0.5 text-[13px] font-bold"
                         style={{
                           background: 'rgba(34,197,94,0.15)',
                           color: '#4ADE80',
@@ -363,7 +363,7 @@ export default function FacultyAnalyticsPage() {
                       </span>
                     ) : (
                       <span
-                        className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                        className="rounded-full px-2 py-0.5 text-[13px] font-bold"
                         style={{
                           background: 'rgba(234,179,8,0.12)',
                           color: '#FACC15',
@@ -373,7 +373,7 @@ export default function FacultyAnalyticsPage() {
                       </span>
                     )}
                     <span
-                      className="text-[10px]"
+                      className="text-[13px]"
                       style={{ color: 'var(--text-ghost)' }}
                     >
                       {new Date(a.created_at).toLocaleDateString('en-IN')}
