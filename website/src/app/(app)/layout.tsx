@@ -35,10 +35,9 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar and Navbar — Step W3 */}
-      <main className="flex-1">{children}</main>
+    <>
+      {children}
       <TourManager />
-    </div>
+    </>
   )
 }
