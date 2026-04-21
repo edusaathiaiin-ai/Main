@@ -269,7 +269,7 @@ export function ChatColumn({
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
         {/* Starter questions */}
         {messages.length === 0 && !isStreaming && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '0' }}>
             <span style={{ fontSize: '40px', marginBottom: '12px' }}>{saathi.emoji}</span>
             <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px', textAlign: 'center' }}>
               {board.name}

@@ -1150,7 +1150,7 @@ export function ChatWindow() {
           id="chat-main"
           aria-live="polite"
           aria-label="Chat messages"
-          className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6"
+          className="min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-16 md:px-6 md:pb-4"
           style={{ position: 'relative', ...getChatFontStyle(fontSize, fontType, fontColor, isLegalTheme, highContrast) }}
         >
           <ChatWatermark saathiSlug={saathiId} />
