@@ -255,6 +255,7 @@ type ChatWelcomeGateProps = {
   saathiId: string | null
   academicLevel: string
   sessionCount: number
+  userRole?: string | null
   children: React.ReactNode
 }
 
@@ -264,6 +265,7 @@ export function ChatWelcomeGate({
   saathiId,
   academicLevel,
   sessionCount,
+  userRole,
   children,
 }: ChatWelcomeGateProps) {
   const [showWelcome, setShowWelcome] = useState(false)
@@ -272,6 +274,11 @@ export function ChatWelcomeGate({
 
   useEffect(() => {
     function run() {
+      // Faculty, institution, and public users never see the student welcome.
+      // Copy is student-specific ("undergraduate student" etc.) and the
+      // overlay would misrepresent the relationship.
+      if (userRole && userRole !== 'student') return
+
       // Only show for first-ever session (session_count === 0)
       if (sessionCount > 0) return
 
@@ -286,7 +293,7 @@ export function ChatWelcomeGate({
       setShowWelcome(true)
     }
     run()
-  }, [userId, saathiId, sessionCount])
+  }, [userId, saathiId, sessionCount, userRole])
 
   const handleBegin = async () => {
     // Mark as welcomed in localStorage immediately (fast path)

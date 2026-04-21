@@ -51,6 +51,7 @@ export default async function ChatPage() {
         saathiId={toSlug(profile.primary_saathi_id) ?? null}
         academicLevel={soul?.academic_level ?? 'bachelor'}
         sessionCount={soul?.session_count ?? 1}
+        userRole={profile.role ?? null}
       >
         <ChatWindow />
       </ChatWelcomeGate>
