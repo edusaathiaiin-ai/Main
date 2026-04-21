@@ -137,10 +137,9 @@ html {
 }
 
 /* Fix viewport height on all devices — prevents top/bottom cut-off */
-html, body { height: 100%; }
-.h-screen { height: 100dvh !important; }
+html, body { height: 100dvh; margin: 0; padding: 0; }
 @supports not (height: 100dvh) {
-  .h-screen { height: 100vh !important; }
+  html, body { height: 100vh; }
 }
 
 body {
