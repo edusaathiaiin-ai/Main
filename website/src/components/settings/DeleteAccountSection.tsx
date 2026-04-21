@@ -78,7 +78,7 @@ export function DeleteAccountSection() {
       <h3 style={{
         fontSize:   '15px',
         fontWeight: 700,
-        color:      '#fff',
+        color:      'var(--text-primary)',
         margin:     '0 0 6px',
         fontFamily: 'Playfair Display, serif',
       }}>
@@ -86,7 +86,7 @@ export function DeleteAccountSection() {
       </h3>
       <p style={{
         fontSize:   '12px',
-        color:      'rgba(255,255,255,0.4)',
+        color:      'var(--text-tertiary)',
         margin:     '0 0 16px',
         lineHeight: 1.6,
       }}>
@@ -108,7 +108,7 @@ export function DeleteAccountSection() {
               borderRadius: '10px',
               background:   'rgba(239,68,68,0.1)',
               border:       '0.5px solid rgba(239,68,68,0.3)',
-              color:        '#FCA5A5',
+              color:        'var(--error)',
               fontSize:     '13px',
               fontWeight:   600,
               cursor:       'pointer',
@@ -135,7 +135,7 @@ export function DeleteAccountSection() {
             }}>
               <p style={{
                 fontSize: '13px', fontWeight: 700,
-                color: '#FCA5A5', margin: '0 0 8px',
+                color: 'var(--error)', margin: '0 0 8px',
               }}>
                 &#9888;&#65039; This will permanently delete:
               </p>
@@ -148,7 +148,7 @@ export function DeleteAccountSection() {
                 'Any active subscription (no refund for unused days)',
               ].map((item) => (
                 <p key={item} style={{
-                  fontSize: '12px', color: 'rgba(255,255,255,0.5)',
+                  fontSize: '12px', color: 'var(--text-secondary)',
                   margin: '0 0 4px', paddingLeft: '12px',
                 }}>
                   &middot; {item}
@@ -159,7 +159,7 @@ export function DeleteAccountSection() {
             <div style={{ marginBottom: '14px' }}>
               <label style={{
                 display: 'block', fontSize: '11px', fontWeight: 600,
-                color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
+                color: 'var(--text-tertiary)', marginBottom: '6px',
                 letterSpacing: '0.06em', textTransform: 'uppercase',
               }}>
                 Reason for leaving (optional — helps us improve)
@@ -173,9 +173,9 @@ export function DeleteAccountSection() {
                   width:        '100%',
                   padding:      '10px 14px',
                   borderRadius: '10px',
-                  background:   'rgba(255,255,255,0.05)',
-                  border:       '0.5px solid rgba(255,255,255,0.1)',
-                  color:        '#fff',
+                  background:   'var(--bg-elevated)',
+                  border:       '0.5px solid var(--border-medium)',
+                  color:        'var(--text-primary)',
                   fontSize:     '13px',
                   resize:       'none',
                   outline:      'none',
@@ -188,9 +188,9 @@ export function DeleteAccountSection() {
             <div style={{ marginBottom: '14px' }}>
               <label style={{
                 display: 'block', fontSize: '12px',
-                color: 'rgba(255,255,255,0.5)', marginBottom: '8px',
+                color: 'var(--text-secondary)', marginBottom: '8px',
               }}>
-                Type <strong style={{ color: '#FCA5A5' }}>delete my account</strong> to confirm:
+                Type <strong style={{ color: 'var(--error)' }}>delete my account</strong> to confirm:
               </label>
               <input
                 value={typed}
@@ -200,9 +200,9 @@ export function DeleteAccountSection() {
                   width:        '100%',
                   padding:      '11px 14px',
                   borderRadius: '10px',
-                  background:   'rgba(255,255,255,0.05)',
-                  border:       `0.5px solid ${isConfirmed ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                  color:        '#fff',
+                  background:   'var(--bg-elevated)',
+                  border:       `0.5px solid ${isConfirmed ? 'rgba(239,68,68,0.5)' : 'var(--border-medium)'}`,
+                  color:        'var(--text-primary)',
                   fontSize:     '14px',
                   outline:      'none',
                   boxSizing:    'border-box',
@@ -213,7 +213,7 @@ export function DeleteAccountSection() {
 
             {error && (
               <p style={{
-                fontSize: '12px', color: '#FCA5A5',
+                fontSize: '12px', color: 'var(--error)',
                 padding: '8px 12px', borderRadius: '8px',
                 background: 'rgba(239,68,68,0.1)', marginBottom: '12px',
               }}>
@@ -227,9 +227,9 @@ export function DeleteAccountSection() {
                 style={{
                   padding:    '11px 18px',
                   borderRadius: '10px',
-                  background: 'rgba(255,255,255,0.05)',
-                  border:     '0.5px solid rgba(255,255,255,0.1)',
-                  color:      'rgba(255,255,255,0.4)',
+                  background: 'var(--bg-elevated)',
+                  border:     '0.5px solid var(--border-medium)',
+                  color:      'var(--text-tertiary)',
                   fontSize:   '13px',
                   cursor:     'pointer',
                   fontFamily: 'DM Sans, sans-serif',
@@ -244,8 +244,8 @@ export function DeleteAccountSection() {
                   flex:         1,
                   padding:      '11px',
                   borderRadius: '10px',
-                  background:   isConfirmed ? RED : 'rgba(255,255,255,0.06)',
-                  color:        isConfirmed ? '#fff' : 'rgba(255,255,255,0.2)',
+                  background:   isConfirmed ? RED : 'var(--bg-elevated)',
+                  color:        isConfirmed ? '#fff' : 'var(--text-ghost)',
                   fontSize:     '13px',
                   fontWeight:   700,
                   border:       'none',
@@ -273,10 +273,10 @@ export function DeleteAccountSection() {
               border: '1px solid rgba(239,68,68,0.3)',
               textAlign: 'center',
             }}>
-              <p style={{ fontSize: '14px', fontWeight: 700, color: '#FCA5A5', margin: '0 0 6px' }}>
+              <p style={{ fontSize: '14px', fontWeight: 700, color: 'var(--error)', margin: '0 0 6px' }}>
                 Last chance
               </p>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>
                 Your account will be deleted immediately and permanently.
                 You will receive a confirmation email.
               </p>
@@ -284,7 +284,7 @@ export function DeleteAccountSection() {
 
             {error && (
               <p style={{
-                fontSize: '12px', color: '#FCA5A5',
+                fontSize: '12px', color: 'var(--error)',
                 padding: '8px 12px', borderRadius: '8px',
                 background: 'rgba(239,68,68,0.1)', marginBottom: '12px',
               }}>
@@ -297,9 +297,9 @@ export function DeleteAccountSection() {
                 onClick={() => { setStep('idle'); setTyped(''); setReason('') }}
                 style={{
                   padding: '11px 18px', borderRadius: '10px',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '0.5px solid rgba(255,255,255,0.1)',
-                  color: 'rgba(255,255,255,0.4)', fontSize: '13px',
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-medium)',
+                  color: 'var(--text-tertiary)', fontSize: '13px',
                   cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
                 }}
               >
@@ -335,7 +335,7 @@ export function DeleteAccountSection() {
               animation: 'spin 0.8s linear infinite',
               margin: '0 auto 12px',
             }} />
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
               Deleting your account and all data...
             </p>
           </motion.div>
@@ -348,10 +348,10 @@ export function DeleteAccountSection() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             style={{ textAlign: 'center', padding: '24px 0' }}
           >
-            <p style={{ fontSize: '14px', fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>
+            <p style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>
               Account deleted
             </p>
-            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: 0 }}>
               A confirmation email has been sent. Redirecting...
             </p>
           </motion.div>

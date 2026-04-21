@@ -57,17 +57,17 @@ export default function DeleteAccountModal({
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md rounded-2xl p-7"
         style={{
-          background: '#0B1F3A',
+          background: 'var(--bg-surface)',
           border: '1.5px solid rgba(239,68,68,0.35)',
         }}
       >
         {done ? (
           <div className="py-4 text-center">
             <div className="mb-4 text-4xl">📬</div>
-            <h3 className="font-playfair mb-2 text-xl font-bold text-white">
+            <h3 className="font-playfair mb-2 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
               Deletion request received
             </h3>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               Your account will be deleted within 30 days. You&apos;ll receive
               an email confirmation. Signing you out in 5 seconds...
             </p>
@@ -82,7 +82,7 @@ export default function DeleteAccountModal({
                 ⚠️
               </div>
               <div>
-                <h3 className="font-bold text-white">Delete my account</h3>
+                <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>Delete my account</h3>
                 <p className="text-xs" style={{ color: 'rgba(239,68,68,0.8)' }}>
                   This is permanent
                 </p>
@@ -96,7 +96,7 @@ export default function DeleteAccountModal({
                 border: '1px solid rgba(239,68,68,0.15)',
               }}
             >
-              <p className="mb-2 text-xs font-semibold text-white">
+              <p className="mb-2 text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
                 Deleting your account will:
               </p>
               {[
@@ -108,7 +108,7 @@ export default function DeleteAccountModal({
                 <p
                   key={i}
                   className="flex gap-2 text-xs"
-                  style={{ color: 'rgba(255,255,255,0.55)' }}
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   <span style={{ color: '#EF4444' }}>•</span> {item}
                 </p>
@@ -125,7 +125,7 @@ export default function DeleteAccountModal({
               />
               <span
                 className="text-sm"
-                style={{ color: 'rgba(255,255,255,0.6)' }}
+                style={{ color: 'var(--text-secondary)' }}
               >
                 I understand this cannot be undone
               </span>
@@ -135,7 +135,7 @@ export default function DeleteAccountModal({
             <div className="mb-5">
               <label
                 className="mb-1.5 block text-xs font-semibold"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 Type DELETE to confirm
               </label>
@@ -144,11 +144,12 @@ export default function DeleteAccountModal({
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
                 placeholder="DELETE"
-                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                 style={{
-                  background: 'rgba(239,68,68,0.06)',
-                  border: `1px solid ${confirmText === 'DELETE' ? 'rgba(239,68,68,0.7)' : 'rgba(255,255,255,0.1)'}`,
+                  background: 'var(--bg-elevated)',
+                  border: `1px solid ${confirmText === 'DELETE' ? 'rgba(239,68,68,0.7)' : 'var(--border-medium)'}`,
                   fontFamily: 'monospace',
+                  color: 'var(--text-primary)',
                 }}
               />
             </div>
@@ -158,8 +159,8 @@ export default function DeleteAccountModal({
                 onClick={onClose}
                 className="flex-1 rounded-xl py-3 text-sm font-semibold"
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  color: 'rgba(255,255,255,0.5)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-secondary)',
                 }}
               >
                 Cancel
