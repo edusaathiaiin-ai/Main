@@ -20,7 +20,9 @@ type FacultyProfile = {
   subject_expertise: string[]
   years_experience: number
   verification_status: 'pending' | 'verified' | 'rejected'
+  employment_status: 'active' | 'retired' | 'independent' | null
   is_emeritus: boolean
+  verification_doc_url: string | null
   payout_upi_id: string | null
 }
 
@@ -228,8 +230,13 @@ export default function FacultyPage() {
         <div className="mx-auto max-w-3xl px-6 py-6">
 
           {/* Verification banner */}
-          {faculty && faculty.verification_status !== 'verified' && (
-            <VerificationBanner status={faculty.verification_status} />
+          {faculty && profile && faculty.verification_status !== 'verified' && (
+            <VerificationBanner
+              userId={profile.id}
+              employmentStatus={faculty.employment_status ?? 'active'}
+              verificationDocUrl={faculty.verification_doc_url ?? null}
+              verificationStatus={faculty.verification_status}
+            />
           )}
 
           {/* ── Welcome Hero Card ── */}
