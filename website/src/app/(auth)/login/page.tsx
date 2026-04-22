@@ -377,28 +377,46 @@ function LoginForm() {
                     ✓ Good to go
                   </p>
                 )}
-                <button
-                  type="submit"
-                  disabled={magicLoading || googleLoading || !email.trim()}
-                  className="w-full rounded-xl py-3.5 text-sm font-semibold transition-all duration-200 disabled:opacity-40"
-                  style={{ background: '#C9993A', color: '#060F1D' }}
-                  onMouseEnter={(e) => {
-                    if (!magicLoading)
-                      e.currentTarget.style.background = '#E5B86A'
-                  }}
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = '#C9993A')
-                  }
-                >
-                  {magicLoading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D]" />
-                      Sending...
-                    </span>
-                  ) : (
-                    'Send Magic Link'
-                  )}
-                </button>
+                {/* Magic Link — gold on dark navy.
+                    Disabled state must STAY VISIBLE on the dark login bg;
+                    opacity-40 dissolves gold+text into navy. Instead we
+                    swap to a muted mid-slate fill with muted-slate text so
+                    the button still reads as a button, just clearly inert. */}
+                {(() => {
+                  const isDisabled = magicLoading || googleLoading || !email.trim()
+                  return (
+                    <button
+                      type="submit"
+                      disabled={isDisabled}
+                      className="w-full rounded-xl py-3.5 text-sm font-semibold transition-all duration-200"
+                      style={{
+                        background: isDisabled ? '#1F2937' : '#C9993A',
+                        color:      isDisabled ? '#6B7280' : '#060F1D',
+                        cursor:     isDisabled ? 'not-allowed' : 'pointer',
+                        border:     isDisabled ? '1px solid #374151' : 'none',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (isDisabled) return
+                        e.currentTarget.style.background = '#E5B86A'
+                      }}
+                      onMouseLeave={(e) => {
+                        if (isDisabled) return
+                        e.currentTarget.style.background = '#C9993A'
+                      }}
+                    >
+                      {magicLoading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D]" />
+                          Sending…
+                        </span>
+                      ) : !email.trim() ? (
+                        'Enter your email above'
+                      ) : (
+                        'Send Magic Link'
+                      )}
+                    </button>
+                  )
+                })()}
               </form>
             </motion.div>
           )}
