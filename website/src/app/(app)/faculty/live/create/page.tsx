@@ -153,31 +153,39 @@ export default function CreateLiveSessionPage() {
     // Description is NOT NULL in live_sessions — default to title if empty
     const safeDescription = description.trim() || `Live session: ${title.trim()}`
 
+    // Build insert payload. intent_id / priority_booking_until are only
+    // included when actually fulfilling a learning intent — they live in
+    // migration 067 and aren't in PostgREST's schema cache on every env,
+    // so sending them as null caused PGRST204 for standard sessions.
+    const payload: Record<string, unknown> = {
+      faculty_id: profile.id,
+      vertical_id: verticalUuid,
+      title: title.trim(),
+      description: safeDescription,
+      preparation_notes: prepNotes.trim() || null,
+      tags,
+      session_format: format,
+      price_per_seat_paise: pricePerSeat * 100,
+      bundle_price_paise:
+        format === 'series' && bundlePrice > 0 ? bundlePrice * 100 : null,
+      early_bird_price_paise: earlyBirdEnabled ? earlyBirdPrice * 100 : null,
+      early_bird_seats: earlyBirdEnabled ? earlyBirdSeats : null,
+      total_seats: totalSeats,
+      min_seats: minSeats,
+      meeting_link: meetingLink.trim() || null,
+      status: 'published', // auto-publish for verified faculty
+    }
+    if (intentId) {
+      payload.intent_id = intentId
+      payload.priority_booking_until = new Date(
+        Date.now() + 24 * 60 * 60 * 1000
+      ).toISOString()
+    }
+
     // Create session
     const { data: sess, error } = await supabase
       .from('live_sessions')
-      .insert({
-        faculty_id: profile.id,
-        vertical_id: verticalUuid,
-        title: title.trim(),
-        description: safeDescription,
-        preparation_notes: prepNotes.trim() || null,
-        tags,
-        session_format: format,
-        price_per_seat_paise: pricePerSeat * 100,
-        bundle_price_paise:
-          format === 'series' && bundlePrice > 0 ? bundlePrice * 100 : null,
-        early_bird_price_paise: earlyBirdEnabled ? earlyBirdPrice * 100 : null,
-        early_bird_seats: earlyBirdEnabled ? earlyBirdSeats : null,
-        total_seats: totalSeats,
-        min_seats: minSeats,
-        meeting_link: meetingLink.trim() || null,
-        status: 'published', // auto-publish for verified faculty
-        intent_id: intentId ?? null,
-        priority_booking_until: intentId
-          ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-          : null,
-      })
+      .insert(payload)
       .select('id')
       .single()
 
