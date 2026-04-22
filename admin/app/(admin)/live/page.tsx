@@ -46,14 +46,36 @@ export default async function LivePage({
       status,
       cancelled_at,
       created_at,
+      completed_at,
       total_views,
       platform_fee_paise,
       faculty_payout_paise,
+      gross_revenue_paise,
+      payout_status,
+      payout_released_at,
       faculty:faculty_id ( full_name, email ),
       verticals ( name )
     `
     )
     .order('created_at', { ascending: false })
+
+  // Batch — for each completed session, count lectures where notes_sent_to_students=true.
+  const completedIds = (sessions ?? [])
+    .filter((s) => (s.status as string) === 'completed')
+    .map((s) => s.id as string)
+  const notesSentBySession = new Map<string, { sent: number; total: number }>()
+  if (completedIds.length > 0) {
+    const { data: lecRows } = await admin
+      .from('live_lectures')
+      .select('session_id, notes_sent_to_students')
+      .in('session_id', completedIds)
+    for (const row of (lecRows ?? []) as Array<{ session_id: string; notes_sent_to_students: boolean }>) {
+      const cur = notesSentBySession.get(row.session_id) ?? { sent: 0, total: 0 }
+      cur.total += 1
+      if (row.notes_sent_to_students) cur.sent += 1
+      notesSentBySession.set(row.session_id, cur)
+    }
+  }
 
   const pending = (sessions ?? []).filter(
     (s) => (s.status as string) === 'pending_review'
@@ -68,15 +90,20 @@ export default async function LivePage({
     (s) => (s.status as string) === 'cancelled'
   )
 
-  // Revenue breakdown
+  // Revenue breakdown — prefer gross_revenue_paise (set by release_live_session_payout
+  // RPC), fall back to seats × price for sessions that haven't been released yet.
   const completedRevenue = completed.reduce(
-    (sum, s) =>
-      sum +
-      ((s.price_per_seat_paise as number) ?? 0) *
-        ((s.seats_booked as number) ?? 0),
+    (sum, s) => {
+      const recorded = (s.gross_revenue_paise as number | null) ?? null
+      if (recorded !== null) return sum + recorded
+      return sum +
+        ((s.price_per_seat_paise as number) ?? 0) *
+        ((s.seats_booked as number) ?? 0)
+    },
     0
   )
   const platformCut = Math.round(completedRevenue * 0.2)
+  const pendingReleaseCount = completed.filter((s) => (s.payout_status as string) === 'pending').length
 
   const tabSessions =
     tab === 'upcoming'
@@ -100,7 +127,7 @@ export default async function LivePage({
       <h1 className="text-xl font-bold text-white">Live Lectures</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard
           label="Pending approval"
           value={pending.length}
@@ -108,6 +135,11 @@ export default async function LivePage({
         />
         <StatCard label="Upcoming" value={upcoming.length} />
         <StatCard label="Completed" value={completed.length} />
+        <StatCard
+          label="Pending releases"
+          value={pendingReleaseCount}
+          dot={pendingReleaseCount > 0 ? 'amber' : undefined}
+        />
         <StatCard label="Platform revenue" value={fmtInr(platformCut)} accent />
       </div>
 
@@ -195,6 +227,8 @@ export default async function LivePage({
                   <th className="text-left px-4 py-3">Seats</th>
                   <th className="text-left px-4 py-3">Revenue</th>
                   <th className="text-left px-4 py-3">Date</th>
+                  {tab === 'completed' && <th className="px-4 py-3">Notes</th>}
+                  {tab === 'completed' && <th className="px-4 py-3">Payout</th>}
                   {tab === 'upcoming' && <th className="px-4 py-3">Actions</th>}
                 </tr>
               </thead>
@@ -204,9 +238,14 @@ export default async function LivePage({
                     string,
                     unknown
                   >
-                  const revenue =
-                    ((s.price_per_seat_paise as number) ?? 0) *
-                    ((s.seats_booked as number) ?? 0)
+                  const recordedGross = (s.gross_revenue_paise as number | null) ?? null
+                  const revenue = recordedGross !== null
+                    ? recordedGross
+                    : ((s.price_per_seat_paise as number) ?? 0) *
+                      ((s.seats_booked as number) ?? 0)
+                  const dateIso = (s.completed_at as string | null) ?? (s.created_at as string | null)
+                  const payoutStatus = (s.payout_status as string | null) ?? 'pending'
+                  const notesInfo = notesSentBySession.get(s.id as string) ?? { sent: 0, total: 0 }
                   return (
                     <tr
                       key={s.id as string}
@@ -231,13 +270,37 @@ export default async function LivePage({
                         {fmtInr(revenue)}
                       </td>
                       <td className="px-4 py-3.5 text-xs text-slate-500">
-                        {s.created_at
-                          ? new Date(s.created_at as string).toLocaleDateString(
-                              'en-IN',
-                              { day: '2-digit', month: 'short' }
-                            )
+                        {dateIso
+                          ? new Date(dateIso).toLocaleDateString('en-IN', {
+                              day: '2-digit',
+                              month: 'short',
+                            })
                           : '—'}
                       </td>
+                      {tab === 'completed' && (
+                        <td className="px-4 py-3.5 text-xs">
+                          {notesInfo.total === 0 ? (
+                            <span className="text-slate-600">—</span>
+                          ) : notesInfo.sent === notesInfo.total ? (
+                            <span className="text-emerald-400">All shared</span>
+                          ) : notesInfo.sent === 0 ? (
+                            <span className="text-amber-400">Pending</span>
+                          ) : (
+                            <span className="text-amber-400">{notesInfo.sent}/{notesInfo.total}</span>
+                          )}
+                        </td>
+                      )}
+                      {tab === 'completed' && (
+                        <td className="px-4 py-3.5 text-xs">
+                          {payoutStatus === 'released' ? (
+                            <span className="text-emerald-400">Released</span>
+                          ) : payoutStatus === 'on_hold' ? (
+                            <span className="text-rose-400">On hold</span>
+                          ) : (
+                            <span className="text-amber-400">Pending</span>
+                          )}
+                        </td>
+                      )}
                       {tab === 'upcoming' && (
                         <td className="px-4 py-3.5">
                           <CancelSessionButton
@@ -255,7 +318,7 @@ export default async function LivePage({
                 {!tabSessions.length && (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={9}
                       className="px-5 py-10 text-center text-slate-500 text-sm"
                     >
                       No sessions

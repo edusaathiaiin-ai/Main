@@ -133,6 +133,7 @@ Deno.serve(async (_req: Request) => {
   let sent1h  = 0;
   let sentHost = 0;
   let errors  = 0;
+  const errorDetails: string[] = [];
 
   // ── Pass 1: 24h window ─────────────────────────────────────────────────────
   const window24hStart = new Date(now + 23 * 3_600_000).toISOString();
@@ -140,14 +141,14 @@ Deno.serve(async (_req: Request) => {
 
   const { data: lectures24h, error: err24h } = await admin
     .from('live_lectures')
-    .select('id, scheduled_at, title, meeting_link, session_id, live_sessions!inner(faculty_id)')
+    .select('id, scheduled_at, title, session_id, live_sessions!inner(faculty_id, meeting_link)')
     .eq('status', 'scheduled')
     .eq('reminder_sent_24h', false)
     .gte('scheduled_at', window24hStart)
     .lte('scheduled_at', window24hEnd);
 
   if (err24h) {
-    console.error(`${LOG}: 24h query failed`, err24h.message);
+    console.error(`${LOG}: 24h query failed`, err24h.message); errorDetails.push('24h: ' + err24h.message);
     errors++;
   }
 
@@ -255,7 +256,7 @@ Deno.serve(async (_req: Request) => {
 
       sent24h++;
     } catch (err) {
-      console.error(`${LOG}: 24h reminder failed for lecture ${row.id}`, err instanceof Error ? err.message : err);
+      console.error(`${LOG}: 24h reminder failed for lecture ${row.id}`, err instanceof Error ? err.message : err); errorDetails.push('24h-loop: ' + (err instanceof Error ? err.message : String(err)));
       errors++;
     }
   }
@@ -266,14 +267,14 @@ Deno.serve(async (_req: Request) => {
 
   const { data: lectures1h, error: err1h } = await admin
     .from('live_lectures')
-    .select('id, scheduled_at, title, meeting_link, session_id, live_sessions!inner(faculty_id)')
+    .select('id, scheduled_at, title, session_id, live_sessions!inner(faculty_id, meeting_link)')
     .eq('status', 'scheduled')
     .eq('reminder_sent_1h', false)
     .gte('scheduled_at', window1hStart)
     .lte('scheduled_at', window1hEnd);
 
   if (err1h) {
-    console.error(`${LOG}: 1h query failed`, err1h.message);
+    console.error(`${LOG}: 1h query failed`, err1h.message); errorDetails.push('1h: ' + err1h.message);
     errors++;
   }
 
@@ -310,7 +311,7 @@ Deno.serve(async (_req: Request) => {
       const lectureId   = row.id as string;
       const scheduledAt = row.scheduled_at as string;
       const topic       = row.title as string;
-      const meetingLink = (row.meeting_link as string | null) ?? 'https://www.edusaathiai.in/faculty/live';
+      const meetingLink = (sessObj?.meeting_link as string | null) ?? 'https://www.edusaathiai.in/faculty/live';
       const facultyId   = sessObj?.faculty_id as string;
       const facultyName = profiles1h.get(facultyId)?.full_name ?? 'Faculty';
 
@@ -343,7 +344,7 @@ Deno.serve(async (_req: Request) => {
 
       sent1h++;
     } catch (err) {
-      console.error(`${LOG}: 1h reminder failed for lecture ${row.id}`, err instanceof Error ? err.message : err);
+      console.error(`${LOG}: 1h reminder failed for lecture ${row.id}`, err instanceof Error ? err.message : err); errorDetails.push('1h-loop: ' + (err instanceof Error ? err.message : String(err)));
       errors++;
     }
   }
@@ -354,14 +355,14 @@ Deno.serve(async (_req: Request) => {
 
   const { data: lecturesHost, error: errHost } = await admin
     .from('live_lectures')
-    .select('id, scheduled_at, title, meeting_link, session_id, live_sessions!inner(faculty_id, title)')
+    .select('id, scheduled_at, title, session_id, live_sessions!inner(faculty_id, title, meeting_link)')
     .eq('status', 'scheduled')
     .eq('host_reminder_sent', false)
     .gte('scheduled_at', windowHostStart)
     .lte('scheduled_at', windowHostEnd);
 
   if (errHost) {
-    console.error(`${LOG}: host query failed`, errHost.message);
+    console.error(`${LOG}: host query failed`, errHost.message); errorDetails.push('host: ' + errHost.message);
     errors++;
   }
 
@@ -381,7 +382,7 @@ Deno.serve(async (_req: Request) => {
       const lectureId = row.id as string;
       const scheduledAt = row.scheduled_at as string;
       const sessionTitle = (sessObj?.title as string | null) ?? (row.title as string);
-      const meetingLink = (row.meeting_link as string | null) ?? 'https://www.edusaathiai.in/faculty/live';
+      const meetingLink = (sessObj?.meeting_link as string | null) ?? 'https://www.edusaathiai.in/faculty/live';
       const facultyId = sessObj?.faculty_id as string;
       const facultyProfile = profilesHost.get(facultyId);
       const facultyName = facultyProfile?.full_name ?? 'Faculty';
@@ -411,7 +412,7 @@ Deno.serve(async (_req: Request) => {
 
       sentHost++;
     } catch (err) {
-      console.error(`${LOG}: host reminder failed for lecture ${row.id}`, err instanceof Error ? err.message : err);
+      console.error(`${LOG}: host reminder failed for lecture ${row.id}`, err instanceof Error ? err.message : err); errorDetails.push('host-loop: ' + (err instanceof Error ? err.message : String(err)));
       errors++;
     }
   }
@@ -419,7 +420,7 @@ Deno.serve(async (_req: Request) => {
   console.log(`${LOG}: done — 24h sent=${sent24h}, 1h sent=${sent1h}, host sent=${sentHost}, errors=${errors}`);
 
   return new Response(
-    JSON.stringify({ ok: true, sent24h, sent1h, sentHost, errors }),
+    JSON.stringify({ ok: true, v: 'r4', sent24h, sent1h, sentHost, errors, errorDetails }),
     { status: 200, headers: { 'Content-Type': 'application/json' } },
   );
 });

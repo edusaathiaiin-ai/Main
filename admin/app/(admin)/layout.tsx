@@ -39,6 +39,7 @@ const NAV_SECTIONS: NavSection[] = [
       { href: '/live', label: 'Live Lectures', emoji: '🎙️' },
       { href: '/requests', label: 'Requests', emoji: '✉️' },
       { href: '/payouts', label: 'Payouts', emoji: '💸' },
+      { href: '/refunds', label: 'Refunds', emoji: '↩️' },
       { href: '/financials', label: 'Financials', emoji: '💰' },
     ],
   },

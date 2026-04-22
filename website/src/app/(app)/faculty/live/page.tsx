@@ -159,6 +159,193 @@ function MeetingLinkEditor({
   )
 }
 
+// ─── Cancel session button + modal ────────────────────────────────────────────
+
+function CancelSessionTrigger({
+  sessionId,
+  title,
+  nextScheduledAt,
+  onCancelled,
+}: {
+  sessionId: string
+  title: string
+  nextScheduledAt: string | null
+  onCancelled: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [reason, setReason] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [err, setErr] = useState('')
+
+  const startMs = nextScheduledAt ? new Date(nextScheduledAt).getTime() : null
+  const minutesToStart = startMs ? Math.round((startMs - Date.now()) / 60_000) : null
+  const hardBlock = minutesToStart !== null && minutesToStart < 60
+
+  async function handleSubmit() {
+    setErr('')
+    if (reason.trim().length < 10) {
+      setErr('Reason must be at least 10 characters — students deserve a real explanation.')
+      return
+    }
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/faculty/live-sessions/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, reason: reason.trim() }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || 'Cancellation failed')
+      setOpen(false)
+      setReason('')
+      onCancelled()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        style={{
+          marginTop: '8px',
+          marginLeft: '8px',
+          padding: '8px 14px',
+          borderRadius: '10px',
+          background: 'transparent',
+          border: '0.5px solid rgba(239,68,68,0.35)',
+          color: '#DC2626',
+          fontSize: '13px',
+          fontWeight: 600,
+          cursor: 'pointer',
+        }}
+      >
+        Cancel session
+      </button>
+
+      {open && (
+        <div
+          onClick={() => !submitting && setOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 50,
+            background: 'rgba(11, 31, 58, 0.55)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '24px',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '460px', width: '100%',
+              background: 'var(--bg-surface)', borderRadius: '16px',
+              border: '0.5px solid var(--border-subtle)',
+              padding: '24px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+            }}
+          >
+            <h3 className="font-playfair" style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+              Cancel this session?
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginBottom: '18px' }}>
+              {title}
+            </p>
+
+            {hardBlock ? (
+              <>
+                <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
+                  <p style={{ fontSize: '13px', color: '#991B1B', lineHeight: 1.6, marginBottom: '6px' }}>
+                    <strong>You can't cancel within 1 hour of start time.</strong>
+                  </p>
+                  <p style={{ fontSize: '13px', color: '#991B1B', lineHeight: 1.6 }}>
+                    Please take the session, or email admin immediately with your reason.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => setOpen(false)}
+                    style={{
+                      padding: '9px 14px', borderRadius: '10px',
+                      background: 'var(--bg-elevated)', border: '0.5px solid var(--border-subtle)',
+                      color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                    }}
+                  >
+                    Close
+                  </button>
+                  <a
+                    href={`mailto:admin@edusaathiai.in?subject=${encodeURIComponent(`Urgent cancellation: ${title}`)}&body=${encodeURIComponent(`Session ID: ${sessionId}\nReason: `)}`}
+                    style={{
+                      padding: '9px 14px', borderRadius: '10px',
+                      background: '#DC2626', color: '#fff', textDecoration: 'none',
+                      fontSize: '13px', fontWeight: 700,
+                    }}
+                  >
+                    Email admin
+                  </a>
+                </div>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '12px' }}>
+                  Every paid student will be refunded in full and emailed to claim their refund.
+                  <br />
+                  <strong style={{ color: '#B91C1C' }}>You will receive no payout for this session.</strong>
+                </p>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                  Reason (visible to students, 10–500 chars)
+                </label>
+                <textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value.slice(0, 500))}
+                  rows={4}
+                  placeholder="Be honest — students deserve a real explanation."
+                  style={{
+                    width: '100%', padding: '10px 12px', borderRadius: '10px',
+                    background: 'var(--bg-base)', border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-primary)', fontSize: '13px',
+                    fontFamily: 'inherit', resize: 'vertical', outline: 'none',
+                  }}
+                />
+                {err && <p style={{ fontSize: '12px', color: '#B91C1C', marginTop: '8px' }}>{err}</p>}
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
+                  <button
+                    onClick={() => setOpen(false)}
+                    disabled={submitting}
+                    style={{
+                      padding: '9px 14px', borderRadius: '10px',
+                      background: 'var(--bg-elevated)', border: '0.5px solid var(--border-subtle)',
+                      color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600,
+                      cursor: submitting ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    Keep session
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={submitting || reason.trim().length < 10}
+                    style={{
+                      padding: '9px 14px', borderRadius: '10px',
+                      background: '#DC2626', color: '#fff', border: 'none',
+                      fontSize: '13px', fontWeight: 700,
+                      cursor: submitting || reason.trim().length < 10 ? 'not-allowed' : 'pointer',
+                      opacity: submitting || reason.trim().length < 10 ? 0.5 : 1,
+                    }}
+                  >
+                    {submitting ? 'Cancelling…' : 'Cancel session'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 export default function FacultyLiveDashboard() {
   const { profile } = useAuthStore()
   const [sessions, setSessions] = useState<LiveSessionRow[]>([])
@@ -283,17 +470,31 @@ export default function FacultyLiveDashboard() {
         >
           EdUsaathiAI
         </Link>
-        <Link
-          href="/faculty/live/create"
-          className="rounded-lg px-4 py-2 text-xs font-semibold"
-          style={{
-            background: '#C9993A',
-            color: '#060F1D',
-            textDecoration: 'none',
-          }}
-        >
-          + Create Session
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/faculty/earnings"
+            className="rounded-lg px-3 py-2 text-xs font-semibold"
+            style={{
+              background: 'var(--bg-elevated)',
+              border: '0.5px solid var(--border-subtle)',
+              color: 'var(--text-secondary)',
+              textDecoration: 'none',
+            }}
+          >
+            ₹ Earnings
+          </Link>
+          <Link
+            href="/faculty/live/create"
+            className="rounded-lg px-4 py-2 text-xs font-semibold"
+            style={{
+              background: '#C9993A',
+              color: '#060F1D',
+              textDecoration: 'none',
+            }}
+          >
+            + Create Session
+          </Link>
+        </div>
       </nav>
 
       <div className="mx-auto max-w-4xl px-6 py-8">
@@ -488,6 +689,36 @@ export default function FacultyLiveDashboard() {
                       />
                     </div>
                   </div>
+                  {s.status === 'completed' && (
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/faculty/live/${s.id}/notes`}
+                        className="rounded-lg px-3 py-1.5 text-[13px] font-semibold"
+                        style={{
+                          background: 'rgba(201,153,58,0.12)',
+                          border: '0.5px solid rgba(201,153,58,0.25)',
+                          color: '#C9993A',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        📒 Share notes
+                      </Link>
+                      {s.seats_booked > 0 && (
+                        <Link
+                          href={`/faculty/live/${s.id}/audience`}
+                          className="rounded-lg px-3 py-1.5 text-[13px] font-semibold"
+                          style={{
+                            background: 'var(--bg-elevated)',
+                            border: '0.5px solid var(--border-subtle)',
+                            color: 'var(--text-secondary)',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          👥 Audience ({s.seats_booked})
+                        </Link>
+                      )}
+                    </div>
+                  )}
                   {s.status === 'published' && (
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -549,6 +780,18 @@ export default function FacultyLiveDashboard() {
                           })} IST
                         </p>
                       )}
+                      <CancelSessionTrigger
+                        sessionId={s.id}
+                        title={s.title}
+                        nextScheduledAt={s.next_scheduled_at}
+                        onCancelled={() => {
+                          setSessions((prev) =>
+                            prev.map((row) =>
+                              row.id === s.id ? { ...row, status: 'cancelled' } : row,
+                            ),
+                          )
+                        }}
+                      />
                     </div>
                   )}
                 </motion.div>

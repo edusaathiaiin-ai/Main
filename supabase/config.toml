@@ -451,6 +451,11 @@ verify_jwt = false
 [functions.send-session-reminders]
 verify_jwt = false
 
+# Cron: every 15 min — auto-mark live_lectures and live_sessions complete,
+# nudge faculty to upload notes once a session wraps.
+[functions.complete-live-sessions]
+verify_jwt = false
+
 [functions.inactivity-nudge]
 verify_jwt = false
 
