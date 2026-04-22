@@ -247,7 +247,12 @@ export default function FacultyPage() {
             />
           )}
 
-          {/* ── Welcome Hero Card ── */}
+          {/* ── Welcome Hero Card ──
+              Every text node declares color: '#fff' explicitly. Global h1/p
+              rules (from the night-mode contrast work) override inherited
+              color, so relying on the parent color property left headings
+              and stats rendering in var(--text-primary) = dark, invisible
+              against the deep Saathi background. */}
           <div style={{
             background: color,
             borderRadius: '16px',
@@ -255,7 +260,7 @@ export default function FacultyPage() {
             color: '#fff',
             marginBottom: '20px',
           }}>
-            <div style={{ fontSize: '13px', opacity: 0.7, marginBottom: '4px' }}>
+            <div style={{ fontSize: '13px', color: '#fff', opacity: 0.75, marginBottom: '4px' }}>
               {faculty?.institution_name ?? 'Faculty'}{faculty?.department ? ` · ${faculty.department}` : ''}
             </div>
             <h1 style={{
@@ -263,10 +268,11 @@ export default function FacultyPage() {
               fontSize: '28px',
               fontWeight: 800,
               margin: '0 0 8px',
+              color: '#fff',
             }}>
               Welcome, {firstName} 🙏
             </h1>
-            <div style={{ fontSize: '13px', opacity: 0.8 }}>
+            <div style={{ fontSize: '13px', color: '#fff', opacity: 0.85 }}>
               {faculty?.subject_expertise?.join(', ') ?? 'Subject Expert'}
               {faculty?.years_experience ? ` · ${faculty.years_experience} yrs experience` : ''}
             </div>
@@ -274,16 +280,16 @@ export default function FacultyPage() {
             {/* Quick stats */}
             <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
               <div>
-                <p style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>{stats.sessions}</p>
-                <p style={{ fontSize: '13px', opacity: 0.7, margin: 0 }}>Sessions</p>
+                <p style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#fff' }}>{stats.sessions}</p>
+                <p style={{ fontSize: '13px', margin: 0, color: '#fff', opacity: 0.75 }}>Sessions</p>
               </div>
               <div>
-                <p style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>{stats.students}</p>
-                <p style={{ fontSize: '13px', opacity: 0.7, margin: 0 }}>Students helped</p>
+                <p style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#fff' }}>{stats.students}</p>
+                <p style={{ fontSize: '13px', margin: 0, color: '#fff', opacity: 0.75 }}>Students helped</p>
               </div>
               <div>
-                <p style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>₹{stats.earnings}</p>
-                <p style={{ fontSize: '13px', opacity: 0.7, margin: 0 }}>Earnings</p>
+                <p style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#fff' }}>₹{stats.earnings}</p>
+                <p style={{ fontSize: '13px', margin: 0, color: '#fff', opacity: 0.75 }}>Earnings</p>
               </div>
             </div>
           </div>
