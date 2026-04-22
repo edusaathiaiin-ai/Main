@@ -900,11 +900,12 @@ export default function CreateLiveSessionPage() {
                     </label>
                     <input
                       type="number"
-                      min={50}
+                      min={0}
                       value={pricePerSeat}
-                      onChange={(e) =>
-                        setPricePerSeat(parseInt(e.target.value) || 500)
-                      }
+                      onChange={(e) => {
+                        const v = parseInt(e.target.value)
+                        setPricePerSeat(Number.isNaN(v) ? 0 : Math.max(0, v))
+                      }}
                       className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                       style={inputStyle}
                     />
@@ -912,9 +913,18 @@ export default function CreateLiveSessionPage() {
                       className="mt-1 text-[9px]"
                       style={{ color: 'var(--text-ghost)' }}
                     >
-                      You receive 80% ({'\u20B9'}
-                      {Math.round(pricePerSeat * 0.8)})
+                      {pricePerSeat === 0
+                        ? 'Free session — students reserve a seat at no cost'
+                        : `You receive 80% (₹${Math.round(pricePerSeat * 0.8)})`}
                     </p>
+                    {pricePerSeat > 0 && pricePerSeat < 50 && (
+                      <p
+                        className="mt-1 text-[10px]"
+                        style={{ color: '#F59E0B' }}
+                      >
+                        ₹{pricePerSeat} is below Razorpay's minimum (₹1). Use 0 for free, or ₹50+ for paid.
+                      </p>
+                    )}
                   </div>
                   {format === 'series' && lectures.length > 1 && (
                     <div>
@@ -1104,8 +1114,7 @@ export default function CreateLiveSessionPage() {
                       </div>
                       <div>
                         <p className="text-lg font-bold text-[var(--text-primary)]">
-                          {'\u20B9'}
-                          {pricePerSeat}
+                          {pricePerSeat === 0 ? 'Free' : `\u20B9${pricePerSeat}`}
                         </p>
                         <p
                           className="text-[9px]"
@@ -1119,8 +1128,7 @@ export default function CreateLiveSessionPage() {
                           className="text-lg font-bold"
                           style={{ color: '#4ADE80' }}
                         >
-                          {'\u20B9'}
-                          {Math.round(pricePerSeat * 0.8)}
+                          {pricePerSeat === 0 ? '—' : `\u20B9${Math.round(pricePerSeat * 0.8)}`}
                         </p>
                         <p
                           className="text-[9px]"

@@ -229,7 +229,6 @@ export default function LiveSessionDetailPage() {
     setBookError(null)
 
     try {
-      await ensureRazorpayLoaded()
       const supabase = createClient()
       const { data: { session: authSession } } = await supabase.auth.refreshSession()
       if (!authSession?.access_token) {
@@ -237,6 +236,51 @@ export default function LiveSessionDetailPage() {
         setBooking(false)
         return
       }
+
+      // ── FREE session path — skip Razorpay entirely ──
+      // Faculty can set price=0 to offer a free session; we re-verify
+      // server-side (book-free-session refuses to book paid sessions).
+      if (session.price_per_seat_paise === 0) {
+        const freeRes = await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/book-free-session`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authSession.access_token}`,
+              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+            },
+            body: JSON.stringify({
+              sessionId: session.id,
+              bookingType: bookingMode,
+              lectureIds: bookingMode === 'single' ? [...selectedLectures] : [],
+            }),
+          },
+        )
+        const freeJson = (await freeRes.json()) as {
+          bookingId?: string
+          seatsBooked?: number
+          totalSeats?: number
+          error?: string
+        }
+        if (!freeRes.ok || !freeJson.bookingId) {
+          const map: Record<string, string> = {
+            sold_out: 'This session just sold out. Try another one.',
+            already_booked: 'You have already booked this session.',
+            session_not_bookable: 'This session is no longer open.',
+          }
+          setBookError(map[freeJson.error ?? ''] ?? freeJson.error ?? 'Could not reserve your seat.')
+          setBooking(false)
+          return
+        }
+        setBooked(true)
+        if (typeof freeJson.seatsBooked === 'number') setSeatsBooked(freeJson.seatsBooked)
+        setBooking(false)
+        return
+      }
+
+      // ── PAID path ──
+      await ensureRazorpayLoaded()
 
       // Step 1 — server computes price + creates Razorpay order
       const orderRes = await fetch(
@@ -958,13 +1002,18 @@ export default function LiveSessionDetailPage() {
                       color: isFull ? 'var(--text-secondary)' : '#0B1F3A',
                     }}
                   >
-                    {booking
-                      ? 'Opening Razorpay…'
-                      : isFull
-                        ? 'Fully Booked'
-                        : bookingMode === 'full'
-                          ? `Book Seat \u2014 ${formatFee(earlyBirdActive ? session.early_bird_price_paise! : (session.bundle_price_paise ?? session.price_per_seat_paise))}`
-                          : `Book ${selectedLectures.size} lecture${selectedLectures.size !== 1 ? 's' : ''} \u2014 ${formatFee(session.price_per_seat_paise * selectedLectures.size)}`}
+                    {(() => {
+                      const isFree = session.price_per_seat_paise === 0
+                      if (booking) {
+                        return isFree ? 'Reserving…' : 'Opening Razorpay…'
+                      }
+                      if (isFull) return 'Fully Booked'
+                      if (isFree) return 'Reserve Free Seat'
+                      if (bookingMode === 'full') {
+                        return `Book Seat \u2014 ${formatFee(earlyBirdActive ? session.early_bird_price_paise! : (session.bundle_price_paise ?? session.price_per_seat_paise))}`
+                      }
+                      return `Book ${selectedLectures.size} lecture${selectedLectures.size !== 1 ? 's' : ''} \u2014 ${formatFee(session.price_per_seat_paise * selectedLectures.size)}`
+                    })()}
                   </button>
                 </div>
 
@@ -973,14 +1022,18 @@ export default function LiveSessionDetailPage() {
                   className="space-y-2 px-5 py-4"
                   style={{ borderTop: '0.5px solid var(--bg-elevated)' }}
                 >
-                  {[
-                    {
-                      icon: '\u2713',
-                      text: 'Full refund if session cancelled',
-                    },
-                    { icon: '\u2713', text: 'Meeting link shared 24h before' },
-                    { icon: '\u2713', text: 'Payment secure via Razorpay' },
-                  ].map((t) => (
+                  {(session.price_per_seat_paise === 0
+                    ? [
+                        { icon: '\u2713', text: 'Free session — no payment needed' },
+                        { icon: '\u2713', text: 'Meeting link shared 24h before' },
+                        { icon: '\u2713', text: 'Seat reserved the moment you click' },
+                      ]
+                    : [
+                        { icon: '\u2713', text: 'Full refund if session cancelled' },
+                        { icon: '\u2713', text: 'Meeting link shared 24h before' },
+                        { icon: '\u2713', text: 'Payment secure via Razorpay' },
+                      ]
+                  ).map((t) => (
                     <p
                       key={t.text}
                       className="flex items-start gap-2 text-[10px]"
