@@ -135,6 +135,31 @@ export default function CreateLiveSessionPage() {
     setSaving(true)
     setPublishError(null)
 
+    // Meeting link is MANDATORY for every published session — the reminder
+    // cron sends it to students 1 hour before the lecture. Without it,
+    // students cannot join. Also enforced by DB CHECK constraint.
+    const trimmedMeetingLink = meetingLink.trim()
+    if (!trimmedMeetingLink) {
+      setPublishError(
+        'Please create your meeting link first. Create a Google Meet or Zoom link with the scheduled date/time, then paste the URL in the Meeting link field.'
+      )
+      setSaving(false)
+      return
+    }
+    // Light URL validation — catches obvious typos before the DB rejects
+    try {
+      const u = new URL(trimmedMeetingLink)
+      if (!['http:', 'https:'].includes(u.protocol)) {
+        throw new Error('bad protocol')
+      }
+    } catch {
+      setPublishError(
+        'The meeting link doesn\'t look right. It should start with https:// (e.g. https://meet.google.com/xxx-xxxx-xxx).'
+      )
+      setSaving(false)
+      return
+    }
+
     const supabase = createClient()
 
     // Resolve saathi slug → UUID (live_sessions.vertical_id has FK to verticals.id)
@@ -172,7 +197,7 @@ export default function CreateLiveSessionPage() {
       early_bird_seats: earlyBirdEnabled ? earlyBirdSeats : null,
       total_seats: totalSeats,
       min_seats: minSeats,
-      meeting_link: meetingLink.trim() || null,
+      meeting_link: trimmedMeetingLink,
       status: 'published', // auto-publish for verified faculty
     }
     if (intentId) {
@@ -787,13 +812,13 @@ export default function CreateLiveSessionPage() {
                       )}
                     </div>
                   )}
-                  {/* Meeting link */}
+                  {/* Meeting link — REQUIRED */}
                   <div>
                     <label
                       className="mb-1.5 block text-xs font-semibold"
                       style={labelStyle}
                     >
-                      Meeting link
+                      Meeting link <span style={{ color: '#F87171' }}>*</span>
                     </label>
                     <input
                       type="url"
@@ -802,12 +827,15 @@ export default function CreateLiveSessionPage() {
                       placeholder="https://meet.google.com/xxx-xxxx-xxx or Zoom link"
                       className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                       style={inputStyle}
+                      required
                     />
                     <p
                       className="mt-1 text-[9px]"
                       style={{ color: 'var(--text-ghost)' }}
                     >
-                      Shared only with enrolled students. You can update this later from your sessions dashboard.
+                      Please create your Google Meet or Zoom link with the scheduled date/time
+                      first, then paste it here. Students receive this link 1 hour before
+                      the session. You can update it anytime from your sessions dashboard.
                     </p>
                   </div>
 
@@ -1165,11 +1193,16 @@ export default function CreateLiveSessionPage() {
                     </button>
                     <button
                       onClick={handleSubmit}
-                      disabled={saving || !title.trim()}
+                      disabled={saving || !title.trim() || !meetingLink.trim()}
                       className="flex-1 rounded-xl py-3.5 text-sm font-bold disabled:opacity-40"
                       style={{ background: '#C9993A', color: '#060F1D' }}
+                      title={!meetingLink.trim() ? 'Please add a meeting link first' : undefined}
                     >
-                      {saving ? 'Publishing...' : 'Publish Session \u{1F680}'}
+                      {saving
+                        ? 'Publishing...'
+                        : !meetingLink.trim()
+                          ? 'Add meeting link first'
+                          : 'Publish Session \u{1F680}'}
                     </button>
                   </div>
                 </motion.div>
