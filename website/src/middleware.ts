@@ -1,5 +1,10 @@
-import { type NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse, after } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import {
+  extractRequestContext,
+  isAllowedOrigin,
+  logSecurityEvent,
+} from '@/lib/security'
 
 // Paths that never need an auth check — serve immediately
 const PUBLIC_PATHS = [
@@ -24,6 +29,25 @@ const PUBLIC_PATHS = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const isApi = pathname.startsWith('/api/')
+
+  // Week 1 security observability (observe only — never block).
+  // Fire bad_origin for any /api/* hit whose Origin header is present but
+  // not in the allowlist. Runs regardless of auth, so it catches scrapers
+  // hitting public proxy routes too.
+  if (isApi) {
+    const origin = request.headers.get('origin')
+    if (origin && !isAllowedOrigin(origin)) {
+      const ctx = extractRequestContext(request.headers, pathname, request.method)
+      after(
+        logSecurityEvent({
+          event_type: 'bad_origin',
+          severity: 'warn',
+          ...ctx,
+        }),
+      )
+    }
+  }
 
   // Short-circuit: no Supabase round-trip for public paths
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
@@ -55,6 +79,20 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
+    // Week 1 observability: record every anon hit on a protected route
+    // before redirecting. This is the signal most likely to reveal leaks
+    // or probes targeting endpoints that expect a session.
+    if (isApi) {
+      const ctx = extractRequestContext(request.headers, pathname, request.method)
+      after(
+        logSecurityEvent({
+          event_type: 'anon_hit_protected',
+          severity: 'warn',
+          ...ctx,
+        }),
+      )
+    }
+
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
