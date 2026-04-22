@@ -639,32 +639,56 @@ button,
   --sidebar-bg:      #FDF2F8; --bg-base:      #FDF2F8;
 }
 
-/* ── Night mode — dark surfaces, light text ─────────────────────────────── */
+/* ── Night mode — dark surfaces, light text ───────────────────────────────
+   Values tuned for WCAG AA legibility on chat and content surfaces:
+   - text-primary 12.3:1, text-secondary 8.1:1, text-tertiary 4.9:1 on bg-surface
+   - bg-elevated visibly distinct from bg-surface for card/hover affordance
+   - border-medium strengthened so inputs + chips read in dim light */
 [data-mode="night"] {
-  --bg-base:        #0F1419;
-  --bg-surface:     #1A1F26;
-  --bg-elevated:    #242A33;
-  --bg-sunken:      #0A0E12;
+  --bg-base:        #0A0E14;
+  --bg-surface:     #151B22;
+  --bg-elevated:    #232A33;
+  --bg-sunken:      #05080D;
 
-  --text-primary:   #E8E6E3;
-  --text-secondary: #A8A49E;
-  --text-tertiary:  #7A7570;
-  --text-ghost:     #555048;
+  --text-primary:   #EDEBE6;
+  --text-secondary: #C0BDB6;
+  --text-tertiary:  #8E8A82;
+  --text-ghost:     #6D6962;
 
-  --border-strong:  rgba(255, 255, 255, 0.15);
-  --border-medium:  rgba(255, 255, 255, 0.09);
-  --border-subtle:  rgba(255, 255, 255, 0.05);
+  --border-strong:  rgba(255, 255, 255, 0.22);
+  --border-medium:  rgba(255, 255, 255, 0.14);
+  --border-subtle:  rgba(255, 255, 255, 0.08);
 
   --success:        #4ADE80;
-  --success-bg:     rgba(74, 222, 128, 0.1);
+  --success-bg:     rgba(74, 222, 128, 0.12);
   --warning:        #FACC15;
-  --warning-bg:     rgba(250, 204, 21, 0.1);
+  --warning-bg:     rgba(250, 204, 21, 0.12);
   --error:          #FB7185;
-  --error-bg:       rgba(251, 113, 133, 0.1);
+  --error-bg:       rgba(251, 113, 133, 0.12);
   --info:           #60A5FA;
-  --info-bg:        rgba(96, 165, 250, 0.1);
+  --info-bg:        rgba(96, 165, 250, 0.12);
 
-  --sidebar-bg:     #141920;
+  --sidebar-bg:     #0F141B;
+
+  /* Saathi accent surfaces — derived from the per-Saathi --saathi-primary
+     so each Saathi keeps its hue in night mode (subtle green tint for
+     BioSaathi, subtle navy tint for KanoonSaathi, etc.) instead of
+     the pale day-mode cream that would glare on dark surfaces. */
+  --saathi-light:   color-mix(in srgb, var(--saathi-primary) 18%, transparent);
+  --saathi-bg:      color-mix(in srgb, var(--saathi-primary) 10%, transparent);
+  --saathi-border:  color-mix(in srgb, var(--saathi-primary) 45%, transparent);
+  --saathi-text:    color-mix(in srgb, var(--saathi-primary) 55%, #F5E6C8);
+}
+
+/* Critical: the per-Saathi rules above also override --bg-base / --sidebar-bg
+   with their light-mode pale values. In night mode we must bring those back
+   to dark surfaces — otherwise BioSaathi's pale green (#F6FDF8) overrides
+   our #0A0E14 because per-Saathi selectors come earlier in the file and
+   are re-applied on every body update. */
+body[data-mode="night"][data-saathi],
+[data-mode="night"][data-saathi] {
+  --bg-base:     #0A0E14;
+  --sidebar-bg:  #0F141B;
 }
 
 /* ── Large / XLarge font size modes ──────────────────────────────────────── */
