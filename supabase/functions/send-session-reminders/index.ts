@@ -140,7 +140,7 @@ Deno.serve(async (_req: Request) => {
 
   const { data: lectures24h, error: err24h } = await admin
     .from('live_lectures')
-    .select('id, scheduled_at, title, meeting_link, session_id, live_sessions!inner(faculty_id), live_bookings!inner(student_id)')
+    .select('id, scheduled_at, title, meeting_link, session_id, live_sessions!inner(faculty_id)')
     .eq('status', 'scheduled')
     .eq('reminder_sent_24h', false)
     .gte('scheduled_at', window24hStart)
@@ -151,26 +151,40 @@ Deno.serve(async (_req: Request) => {
     errors++;
   }
 
-  // Batch-fetch all faculty + student profiles for this pass
+  // Fetch bookings for the sessions in this window, separately.
+  // live_bookings.session_id references live_sessions.id (not live_lectures.id),
+  // so there's no direct FK path from live_lectures to live_bookings — we
+  // must fetch by session_id.
   const rows24h = (lectures24h ?? []) as Record<string, unknown>[];
+  const sessionIds24h = rows24h.map((r) => r.session_id as string);
+  const bookingsBySession24h = new Map<string, string[]>();
+  if (sessionIds24h.length > 0) {
+    const { data: bk } = await admin
+      .from('live_bookings')
+      .select('session_id, student_id')
+      .in('session_id', sessionIds24h)
+      .eq('payment_status', 'paid');
+    for (const b of (bk ?? []) as { session_id: string; student_id: string }[]) {
+      if (!bookingsBySession24h.has(b.session_id)) bookingsBySession24h.set(b.session_id, []);
+      bookingsBySession24h.get(b.session_id)!.push(b.student_id);
+    }
+  }
+
+  // Batch-fetch faculty + student profiles
   const profileIds24h: string[] = [];
   for (const r of rows24h) {
     const ls = r.live_sessions as Record<string, unknown> | Record<string, unknown>[] | null;
-    const lb = r.live_bookings as Record<string, unknown> | Record<string, unknown>[] | null;
-    // PostgREST returns arrays for !inner joins when multiple bookings exist
     const sessObj = Array.isArray(ls) ? ls[0] : ls;
-    const bookArr = Array.isArray(lb) ? lb : lb ? [lb] : [];
     if (sessObj?.faculty_id) profileIds24h.push(sessObj.faculty_id as string);
-    for (const b of bookArr) if (b?.student_id) profileIds24h.push(b.student_id as string);
   }
+  for (const studentIds of bookingsBySession24h.values()) profileIds24h.push(...studentIds);
   const profiles24h = await fetchProfiles(admin, profileIds24h);
 
   for (const row of rows24h) {
     try {
       const ls = row.live_sessions as Record<string, unknown> | Record<string, unknown>[] | null;
-      const lb = row.live_bookings as Record<string, unknown> | Record<string, unknown>[] | null;
       const sessObj = Array.isArray(ls) ? ls[0] : ls;
-      const bookArr = Array.isArray(lb) ? lb : lb ? [lb] : [];
+      const studentIds = bookingsBySession24h.get(row.session_id as string) ?? [];
 
       const lectureId     = row.id as string;
       const scheduledAt   = row.scheduled_at as string;
@@ -181,12 +195,18 @@ Deno.serve(async (_req: Request) => {
       const facultyName   = facultyProfile?.full_name ?? 'Faculty';
       const facultyWa     = facultyProfile?.wa_phone ?? null;
 
+      if (studentIds.length === 0) {
+        // No paid bookings — skip both student and faculty reminders; mark
+        // as sent so we don't re-try every 30 min for an empty session.
+        await admin.from('live_lectures').update({ reminder_sent_24h: true }).eq('id', lectureId);
+        continue;
+      }
+
       const tasks: Promise<unknown>[] = [];
 
       // T12 — faculty reminder (once per lecture, even if multiple bookings)
       if (facultyWa) {
-        const firstBooker = bookArr[0];
-        const firstStudentProfile = firstBooker?.student_id ? profiles24h.get(firstBooker.student_id as string) : null;
+        const firstStudentProfile = profiles24h.get(studentIds[0]);
         const studentNameForFaculty = firstStudentProfile?.full_name ?? 'Student';
         tasks.push(
           sendWhatsAppTemplate({
@@ -194,7 +214,7 @@ Deno.serve(async (_req: Request) => {
             to: stripPhone(facultyWa),
             params: [
               firstName(facultyName),
-              studentNameForFaculty + (bookArr.length > 1 ? ` + ${bookArr.length - 1} more` : ''),
+              studentNameForFaculty + (studentIds.length > 1 ? ` + ${studentIds.length - 1} more` : ''),
               topic,
               fmtDate(scheduledAt),
               fmtTime(scheduledAt),
@@ -206,8 +226,8 @@ Deno.serve(async (_req: Request) => {
       }
 
       // T07 — student reminder (once per booking)
-      for (const b of bookArr) {
-        const studentProfile = b?.student_id ? profiles24h.get(b.student_id as string) : null;
+      for (const studentId of studentIds) {
+        const studentProfile = profiles24h.get(studentId);
         if (!studentProfile?.wa_phone) continue;
         tasks.push(
           sendWhatsAppTemplate({
@@ -246,7 +266,7 @@ Deno.serve(async (_req: Request) => {
 
   const { data: lectures1h, error: err1h } = await admin
     .from('live_lectures')
-    .select('id, scheduled_at, title, meeting_link, session_id, live_sessions!inner(faculty_id), live_bookings!inner(student_id)')
+    .select('id, scheduled_at, title, meeting_link, session_id, live_sessions!inner(faculty_id)')
     .eq('status', 'scheduled')
     .eq('reminder_sent_1h', false)
     .gte('scheduled_at', window1hStart)
@@ -258,23 +278,34 @@ Deno.serve(async (_req: Request) => {
   }
 
   const rows1h = (lectures1h ?? []) as Record<string, unknown>[];
+  const sessionIds1h = rows1h.map((r) => r.session_id as string);
+  const bookingsBySession1h = new Map<string, string[]>();
+  if (sessionIds1h.length > 0) {
+    const { data: bk } = await admin
+      .from('live_bookings')
+      .select('session_id, student_id')
+      .in('session_id', sessionIds1h)
+      .eq('payment_status', 'paid');
+    for (const b of (bk ?? []) as { session_id: string; student_id: string }[]) {
+      if (!bookingsBySession1h.has(b.session_id)) bookingsBySession1h.set(b.session_id, []);
+      bookingsBySession1h.get(b.session_id)!.push(b.student_id);
+    }
+  }
+
   const profileIds1h: string[] = [];
   for (const r of rows1h) {
     const ls = r.live_sessions as Record<string, unknown> | Record<string, unknown>[] | null;
-    const lb = r.live_bookings as Record<string, unknown> | Record<string, unknown>[] | null;
     const sessObj = Array.isArray(ls) ? ls[0] : ls;
-    const bookArr = Array.isArray(lb) ? lb : lb ? [lb] : [];
     if (sessObj?.faculty_id) profileIds1h.push(sessObj.faculty_id as string);
-    for (const b of bookArr) if (b?.student_id) profileIds1h.push(b.student_id as string);
   }
+  for (const ids of bookingsBySession1h.values()) profileIds1h.push(...ids);
   const profiles1h = await fetchProfiles(admin, profileIds1h);
 
   for (const row of rows1h) {
     try {
       const ls = row.live_sessions as Record<string, unknown> | Record<string, unknown>[] | null;
-      const lb = row.live_bookings as Record<string, unknown> | Record<string, unknown>[] | null;
       const sessObj = Array.isArray(ls) ? ls[0] : ls;
-      const bookArr = Array.isArray(lb) ? lb : lb ? [lb] : [];
+      const studentIds = bookingsBySession1h.get(row.session_id as string) ?? [];
 
       const lectureId   = row.id as string;
       const scheduledAt = row.scheduled_at as string;
@@ -283,8 +314,13 @@ Deno.serve(async (_req: Request) => {
       const facultyId   = sessObj?.faculty_id as string;
       const facultyName = profiles1h.get(facultyId)?.full_name ?? 'Faculty';
 
-      for (const b of bookArr) {
-        const studentProfile = b?.student_id ? profiles1h.get(b.student_id as string) : null;
+      if (studentIds.length === 0) {
+        await admin.from('live_lectures').update({ reminder_sent_1h: true }).eq('id', lectureId);
+        continue;
+      }
+
+      for (const studentId of studentIds) {
+        const studentProfile = profiles1h.get(studentId);
         if (!studentProfile?.wa_phone) continue;
         await sendWhatsAppTemplate({
           templateName: 'edusaathiai_session_reminder_1h',
