@@ -35,6 +35,13 @@ export function FacultyToolDock({ saathiSlug }: Props) {
   const [hoveredId, setHoveredId]       = useState<string | null>(null)
   const [sparkle, setSparkle]           = useState(false)
   const [selectedTool, setSelectedTool] = useState<FacultyTool | null>(null)
+  const [zoomed, setZoomed]             = useState(false)
+
+  // Returning to the basket or closing the dock also exits zoom — nothing to
+  // zoom into when no tool is active.
+  useEffect(() => {
+    if (!selectedTool || !expanded) setZoomed(false)
+  }, [selectedTool, expanded])
 
   // If the faculty switches Saathis while a panel is open, drop the selection —
   // that tool may not be in the new basket.
@@ -64,15 +71,17 @@ export function FacultyToolDock({ saathiSlug }: Props) {
     return () => window.removeEventListener('faculty-dock:toggle', onToggle)
   }, [])
 
-  // Escape closes the expanded panel
+  // Escape → if zoomed, exit zoom first; otherwise close the expanded panel.
   useEffect(() => {
     if (!expanded) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setExpanded(false)
+      if (e.key !== 'Escape') return
+      if (zoomed) setZoomed(false)
+      else        setExpanded(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [expanded])
+  }, [expanded, zoomed])
 
   const handleToolClick = useCallback((tool: FacultyTool) => {
     setExpanded(true)
@@ -246,16 +255,25 @@ export function FacultyToolDock({ saathiSlug }: Props) {
         {expanded && (
           <motion.div
             initial={{ width: 0, opacity: 0 }}
-            animate={{ width: EXPANDED_WIDTH, opacity: 1 }}
+            animate={{ width: zoomed ? '100vw' : EXPANDED_WIDTH, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
             style={{
-              height:     '100%',
+              height:     zoomed ? '100vh' : '100%',
               background: 'var(--bg-surface)',
               borderLeft: '1px solid var(--border-subtle)',
               overflow:   'hidden',
               display:    'flex',
               flexDirection: 'column',
+              ...(zoomed ? {
+                position: 'fixed',
+                top:      0,
+                right:    0,
+                bottom:   0,
+                left:     0,
+                zIndex:   9999,
+                boxShadow:'0 0 60px rgba(0,0,0,0.15)',
+              } : {}),
             }}
           >
             {/* Header — shows breadcrumb when a tool is active */}
@@ -305,21 +323,51 @@ export function FacultyToolDock({ saathiSlug }: Props) {
                     {basket.headerLabel}
                   </h3>
                 )}
-                <button
-                  onClick={() => { setSelectedTool(null); setExpanded(false) }}
-                  aria-label="Close research basket"
-                  style={{
-                    background: 'transparent',
-                    border:     'none',
-                    cursor:     'pointer',
-                    fontSize:   16,
-                    lineHeight: 1,
-                    color:      'var(--text-ghost)',
-                    padding:    4,
-                  }}
-                >
-                  ✕
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {selectedTool && (
+                    <button
+                      onClick={() => setZoomed((z) => !z)}
+                      aria-label={zoomed ? 'Shrink panel (Esc)' : 'Zoom panel to fullscreen'}
+                      title={zoomed ? 'Shrink back to dock (Esc)' : 'Zoom to fullscreen (or double-click)'}
+                      style={{
+                        background:  'transparent',
+                        border:      'none',
+                        cursor:      'pointer',
+                        fontSize:    15,
+                        lineHeight:  1,
+                        color:       zoomed ? 'var(--gold)' : 'var(--text-ghost)',
+                        padding:     '4px 6px',
+                        borderRadius: 6,
+                        transition:  'background 0.15s ease, color 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--bg-elevated)'
+                        e.currentTarget.style.color      = 'var(--saathi-primary)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent'
+                        e.currentTarget.style.color      = zoomed ? 'var(--gold)' : 'var(--text-ghost)'
+                      }}
+                    >
+                      {zoomed ? '⤏' : '⛶'}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { setZoomed(false); setSelectedTool(null); setExpanded(false) }}
+                    aria-label="Close research basket"
+                    style={{
+                      background: 'transparent',
+                      border:     'none',
+                      cursor:     'pointer',
+                      fontSize:   16,
+                      lineHeight: 1,
+                      color:      'var(--text-ghost)',
+                      padding:    4,
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
               {!selectedTool && (
                 <p
@@ -336,9 +384,19 @@ export function FacultyToolDock({ saathiSlug }: Props) {
               )}
             </div>
 
-            {/* Body — tool cards OR active panel */}
+            {/* Body — tool cards OR active panel. Double-click the panel
+                to toggle zoom, matching the classroom FullscreenPanel pattern. */}
             {selectedTool ? (
-              <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <div
+                style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}
+                onDoubleClick={(e) => {
+                  // Ignore double-clicks on form inputs (search boxes) — only
+                  // treat empty-area dbl-clicks as zoom intent.
+                  const target = e.target as HTMLElement
+                  if (target.closest('input, textarea, button, a, select')) return
+                  setZoomed((z) => !z)
+                }}
+              >
                 <FacultyPanelRouter tool={selectedTool} saathiSlug={saathiSlug} />
               </div>
             ) : (

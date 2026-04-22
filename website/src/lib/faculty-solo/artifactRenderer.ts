@@ -53,6 +53,54 @@ export function renderArtifactPayloadHtml(toolId: string, payload: Record<string
         <p class="meta">Function</p>
         <p class="value">${escapeHtml(String(payload.function_text ?? '—'))}</p>
       `
+    case 'europepmc': {
+      const oa = payload.isOpenAccess ? ' (open access)' : ''
+      return `
+        <p class="meta">Authors</p>
+        <p class="value">${escapeHtml(String(payload.authorString ?? '—'))}</p>
+        <p class="meta">Journal · Year</p>
+        <p class="value">${escapeHtml(String(payload.journalTitle ?? '—'))} · ${escapeHtml(String(payload.pubYear ?? '—'))}${oa}</p>
+        <p class="meta">IDs</p>
+        <p class="value">${payload.pmid ? 'PMID: ' + escapeHtml(String(payload.pmid)) : ''}${payload.pmid && payload.pmcid ? ' · ' : ''}${payload.pmcid ? escapeHtml(String(payload.pmcid)) : ''}${payload.doi ? ' · DOI: ' + escapeHtml(String(payload.doi)) : ''}</p>
+      `
+    }
+    case 'semantic-scholar': {
+      const authors = Array.isArray(payload.authors)
+        ? (payload.authors as Array<{ name?: string }>).map((a) => a.name ?? '').filter(Boolean).join(', ')
+        : ''
+      return `
+        <p class="meta">Authors</p>
+        <p class="value">${escapeHtml(authors || '—')}</p>
+        <p class="meta">Venue · Year</p>
+        <p class="value">${escapeHtml(String(payload.venue ?? '—'))} · ${escapeHtml(String(payload.year ?? '—'))}</p>
+        <p class="meta">Citations</p>
+        <p class="value">${escapeHtml(String(payload.citationCount ?? '—'))}</p>
+        ${payload.abstract ? `<p class="meta">Abstract</p><p class="value">${escapeHtml(String(payload.abstract))}</p>` : ''}
+      `
+    }
+    case 'openfda':
+      return `
+        <p class="meta">Brand</p>
+        <p class="value">${escapeHtml(String(payload.brand ?? '—'))}</p>
+        <p class="meta">Generic</p>
+        <p class="value">${escapeHtml(String(payload.generic ?? '—'))}</p>
+        <p class="meta">Manufacturer</p>
+        <p class="value">${escapeHtml(String(payload.manufacturer ?? '—'))}</p>
+        ${payload.indications ? `<p class="meta">Indications</p><p class="value">${escapeHtml(String(payload.indications))}</p>` : ''}
+        ${payload.warnings    ? `<p class="meta">Warnings</p><p class="value">${escapeHtml(String(payload.warnings))}</p>`       : ''}
+        ${payload.dosage      ? `<p class="meta">Dosage</p><p class="value">${escapeHtml(String(payload.dosage))}</p>`           : ''}
+      `
+    case 'nasa-images':
+      return `
+        ${payload.thumb ? `<p><img src="${escapeHtml(String(payload.thumb))}" style="max-width:100%;border-radius:6px;border:1px solid #E8E4DD;" alt="${escapeHtml(String(payload.title ?? ''))}" /></p>` : ''}
+        <p class="meta">NASA ID</p>
+        <p class="value">${escapeHtml(String(payload.nasa_id ?? '—'))}</p>
+        <p class="meta">Date</p>
+        <p class="value">${escapeHtml(String(payload.date_created ?? '—'))}</p>
+        <p class="meta">Centre</p>
+        <p class="value">${escapeHtml(String(payload.center ?? '—'))}</p>
+        ${payload.description ? `<p class="meta">Description</p><p class="value">${escapeHtml(String(payload.description))}</p>` : ''}
+      `
     default:
       return `<pre class="value">${escapeHtml(JSON.stringify(payload, null, 2))}</pre>`
   }
@@ -146,6 +194,18 @@ export function renderArtifactWhatsAppText(artifact: SavedArtifact): string {
     body = `PDB: ${payload.pdb_id ?? '—'} · ${payload.resolution ?? '?'}Å\n${payload.organism ?? ''}`
   } else if (artifact.tool_id === 'uniprot') {
     body = `Accession: ${payload.accession ?? '—'}\nGene: ${payload.gene ?? '—'} · ${payload.organism ?? ''}`
+  } else if (artifact.tool_id === 'europepmc') {
+    const authors = String(payload.authorString ?? '').split(',').slice(0, 3).join(', ')
+    body = `${authors}\n${payload.journalTitle ?? ''} · ${payload.pubYear ?? ''}${payload.isOpenAccess ? ' (OA)' : ''}\n${payload.pmid ? 'PMID: ' + payload.pmid : ''}`
+  } else if (artifact.tool_id === 'semantic-scholar') {
+    const authors = Array.isArray(payload.authors)
+      ? (payload.authors as Array<{ name?: string }>).slice(0, 3).map((a) => a.name).filter(Boolean).join(', ')
+      : ''
+    body = `${authors}\n${payload.venue ?? ''} · ${payload.year ?? ''}\nCitations: ${payload.citationCount ?? '—'}`
+  } else if (artifact.tool_id === 'openfda') {
+    body = `Brand: ${payload.brand ?? '—'}\nGeneric: ${payload.generic ?? '—'}\n${payload.indications ?? ''}`
+  } else if (artifact.tool_id === 'nasa-images') {
+    body = `NASA ID: ${payload.nasa_id ?? '—'}\n${payload.center ?? ''} · ${payload.date_created ?? ''}`
   }
 
   const source = artifact.source_url ? `\n\n🔗 ${artifact.source_url}` : ''

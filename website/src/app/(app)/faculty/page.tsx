@@ -10,6 +10,8 @@ import Link from 'next/link'
 import { FacultySidebar } from '@/components/faculty/FacultySidebar'
 import { VerificationBanner } from '@/components/faculty/VerificationBanner'
 import { MobileNav } from '@/components/layout/MobileNav'
+import { getFacultyBasket } from '@/lib/faculty-solo/pluginRegistry'
+import { listTodaysArtifacts } from '@/lib/faculty-solo/artifactClient'
 
 type FacultyProfile = {
   id: string
@@ -47,6 +49,7 @@ export default function FacultyPage() {
   const [upiEditing, setUpiEditing] = useState(false)
   const [upiValue, setUpiValue] = useState('')
   const [upiSaving, setUpiSaving] = useState(false)
+  const [basketSavedToday, setBasketSavedToday] = useState(0)
 
   const saathiSlug = toSlug(profile?.primary_saathi_id) ?? null
   const saathi = saathiSlug ? SAATHIS.find(s => s.id === saathiSlug) ?? null : null
@@ -187,10 +190,15 @@ export default function FacultyPage() {
 
       setMission(items)
       setLoading(false)
+
+      // How many research basket artifacts saved today (fire-and-forget).
+      if (saathiSlug) {
+        void listTodaysArtifacts(saathiSlug).then((rows) => setBasketSavedToday(rows.length))
+      }
     }
 
     load()
-  }, [profile])
+  }, [profile, saathiSlug])
 
   // UPI save
   async function handleUpiSave() {
@@ -324,6 +332,139 @@ export default function FacultyPage() {
               </div>
             </div>
           )}
+
+          {/* ── Research Basket Prompt — free-tool dock on /chat ──
+              Always visible; copy firms up when the mission list is empty. */}
+          {saathi && saathiSlug && (() => {
+            const basket     = getFacultyBasket(saathiSlug)
+            const topTools   = basket.tools.slice(0, 4)
+            const remaining  = Math.max(0, basket.tools.length - topTools.length)
+            const missionEmpty = mission.length === 0
+            return (
+              <div style={{
+                marginBottom: '24px',
+                borderRadius: '14px',
+                padding:      '18px 20px 20px',
+                background:   'var(--saathi-bg)',
+                border:       '1.5px solid var(--saathi-border)',
+                position:     'relative',
+                overflow:     'hidden',
+              }}>
+                {/* Header row */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 10 }}>
+                  <span style={{ fontSize: 30, lineHeight: 1, flexShrink: 0 }}>{saathi.emoji}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize:   '17px',
+                      fontWeight: 700,
+                      color:      'var(--text-primary)',
+                      margin:     0,
+                      lineHeight: 1.2,
+                    }}>
+                      {basket.headerLabel}
+                    </p>
+                    <p style={{
+                      fontSize:   '13px',
+                      color:      'var(--text-secondary)',
+                      margin:     '4px 0 0',
+                      lineHeight: 1.55,
+                    }}>
+                      {missionEmpty
+                        ? 'Quiet day? Dive into papers, structures, and data — free forever, no API charges, no limits.'
+                        : basket.invitation}
+                    </p>
+                  </div>
+                  {basketSavedToday > 0 && (
+                    <span style={{
+                      flexShrink:    0,
+                      padding:       '4px 10px',
+                      borderRadius:  999,
+                      background:    'var(--gold)',
+                      color:         '#fff',
+                      fontSize:      11,
+                      fontWeight:    700,
+                      letterSpacing: 0.3,
+                      whiteSpace:    'nowrap',
+                    }}>
+                      {basketSavedToday} saved today
+                    </span>
+                  )}
+                </div>
+
+                {/* Tool chips */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+                  {topTools.map((t) => (
+                    <span
+                      key={t.id}
+                      title={t.description}
+                      style={{
+                        display:       'inline-flex',
+                        alignItems:    'center',
+                        gap:           5,
+                        padding:       '4px 10px',
+                        borderRadius:  999,
+                        background:    'var(--bg-surface)',
+                        border:        '1px solid var(--border-subtle)',
+                        fontSize:      11,
+                        fontWeight:    600,
+                        color:         'var(--text-secondary)',
+                        fontFamily:    'var(--font-body)',
+                      }}
+                    >
+                      <span style={{ fontSize: 12 }}>{t.emoji}</span>
+                      {t.name}
+                    </span>
+                  ))}
+                  {remaining > 0 && (
+                    <span style={{
+                      display:      'inline-flex',
+                      alignItems:   'center',
+                      padding:      '4px 10px',
+                      borderRadius: 999,
+                      background:   'transparent',
+                      border:       '1px dashed var(--border-medium)',
+                      fontSize:     11,
+                      fontWeight:   600,
+                      color:        'var(--text-tertiary)',
+                    }}>
+                      + {remaining} more
+                    </span>
+                  )}
+                </div>
+
+                {/* CTA row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <p style={{
+                    fontSize: 11,
+                    color: 'var(--gold)',
+                    fontWeight: 600,
+                    margin: 0,
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}>
+                    <span>✦</span>
+                    <span>Free · Yours to keep · PDF · Email · WhatsApp</span>
+                  </p>
+                  <Link
+                    href="/chat?tools=open"
+                    style={{
+                      padding:      '8px 16px',
+                      borderRadius: '10px',
+                      background:   color,
+                      color:        '#fff',
+                      fontSize:     12,
+                      fontWeight:   700,
+                      textDecoration:'none',
+                      whiteSpace:   'nowrap',
+                      boxShadow:    '0 1px 3px rgba(0,0,0,0.08)',
+                    }}
+                  >
+                    Open basket →
+                  </Link>
+                </div>
+              </div>
+            )
+          })()}
 
           {/* ── Quick Actions Grid ── */}
           <div style={{ marginBottom: '24px' }}>

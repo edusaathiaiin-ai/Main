@@ -14,6 +14,11 @@ import { UniProtPanel } from './UniProtPanel'
 import { GeoGebraPanel } from './GeoGebraPanel'
 import { PhETPanel } from './PhETPanel'
 import { SageMathCellPanel } from './SageMathCellPanel'
+import { EuropePMCPanel } from './EuropePMCPanel'
+import { SemanticScholarPanel } from './SemanticScholarPanel'
+import { IndiaCodePanel } from './IndiaCodePanel'
+import { OpenFdaPanel } from './OpenFdaPanel'
+import { NasaImagesPanel } from './NasaImagesPanel'
 import { ComingSoonPanel } from './ComingSoonPanel'
 
 // RCSB loads the 3Dmol CDN on mount — defer until the user actually picks it.
@@ -35,12 +40,17 @@ function PanelLoader({ emoji, label }: { emoji: string; label: string }) {
 
 export function FacultyPanelRouter({ tool, saathiSlug }: { tool: FacultyTool; saathiSlug: string }) {
   switch (tool.id) {
-    case 'pubmed':       return <PubMedPanel saathiSlug={saathiSlug} />
-    case 'rcsb':         return <RcsbPanelSolo saathiSlug={saathiSlug} />
-    case 'uniprot':      return <UniProtPanel saathiSlug={saathiSlug} />
-    case 'geogebra':     return <GeoGebraPanel />
-    case 'phet':         return <PhETPanel />
-    case 'sagemathcell': return <SageMathCellPanel />
-    default:             return <ComingSoonPanel tool={tool} />
+    case 'pubmed':           return <PubMedPanel          saathiSlug={saathiSlug} />
+    case 'rcsb':             return <RcsbPanelSolo        saathiSlug={saathiSlug} />
+    case 'uniprot':          return <UniProtPanel         saathiSlug={saathiSlug} />
+    case 'europepmc':        return <EuropePMCPanel       saathiSlug={saathiSlug} />
+    case 'semantic-scholar': return <SemanticScholarPanel saathiSlug={saathiSlug} />
+    case 'indiacode':        return <IndiaCodePanel />
+    case 'openfda':          return <OpenFdaPanel         saathiSlug={saathiSlug} />
+    case 'nasa-images':      return <NasaImagesPanel      saathiSlug={saathiSlug} />
+    case 'geogebra':         return <GeoGebraPanel />
+    case 'phet':             return <PhETPanel />
+    case 'sagemathcell':     return <SageMathCellPanel />
+    default:                 return <ComingSoonPanel tool={tool} />
   }
 }

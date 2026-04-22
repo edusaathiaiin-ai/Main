@@ -278,6 +278,18 @@ export function ChatWindow() {
   const { viewAs } = useViewAsStore()
   const searchParams = useSearchParams()
 
+  // Deep-link: /chat?tools=open from the faculty dashboard auto-opens
+  // the research basket dock so the landing flow feels continuous.
+  useEffect(() => {
+    if (searchParams.get('tools') !== 'open') return
+    if (typeof window === 'undefined') return
+    // Defer one tick so FacultyToolDock has mounted its toggle listener.
+    const t = setTimeout(() => {
+      window.dispatchEvent(new Event('faculty-dock:toggle'))
+    }, 150)
+    return () => clearTimeout(t)
+  }, [searchParams])
+
   const [quota, setQuota] = useState<QuotaState>(DEFAULT_QUOTA)
   const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(undefined)
   const [inputValue, setInputValue] = useState('')
