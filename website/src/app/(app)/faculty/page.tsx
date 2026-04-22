@@ -472,7 +472,11 @@ export default function FacultyPage() {
             )
           })()}
 
-          {/* ── Quick Actions Grid ── */}
+          {/* ── Quick Actions Grid ──
+              Uses the .quick-action recipe from globals.css (design.md §10)
+              so every tile carries the off-white surface, 12px radius,
+              elevation-2 shadow, and translateY(-2px) lift on hover.
+              16px gap + equal-height rows per design.md §9. */}
           <div style={{ marginBottom: '24px' }}>
             <p style={{
               fontSize: 'var(--text-xs)', fontWeight: 700,
@@ -481,29 +485,21 @@ export default function FacultyPage() {
             }}>
               Quick actions
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+            <div style={{
+              display:             'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+              gap:                 '16px',
+              gridAutoRows:        '1fr',
+            }}>
               {[
-                { icon: '🎙️', label: 'Create Live Session', href: '/faculty/live/create', accent: '#DC2626' },
-                { icon: '📝', label: 'Create Question Paper', href: '/faculty/question-paper' },
-                { icon: '📚', label: 'Upload Study Material', href: '/faculty/create-material' },
+                { icon: '🎙️', label: 'Create Live Session',      href: '/faculty/live/create' },
+                { icon: '📝', label: 'Create Question Paper',    href: '/faculty/question-paper' },
+                { icon: '📚', label: 'Upload Study Material',    href: '/faculty/create-material' },
                 { icon: '🔬', label: 'Post Research Opportunity', href: '/faculty/research' },
               ].map(action => (
-                <Link
-                  key={action.href}
-                  href={action.href}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '14px 16px', borderRadius: '12px',
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--border-subtle)',
-                    textDecoration: 'none',
-                    transition: 'all 200ms ease',
-                  }}
-                >
-                  <span style={{ fontSize: '18px' }}>{action.icon}</span>
-                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}>
-                    {action.label}
-                  </span>
+                <Link key={action.href} href={action.href} className="quick-action">
+                  <span className="quick-action-icon">{action.icon}</span>
+                  <span>{action.label}</span>
                 </Link>
               ))}
             </div>
