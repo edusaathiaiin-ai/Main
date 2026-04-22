@@ -9,6 +9,7 @@ import { BOTS, FACULTY_BOTS } from '@/constants/bots'
 import { isInFreeTrial, getPlanTier } from '@/constants/plans'
 import { useViewAsStore } from '@/stores/viewAsStore'
 import { ViewAsToggle } from './ViewAsToggle'
+import { FacultyToolsButton } from '@/components/faculty/FacultyToolsButton'
 import type { UserRole } from '@/types'
 
 type Props = {
@@ -144,6 +145,9 @@ export function SaathiHeader({
               🎓 Guided tour
             </button>
           )}
+
+          {/* Faculty research basket — only when actually in faculty view */}
+          {isFacultyUser && viewAs === 'faculty' && <FacultyToolsButton />}
 
           <NotificationBell />
 

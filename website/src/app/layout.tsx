@@ -85,7 +85,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="flex min-h-screen flex-col antialiased">
+      <body
+        className="flex min-h-screen flex-col antialiased"
+        suppressHydrationWarning
+      >
         <a href="#chat-main" className="skip-to-content">
           Skip to chat
         </a>

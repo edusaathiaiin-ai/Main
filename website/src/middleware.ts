@@ -18,6 +18,8 @@ const PUBLIC_PATHS = [
   '/offline',
   '/auth',            // PKCE callback handles its own auth
   '/api/contact',     // public contact form — anonymous visitors must be able to POST
+  '/api/classroom',   // read-only proxies to public APIs (PubMed/NCBI, RCSB, PubChem, NASA, openFDA …)
+  '/api/pubmed',      // direct biomedical search proxy
 ]
 
 export async function middleware(request: NextRequest) {

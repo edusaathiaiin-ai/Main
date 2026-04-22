@@ -41,6 +41,7 @@ import { FreePlanBar } from './FreePlanBar'
 import { WaLinkTip } from './WaLinkTip'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { SendToQuestionPaper } from './SendToQuestionPaper'
+import { FacultyToolDock } from '@/components/faculty/FacultyToolDock'
 // ── Below-fold / conditional — lazy ───────────────────────────────────────────
 const DidYouKnow            = dynamic(() => import('./DidYouKnow').then(m => ({ default: m.DidYouKnow })), { ssr: false })
 const CompanionshipCard     = dynamic(() => import('./CompanionshipCard').then(m => ({ default: m.CompanionshipCard })), { ssr: false })
@@ -1314,6 +1315,9 @@ export function ChatWindow() {
         </>
         )}
       </main>
+
+      {/* Faculty-only solo research basket — xl+ screens only */}
+      {isFacultyView && <FacultyToolDock saathiSlug={saathiId} />}
 
       {/* Mobile bottom nav */}
       <MobileNav />
