@@ -13,19 +13,7 @@ export function ContactLink({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        style={{
-          background: 'transparent',
-          border: 'none',
-          padding: 0,
-          font: 'inherit',
-          color: 'inherit',
-          cursor: 'pointer',
-          textDecoration: 'none',
-        }}
-      >
+      <button type="button" onClick={() => setOpen(true)}>
         {children}
       </button>
       <ContactModal open={open} onClose={() => setOpen(false)} />

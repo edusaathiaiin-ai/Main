@@ -130,7 +130,7 @@ export default async function RootPage() {
         .land-footer{border-top:0.5px solid rgba(255,255,255,0.07);padding:48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;max-width:1200px;margin:0 auto}
         .footer-logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:700}.footer-logo span{color:var(--gold)}
         .footer-tagline{font-size:12px;color:var(--gray-dim);margin-top:4px}
-        .footer-links{display:flex;gap:32px;list-style:none;margin:0;padding:0}.footer-links a{color:rgba(255,255,255,0.4);text-decoration:none;font-size:13px;transition:color 0.2s}.footer-links a:hover{color:#fff}
+        .footer-links{display:flex;gap:32px;list-style:none;margin:0;padding:0}.footer-links a,.footer-links button{color:rgba(255,255,255,0.4);text-decoration:none;font-size:13px;transition:color 0.2s;background:transparent;border:none;padding:0;font-family:inherit;cursor:pointer}.footer-links a:hover,.footer-links button:hover{color:#fff}
         .footer-copy{font-size:12px;color:rgba(255,255,255,0.2);width:100%;text-align:center;padding-top:24px;border-top:0.5px solid rgba(255,255,255,0.05);margin-top:8px}
         @media(max-width:768px){
           .land-nav{padding:16px 20px}.land-nav-links{display:none}
