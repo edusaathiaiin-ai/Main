@@ -211,3 +211,111 @@ export function renderArtifactWhatsAppText(artifact: SavedArtifact): string {
   const source = artifact.source_url ? `\n\n🔗 ${artifact.source_url}` : ''
   return `${emoji} *${name}* · ${tool}\n\n*${title}*\n\n${body}${source}\n\n— Curated via EdUsaathiAI`
 }
+
+// ── Session-bundle renderers ─────────────────────────────────────────────────
+// One-shot export of many artifacts saved in a single day. Header banner +
+// a short preface + stacked artifact blocks + footer. Reused across PDF, email
+// and (as compact text) WhatsApp so branding is uniform.
+
+/** Short summary of one artifact used inside bundle layouts. */
+function renderBundleArtifactBlock(artifact: SavedArtifact, primary: string): string {
+  const time = new Date(artifact.created_at).toLocaleTimeString('en-IN', {
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  })
+  const inner = renderArtifactPayloadHtml(artifact.tool_id, artifact.payload_json)
+  return `
+    <article style="margin:0 0 18px;padding:14px 16px;border:1px solid #E8E4DD;border-left:3px solid ${primary};border-radius:8px;background:#fff;page-break-inside:avoid;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:1px 7px;border-radius:4px;background:${primary}22;color:${primary};font-family:ui-monospace,Menlo,Consolas,monospace;">${escapeHtml(artifact.tool_id)}</span>
+        <span style="font-size:10px;color:#A8A49E;font-family:ui-monospace,Menlo,Consolas,monospace;margin-left:auto;">${escapeHtml(time)}</span>
+      </div>
+      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1A1814;line-height:1.35;font-family:Georgia,'Times New Roman',serif;">${escapeHtml(artifact.title ?? artifact.tool_id)}</p>
+      <div style="font-size:12px;line-height:1.5;color:#1A1814;">
+        <style>
+          article .meta {margin:6px 0 1px;font-size:9px;letter-spacing:0.6px;text-transform:uppercase;font-weight:700;color:#7A7570;}
+          article .value {margin:0 0 4px;font-size:12px;color:#1A1814;}
+        </style>
+        ${inner}
+      </div>
+      ${artifact.source_url ? `<p style="margin:8px 0 0;font-size:10px;color:#7A7570;">Source · <a href="${escapeHtml(artifact.source_url)}" style="color:${primary};text-decoration:none;">${escapeHtml(artifact.source_url)}</a></p>` : ''}
+    </article>
+  `
+}
+
+/**
+ * Full bundle HTML — print-ready or email-ready. Same shell both ways since
+ * the email client tolerates the @media print hints safely.
+ */
+export function renderSessionBundleHtml(
+  artifacts: SavedArtifact[],
+  saathiSlug: string,
+  blurb?: string,
+): string {
+  const { emoji, name, tagline, primary } = resolveSaathiBrand(saathiSlug)
+  const dateStr = new Date().toLocaleDateString('en-IN', {
+    day: '2-digit', month: 'long', year: 'numeric',
+  })
+  const count   = artifacts.length
+
+  const blocks = artifacts.map((a) => renderBundleArtifactBlock(a, primary)).join('\n')
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>${escapeHtml(name)} · Today's Research · ${escapeHtml(dateStr)}</title>
+</head>
+<body style="margin:0;padding:0;background:#FAF7F2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1A1814;">
+  <div style="max-width:720px;margin:0 auto;padding:24px 20px;">
+    <div style="height:4px;background:linear-gradient(90deg,${primary} 0%,#C9993A 100%);border-radius:2px;"></div>
+
+    <div style="display:flex;align-items:center;gap:12px;padding:16px 0 12px;border-bottom:1px solid #E8E4DD;">
+      <div style="font-size:34px;line-height:1;">${emoji}</div>
+      <div style="flex:1;">
+        <h1 style="margin:0;font-size:21px;font-weight:700;color:${primary};font-family:Georgia,'Times New Roman',serif;">${escapeHtml(name)}</h1>
+        <p style="margin:2px 0 0;font-size:13px;color:#7A7570;font-style:italic;">${escapeHtml(tagline)}</p>
+      </div>
+      <div style="text-align:right;">
+        <p style="margin:0;font-size:11px;color:#A8A49E;letter-spacing:0.4px;text-transform:uppercase;font-weight:700;">Today&apos;s Research</p>
+        <p style="margin:2px 0 0;font-size:13px;color:#1A1814;font-weight:600;">${escapeHtml(dateStr)}</p>
+      </div>
+    </div>
+
+    ${blurb ? `<p style="margin:16px 0 8px;font-size:14px;color:#4A4740;line-height:1.6;">${escapeHtml(blurb)}</p>` : ''}
+
+    <p style="margin:18px 0 14px;font-size:12px;color:${primary};font-weight:600;">✦ ${count} ${count === 1 ? 'item' : 'items'} saved — free, yours to keep.</p>
+
+    ${blocks}
+
+    <div style="margin-top:28px;padding-top:14px;border-top:0.5px solid #E8E4DD;font-size:11px;color:#A8A49E;display:flex;justify-content:space-between;">
+      <span>Curated via EdUsaathiAI · ${escapeHtml(dateStr)}</span>
+      <span>edusaathiai.in</span>
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+/**
+ * Compact WhatsApp summary. Lists titles with tool prefix. Max 10 lines so
+ * the message isn't a wall of text; overflow shows "… + N more saved today".
+ */
+export function renderSessionBundleWhatsAppText(
+  artifacts: SavedArtifact[],
+  saathiSlug: string,
+): string {
+  const { emoji, name } = resolveSaathiBrand(saathiSlug)
+  const dateStr = new Date().toLocaleDateString('en-IN', {
+    day: '2-digit', month: 'long', year: 'numeric',
+  })
+  const head    = `${emoji} *${name}* · Today's Research · ${dateStr}`
+  const visible = artifacts.slice(0, 10)
+  const lines   = visible.map((a, i) => {
+    const tool  = a.tool_id.toUpperCase()
+    const title = (a.title ?? a.tool_id).slice(0, 110)
+    return `${i + 1}. [${tool}] ${title}`
+  })
+  const overflow = artifacts.length > 10 ? `\n… + ${artifacts.length - 10} more saved today` : ''
+  return `${head}\n\n${lines.join('\n')}${overflow}\n\n— Curated via EdUsaathiAI`
+}

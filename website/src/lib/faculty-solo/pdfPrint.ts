@@ -8,7 +8,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { SavedArtifact } from './artifactClient'
-import { escapeHtml, renderArtifactPayloadHtml, resolveSaathiBrand } from './artifactRenderer'
+import {
+  escapeHtml,
+  renderArtifactPayloadHtml,
+  renderSessionBundleHtml,
+  resolveSaathiBrand,
+} from './artifactRenderer'
 
 export function printArtifactPdf(artifact: SavedArtifact, saathiSlug: string): void {
   const { emoji, name, tagline, primary } = resolveSaathiBrand(saathiSlug)
@@ -165,5 +170,32 @@ export function printArtifactPdf(artifact: SavedArtifact, saathiSlug: string): v
   }
   w.document.open()
   w.document.write(html)
+  w.document.close()
+}
+
+/**
+ * Session-bundle PDF — all of today's artifacts in one Saathi-branded doc.
+ * Reuses renderSessionBundleHtml so it stays visually identical to the
+ * emailed bundle; we just append a tiny script that triggers window.print().
+ */
+export function printSessionBundlePdf(
+  artifacts: SavedArtifact[],
+  saathiSlug: string,
+): void {
+  if (!artifacts.length) return
+  const base = renderSessionBundleHtml(artifacts, saathiSlug)
+  // Append a print trigger. The bundle HTML is a full document, so we inject
+  // the script right before </body>.
+  const withPrint = base.replace(
+    '</body>',
+    `<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),250));</script></body>`,
+  )
+  const w = window.open('', '_blank', 'width=880,height=1100')
+  if (!w) {
+    alert('Please allow pop-ups for localhost to download PDFs.')
+    return
+  }
+  w.document.open()
+  w.document.write(withPrint)
   w.document.close()
 }

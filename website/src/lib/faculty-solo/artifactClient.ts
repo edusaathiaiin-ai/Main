@@ -92,6 +92,25 @@ export async function whatsappArtifact(artifactId: string): Promise<ExportResult
   }
 }
 
+/** Session-bundle exports — one call, one channel, server renders and delivers. */
+export async function shareTodaysSession(
+  channel:    'email' | 'whatsapp',
+  saathiSlug: string,
+): Promise<ExportResult & { count?: number }> {
+  try {
+    const res = await fetch('/api/faculty-solo/export/session', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ channel, saathi_slug: saathiSlug }),
+    })
+    const data = await res.json() as ExportResult & { error?: string; count?: number }
+    if (!res.ok && !data.status) return { status: 'failed', detail: data.error ?? 'send_failed' }
+    return data
+  } catch {
+    return { status: 'failed', detail: 'network_error' }
+  }
+}
+
 // ── Session bucket — one UUID per ~2h sitting, persisted in sessionStorage ──
 
 const BUCKET_KEY    = 'faculty_solo_bucket_id'

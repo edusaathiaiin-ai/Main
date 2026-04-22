@@ -13,19 +13,52 @@ import {
   listTodaysArtifacts,
   emailArtifact,
   whatsappArtifact,
+  shareTodaysSession,
   type SavedArtifact,
   type ExportResult,
 } from '@/lib/faculty-solo/artifactClient'
-import { printArtifactPdf } from '@/lib/faculty-solo/pdfPrint'
+import { printArtifactPdf, printSessionBundlePdf } from '@/lib/faculty-solo/pdfPrint'
 
 type Props = {
   saathiSlug: string
 }
 
+type BundlePending = null | 'email' | 'whatsapp'
+type BundleFlash   = null | { kind: 'pdf' | 'email' | 'whatsapp'; status: 'sent' | 'pending' | 'failed'; count?: number }
+
 export function FacultyArtifactRail({ saathiSlug }: Props) {
   const [items, setItems]     = useState<SavedArtifact[]>([])
   const [loading, setLoading] = useState(false)
   const [open, setOpen]       = useState(false)
+  const [bundlePending, setBundlePending] = useState<BundlePending>(null)
+  const [bundleFlash, setBundleFlash]     = useState<BundleFlash>(null)
+
+  function showBundleFlash(kind: 'pdf' | 'email' | 'whatsapp', status: 'sent' | 'pending' | 'failed', count?: number) {
+    setBundleFlash({ kind, status, count })
+    setTimeout(() => setBundleFlash(null), 3000)
+  }
+
+  function handleBundlePdf() {
+    if (!items.length) return
+    printSessionBundlePdf(items, saathiSlug)
+    showBundleFlash('pdf', 'sent', items.length)
+  }
+
+  async function handleBundleEmail() {
+    if (!items.length || bundlePending) return
+    setBundlePending('email')
+    const r = await shareTodaysSession('email', saathiSlug)
+    setBundlePending(null)
+    showBundleFlash('email', r.status, r.count ?? items.length)
+  }
+
+  async function handleBundleWhatsApp() {
+    if (!items.length || bundlePending) return
+    setBundlePending('whatsapp')
+    const r = await shareTodaysSession('whatsapp', saathiSlug)
+    setBundlePending(null)
+    showBundleFlash('whatsapp', r.status, r.count ?? items.length)
+  }
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -53,25 +86,18 @@ export function FacultyArtifactRail({ saathiSlug }: Props) {
         flexShrink: 0,
       }}
     >
-      {/* Header — clickable when there's something to see */}
-      <button
-        onClick={() => setOpen((o) => !o)}
+      {/* Header row — title, count pill, share-today icons, expand toggle */}
+      <div
         style={{
-          width:          '100%',
           display:        'flex',
           alignItems:     'center',
           justifyContent: 'space-between',
           gap:            8,
-          padding:        0,
-          background:     'transparent',
-          border:         'none',
-          cursor:         hasItems ? 'pointer' : 'default',
           fontFamily:     'var(--font-body)',
           color:          'var(--text-secondary)',
         }}
-        disabled={!hasItems}
       >
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <span style={{
             fontSize:      10,
             fontWeight:    700,
@@ -94,12 +120,74 @@ export function FacultyArtifactRail({ saathiSlug }: Props) {
             </span>
           )}
         </span>
+
         {hasItems && (
-          <span style={{ fontSize: 10, color: 'var(--text-ghost)', fontWeight: 600 }}>
-            {open ? '▾ Collapse' : '▸ Expand'}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <ShareIcon
+              icon="📎"
+              label={`Download today's work as one PDF (${items.length} item${items.length === 1 ? '' : 's'})`}
+              onClick={handleBundlePdf}
+              disabled={!!bundlePending}
+            />
+            <ShareIcon
+              icon="📧"
+              label="Email today's work as one branded bundle"
+              onClick={handleBundleEmail}
+              disabled={!!bundlePending}
+              loading={bundlePending === 'email'}
+            />
+            <ShareIcon
+              icon="💬"
+              label="WhatsApp today's work as a summary"
+              onClick={handleBundleWhatsApp}
+              disabled={!!bundlePending}
+              loading={bundlePending === 'whatsapp'}
+            />
+            <button
+              onClick={() => setOpen((o) => !o)}
+              style={{
+                marginLeft:   4,
+                padding:      '4px 8px',
+                background:   'transparent',
+                border:       'none',
+                cursor:       'pointer',
+                fontSize:     10,
+                fontWeight:   600,
+                color:        'var(--text-ghost)',
+                whiteSpace:   'nowrap',
+              }}
+              aria-label={open ? 'Collapse list' : 'Expand list'}
+            >
+              {open ? '▾ Collapse' : '▸ Expand'}
+            </button>
+          </div>
         )}
-      </button>
+      </div>
+
+      {/* Bundle delivery status flash */}
+      {bundleFlash && (
+        <p style={{
+          margin:     '6px 0 0',
+          fontSize:   10,
+          fontWeight: 700,
+          letterSpacing: 0.3,
+          color:
+            bundleFlash.status === 'sent'    ? '#16A34A' :
+            bundleFlash.status === 'pending' ? '#C9993A' :
+            '#EF4444',
+        }}>
+          {bundleFlash.status === 'sent' && (
+            bundleFlash.kind === 'pdf'   ? `✓ PDF ready · ${bundleFlash.count ?? ''} item${(bundleFlash.count ?? 0) === 1 ? '' : 's'}` :
+            bundleFlash.kind === 'email' ? `✓ Emailed today's work · ${bundleFlash.count ?? ''} item${(bundleFlash.count ?? 0) === 1 ? '' : 's'}` :
+            `✓ WhatsApp summary sent`
+          )}
+          {bundleFlash.status === 'pending' && (
+            bundleFlash.kind === 'whatsapp' ? '◷ Queued (pending WhatsApp re-engagement)' :
+            `◷ ${bundleFlash.kind} queued`
+          )}
+          {bundleFlash.status === 'failed' && `✕ ${bundleFlash.kind} failed`}
+        </p>
+      )}
 
       {/* Body */}
       {!hasItems && !loading && (
@@ -352,6 +440,54 @@ function hoverOut(e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) {
   el.style.borderColor = 'var(--border-subtle)'
   el.style.color       = 'var(--text-secondary)'
   el.style.background  = 'var(--bg-elevated)'
+}
+
+// Compact icon button for the rail header (smaller than per-row IconButton).
+function ShareIcon({
+  icon, label, onClick, disabled, loading,
+}: {
+  icon:      string
+  label:     string
+  onClick:   () => void
+  disabled?: boolean
+  loading?:  boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled || loading}
+      title={label}
+      aria-label={label}
+      style={{
+        width:         22,
+        height:        22,
+        display:       'inline-flex',
+        alignItems:    'center',
+        justifyContent:'center',
+        border:        '1px solid var(--border-subtle)',
+        borderRadius:  5,
+        background:    'var(--bg-elevated)',
+        color:         'var(--text-secondary)',
+        fontSize:      11,
+        cursor:        loading ? 'wait' : disabled ? 'not-allowed' : 'pointer',
+        opacity:       disabled && !loading ? 0.45 : 1,
+        transition:    'all 0.15s ease',
+      }}
+      onMouseEnter={(e) => {
+        if (disabled || loading) return
+        e.currentTarget.style.borderColor = 'var(--saathi-primary)'
+        e.currentTarget.style.color       = 'var(--saathi-primary)'
+        e.currentTarget.style.background  = 'var(--saathi-light)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = 'var(--border-subtle)'
+        e.currentTarget.style.color       = 'var(--text-secondary)'
+        e.currentTarget.style.background  = 'var(--bg-elevated)'
+      }}
+    >
+      {loading ? '…' : icon}
+    </button>
+  )
 }
 
 function IconButton({
