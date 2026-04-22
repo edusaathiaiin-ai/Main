@@ -411,16 +411,45 @@ export function FacultyToolDock({ saathiSlug }: Props) {
                   gap:           10,
                 }}
               >
-                {basket.tools.map((tool, i) => (
-                  <motion.div
-                    key={tool.id}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.02, duration: 0.15 }}
-                  >
-                    <ToolCard tool={tool} onClick={() => handleToolClick(tool)} />
-                  </motion.div>
-                ))}
+                {basket.tools.map((tool, i) => {
+                  const shouldDivide =
+                    typeof basket.primaryCount === 'number' &&
+                    i === basket.primaryCount &&
+                    i > 0 &&
+                    i < basket.tools.length
+                  return (
+                    <div key={tool.id}>
+                      {shouldDivide && (
+                        <div style={{
+                          display:        'flex',
+                          alignItems:     'center',
+                          gap:            8,
+                          margin:         '6px 2px 8px',
+                        }}>
+                          <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
+                          <span style={{
+                            fontSize:      9,
+                            fontWeight:    700,
+                            letterSpacing: 0.8,
+                            textTransform: 'uppercase',
+                            color:         'var(--text-ghost)',
+                            whiteSpace:    'nowrap',
+                          }}>
+                            ✦ Also in this basket
+                          </span>
+                          <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
+                        </div>
+                      )}
+                      <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.02, duration: 0.15 }}
+                      >
+                        <ToolCard tool={tool} onClick={() => handleToolClick(tool)} />
+                      </motion.div>
+                    </div>
+                  )
+                })}
               </div>
             )}
 

@@ -40,6 +40,13 @@ export type FacultyBasket = {
   invitation: string
   /** Ordered list of tools in this Saathi's basket */
   tools: FacultyTool[]
+  /**
+   * How many of the leading tools are "primary" for this Saathi. If set,
+   * the expanded dock renders a subtle divider (`✦ Also in this basket`)
+   * between indices [0, primaryCount) and [primaryCount, tools.length).
+   * Leave undefined to suppress the divider (baskets with ≤4 tools).
+   */
+  primaryCount?: number
 }
 
 // ── Shared tool definitions — reused across multiple Saathis ────────────────
@@ -388,27 +395,37 @@ const OPEN_ANATOMY: FacultyTool = {
 
 // ── Per-Saathi baskets ──────────────────────────────────────────────────────
 
+// Tools within each basket are ordered deliberately: Saathi-native /
+// high-value first, cross-disciplinary supporting tools after. When a basket
+// has 5+ tools, primaryCount marks the dividing line so the dock can render
+// "✦ Also in this basket" between primary and extras. Keep smaller baskets
+// (≤4 tools) without a divider — everything there is primary.
+
 export const FACULTY_BASKETS: Record<string, FacultyBasket> = {
   // STEM
   biosaathi: {
-    headerLabel: "🧬 BioSaathi's Research Basket",
-    invitation:  'Free, forever. Yours to explore — no API charges, no limits.',
-    tools:       [RCSB, UNIPROT, PUBMED, EUROPE_PMC, SEMANTIC_SCHOLAR, ENSEMBL, NCBI_GENE],
+    headerLabel:  "🧬 BioSaathi's Research Basket",
+    invitation:   'Free, forever. Yours to explore — no API charges, no limits.',
+    tools:        [RCSB, UNIPROT, PUBMED, EUROPE_PMC, ENSEMBL, NCBI_GENE, SEMANTIC_SCHOLAR],
+    primaryCount: 4,
   },
   biotechsaathi: {
-    headerLabel: "🔬 BioTechSaathi's Research Basket",
-    invitation:  'Your biotech bench — genomes, proteins, literature, free forever.',
-    tools:       [RCSB, UNIPROT, ENSEMBL, NCBI_GENE, PUBMED, EUROPE_PMC],
+    headerLabel:  "🔬 BioTechSaathi's Research Basket",
+    invitation:   'Your biotech bench — genomes, proteins, literature, free forever.',
+    tools:        [RCSB, UNIPROT, ENSEMBL, NCBI_GENE, PUBMED, EUROPE_PMC],
+    primaryCount: 4,
   },
   physicsaathi: {
-    headerLabel: "⚛️ PhysicsSaathi's Lab Bench",
-    invitation:  'Plot, simulate, compute — no calculator costs.',
-    tools:       [GEOGEBRA, PHET, SAGEMATHCELL, NASA_IMAGES, SEMANTIC_SCHOLAR],
+    headerLabel:  "⚛️ PhysicsSaathi's Lab Bench",
+    invitation:   'Plot, simulate, compute — no calculator costs.',
+    tools:        [GEOGEBRA, PHET, SAGEMATHCELL, NASA_IMAGES, SEMANTIC_SCHOLAR],
+    primaryCount: 3,
   },
   chemsaathi: {
-    headerLabel: "🧪 ChemSaathi's Lab Table",
-    invitation:  'Molecules, reactions, compute — all free tier.',
-    tools:       [PUBCHEM, THREEDMOL, MOLVIEW, SAGEMATHCELL, PUBMED],
+    headerLabel:  "🧪 ChemSaathi's Lab Table",
+    invitation:   'Molecules, reactions, compute — all free tier.',
+    tools:        [PUBCHEM, THREEDMOL, MOLVIEW, SAGEMATHCELL, PUBMED],
+    primaryCount: 4,
   },
   maathsaathi: {
     headerLabel: "📐 MaathSaathi's Math Bench",
@@ -431,9 +448,10 @@ export const FACULTY_BASKETS: Record<string, FacultyBasket> = {
     tools:       [GEOGEBRA, PHET, SAGEMATHCELL],
   },
   aerospacesaathi: {
-    headerLabel: "🚀 AerospaceSaathi's Mission Desk",
-    invitation:  'Orbits, imagery, missions — NASA + ISRO, free.',
-    tools:       [NASA_IMAGES, NTRS, ISRO_BHUVAN, GEOGEBRA, PHET, SAGEMATHCELL],
+    headerLabel:  "🚀 AerospaceSaathi's Mission Desk",
+    invitation:   'Orbits, imagery, missions — NASA + ISRO, free.',
+    tools:        [NASA_IMAGES, NTRS, ISRO_BHUVAN, GEOGEBRA, PHET, SAGEMATHCELL],
+    primaryCount: 3,
   },
   elecsaathi: {
     headerLabel: "⚡ ElecSaathi's Bench",
@@ -451,9 +469,10 @@ export const FACULTY_BASKETS: Record<string, FacultyBasket> = {
     tools:       [PUBCHEM, GEOGEBRA, PHET, SAGEMATHCELL],
   },
   envirosaathi: {
-    headerLabel: "🌍 EnviroSaathi's Field Desk",
-    invitation:  'Maps, satellites, data — all open.',
-    tools:       [LEAFLET, NASA_IMAGES, GEOGEBRA, DATA_GOV_IN, USGS],
+    headerLabel:  "🌍 EnviroSaathi's Field Desk",
+    invitation:   'Maps, satellites, data — all open.',
+    tools:        [LEAFLET, NASA_IMAGES, USGS, GEOGEBRA, DATA_GOV_IN],
+    primaryCount: 3,
   },
   agrisaathi: {
     headerLabel: "🌾 AgriSaathi's Field Kit",
@@ -463,14 +482,16 @@ export const FACULTY_BASKETS: Record<string, FacultyBasket> = {
 
   // Medical
   medicosaathi: {
-    headerLabel: "🏥 MedicoSaathi's Clinic Desk",
-    invitation:  'Anatomy, drugs, literature — all free, all safe.',
-    tools:       [OPEN_ANATOMY, PUBMED, EUROPE_PMC, OPENFDA, MEDLINEPLUS, RCSB],
+    headerLabel:  "🏥 MedicoSaathi's Clinic Desk",
+    invitation:   'Anatomy, drugs, literature — all free, all safe.',
+    tools:        [OPEN_ANATOMY, OPENFDA, PUBMED, MEDLINEPLUS, EUROPE_PMC, RCSB],
+    primaryCount: 4,
   },
   pharmasaathi: {
-    headerLabel: "💊 PharmaSaathi's Dispensary Desk",
-    invitation:  'Molecules, targets, drug references — free tier.',
-    tools:       [PUBCHEM, RCSB, OPENFDA, PUBMED, EUROPE_PMC],
+    headerLabel:  "💊 PharmaSaathi's Dispensary Desk",
+    invitation:   'Molecules, targets, drug references — free tier.',
+    tools:        [PUBCHEM, OPENFDA, RCSB, PUBMED, EUROPE_PMC],
+    primaryCount: 3,
   },
   nursingsaathi: {
     headerLabel: "🩺 NursingSaathi's Rounds",
@@ -500,9 +521,9 @@ export const FACULTY_BASKETS: Record<string, FacultyBasket> = {
     tools:       [PUBMED, EUROPE_PMC, SEMANTIC_SCHOLAR],
   },
   geosaathi: {
-    headerLabel: "🗺️ GeoSaathi's Atlas",
-    invitation:  'Maps, geology, satellites — all open data.',
-    tools:       [LEAFLET, GEOGEBRA, USGS, NASA_IMAGES],
+    headerLabel:  "🗺️ GeoSaathi's Atlas",
+    invitation:   'Maps, geology, satellites — all open data.',
+    tools:        [LEAFLET, USGS, NASA_IMAGES, GEOGEBRA],
   },
   archsaathi: {
     headerLabel: "🏛️ ArchSaathi's Studio",

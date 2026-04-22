@@ -18,6 +18,7 @@ import {
   type ExportResult,
 } from '@/lib/faculty-solo/artifactClient'
 import { printArtifactPdf, printSessionBundlePdf } from '@/lib/faculty-solo/pdfPrint'
+import { ArtifactPreviewModal } from './ArtifactPreviewModal'
 
 type Props = {
   saathiSlug: string
@@ -32,6 +33,7 @@ export function FacultyArtifactRail({ saathiSlug }: Props) {
   const [open, setOpen]       = useState(false)
   const [bundlePending, setBundlePending] = useState<BundlePending>(null)
   const [bundleFlash, setBundleFlash]     = useState<BundleFlash>(null)
+  const [preview, setPreview]             = useState<SavedArtifact | null>(null)
 
   function showBundleFlash(kind: 'pdf' | 'email' | 'whatsapp', status: 'sent' | 'pending' | 'failed', count?: number) {
     setBundleFlash({ kind, status, count })
@@ -221,7 +223,12 @@ export function FacultyArtifactRail({ saathiSlug }: Props) {
           }}
         >
           {(open ? items : latestTwo).map((a) => (
-            <ArtifactRow key={a.id} artifact={a} saathiSlug={saathiSlug} />
+            <ArtifactRow
+              key={a.id}
+              artifact={a}
+              saathiSlug={saathiSlug}
+              onOpenPreview={() => setPreview(a)}
+            />
           ))}
           {!open && items.length > 2 && (
             <button
@@ -242,6 +249,12 @@ export function FacultyArtifactRail({ saathiSlug }: Props) {
           )}
         </div>
       )}
+
+      <ArtifactPreviewModal
+        artifact={preview}
+        saathiSlug={saathiSlug}
+        onClose={() => setPreview(null)}
+      />
     </div>
   )
 }
@@ -251,7 +264,15 @@ export function FacultyArtifactRail({ saathiSlug }: Props) {
 type Pending = null | 'email' | 'whatsapp'
 type Flash   = null | { kind: 'pdf' | 'email' | 'whatsapp'; status: 'sent' | 'pending' | 'failed' }
 
-function ArtifactRow({ artifact, saathiSlug }: { artifact: SavedArtifact; saathiSlug: string }) {
+function ArtifactRow({
+  artifact,
+  saathiSlug,
+  onOpenPreview,
+}: {
+  artifact:      SavedArtifact
+  saathiSlug:    string
+  onOpenPreview: () => void
+}) {
   const [pending, setPending] = useState<Pending>(null)
   const [flash, setFlash]     = useState<Flash>(null)
 
@@ -331,7 +352,9 @@ function ArtifactRow({ artifact, saathiSlug }: { artifact: SavedArtifact; saathi
         }}>
           {artifact.tool_id}
         </span>
-        <p
+        <button
+          onClick={onOpenPreview}
+          title={`Open preview — ${artifact.title ?? 'Untitled'}`}
           className="truncate"
           style={{
             flex:       1,
@@ -340,11 +363,18 @@ function ArtifactRow({ artifact, saathiSlug }: { artifact: SavedArtifact; saathi
             fontWeight: 600,
             color:      'var(--text-primary)',
             margin:     0,
+            textAlign:  'left',
+            background: 'transparent',
+            border:     'none',
+            padding:    0,
+            cursor:     'pointer',
+            fontFamily: 'var(--font-body)',
           }}
-          title={artifact.title ?? ''}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--saathi-primary)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-primary)' }}
         >
           {artifact.title ?? 'Untitled'}
-        </p>
+        </button>
         <span style={{
           flexShrink:    0,
           fontSize:      10,
@@ -355,8 +385,13 @@ function ArtifactRow({ artifact, saathiSlug }: { artifact: SavedArtifact; saathi
         </span>
       </div>
 
-      {/* Action row — PDF / Email / WhatsApp / source */}
+      {/* Action row — zoom preview / PDF / Email / WhatsApp / source */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <IconButton
+          icon="🔍"
+          label="Zoom in — full preview"
+          onClick={onOpenPreview}
+        />
         <IconButton
           icon="📎"
           label="Download as Saathi-branded PDF"
