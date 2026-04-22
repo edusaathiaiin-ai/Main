@@ -29,6 +29,7 @@ import { validateFacultyEmail } from '@/lib/faculty-email-validation'
 import { validateDisplayName } from '@/lib/validation/nameValidation'
 import type { Saathi, Profile } from '@/types'
 import { FacultyOnboardFlow } from '@/components/onboard/FacultyOnboardFlow'
+import { InstitutionOnboardFlow } from '@/components/onboard/InstitutionOnboardFlow'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1862,6 +1863,17 @@ function OnboardInner() {
       <FacultyOnboardFlow
         profile={profile ?? { id: '', role: null }}
         onComplete={() => router.push('/faculty')}
+      />
+    )
+  }
+
+  // Institution gets its own dedicated flow — light theme, institutional
+  // tone, single-page form. Never the student Saathi picker / exam picker.
+  if (urlRole === 'institution' && step !== 'loading') {
+    return (
+      <InstitutionOnboardFlow
+        profile={profile ?? { id: '', role: null }}
+        onComplete={() => router.push('/institution')}
       />
     )
   }
