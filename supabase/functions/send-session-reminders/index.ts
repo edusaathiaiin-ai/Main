@@ -96,34 +96,51 @@ interface LectureRow {
   student_wa: string | null;
 }
 
+// ── Profile cache helper ─────────────────────────────────────────────────────
+// Batch-fetch profiles for a set of user IDs in a single query, returning a
+// map keyed by id. Avoids brittle PostgREST named-FK joins.
+type ProfileRow = {
+  id: string;
+  full_name: string | null;
+  wa_phone: string | null;
+  email: string | null;
+};
+async function fetchProfiles(
+  admin: ReturnType<typeof createClient>,
+  ids: string[],
+): Promise<Map<string, ProfileRow>> {
+  const uniq = [...new Set(ids.filter(Boolean))];
+  const map = new Map<string, ProfileRow>();
+  if (uniq.length === 0) return map;
+  const { data, error } = await admin
+    .from('profiles')
+    .select('id, full_name, wa_phone, email')
+    .in('id', uniq);
+  if (error) {
+    console.error(`${LOG}: profiles lookup failed`, error.message);
+    return map;
+  }
+  for (const row of (data ?? []) as ProfileRow[]) map.set(row.id, row);
+  return map;
+}
+
 Deno.serve(async (_req: Request) => {
   // Auth is handled by the Supabase Edge Function gateway (Bearer header).
-  // No additional cron-secret header needed.
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
   const now   = Date.now();
   let sent24h = 0;
   let sent1h  = 0;
+  let sentHost = 0;
   let errors  = 0;
 
-  // ── Pass 1: 24h window ──────────────────────────────────────────────────────
+  // ── Pass 1: 24h window ─────────────────────────────────────────────────────
   const window24hStart = new Date(now + 23 * 3_600_000).toISOString();
   const window24hEnd   = new Date(now + 25 * 3_600_000).toISOString();
 
   const { data: lectures24h, error: err24h } = await admin
     .from('live_lectures')
-    .select(`
-      id, scheduled_at, duration_minutes, title, meeting_link, session_id,
-      reminder_sent_24h, reminder_sent_1h,
-      live_sessions!inner(
-        faculty_id,
-        faculty:profiles!live_sessions_faculty_id_fkey(full_name, wa_phone)
-      ),
-      live_bookings!inner(
-        student_id,
-        student:profiles!live_bookings_student_id_fkey(full_name, wa_phone)
-      )
-    `)
+    .select('id, scheduled_at, title, meeting_link, session_id, live_sessions!inner(faculty_id), live_bookings!inner(student_id)')
     .eq('status', 'scheduled')
     .eq('reminder_sent_24h', false)
     .gte('scheduled_at', window24hStart)
@@ -134,34 +151,70 @@ Deno.serve(async (_req: Request) => {
     errors++;
   }
 
-  for (const row of (lectures24h ?? []) as Record<string, unknown>[]) {
+  // Batch-fetch all faculty + student profiles for this pass
+  const rows24h = (lectures24h ?? []) as Record<string, unknown>[];
+  const profileIds24h: string[] = [];
+  for (const r of rows24h) {
+    const ls = r.live_sessions as Record<string, unknown> | Record<string, unknown>[] | null;
+    const lb = r.live_bookings as Record<string, unknown> | Record<string, unknown>[] | null;
+    // PostgREST returns arrays for !inner joins when multiple bookings exist
+    const sessObj = Array.isArray(ls) ? ls[0] : ls;
+    const bookArr = Array.isArray(lb) ? lb : lb ? [lb] : [];
+    if (sessObj?.faculty_id) profileIds24h.push(sessObj.faculty_id as string);
+    for (const b of bookArr) if (b?.student_id) profileIds24h.push(b.student_id as string);
+  }
+  const profiles24h = await fetchProfiles(admin, profileIds24h);
+
+  for (const row of rows24h) {
     try {
-      const session    = row.live_sessions as Record<string, unknown>;
-      const booking    = row.live_bookings as Record<string, unknown>;
-      const faculty    = session?.faculty  as Record<string, unknown> | null;
-      const student    = booking?.student  as Record<string, unknown> | null;
+      const ls = row.live_sessions as Record<string, unknown> | Record<string, unknown>[] | null;
+      const lb = row.live_bookings as Record<string, unknown> | Record<string, unknown>[] | null;
+      const sessObj = Array.isArray(ls) ? ls[0] : ls;
+      const bookArr = Array.isArray(lb) ? lb : lb ? [lb] : [];
 
       const lectureId     = row.id as string;
       const scheduledAt   = row.scheduled_at as string;
       const topic         = row.title as string;
-      const facultyId     = session?.faculty_id as string;
-      const facultyName   = (faculty?.full_name as string | null) ?? 'Faculty';
-      const facultyWa     = (faculty?.wa_phone  as string | null);
-      const studentName   = (student?.full_name as string | null) ?? 'Student';
-      const studentWa     = (student?.wa_phone  as string | null);
       const sessionIdShort = (row.session_id as string).slice(0, 8);
+      const facultyId     = sessObj?.faculty_id as string;
+      const facultyProfile = profiles24h.get(facultyId);
+      const facultyName   = facultyProfile?.full_name ?? 'Faculty';
+      const facultyWa     = facultyProfile?.wa_phone ?? null;
 
       const tasks: Promise<unknown>[] = [];
 
-      // T07 — edusaathiai_session_reminder_24h → student
-      // {{1}} student firstName, {{2}} topic, {{3}} date, {{4}} time, {{5}} faculty name, {{6}} session ID short
-      if (studentWa) {
+      // T12 — faculty reminder (once per lecture, even if multiple bookings)
+      if (facultyWa) {
+        const firstBooker = bookArr[0];
+        const firstStudentProfile = firstBooker?.student_id ? profiles24h.get(firstBooker.student_id as string) : null;
+        const studentNameForFaculty = firstStudentProfile?.full_name ?? 'Student';
+        tasks.push(
+          sendWhatsAppTemplate({
+            templateName: 'edusaathiai_faculty_session_reminder',
+            to: stripPhone(facultyWa),
+            params: [
+              firstName(facultyName),
+              studentNameForFaculty + (bookArr.length > 1 ? ` + ${bookArr.length - 1} more` : ''),
+              topic,
+              fmtDate(scheduledAt),
+              fmtTime(scheduledAt),
+              sessionIdShort,
+            ],
+            logPrefix: LOG,
+          }),
+        );
+      }
+
+      // T07 — student reminder (once per booking)
+      for (const b of bookArr) {
+        const studentProfile = b?.student_id ? profiles24h.get(b.student_id as string) : null;
+        if (!studentProfile?.wa_phone) continue;
         tasks.push(
           sendWhatsAppTemplate({
             templateName: 'edusaathiai_session_reminder_24h',
-            to: stripPhone(studentWa),
+            to: stripPhone(studentProfile.wa_phone),
             params: [
-              firstName(studentName),
+              firstName(studentProfile.full_name ?? 'Student'),
               topic,
               fmtDate(scheduledAt),
               fmtTime(scheduledAt),
@@ -173,29 +226,8 @@ Deno.serve(async (_req: Request) => {
         );
       }
 
-      // T12 — edusaathiai_faculty_session_reminder → faculty (same trigger: 24h)
-      // {{1}} faculty firstName, {{2}} student name, {{3}} topic, {{4}} date, {{5}} time, {{6}} session ID short
-      if (facultyWa) {
-        tasks.push(
-          sendWhatsAppTemplate({
-            templateName: 'edusaathiai_faculty_session_reminder',
-            to: stripPhone(facultyWa),
-            params: [
-              firstName(facultyName),
-              studentName,
-              topic,
-              fmtDate(scheduledAt),
-              fmtTime(scheduledAt),
-              sessionIdShort,
-            ],
-            logPrefix: LOG,
-          }),
-        );
-      }
-
       await Promise.allSettled(tasks);
 
-      // Mark 24h reminder sent
       await admin
         .from('live_lectures')
         .update({ reminder_sent_24h: true })
@@ -208,23 +240,13 @@ Deno.serve(async (_req: Request) => {
     }
   }
 
-  // ── Pass 2: 1h window ───────────────────────────────────────────────────────
+  // ── Pass 2: 1h window ──────────────────────────────────────────────────────
   const window1hStart = new Date(now + 50 * 60_000).toISOString();
   const window1hEnd   = new Date(now + 70 * 60_000).toISOString();
 
   const { data: lectures1h, error: err1h } = await admin
     .from('live_lectures')
-    .select(`
-      id, scheduled_at, duration_minutes, title, meeting_link, session_id,
-      reminder_sent_24h, reminder_sent_1h,
-      live_sessions!inner(
-        faculty_id
-      ),
-      live_bookings!inner(
-        student_id,
-        student:profiles!live_bookings_student_id_fkey(full_name, wa_phone)
-      )
-    `)
+    .select('id, scheduled_at, title, meeting_link, session_id, live_sessions!inner(faculty_id), live_bookings!inner(student_id)')
     .eq('status', 'scheduled')
     .eq('reminder_sent_1h', false)
     .gte('scheduled_at', window1hStart)
@@ -235,34 +257,40 @@ Deno.serve(async (_req: Request) => {
     errors++;
   }
 
-  for (const row of (lectures1h ?? []) as Record<string, unknown>[]) {
+  const rows1h = (lectures1h ?? []) as Record<string, unknown>[];
+  const profileIds1h: string[] = [];
+  for (const r of rows1h) {
+    const ls = r.live_sessions as Record<string, unknown> | Record<string, unknown>[] | null;
+    const lb = r.live_bookings as Record<string, unknown> | Record<string, unknown>[] | null;
+    const sessObj = Array.isArray(ls) ? ls[0] : ls;
+    const bookArr = Array.isArray(lb) ? lb : lb ? [lb] : [];
+    if (sessObj?.faculty_id) profileIds1h.push(sessObj.faculty_id as string);
+    for (const b of bookArr) if (b?.student_id) profileIds1h.push(b.student_id as string);
+  }
+  const profiles1h = await fetchProfiles(admin, profileIds1h);
+
+  for (const row of rows1h) {
     try {
-      const booking     = row.live_bookings as Record<string, unknown>;
-      const student     = booking?.student  as Record<string, unknown> | null;
+      const ls = row.live_sessions as Record<string, unknown> | Record<string, unknown>[] | null;
+      const lb = row.live_bookings as Record<string, unknown> | Record<string, unknown>[] | null;
+      const sessObj = Array.isArray(ls) ? ls[0] : ls;
+      const bookArr = Array.isArray(lb) ? lb : lb ? [lb] : [];
 
       const lectureId   = row.id as string;
       const scheduledAt = row.scheduled_at as string;
       const topic       = row.title as string;
       const meetingLink = (row.meeting_link as string | null) ?? 'https://www.edusaathiai.in/faculty/live';
-      const studentName = (student?.full_name as string | null) ?? 'Student';
-      const studentWa   = (student?.wa_phone  as string | null);
+      const facultyId   = sessObj?.faculty_id as string;
+      const facultyName = profiles1h.get(facultyId)?.full_name ?? 'Faculty';
 
-      // For faculty name on 1h reminder, we need a separate lookup since we didn't join it above
-      const { data: sessRow } = await admin
-        .from('live_sessions')
-        .select('faculty_id, faculty:profiles!live_sessions_faculty_id_fkey(full_name)')
-        .eq('id', row.session_id as string)
-        .single();
-      const facultyName = ((sessRow?.faculty as Record<string, unknown> | null)?.full_name as string | null) ?? 'Faculty';
-
-      // T08 — edusaathiai_session_reminder_1h → student
-      // {{1}} student firstName, {{2}} topic, {{3}} time, {{4}} faculty name, {{5}} meeting link
-      if (studentWa) {
+      for (const b of bookArr) {
+        const studentProfile = b?.student_id ? profiles1h.get(b.student_id as string) : null;
+        if (!studentProfile?.wa_phone) continue;
         await sendWhatsAppTemplate({
           templateName: 'edusaathiai_session_reminder_1h',
-          to: stripPhone(studentWa),
+          to: stripPhone(studentProfile.wa_phone),
           params: [
-            firstName(studentName),
+            firstName(studentProfile.full_name ?? 'Student'),
             topic,
             fmtTime(scheduledAt),
             facultyName,
@@ -272,7 +300,6 @@ Deno.serve(async (_req: Request) => {
         });
       }
 
-      // Mark 1h reminder sent
       await admin
         .from('live_lectures')
         .update({ reminder_sent_1h: true })
@@ -286,21 +313,12 @@ Deno.serve(async (_req: Request) => {
   }
 
   // ── Pass 3: T-10min host nudge (email only) ────────────────────────────────
-  // Sends once per lecture — a polite "open your Meet now" so students aren't
-  // staring at an empty room at session start.
-  let sentHost = 0;
   const windowHostStart = new Date(now + 5 * 60_000).toISOString();
   const windowHostEnd   = new Date(now + 15 * 60_000).toISOString();
 
   const { data: lecturesHost, error: errHost } = await admin
     .from('live_lectures')
-    .select(`
-      id, scheduled_at, title, meeting_link, session_id,
-      live_sessions!inner(
-        faculty_id, title,
-        faculty:profiles!live_sessions_faculty_id_fkey(full_name, email)
-      )
-    `)
+    .select('id, scheduled_at, title, meeting_link, session_id, live_sessions!inner(faculty_id, title)')
     .eq('status', 'scheduled')
     .eq('host_reminder_sent', false)
     .gte('scheduled_at', windowHostStart)
@@ -311,23 +329,33 @@ Deno.serve(async (_req: Request) => {
     errors++;
   }
 
-  for (const row of (lecturesHost ?? []) as Record<string, unknown>[]) {
+  const rowsHost = (lecturesHost ?? []) as Record<string, unknown>[];
+  const facultyIdsHost: string[] = [];
+  for (const r of rowsHost) {
+    const ls = r.live_sessions as Record<string, unknown> | Record<string, unknown>[] | null;
+    const sessObj = Array.isArray(ls) ? ls[0] : ls;
+    if (sessObj?.faculty_id) facultyIdsHost.push(sessObj.faculty_id as string);
+  }
+  const profilesHost = await fetchProfiles(admin, facultyIdsHost);
+
+  for (const row of rowsHost) {
     try {
-      const session = row.live_sessions as Record<string, unknown>;
-      const faculty = session?.faculty as Record<string, unknown> | null;
+      const ls = row.live_sessions as Record<string, unknown> | Record<string, unknown>[] | null;
+      const sessObj = Array.isArray(ls) ? ls[0] : ls;
       const lectureId = row.id as string;
       const scheduledAt = row.scheduled_at as string;
-      const sessionTitle = (session?.title as string | null) ?? (row.title as string);
+      const sessionTitle = (sessObj?.title as string | null) ?? (row.title as string);
       const meetingLink = (row.meeting_link as string | null) ?? 'https://www.edusaathiai.in/faculty/live';
-      const facultyName = (faculty?.full_name as string | null) ?? 'Faculty';
-      const facultyEmail = faculty?.email as string | null;
+      const facultyId = sessObj?.faculty_id as string;
+      const facultyProfile = profilesHost.get(facultyId);
+      const facultyName = facultyProfile?.full_name ?? 'Faculty';
+      const facultyEmail = facultyProfile?.email ?? null;
 
-      // Count booked students for this session (for the email body)
       const { count: studentCount } = await admin
         .from('live_bookings')
         .select('id', { count: 'exact', head: true })
         .eq('session_id', row.session_id as string)
-        .eq('payment_status', 'paid');
+        .in('payment_status', ['paid']);
 
       if (facultyEmail) {
         await sendHostNudgeEmail({
