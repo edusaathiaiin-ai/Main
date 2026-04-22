@@ -1,5 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import {
+  extractRequestContext,
+  logSecurityEvent,
+  sanitizeMetadata,
+} from '@/lib/security'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -29,16 +34,43 @@ const SAATHI_NAMES: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    // Auth
+    // Auth — Bearer token (not cookie-based). Cannot use requireAuth helper here.
     const authHeader = req.headers.get('Authorization') ?? ''
     const token = authHeader.replace('Bearer ', '')
+    const url = new URL(req.url)
     if (!token) {
+      const ctx = extractRequestContext(req.headers, url.pathname, req.method)
+      after(
+        logSecurityEvent({
+          event_type: 'anon_hit_protected',
+          severity: 'warn',
+          ...ctx,
+          metadata: sanitizeMetadata({
+            auth_error: 'missing_bearer_token',
+            route: 'handler-level',
+            path: url.pathname,
+          }),
+        }),
+      )
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const supabase = createClient(SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const { data: { user }, error: authErr } = await supabase.auth.getUser(token)
     if (authErr || !user) {
+      const ctx = extractRequestContext(req.headers, url.pathname, req.method)
+      after(
+        logSecurityEvent({
+          event_type: 'anon_hit_protected',
+          severity: 'warn',
+          ...ctx,
+          metadata: sanitizeMetadata({
+            auth_error: authErr?.message ?? 'invalid_bearer_token',
+            route: 'handler-level',
+            path: url.pathname,
+          }),
+        }),
+      )
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

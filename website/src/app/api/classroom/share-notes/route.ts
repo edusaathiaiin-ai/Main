@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { requireAuth } from '@/lib/requireAuth'
 import { SAATHIS } from '@/constants/saathis'
 
 /**
@@ -17,9 +17,9 @@ import { SAATHIS } from '@/constants/saathis'
  * Email: uses Resend (always works).
  */
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireAuth(req)
+  if (auth instanceof NextResponse) return auth
+  const { user, supabase } = auth
 
   const { sessionId, channel } = await req.json() as {
     sessionId: string

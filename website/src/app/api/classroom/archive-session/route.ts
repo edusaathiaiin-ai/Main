@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/requireAuth'
 
 const DEPTH_WEIGHTS: Record<string, number> = {
   protein_structure: 10,
@@ -13,9 +13,9 @@ const DEPTH_WEIGHTS: Record<string, number> = {
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireAuth(req)
+  if (auth instanceof NextResponse) return auth
+  const { user, supabase } = auth
 
   const { session_id } = await req.json()
   if (!session_id) return NextResponse.json({ error: 'Missing session_id' }, { status: 400 })

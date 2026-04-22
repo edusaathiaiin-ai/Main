@@ -92,6 +92,7 @@ export async function middleware(request: NextRequest) {
           ...ctx,
           metadata: sanitizeMetadata({
             auth_error: authError?.message ?? 'no_session',
+            route: 'middleware-level',
             path: pathname,
           }),
         }),

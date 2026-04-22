@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/requireAuth'
 
 /**
  * Shared proxy for ALL data.gov.in APIs.
@@ -16,9 +16,8 @@ import { createClient } from '@/lib/supabase/server'
  * Source badge: "data.gov.in — Government of India Open Data"
  */
 export async function GET(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireAuth(req)
+  if (auth instanceof NextResponse) return auth
 
   const resourceId = req.nextUrl.searchParams.get('resource_id')
   if (!resourceId) {

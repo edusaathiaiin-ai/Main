@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { requireAuth } from '@/lib/requireAuth'
 
 /**
  * Proxy for ISRO Bhuvan APIs — geoid data, satellite imagery, Indian geo data.
@@ -14,9 +14,8 @@ import { createClient as createAdminClient } from '@supabase/supabase-js'
  * GET /api/classroom/bhuvan?action=geocode&q=Ahmedabad
  */
 export async function GET(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireAuth(req)
+  if (auth instanceof NextResponse) return auth
 
   const action = req.nextUrl.searchParams.get('action') ?? 'layers'
 
