@@ -97,6 +97,7 @@ export default function CreateLiveSessionPage() {
   const [saving, setSaving] = useState(false)
   const [published, setPublished] = useState(false)
   const [sessionUrl, setSessionUrl] = useState('')
+  const [publishError, setPublishError] = useState<string | null>(null)
 
   const saathiId = toSlug(profile?.primary_saathi_id) ?? ''
   const chips = getSubjectChips(saathiId)
@@ -132,6 +133,7 @@ export default function CreateLiveSessionPage() {
   async function handleSubmit() {
     if (!profile) return
     setSaving(true)
+    setPublishError(null)
 
     const supabase = createClient()
 
@@ -140,9 +142,16 @@ export default function CreateLiveSessionPage() {
       profile.primary_saathi_id ?? ''
     )
     if (!verticalUuid) {
+      console.error('[publish] could not resolve vertical', profile.primary_saathi_id)
+      setPublishError(
+        'Your Saathi profile is incomplete — vertical could not be resolved. Please check your profile.'
+      )
       setSaving(false)
       return
     }
+
+    // Description is NOT NULL in live_sessions — default to title if empty
+    const safeDescription = description.trim() || `Live session: ${title.trim()}`
 
     // Create session
     const { data: sess, error } = await supabase
@@ -151,7 +160,7 @@ export default function CreateLiveSessionPage() {
         faculty_id: profile.id,
         vertical_id: verticalUuid,
         title: title.trim(),
-        description: description.trim(),
+        description: safeDescription,
         preparation_notes: prepNotes.trim() || null,
         tags,
         session_format: format,
@@ -173,6 +182,13 @@ export default function CreateLiveSessionPage() {
       .single()
 
     if (error || !sess) {
+      console.error('[publish] live_sessions insert failed', error)
+      const detail = error?.message ?? 'Unknown error'
+      const hint = error?.hint ? ` · ${error.hint}` : ''
+      const code = error?.code ? ` (${error.code})` : ''
+      setPublishError(
+        `Could not publish your session: ${detail}${hint}${code}. Please try again or contact support.`
+      )
       setSaving(false)
       return
     }
@@ -207,7 +223,27 @@ export default function CreateLiveSessionPage() {
               duration_minutes: l.duration,
             }))
 
-    await supabase.from('live_lectures').insert(lectureRows)
+    if (lectureRows.length === 0) {
+      console.error('[publish] no valid lecture rows')
+      setPublishError(
+        'Please add at least one lecture with a scheduled date before publishing.'
+      )
+      setSaving(false)
+      return
+    }
+
+    const { error: lecturesError } = await supabase
+      .from('live_lectures')
+      .insert(lectureRows)
+
+    if (lecturesError) {
+      console.error('[publish] live_lectures insert failed', lecturesError)
+      setPublishError(
+        `Session was created but adding lectures failed: ${lecturesError.message}. Please edit the session to add them.`
+      )
+      setSaving(false)
+      return
+    }
 
     // Notify matching-Saathi students via Edge Function (fire-and-forget)
     const {
@@ -1030,6 +1066,19 @@ export default function CreateLiveSessionPage() {
                       </div>
                     </div>
                   </div>
+                  {publishError && (
+                    <div
+                      className="mb-3 rounded-lg px-4 py-3 text-sm"
+                      style={{
+                        background: 'rgba(239,68,68,0.08)',
+                        border: '1px solid rgba(239,68,68,0.35)',
+                        color: '#F87171',
+                      }}
+                    >
+                      <strong style={{ fontWeight: 700 }}>Publish failed:</strong>{' '}
+                      {publishError}
+                    </div>
+                  )}
                   <div className="flex gap-3">
                     <button
                       onClick={() => setStep('pricing')}
