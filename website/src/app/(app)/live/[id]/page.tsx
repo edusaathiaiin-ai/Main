@@ -64,6 +64,7 @@ export default function LiveSessionDetailPage() {
   const [loading, setLoading] = useState(true)
   const [booking, setBooking] = useState(false)
   const [booked, setBooked] = useState(false)
+  const [bookError, setBookError] = useState<string | null>(null)
   const [selectedLectures, setSelectedLectures] = useState<Set<string>>(
     new Set()
   )
@@ -190,77 +191,171 @@ export default function LiveSessionDetailPage() {
     return () => { if (countdownRef.current) clearInterval(countdownRef.current) }
   }, [lectures])
 
-  async function handleBook() {
-    if (!profile || !session) return
-    setBooking(true)
-
-    let amount: number
-    if (bookingMode === 'full' && session.bundle_price_paise) {
-      amount = session.bundle_price_paise
-    } else if (bookingMode === 'single' && selectedLectures.size > 0) {
-      amount = session.price_per_seat_paise * selectedLectures.size
-    } else {
-      amount = session.price_per_seat_paise
-    }
-
-    // Check early bird
-    const earlyBirdAvailable =
-      session.early_bird_seats &&
-      session.early_bird_price_paise &&
-      seatsBooked < session.early_bird_seats
-    if (earlyBirdAvailable && session.early_bird_price_paise) {
-      amount = session.early_bird_price_paise
-    }
-
-    const supabase = createClient()
-    const { error } = await supabase.from('live_bookings').insert({
-      session_id: session.id,
-      student_id: profile.id,
-      booking_type: bookingMode,
-      lecture_ids: bookingMode === 'single' ? [...selectedLectures] : null,
-      amount_paid_paise: amount,
-      price_type: earlyBirdAvailable
-        ? 'early_bird'
-        : bookingMode === 'full' && session.bundle_price_paise
-          ? 'bundle'
-          : 'standard',
-      payment_status: 'paid', // simplified — would use Razorpay in production
-      paid_at: new Date().toISOString(),
-    })
-
-    if (!error) {
-      // Increment seats
-      await supabase
-        .from('live_sessions')
-        .update({ seats_booked: seatsBooked + 1 })
-        .eq('id', session.id)
-      setBooked(true)
-      setSeatsBooked((p) => p + 1)
-
-      // Notify faculty via Edge Function (fire-and-forget)
-      const {
-        data: { session: authSession },
-      } = await supabase.auth.getSession()
-      if (authSession?.access_token) {
-        fetch(
-          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/session-request`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${authSession.access_token}`,
-              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-            },
-            body: JSON.stringify({
-              action: 'notify-live-booking',
-              sessionId: session.id,
-              facultyId: session.faculty_id,
-            }),
-          }
-        ).catch(() => {})
+  function ensureRazorpayLoaded(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (typeof window !== 'undefined' && window.Razorpay) {
+        resolve()
+        return
       }
+      const existing = document.querySelector(
+        'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+      )
+      if (existing) {
+        const poll = setInterval(() => {
+          if (window.Razorpay) {
+            clearInterval(poll)
+            resolve()
+          }
+        }, 100)
+        setTimeout(() => {
+          clearInterval(poll)
+          reject(new Error('Razorpay load timeout'))
+        }, 10000)
+        return
+      }
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.async = true
+      script.onload = () => resolve()
+      script.onerror = () => reject(new Error('Razorpay script failed to load'))
+      document.body.appendChild(script)
+      setTimeout(() => reject(new Error('Razorpay load timeout')), 10000)
+    })
+  }
+
+  async function handleBook() {
+    if (!profile || !session || booking) return
+    setBooking(true)
+    setBookError(null)
+
+    try {
+      await ensureRazorpayLoaded()
+      const supabase = createClient()
+      const { data: { session: authSession } } = await supabase.auth.refreshSession()
+      if (!authSession?.access_token) {
+        setBookError('Please sign in again to complete your booking.')
+        setBooking(false)
+        return
+      }
+
+      // Step 1 — server computes price + creates Razorpay order
+      const orderRes = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/razorpay-booking-order`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authSession.access_token}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+          },
+          body: JSON.stringify({
+            sessionId: session.id,
+            bookingType: bookingMode,
+            lectureIds: bookingMode === 'single' ? [...selectedLectures] : [],
+          }),
+        },
+      )
+      const orderJson = (await orderRes.json()) as {
+        orderId?: string
+        amount?: number
+        currency?: string
+        keyId?: string
+        priceType?: 'standard' | 'early_bird' | 'bundle'
+        error?: string
+      }
+
+      if (!orderRes.ok || !orderJson.orderId) {
+        const map: Record<string, string> = {
+          sold_out: 'This session just sold out. Try another one.',
+          already_booked: 'You have already booked this session.',
+        }
+        setBookError(map[orderJson.error ?? ''] ?? orderJson.error ?? 'Could not create payment order.')
+        setBooking(false)
+        return
+      }
+
+      // Step 2 — open Razorpay checkout
+      const rzp = new window.Razorpay({
+        key: orderJson.keyId ?? process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ?? '',
+        amount: orderJson.amount ?? 0,
+        currency: orderJson.currency ?? 'INR',
+        order_id: orderJson.orderId,
+        name: 'EdUsaathiAI',
+        description: session.title,
+        prefill: {
+          name: profile.full_name ?? '',
+          email: profile.email ?? '',
+        },
+        theme: { color: '#C9993A' },
+        handler: async (response: {
+          razorpay_payment_id: string
+          razorpay_order_id: string
+          razorpay_signature: string
+        }) => {
+          // Step 3 — verify and reserve seat atomically
+          try {
+            const verifyRes = await fetch(
+              `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/verify-live-booking`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${authSession.access_token}`,
+                  apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+                },
+                body: JSON.stringify({
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                  sessionId: session.id,
+                  bookingType: bookingMode,
+                  lectureIds: bookingMode === 'single' ? [...selectedLectures] : [],
+                  priceType: orderJson.priceType ?? 'standard',
+                  amountPaise: orderJson.amount,
+                }),
+              },
+            )
+            const verifyJson = (await verifyRes.json()) as {
+              bookingId?: string
+              seatsBooked?: number
+              totalSeats?: number
+              error?: string
+            }
+            if (!verifyRes.ok || !verifyJson.bookingId) {
+              const map: Record<string, string> = {
+                sold_out: 'Session filled while you were paying. Your payment will be refunded within 5-7 days. Please contact support.',
+                already_booked: 'You already have a booking for this session.',
+                session_not_bookable: 'This session is no longer open.',
+              }
+              setBookError(map[verifyJson.error ?? ''] ?? 'Payment verification failed. Contact support@edusaathiai.in with your payment ID.')
+              setBooking(false)
+              return
+            }
+            setBooked(true)
+            if (typeof verifyJson.seatsBooked === 'number') setSeatsBooked(verifyJson.seatsBooked)
+          } catch (err) {
+            console.error('verify-live-booking call failed', err)
+            setBookError('Payment confirmed but confirmation failed. Contact support@edusaathiai.in with your payment ID.')
+          } finally {
+            setBooking(false)
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setBooking(false)
+          },
+        },
+      })
+      rzp.open()
+    } catch (err) {
+      console.error('handleBook failed', err)
+      setBookError(
+        err instanceof Error && (err.message.includes('timeout') || err.message.includes('load'))
+          ? 'Payment could not load. Please refresh and try again.'
+          : 'Booking failed. Please try again.'
+      )
+      setBooking(false)
     }
-    setBooking(false)
   }
 
   if (loading) {
@@ -836,6 +931,19 @@ export default function LiveSessionDetailPage() {
                     </div>
                   )}
 
+                  {bookError && (
+                    <div
+                      className="mb-3 rounded-lg px-3 py-2 text-xs"
+                      style={{
+                        background: 'rgba(239,68,68,0.08)',
+                        border: '1px solid rgba(239,68,68,0.35)',
+                        color: '#F87171',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {bookError}
+                    </div>
+                  )}
                   {/* Book CTA */}
                   <button
                     onClick={handleBook}
@@ -851,7 +959,7 @@ export default function LiveSessionDetailPage() {
                     }}
                   >
                     {booking
-                      ? 'Booking...'
+                      ? 'Opening Razorpay…'
                       : isFull
                         ? 'Fully Booked'
                         : bookingMode === 'full'

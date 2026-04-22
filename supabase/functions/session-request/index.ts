@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     };
     const body = (await req.json()) as RequestBody;
 
-    const VALID_ACTIONS = ['accept', 'decline', 'confirm', 'dispute', 'notify-live-published', 'notify-live-booking'] as const;
+    const VALID_ACTIONS = ['accept', 'decline', 'confirm', 'dispute', 'notify-live-published', 'notify-live-booking', 'notify-faculty-session-created'] as const;
     if (!isOneOf(body.action, VALID_ACTIONS)) {
       return new Response(JSON.stringify({ error: 'Invalid action' }), {
         status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -277,6 +277,74 @@ Deno.serve(async (req) => {
       }
 
       return new Response(JSON.stringify({ success: true, notified: students?.length ?? 0 }), { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
+    }
+
+    // ── NOTIFY-FACULTY-SESSION-CREATED ─────────────────
+    // Confirmation email to the faculty themselves after they publish.
+    // Gives them the shareable link, session summary, and a manage-my-sessions CTA.
+    if (action === 'notify-faculty-session-created') {
+      const liveSessionId = typeof body.liveSessionId === 'string' ? body.liveSessionId : sessionId;
+
+      if (!liveSessionId || !isUUID(liveSessionId)) {
+        return new Response(JSON.stringify({ error: 'liveSessionId required' }), {
+          status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Verify the caller owns the session
+      const { data: sess } = await admin
+        .from('live_sessions')
+        .select('title, faculty_id, vertical_id, total_seats, price_per_seat_paise, session_format')
+        .eq('id', liveSessionId)
+        .single();
+
+      if (!sess || sess.faculty_id !== user.id) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const [{ data: facProfile }, { data: vertical }, { data: firstLec }] = await Promise.all([
+        admin.from('profiles').select('full_name, email').eq('id', user.id).single(),
+        admin.from('verticals').select('name, emoji').eq('id', sess.vertical_id).single(),
+        admin.from('live_lectures').select('scheduled_at').eq('session_id', liveSessionId).order('scheduled_at', { ascending: true }).limit(1).maybeSingle(),
+      ]);
+
+      if (facProfile?.email && RESEND_API_KEY) {
+        const facName = facProfile.full_name ?? 'Faculty';
+        const saathiName = vertical?.name ?? 'your Saathi';
+        const saathiEmoji = vertical?.emoji ?? '';
+        const price = `₹${(sess.price_per_seat_paise / 100).toLocaleString('en-IN')}`;
+        const scheduled = firstLec?.scheduled_at
+          ? new Date(firstLec.scheduled_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) + ' IST'
+          : 'Date TBD';
+
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: 'EdUsaathiAI <support@edusaathiai.in>',
+            to: [facProfile.email],
+            subject: `${saathiEmoji} Published: ${sess.title}`,
+            html: `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#0B1F3A;color:#fff;padding:40px 32px;border-radius:16px">
+<p style="color:#C9993A;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:0 0 12px;font-weight:700">Session Published ✓</p>
+<h2 style="color:#fff;font-family:Georgia,serif;margin:0 0 18px;font-size:22px;line-height:1.3">${saathiEmoji} ${sanitize(sess.title)}</h2>
+<p style="color:rgba(255,255,255,0.75);line-height:1.7;margin:0 0 18px">Hi ${sanitize(facName)}, your session is live. Matching ${sanitize(saathiName)} students have been notified by email.</p>
+<div style="background:rgba(201,153,58,0.1);border:0.5px solid rgba(201,153,58,0.3);border-radius:10px;padding:16px;margin:0 0 20px">
+<p style="color:rgba(255,255,255,0.5);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:0 0 6px">First lecture</p>
+<p style="color:#fff;font-size:15px;margin:0 0 12px">${sanitize(scheduled)}</p>
+<p style="color:rgba(255,255,255,0.5);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:0 0 6px">Seats / Price</p>
+<p style="color:#fff;font-size:15px;margin:0">${sess.total_seats} seats · ${price}/seat</p>
+</div>
+<a href="https://www.edusaathiai.in/live/${liveSessionId}" style="display:inline-block;background:#C9993A;color:#0B1F3A;padding:11px 26px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:700;margin-right:8px">View public page →</a>
+<a href="https://www.edusaathiai.in/faculty/live" style="display:inline-block;background:transparent;border:0.5px solid rgba(255,255,255,0.3);color:#fff;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600">My sessions</a>
+<p style="color:rgba(255,255,255,0.3);font-size:11px;margin-top:28px">You'll receive an email each time a student books. Seats fill faster when you share the public link on WhatsApp/LinkedIn.<br>support@edusaathiai.in</p>
+</div>`,
+          }),
+        }).catch((err) => console.error('faculty-created email failed', err));
+      }
+
+      return new Response(JSON.stringify({ success: true }), { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
     }
 
     // ── NOTIFY-LIVE-BOOKING ─────────────────────────────

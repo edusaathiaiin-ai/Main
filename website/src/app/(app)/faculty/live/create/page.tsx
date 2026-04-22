@@ -253,11 +253,30 @@ export default function CreateLiveSessionPage() {
       return
     }
 
-    // Notify matching-Saathi students via Edge Function (fire-and-forget)
+    // Notifications: both to the faculty (confirmation) and to matching-Saathi
+    // students (discovery). Fire-and-forget — booking is already committed.
     const {
       data: { session: authSession },
     } = await supabase.auth.getSession()
     if (authSession?.access_token) {
+      // 1. Faculty confirmation
+      fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/session-request`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authSession.access_token}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+          },
+          body: JSON.stringify({
+            action: 'notify-faculty-session-created',
+            liveSessionId: sess.id,
+          }),
+        },
+      ).catch(() => {})
+
+      // 2. Saathi-matched student broadcast
       fetch(
         `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/session-request`,
         {
@@ -358,13 +377,51 @@ export default function CreateLiveSessionPage() {
                 {sessionUrl}
               </p>
             </div>
-            <button
-              onClick={() => navigator.clipboard.writeText(sessionUrl)}
-              className="rounded-xl px-6 py-3 text-sm font-bold"
-              style={{ background: '#C9993A', color: '#060F1D' }}
-            >
-              Copy Link
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                onClick={() => navigator.clipboard.writeText(sessionUrl)}
+                className="rounded-xl px-5 py-3 text-sm font-bold"
+                style={{ background: '#C9993A', color: '#060F1D' }}
+              >
+                Copy Link
+              </button>
+              <Link
+                href={sessionUrl.replace(
+                  /^https?:\/\/[^/]+/,
+                  ''
+                )}
+                className="rounded-xl px-5 py-3 text-sm font-semibold"
+                style={{
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-medium)',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                View public page →
+              </Link>
+              <Link
+                href="/faculty/live"
+                className="rounded-xl px-5 py-3 text-sm font-semibold"
+                style={{
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-medium)',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                My sessions
+              </Link>
+              <Link
+                href="/faculty/live/create"
+                className="rounded-xl px-5 py-3 text-sm font-semibold"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-tertiary)',
+                }}
+              >
+                Create another
+              </Link>
+            </div>
           </motion.div>
         ) : (
           <>
