@@ -79,6 +79,24 @@ function truncate(s: string | null, max: number): string | null {
   return s.length > max ? s.slice(0, max) : s
 }
 
+// Any metadata key containing one of these substrings (case-insensitive) is
+// replaced with '[REDACTED]' before storage. Guards against callers
+// accidentally passing session cookies, JWTs, OTPs, emails, phone numbers.
+const REDACT_KEYS = ['password', 'token', 'key', 'secret', 'email', 'phone'] as const
+
+/** Shallow-redact PII-ish keys from a metadata object. Never throws. */
+export function sanitizeMetadata(
+  meta: Record<string, unknown> | null | undefined,
+): Record<string, unknown> {
+  if (!meta) return {}
+  return Object.fromEntries(
+    Object.entries(meta).map(([k, v]) => [
+      k,
+      REDACT_KEYS.some((r) => k.toLowerCase().includes(r)) ? '[REDACTED]' : v,
+    ]),
+  )
+}
+
 /**
  * Fire-and-forget insert. Callers should pass the returned promise to
  * Next's `after()` in middleware/route handlers, or simply ignore it.
@@ -122,5 +140,26 @@ export async function logSecurityEvent(payload: SecurityEventPayload): Promise<v
     }
   } catch (err) {
     console.error('[security] log threw', err instanceof Error ? err.message : err)
+  }
+
+  // Escalate critical events to Sentry. Dynamic import so Sentry stays out of
+  // the edge bundle on cold paths. Never throws — Sentry is optional.
+  if ((payload.severity ?? 'info') === 'critical') {
+    try {
+      const Sentry = await import('@sentry/nextjs')
+      Sentry.captureMessage(`Security: ${payload.event_type}`, {
+        level: 'error',
+        extra: {
+          ip: payload.ip,
+          path: payload.path,
+          method: payload.method,
+          origin: payload.origin,
+          user_id: payload.user_id,
+          metadata: payload.metadata,
+        },
+      })
+    } catch (err) {
+      console.error('[security] Sentry capture failed', err instanceof Error ? err.message : err)
+    }
   }
 }

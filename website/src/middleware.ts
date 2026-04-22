@@ -4,6 +4,7 @@ import {
   extractRequestContext,
   isAllowedOrigin,
   logSecurityEvent,
+  sanitizeMetadata,
 } from '@/lib/security'
 
 // Paths that never need an auth check — serve immediately
@@ -76,7 +77,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
 
   if (!user) {
     // Week 1 observability: record every anon hit on a protected route
@@ -89,6 +90,10 @@ export async function middleware(request: NextRequest) {
           event_type: 'anon_hit_protected',
           severity: 'warn',
           ...ctx,
+          metadata: sanitizeMetadata({
+            auth_error: authError?.message ?? 'no_session',
+            path: pathname,
+          }),
         }),
       )
     }
