@@ -19,6 +19,16 @@ import { SemanticScholarPanel } from './SemanticScholarPanel'
 import { IndiaCodePanel } from './IndiaCodePanel'
 import { OpenFdaPanel } from './OpenFdaPanel'
 import { NasaImagesPanel } from './NasaImagesPanel'
+import { NCBIGenePanel } from './NCBIGenePanel'
+import { EnsemblPanel } from './EnsemblPanel'
+import { NtrsPanel } from './NtrsPanel'
+import { UsgsPanel } from './UsgsPanel'
+import { WikimediaCommonsPanel } from './WikimediaCommonsPanel'
+import { OpenAnatomyPanel } from './OpenAnatomyPanel'
+import { MedlinePlusPanel } from './MedlinePlusPanel'
+import { WhoPanel } from './WhoPanel'
+import { IsroBhuvanPanel } from './IsroBhuvanPanel'
+import { FredPanel } from './FredPanel'
 import { ComingSoonPanel } from './ComingSoonPanel'
 
 // RCSB loads the 3Dmol CDN on mount — defer until the user actually picks it.
@@ -40,17 +50,27 @@ function PanelLoader({ emoji, label }: { emoji: string; label: string }) {
 
 export function FacultyPanelRouter({ tool, saathiSlug }: { tool: FacultyTool; saathiSlug: string }) {
   switch (tool.id) {
-    case 'pubmed':           return <PubMedPanel          saathiSlug={saathiSlug} />
-    case 'rcsb':             return <RcsbPanelSolo        saathiSlug={saathiSlug} />
-    case 'uniprot':          return <UniProtPanel         saathiSlug={saathiSlug} />
-    case 'europepmc':        return <EuropePMCPanel       saathiSlug={saathiSlug} />
-    case 'semantic-scholar': return <SemanticScholarPanel saathiSlug={saathiSlug} />
-    case 'indiacode':        return <IndiaCodePanel />
-    case 'openfda':          return <OpenFdaPanel         saathiSlug={saathiSlug} />
-    case 'nasa-images':      return <NasaImagesPanel      saathiSlug={saathiSlug} />
-    case 'geogebra':         return <GeoGebraPanel />
-    case 'phet':             return <PhETPanel />
-    case 'sagemathcell':     return <SageMathCellPanel />
-    default:                 return <ComingSoonPanel tool={tool} />
+    case 'pubmed':            return <PubMedPanel           saathiSlug={saathiSlug} />
+    case 'rcsb':              return <RcsbPanelSolo         saathiSlug={saathiSlug} />
+    case 'uniprot':           return <UniProtPanel          saathiSlug={saathiSlug} />
+    case 'europepmc':         return <EuropePMCPanel        saathiSlug={saathiSlug} />
+    case 'semantic-scholar':  return <SemanticScholarPanel  saathiSlug={saathiSlug} />
+    case 'indiacode':         return <IndiaCodePanel />
+    case 'openfda':           return <OpenFdaPanel          saathiSlug={saathiSlug} />
+    case 'nasa-images':       return <NasaImagesPanel       saathiSlug={saathiSlug} />
+    case 'ncbi-gene':         return <NCBIGenePanel         saathiSlug={saathiSlug} />
+    case 'ensembl':           return <EnsemblPanel          saathiSlug={saathiSlug} />
+    case 'ntrs':              return <NtrsPanel             saathiSlug={saathiSlug} />
+    case 'usgs':              return <UsgsPanel             saathiSlug={saathiSlug} />
+    case 'wikimedia-commons': return <WikimediaCommonsPanel saathiSlug={saathiSlug} />
+    case 'open-anatomy':      return <OpenAnatomyPanel />
+    case 'medlineplus':       return <MedlinePlusPanel />
+    case 'who':               return <WhoPanel />
+    case 'isro-bhuvan':       return <IsroBhuvanPanel />
+    case 'fred':              return <FredPanel />
+    case 'geogebra':          return <GeoGebraPanel />
+    case 'phet':              return <PhETPanel />
+    case 'sagemathcell':      return <SageMathCellPanel />
+    default:                  return <ComingSoonPanel tool={tool} />
   }
 }

@@ -101,6 +101,67 @@ export function renderArtifactPayloadHtml(toolId: string, payload: Record<string
         <p class="value">${escapeHtml(String(payload.center ?? '—'))}</p>
         ${payload.description ? `<p class="meta">Description</p><p class="value">${escapeHtml(String(payload.description))}</p>` : ''}
       `
+    case 'ncbi-gene':
+      return `
+        <p class="meta">Symbol</p>
+        <p class="value">${escapeHtml(String(payload.symbol ?? '—'))}</p>
+        <p class="meta">Organism</p>
+        <p class="value">${escapeHtml(String(payload.organism ?? '—'))}</p>
+        <p class="meta">Location</p>
+        <p class="value">${payload.chromo ? `Chr ${escapeHtml(String(payload.chromo))}` : ''}${payload.chromo && payload.maploc ? ' · ' : ''}${escapeHtml(String(payload.maploc ?? ''))}</p>
+        <p class="meta">NCBI UID</p>
+        <p class="value">${escapeHtml(String(payload.uid ?? '—'))}</p>
+        ${payload.summary ? `<p class="meta">Summary</p><p class="value">${escapeHtml(String(payload.summary))}</p>` : ''}
+      `
+    case 'ensembl':
+      return `
+        <p class="meta">Display name</p>
+        <p class="value">${escapeHtml(String(payload.display_name ?? '—'))}</p>
+        <p class="meta">Ensembl ID</p>
+        <p class="value">${escapeHtml(String(payload.id ?? '—'))}</p>
+        <p class="meta">Species</p>
+        <p class="value">${escapeHtml(String(payload.species ?? '—').replace(/_/g, ' '))}</p>
+        <p class="meta">Biotype</p>
+        <p class="value">${escapeHtml(String(payload.biotype ?? '—'))}</p>
+        <p class="meta">Location</p>
+        <p class="value">${escapeHtml(String(payload.seq_region ?? ''))}:${escapeHtml(String(payload.start ?? ''))}–${escapeHtml(String(payload.end ?? ''))}${payload.strand === -1 ? ' (−)' : ''}</p>
+        ${payload.description ? `<p class="meta">Description</p><p class="value">${escapeHtml(String(payload.description))}</p>` : ''}
+      `
+    case 'ntrs':
+      return `
+        ${payload.subtitle ? `<p class="meta">Subtitle</p><p class="value" style="font-style:italic;">${escapeHtml(String(payload.subtitle))}</p>` : ''}
+        <p class="meta">Authors</p>
+        <p class="value">${escapeHtml(String(payload.authors ?? '—'))}</p>
+        <p class="meta">Centre · Date</p>
+        <p class="value">${escapeHtml(String(payload.center_names ?? '—'))} · ${escapeHtml(String(payload.publication_date ?? '—'))}</p>
+        ${payload.abstract ? `<p class="meta">Abstract</p><p class="value">${escapeHtml(String(payload.abstract))}</p>` : ''}
+        ${payload.pdf_url ? `<p class="meta">PDF</p><p class="value"><a href="${escapeHtml(String(payload.pdf_url))}">${escapeHtml(String(payload.pdf_url))}</a></p>` : ''}
+      `
+    case 'usgs-quake': {
+      const mag = typeof payload.mag === 'number' ? payload.mag.toFixed(1) : '—'
+      const when = payload.time ? new Date(Number(payload.time)).toLocaleString('en-IN') : '—'
+      return `
+        <p class="meta">Magnitude</p>
+        <p class="value">M ${escapeHtml(mag)}</p>
+        <p class="meta">Location</p>
+        <p class="value">${escapeHtml(String(payload.place ?? '—'))}</p>
+        <p class="meta">When</p>
+        <p class="value">${escapeHtml(when)}</p>
+        ${payload.depth !== null && payload.depth !== undefined ? `<p class="meta">Depth</p><p class="value">${escapeHtml(String(payload.depth))} km</p>` : ''}
+        <p class="meta">USGS ID</p>
+        <p class="value">${escapeHtml(String(payload.id ?? '—'))}</p>
+      `
+    }
+    case 'wikimedia-commons':
+      return `
+        ${payload.thumb ? `<p><img src="${escapeHtml(String(payload.thumb))}" style="max-width:100%;border-radius:6px;border:1px solid #E8E4DD;" alt="${escapeHtml(String(payload.title ?? ''))}" /></p>` : ''}
+        <p class="meta">Title</p>
+        <p class="value">${escapeHtml(String(payload.title ?? '—'))}</p>
+        <p class="meta">Dimensions</p>
+        <p class="value">${escapeHtml(String(payload.width ?? '—'))} × ${escapeHtml(String(payload.height ?? '—'))}</p>
+        <p class="meta">MIME</p>
+        <p class="value">${escapeHtml(String(payload.mime ?? '—'))}</p>
+      `
     default:
       return `<pre class="value">${escapeHtml(JSON.stringify(payload, null, 2))}</pre>`
   }
@@ -206,6 +267,19 @@ export function renderArtifactWhatsAppText(artifact: SavedArtifact): string {
     body = `Brand: ${payload.brand ?? '—'}\nGeneric: ${payload.generic ?? '—'}\n${payload.indications ?? ''}`
   } else if (artifact.tool_id === 'nasa-images') {
     body = `NASA ID: ${payload.nasa_id ?? '—'}\n${payload.center ?? ''} · ${payload.date_created ?? ''}`
+  } else if (artifact.tool_id === 'ncbi-gene') {
+    body = `Symbol: ${payload.symbol ?? '—'}\n${payload.organism ?? ''}\nUID: ${payload.uid ?? '—'}`
+  } else if (artifact.tool_id === 'ensembl') {
+    const species = String(payload.species ?? '').replace(/_/g, ' ')
+    body = `${payload.display_name ?? payload.id ?? '—'}\n${species} · ${payload.biotype ?? ''}\nID: ${payload.id ?? '—'}`
+  } else if (artifact.tool_id === 'ntrs') {
+    body = `${payload.authors ?? ''}\n${payload.center_names ?? ''} · ${payload.publication_date ?? ''}`
+  } else if (artifact.tool_id === 'usgs-quake') {
+    const mag = typeof payload.mag === 'number' ? payload.mag.toFixed(1) : '—'
+    const when = payload.time ? new Date(Number(payload.time)).toLocaleString('en-IN') : '—'
+    body = `M ${mag} · ${payload.place ?? '—'}\n${when}${payload.depth !== null && payload.depth !== undefined ? ` · ${payload.depth} km` : ''}`
+  } else if (artifact.tool_id === 'wikimedia-commons') {
+    body = `${payload.title ?? '—'}\n${payload.width ?? '—'} × ${payload.height ?? '—'} · ${payload.mime ?? ''}`
   }
 
   const source = artifact.source_url ? `\n\n🔗 ${artifact.source_url}` : ''

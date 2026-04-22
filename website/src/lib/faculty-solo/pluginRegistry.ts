@@ -287,6 +287,17 @@ const ISRO_BHUVAN: FacultyTool = {
   sourceUrl:    'https://bhuvan.nrsc.gov.in',
 }
 
+const NTRS: FacultyTool = {
+  id:           'ntrs',
+  name:         'NASA NTRS',
+  emoji:        '🛰️',
+  shortLabel:   'NT',
+  description:  'NASA technical reports — 800K+ aerospace papers.',
+  samplePrompt: 'rocket engine thermal analysis',
+  sourceLabel:  'NASA NTRS · Free',
+  sourceUrl:    'https://ntrs.nasa.gov',
+}
+
 const MOLVIEW: FacultyTool = {
   id:           'molview',
   name:         'MolView',
@@ -422,7 +433,7 @@ export const FACULTY_BASKETS: Record<string, FacultyBasket> = {
   aerospacesaathi: {
     headerLabel: "🚀 AerospaceSaathi's Mission Desk",
     invitation:  'Orbits, imagery, missions — NASA + ISRO, free.',
-    tools:       [NASA_IMAGES, ISRO_BHUVAN, GEOGEBRA, PHET, SAGEMATHCELL],
+    tools:       [NASA_IMAGES, NTRS, ISRO_BHUVAN, GEOGEBRA, PHET, SAGEMATHCELL],
   },
   elecsaathi: {
     headerLabel: "⚡ ElecSaathi's Bench",
