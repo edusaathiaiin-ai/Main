@@ -30,14 +30,16 @@ import { sendWhatsAppTemplate, stripPhone, firstName, fmtDate, fmtTime } from '.
 
 const SUPABASE_URL         = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-// Supabase reserves the SUPABASE_ prefix for platform env vars, so this
-// secret is named CRON_SECRET (without prefix). Set on the Edge Function
-// Secrets page, and mirror the same value in Postgres via
-//   ALTER DATABASE postgres SET app.cron_secret = '...';
-const CRON_SECRET          = Deno.env.get('CRON_SECRET') ?? '';
 const RESEND_API_KEY       = Deno.env.get('RESEND_API_KEY') ?? '';
 
 const LOG = 'send-session-reminders';
+
+// Auth: Supabase Edge Function gateway requires a valid apikey / Bearer
+// to even reach this function. pg_cron calls it with service_role_key
+// in the Authorization header — that's the gate. Idempotency
+// (reminder_sent_*) + narrow time-window queries prevent misuse even
+// if someone bypasses the gateway with an anon key.
+// This matches the pattern used by the other production cron jobs.
 
 function escHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -94,14 +96,9 @@ interface LectureRow {
   student_wa: string | null;
 }
 
-Deno.serve(async (req: Request) => {
-  // ── Auth ────────────────────────────────────────────────────────────────────
-  if (CRON_SECRET) {
-    const cronHeader = req.headers.get('x-cron-secret') ?? '';
-    if (cronHeader !== CRON_SECRET) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    }
-  }
+Deno.serve(async (_req: Request) => {
+  // Auth is handled by the Supabase Edge Function gateway (Bearer header).
+  // No additional cron-secret header needed.
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
   const now   = Date.now();
