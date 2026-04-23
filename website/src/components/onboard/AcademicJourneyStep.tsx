@@ -43,35 +43,63 @@ const DEGREE_OPTIONS = [
   { value: 'Other', label: 'Other / Not Listed' },
 ]
 
+// B.Tech branches — the same list is reused for M.Tech since post-grad
+// tracks typically extend the same AICTE branch taxonomy. Mechatronics,
+// Automobile, and Industrial all collapse to MechSaathi via resolveSaathi().
+const BTECH_SPECS: (string | null)[] = [
+  'Computer Science and Engineering',
+  'Information Technology',
+  'Electrical Engineering',
+  'Electronics and Communication Engineering',
+  'Mechanical Engineering',
+  'Mechatronics Engineering',
+  'Automobile Engineering',
+  'Industrial Engineering',
+  'Robotics and Artificial Intelligence',
+  'Civil Engineering',
+  'Chemical Engineering',
+  'Biotechnology',
+  'Aeronautical Engineering',
+  'Other',
+]
+
+// B.Sc/M.Sc branches. Statistics promoted to a first-class branch so
+// StatsSaathi gets found (previously only reachable via "Other").
+const BSC_SPECS: (string | null)[] = [
+  'Physics', 'Chemistry', 'Mathematics', 'Statistics', 'Biology',
+  'Botany', 'Zoology', 'Computer Science',
+  'Biochemistry', 'Microbiology', 'Biotechnology', 'Other',
+]
+
+const MBA_SPECS: (string | null)[] = [
+  'Finance', 'Marketing', 'HR', 'Operations',
+  'IT', 'International Business', 'Other',
+]
+
+// `[null]` = no specialisation step. Degrees in the picker that aren't keys
+// here used to stall the UI (needsSpec=true with zero chips); every degree
+// the user can pick must appear below.
 const SPECIALISATION_MAP: Record<string, (string | null)[]> = {
-  'B.Tech': [
-    'Computer Science and Engineering',
-    'Electrical Engineering',
-    'Electronics and Communication Engineering',
-    'Mechanical Engineering',
-    'Civil Engineering',
-    'Chemical Engineering',
-    'Biotechnology',
-    'Aeronautical Engineering',
-    'Mechatronics Engineering',
-    'Robotics and Artificial Intelligence',
-    'Industrial Engineering',
-    'Information Technology',
-    'Other'
-  ],
-  'B.Sc': [
-    'Physics', 'Chemistry', 'Mathematics', 'Biology',
-    'Botany', 'Zoology', 'Computer Science',
-    'Biochemistry', 'Microbiology', 'Biotechnology', 'Other'
-  ],
-  'B.Com': [null], // no specialisation needed
+  'B.Tech': BTECH_SPECS,
+  'M.Tech': BTECH_SPECS,
+  'B.Sc': BSC_SPECS,
+  'M.Sc': BSC_SPECS,
+  'B.Com': [null],
+  'BBA': [null],
+  'MBA': MBA_SPECS,
   'B.A.': [
     'Economics', 'Political Science', 'History',
-    'Psychology', 'Sociology', 'English Literature', 'Other'
+    'Psychology', 'Sociology', 'English Literature', 'Other',
   ],
   'LLB': [null],
+  'BA LLB': [null],
+  'LLM': [null],
   'B.Pharm': [null],
   'MBBS': [null],
+  'B.Sc Nursing': [null],
+  'B.Plan': [null],
+  'Diploma': [null],
+  'Other': [null],
 }
 
 const YEAR_OPTIONS = (degree: string) => {
@@ -116,8 +144,11 @@ export default function AcademicJourneyStep({ initialUniversity, onComplete }: P
   const [manualSubject, setManualSubject]   = useState('')
   const [manualSubjects, setManualSubjects] = useState<string[]>([])
 
-  const needsSpec = degree && SPECIALISATION_MAP[degree]?.[0] !== null
-  const specs = degree ? (SPECIALISATION_MAP[degree] ?? []) : []
+  // Defensive: if a degree ever ships without a SPECIALISATION_MAP entry,
+  // treat it as "no spec needed" rather than stalling the UI with zero chips.
+  const specList = degree ? SPECIALISATION_MAP[degree] : undefined
+  const needsSpec = Boolean(specList && specList.length > 0 && specList[0] !== null)
+  const specs = (specList ?? []) as string[]
 
   // Auto-fetch curriculum when university + degree + year are all set
   useEffect(() => {
