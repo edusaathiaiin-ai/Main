@@ -44,6 +44,7 @@ type SessionRow = {
   meeting_platform: string | null
   started_at: string | null
   ended_at: string | null
+  session_nature: 'curriculum' | 'broader_context' | 'story' | null
 }
 
 type LectureRow = {
@@ -124,6 +125,10 @@ export default function ClassroomPage() {
   const [panelRatio, setPanelRatio] = useState(40) // left panel % width
   const [notesOpen, setNotesOpen] = useState(false)
   const [questionsOpen, setQuestionsOpen] = useState(false)
+  // Story-mode collapsible: bar stays hidden by default in story sessions,
+  // faculty opens it via the "✦ Tools" trigger when they deliberately want
+  // tools. Non-story sessions always start open (legacy behaviour).
+  const [commandBarOpen, setCommandBarOpen] = useState(true)
   const [homeworkItems, setHomeworkItems] = useState<HomeworkItem[]>([])
   const [homeworkSending, setHomeworkSending] = useState(false)
   const [homeworkSent, setHomeworkSent] = useState(false)
@@ -472,6 +477,16 @@ export default function ClassroomPage() {
   const color = saathi?.primary ?? 'var(--gold)'
   const saathiBg = 'var(--bg-base)'
   const isFaculty = profile?.id === session?.faculty_id
+  const isStory = session?.session_nature === 'story'
+
+  // Default-collapse the AI command bar in Story Sessions once the session
+  // loads. Faculty can still summon it via the "✦ Tools" trigger. Students
+  // don't see the bar anyway (the mount below is already gated on isFaculty),
+  // but the server-side story gate in /api/classroom/command enforces the
+  // same rule defensively.
+  useEffect(() => {
+    if (isStory) setCommandBarOpen(false)
+  }, [isStory])
 
   // Next upcoming lecture (for countdown display in lobby)
   const nextLecture = lectures
@@ -834,6 +849,35 @@ export default function ClassroomPage() {
                 {saathi.emoji}
               </div>
             )}
+            {/* Story Mode badge — amber, pulsing. Only chrome change for
+                story nature. Curriculum + broader_context render nothing. */}
+            {isStory && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  background: 'rgba(201, 153, 58, 0.12)',
+                  border: '1px solid rgba(201, 153, 58, 0.3)',
+                  animation: 'storyPulse 3s ease infinite',
+                }}
+              >
+                <span style={{ fontSize: '12px', color: '#C9993A' }}>✦</span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: '#C9993A',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Story Mode
+                </span>
+              </div>
+            )}
             <div className="min-w-0">
               <p
                 className="truncate text-sm font-semibold"
@@ -1045,7 +1089,7 @@ export default function ClassroomPage() {
                     transition: 'flex 200ms ease',
                   }}
                 >
-                  {isFaculty && (
+                  {isFaculty && commandBarOpen && (
                     <CommandBar
                       sessionId={sessionId}
                       saathiSlug={saathi?.id ?? 'default'}
@@ -1055,6 +1099,31 @@ export default function ClassroomPage() {
                         setAutoQuery({ tool: result.tool, params: result.params })
                       }}
                     />
+                  )}
+                  {/* Story-mode: faculty's manual "summon tools" affordance.
+                      Only renders when bar is collapsed in a story session —
+                      fixed to viewport so placement in the JSX tree is nominal. */}
+                  {isFaculty && isStory && !commandBarOpen && (
+                    <button
+                      onClick={() => setCommandBarOpen(true)}
+                      style={{
+                        position: 'fixed',
+                        bottom: '80px',
+                        right: '20px',
+                        background: 'rgba(201, 153, 58, 0.15)',
+                        border: '1px solid rgba(201, 153, 58, 0.3)',
+                        borderRadius: '20px',
+                        padding: '6px 14px',
+                        fontSize: '11px',
+                        color: '#C9993A',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        zIndex: 40,
+                      }}
+                      title="Open the AI tools bar"
+                    >
+                      ✦ Tools
+                    </button>
                   )}
 
                   <div
