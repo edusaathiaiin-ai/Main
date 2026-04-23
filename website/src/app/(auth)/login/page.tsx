@@ -326,6 +326,7 @@ function LoginForm() {
               {/* Magic link form */}
               <form onSubmit={handleMagicLink} className="space-y-3">
                 <input
+                  id="login-email"
                   type="email"
                   value={email}
                   onChange={(e) => {
@@ -378,43 +379,62 @@ function LoginForm() {
                   </p>
                 )}
                 {/* Magic Link — gold on dark navy.
-                    Disabled state must STAY VISIBLE on the dark login bg;
-                    opacity-40 dissolves gold+text into navy. Instead we
-                    swap to a muted mid-slate fill with muted-slate text so
-                    the button still reads as a button, just clearly inert. */}
+                    Disabled state stays visible (swap to slate), AND when
+                    the empty-email variant is clicked we focus + pulse the
+                    email field instead of silently ignoring the click. */}
                 {(() => {
-                  const isDisabled = magicLoading || googleLoading || !email.trim()
+                  const emailMissing = !email.trim()
+                  const isDisabled   = magicLoading || googleLoading || emailMissing
+                  // Disabled buttons don't fire onClick by default, so we
+                  // work around with a wrapping div that listens on capture.
+                  const focusEmail = () => {
+                    if (!emailMissing) return
+                    const el = document.getElementById('login-email') as HTMLInputElement | null
+                    if (!el) return
+                    el.focus()
+                    el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+                    // One-off gold pulse to draw the eye
+                    el.style.transition = 'box-shadow 0.25s ease'
+                    el.style.boxShadow  = '0 0 0 3px rgba(201,153,58,0.55)'
+                    setTimeout(() => { el.style.boxShadow = 'none' }, 900)
+                  }
                   return (
-                    <button
-                      type="submit"
-                      disabled={isDisabled}
-                      className="w-full rounded-xl py-3.5 text-sm font-semibold transition-all duration-200"
-                      style={{
-                        background: isDisabled ? '#1F2937' : '#C9993A',
-                        color:      isDisabled ? '#6B7280' : '#060F1D',
-                        cursor:     isDisabled ? 'not-allowed' : 'pointer',
-                        border:     isDisabled ? '1px solid #374151' : 'none',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (isDisabled) return
-                        e.currentTarget.style.background = '#E5B86A'
-                      }}
-                      onMouseLeave={(e) => {
-                        if (isDisabled) return
-                        e.currentTarget.style.background = '#C9993A'
-                      }}
+                    <div
+                      onClick={(e) => { if (emailMissing) { e.preventDefault(); focusEmail() } }}
+                      style={{ cursor: emailMissing ? 'pointer' : 'default' }}
                     >
-                      {magicLoading ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D]" />
-                          Sending…
-                        </span>
-                      ) : !email.trim() ? (
-                        'Enter your email above'
-                      ) : (
-                        'Send Magic Link'
-                      )}
-                    </button>
+                      <button
+                        type="submit"
+                        disabled={isDisabled}
+                        className="w-full rounded-xl py-3.5 text-sm font-semibold transition-all duration-200"
+                        style={{
+                          background: isDisabled ? '#1F2937' : '#C9993A',
+                          color:      isDisabled ? '#D1D5DB' : '#060F1D',
+                          cursor:     isDisabled ? (emailMissing ? 'pointer' : 'not-allowed') : 'pointer',
+                          border:     isDisabled ? '1px solid #374151' : 'none',
+                          pointerEvents: emailMissing ? 'none' : 'auto',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (isDisabled) return
+                          e.currentTarget.style.background = '#E5B86A'
+                        }}
+                        onMouseLeave={(e) => {
+                          if (isDisabled) return
+                          e.currentTarget.style.background = '#C9993A'
+                        }}
+                      >
+                        {magicLoading ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D]" />
+                            Sending…
+                          </span>
+                        ) : emailMissing ? (
+                          'Enter your email above'
+                        ) : (
+                          'Send Magic Link'
+                        )}
+                      </button>
+                    </div>
                   )
                 })()}
               </form>

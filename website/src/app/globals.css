@@ -151,58 +151,66 @@ html, body { height: 100dvh; margin: 0; padding: 0; }
   html, body { height: 100vh; }
 }
 
-body {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 1rem;
-  line-height: 1.6;
-  color: var(--text-primary);
-}
+/* The typography defaults below live in @layer base so Tailwind utility
+   classes (text-white, text-slate-600, etc.) can override them with a
+   single class on the element. Without @layer base, an unlayered h1/h2/p
+   tag selector beats layered utilities regardless of specificity — which
+   is why .text-white on the login logo was rendering as var(--text-primary)
+   and the logo's "EdU"/"AI" letters were invisible on the navy bg. */
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
 
-/* ── HEADINGS ──────────────────────────────── */
-h1, .h1 {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: clamp(28px, 4vw, 40px);
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-  margin: 0 0 16px;
-}
+  /* ── HEADINGS ──────────────────────────────── */
+  h1, .h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin: 0 0 16px;
+  }
 
-h2, .h2 {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: clamp(22px, 3vw, 28px);
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  color: var(--text-primary);
-  margin: 0 0 12px;
-}
+  h2, .h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: clamp(22px, 3vw, 28px);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    margin: 0 0 12px;
+  }
 
-h3, .h3 {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: clamp(18px, 2.5vw, 22px);
-  font-weight: 700;
-  line-height: 1.4;
-  color: var(--text-primary);
-  margin: 0 0 10px;
-}
+  h3, .h3 {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: clamp(18px, 2.5vw, 22px);
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text-primary);
+    margin: 0 0 10px;
+  }
 
-h4, .h4 {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--text-primary);
-  margin: 0 0 8px;
-}
+  h4, .h4 {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+  }
 
-/* ── BODY TEXT ─────────────────────────────── */
-p {
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--text-secondary);
-  margin: 0 0 12px;
+  /* ── BODY TEXT ─────────────────────────────── */
+  p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin: 0 0 12px;
+  }
 }
 
 /* ── LABELS ────────────────────────────────── */
