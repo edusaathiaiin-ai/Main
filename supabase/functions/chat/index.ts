@@ -1994,7 +1994,7 @@ Deno.serve(async (req: Request) => {
       : CHAT_RATE_MAX_REQUESTS;
 
     // ── Request body ────────────────────────────────────────────────────────
-    const { saathiId, botSlot, chatboardId, message, history, imageBase64, viewAs } = body;
+    const { saathiId, botSlot, chatboardId, message, history, imageBase64, viewAs, sessionId, facultySessionId } = body;
 
     // Faculty mode: explicit opt-in. The client MUST send viewAs === 'faculty'.
     // - Students cannot escalate (role guard is authoritative).
@@ -2280,6 +2280,102 @@ Deno.serve(async (req: Request) => {
         'Never repeat the wrong claims above. Always use the correct versions.',
       ].join('\n');
       systemPrompt = correctionBlock + '\n\n' + systemPrompt;
+    }
+
+    // ── Session nature injection (Path A — dormant until callers pass IDs) ──
+    // When this chat is happening INSIDE a Live/Classroom live_session or a 1:1
+    // faculty_session, read the session's nature and append a tone-shaping
+    // block to the system prompt. No-op when neither ID is provided — existing
+    // callers (main /chat UI) are unaffected.
+    //
+    // Distinct from the last_archive_context carry-over above (that's for the
+    // NEXT chat AFTER a session ends). This block is for chat DURING a session.
+    let sessionNatureContext = '';
+    if (sessionId) {
+      const { data: liveSession } = await admin
+        .from('live_sessions')
+        .select('session_nature, title, saathi_slug, faculty_id')
+        .eq('id', sessionId)
+        .single();
+
+      if (liveSession?.session_nature) {
+        const facultySlug = typeof liveSession.saathi_slug === 'string' && liveSession.saathi_slug
+          ? liveSession.saathi_slug
+          : verticalSlug;
+        const title = typeof liveSession.title === 'string' ? liveSession.title : '';
+        const natureBlocks: Record<string, string> = {
+          curriculum: `
+# SESSION NATURE: CURRICULUM
+This is a structured curriculum session.
+Session title: ${title}
+Subject domain: ${facultySlug}
+
+Your role:
+- Precise and syllabus-focused
+- Surface tools directly relevant to this topic
+- Prioritise accuracy over breadth
+- Stay within the subject domain
+- Reference specific papers and units when relevant
+`,
+          broader_context: `
+# SESSION NATURE: BROADER CONTEXT
+Faculty is exploring ${facultySlug} beyond the standard curriculum.
+Session title: ${title}
+
+Your role:
+- Go wide within the subject domain
+- Surface historical context, biographical information
+- Draw cross-disciplinary connections — always anchoring back to ${facultySlug}
+- Show the human story behind the science or discipline
+- Suggest adjacent ideas the faculty may not have considered
+- Wikipedia, timeline, biography — these are your instruments today
+- Never leave the subject domain entirely — always reconnect
+`,
+          story: `
+# SESSION NATURE: STORY SESSION
+A master teacher is sharing wisdom from lived experience.
+Subject domain: ${facultySlug} (always — even in story mode)
+Session title: ${title}
+
+Your role:
+- Minimal. Listen more than you suggest.
+- Surface ONLY what faculty explicitly asks for
+- Do not interrupt with tool suggestions
+- Do not prompt unprompted
+- If faculty says "show me X" — fetch it immediately
+- If faculty is speaking — hold space
+- All story content is anchored in ${facultySlug}
+- You are the stage. Not the performer.
+- When students ask questions — answer briefly, warmly
+  then return attention to the faculty
+`,
+        };
+        sessionNatureContext = natureBlocks[liveSession.session_nature as string] ?? '';
+      }
+    }
+
+    if (!sessionNatureContext && facultySessionId) {
+      const { data: fs } = await admin
+        .from('faculty_sessions')
+        .select('session_nature, topic, faculty_id')
+        .eq('id', facultySessionId)
+        .single();
+
+      if (fs?.session_nature && fs.session_nature !== 'curriculum') {
+        const natureLabel = String(fs.session_nature).toUpperCase().replace('_', ' ');
+        const topic = typeof fs.topic === 'string' ? fs.topic : 'not specified';
+        sessionNatureContext = `
+# SESSION NATURE: ${natureLabel}
+Topic: ${topic}
+${fs.session_nature === 'story'
+    ? 'This is a 1:1 story session. Listen. Surface only what is asked.'
+    : 'This is a 1:1 broader context session. Go deep. Connect ideas. Anchor to subject.'}
+`;
+      }
+    }
+
+    if (sessionNatureContext) {
+      systemPrompt += '\n\n' + sessionNatureContext;
     }
 
     // ── Append professional disclaimer for high-stakes Saathis ──────────────────

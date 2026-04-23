@@ -79,6 +79,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'command, saathiSlug, sessionId required' }, { status: 400 })
     }
 
+    // ── Story-mode gate ──────────────────────────────────────────────────
+    // Story Sessions = faculty voice is the instrument. Students cannot
+    // trigger AI tools. Faculty always passes through (they may still
+    // summon tools via the deliberate "Tools" escape hatch planned for
+    // Step C). Curriculum + broader_context sessions are unaffected.
+    //
+    // Uses the admin client so the read isn't RLS-scoped — the gate must
+    // work even if the user's RLS would otherwise hide the row. This is
+    // read-only metadata (nature + faculty_id), not sensitive data.
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+    const { data: session } = await admin
+      .from('live_sessions')
+      .select('session_nature, faculty_id')
+      .eq('id', sessionId)
+      .single()
+
+    if (session?.session_nature === 'story' && session.faculty_id !== user.id) {
+      return NextResponse.json({
+        blocked: true,
+        message: 'Tools are quiet during Story Sessions. Listen to your guide.',
+      })
+    }
+
     const tools = SAATHI_TOOLS[saathiSlug] ?? ['wolfram', 'pubmed']
     const saathiName = SAATHI_NAMES[saathiSlug] ?? 'Saathi'
 
@@ -155,8 +178,8 @@ Respond ONLY in JSON — no preamble, no markdown, no explanation:
       result = { tool: 'none', params: {}, displayText: `Tool "${result.tool}" is not available for ${saathiName}. Available: ${tools.join(', ')}` }
     }
 
-    // Log to DB (fire-and-forget)
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+    // Log to DB (fire-and-forget) — reuse the admin client created above for
+    // the story-mode gate (single client per request, no redundant setup).
     admin.from('classroom_commands').insert({
       session_id: sessionId,
       user_id: user.id,
