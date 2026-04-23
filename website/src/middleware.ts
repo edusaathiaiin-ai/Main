@@ -26,6 +26,8 @@ const PUBLIC_PATHS = [
   '/api/contact',     // public contact form — anonymous visitors must be able to POST
   '/api/classroom',   // read-only proxies to public APIs (PubMed/NCBI, RCSB, PubChem, NASA, openFDA …)
   '/api/pubmed',      // direct biomedical search proxy
+  '/api/institutions/search',    // public "Find My Institution" — rate-limited
+  '/api/institutions/register',  // public B2B registration — rate-limited not required, insert is server-gated
 ]
 
 export async function middleware(request: NextRequest) {
