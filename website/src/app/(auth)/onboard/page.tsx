@@ -30,6 +30,7 @@ import { validateDisplayName } from '@/lib/validation/nameValidation'
 import type { Saathi, Profile } from '@/types'
 import { FacultyOnboardFlow } from '@/components/onboard/FacultyOnboardFlow'
 import { InstitutionOnboardFlow } from '@/components/onboard/InstitutionOnboardFlow'
+import AcademicJourneyStep from '@/components/onboard/AcademicJourneyStep'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1428,7 +1429,95 @@ function OnboardInner() {
     }
   }, [urlRole, facultyEmployment, profile])
 
-  // ── Step 0: Academic level ─────────────────────────────────────────────────
+  // Map a degree label from AcademicJourneyStep to the academic_level enum
+  // persisted on profiles. Keep this in the wiring layer (not the component)
+  // so the component stays presentation-only.
+  //
+  // NB: 'high_school' is not in the AcademicLevel union in this codebase —
+  // valid values are diploma | bachelor | masters | phd | professional |
+  // postdoc | competitive | professional_learner | exploring. We map
+  // Diploma → 'diploma' and pre-uni degrees (10+2 / HSC / ISC) → 'exploring'.
+  function degreeToAcademicLevel(degree: string): AcademicLevel {
+    if (['MBA', 'M.Tech', 'M.Sc', 'LLM', 'M.Com', 'MCA'].includes(degree)) return 'masters'
+    if (['PhD', 'Ph.D', 'D.Phil'].includes(degree))                        return 'phd'
+    if (degree === 'Diploma')                                              return 'diploma'
+    if (['10+2', 'HSC', 'ISC'].includes(degree))                           return 'exploring'
+    return 'bachelor'
+  }
+
+  // ── Step 0 (new): Academic Journey — university + degree + year + subjects
+  // Replaces the old "academic level picker" path. Persists institution_name,
+  // academic_level, current_subjects, curriculum_source to profiles, enrolled
+  // subjects to student_soul, and optionally pre-fills primary_saathi_id if
+  // the student hasn't already locked a Saathi.
+  async function handleAcademicJourney(data: {
+    university: string
+    degree: string
+    specialisation: string | null
+    year: number
+    subjects: string[]
+    saathiSlug: string
+    curriculumSource: string
+  }) {
+    if (!profile) return
+    setSaving(true)
+    const supabase = createClient()
+    const level = degreeToAcademicLevel(data.degree)
+
+    // Resolve Saathi slug → UUID for the FK on profiles.
+    const saathiUuid = SLUG_TO_UUID[data.saathiSlug] ?? null
+    const alreadyLocked = Boolean(profile.primary_saathi_id)
+
+    // profiles holds identity-level fields only — institution + academic
+    // level + Saathi FK. Subject lists and curriculum metadata live on
+    // student_soul (single source of truth, confirmed columns there).
+    await supabase.from('profiles').update({
+      institution_name:  data.university,
+      academic_level:    level,
+      role:              (urlRole as DbUserRole) ?? 'student',
+      ...(alreadyLocked || !saathiUuid ? {} : { primary_saathi_id: saathiUuid }),
+    }).eq('id', profile.id)
+
+    // student_soul carries the curriculum-aware fields (confirmed schema:
+    // academic_year int, curriculum_source text, degree text, specialisation
+    // text, enrolled_subjects text[]). onConflict mirrors CLAUDE.md rule 9.
+    await supabase.from('student_soul').upsert({
+      user_id:           profile.id,
+      vertical_id:       saathiUuid,
+      enrolled_subjects: data.subjects,
+      degree:            data.degree,
+      specialisation:    data.specialisation,
+      academic_year:     data.year,
+      curriculum_source: data.curriculumSource,
+      academic_level:    level,
+    }, { onConflict: 'user_id,vertical_id' })
+
+    // Mirror changes to localProfile so downstream steps see them.
+    // The form state (setForm) lives inside ProfileStep — not in scope
+    // here — and the profile step re-reads institution_name from profiles
+    // via CollegeAutocomplete's default when that step mounts.
+    setAcademicLevel(level)
+    setCurrentYear(data.year)
+    setLocalProfile((p) =>
+      p ? {
+        ...p,
+        academic_level:    level,
+        ...(alreadyLocked || !saathiUuid ? {} : { primary_saathi_id: saathiUuid }),
+      } : p
+    )
+
+    // Analytics — reuse the platform's wrapper pattern; if the Saathi was
+    // auto-matched from curriculum, log the selection so funnels see it.
+    if (!alreadyLocked && saathiUuid) {
+      trackSaathiSelected(data.saathiSlug, true)
+    }
+
+    setSaving(false)
+    setStep('saathi')
+  }
+
+  // ── Step 0 (legacy): Academic level — kept for fallback / faculty paths
+  //    that still land here. The student flow now uses AcademicJourneyStep.
   async function handleAcademicLevel(
     level: AcademicLevel,
     yearIdx: number | null,
@@ -1936,9 +2025,9 @@ function OnboardInner() {
               animate="center"
               exit="exit"
             >
-              <AcademicLevelStep
-                onContinue={handleAcademicLevel}
-                saving={saving}
+              <AcademicJourneyStep
+                initialUniversity=""
+                onComplete={handleAcademicJourney}
               />
             </motion.div>
           )}
