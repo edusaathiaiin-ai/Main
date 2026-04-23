@@ -46,6 +46,30 @@ const FORMATS = [
   },
 ]
 
+// Session nature — orthogonal to format. Controls Saathi tone + (for story)
+// classroom chrome. Default 'curriculum' = no behavioural change from today.
+const NATURES = [
+  {
+    id: 'curriculum' as const,
+    emoji: '\u{1F4DA}',
+    label: 'Curriculum',
+    desc: 'Syllabus-aligned teaching',
+  },
+  {
+    id: 'broader_context' as const,
+    emoji: '\u{1F310}',
+    label: 'Broader Context',
+    desc: 'Connect to industry, history, society',
+  },
+  {
+    id: 'story' as const,
+    emoji: '✦',
+    label: 'Story Session',
+    desc: 'Your experience, quieter AI',
+  },
+]
+type SessionNature = (typeof NATURES)[number]['id']
+
 type LectureInput = { title: string; date: string; duration: number }
 
 export default function CreateLiveSessionPage() {
@@ -59,6 +83,7 @@ export default function CreateLiveSessionPage() {
 
   const [step, setStep] = useState<Step>('type')
   const [format, setFormat] = useState('single')
+  const [sessionNature, setSessionNature] = useState<SessionNature>('curriculum')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [prepNotes, setPrepNotes] = useState('')
@@ -198,6 +223,7 @@ export default function CreateLiveSessionPage() {
       total_seats: totalSeats,
       min_seats: minSeats,
       meeting_link: trimmedMeetingLink,
+      session_nature: sessionNature,
       status: 'published', // auto-publish for verified faculty
     }
     if (intentId) {
@@ -551,6 +577,48 @@ export default function CreateLiveSessionPage() {
                           style={{ color: 'var(--text-ghost)' }}
                         >
                           {f.desc}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Session nature — orthogonal to format. Shapes Saathi tone.
+                      Story also changes classroom chrome (hidden AI command bar,
+                      amber accents) — rendered in step C follow-up. */}
+                  <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">
+                    And the spirit of this session?
+                  </h2>
+                  <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {NATURES.map((n) => (
+                      <button
+                        key={n.id}
+                        onClick={() => setSessionNature(n.id)}
+                        className="rounded-xl p-4 text-left transition-all"
+                        style={{
+                          background:
+                            sessionNature === n.id
+                              ? 'rgba(201,153,58,0.12)'
+                              : 'var(--bg-elevated)',
+                          border: `1px solid ${sessionNature === n.id ? 'rgba(201,153,58,0.5)' : 'var(--bg-elevated)'}`,
+                        }}
+                      >
+                        <span className="mb-1 block text-2xl">{n.emoji}</span>
+                        <p
+                          className="text-sm font-semibold"
+                          style={{
+                            color:
+                              sessionNature === n.id
+                                ? '#E5B86A'
+                                : 'var(--text-secondary)',
+                          }}
+                        >
+                          {n.label}
+                        </p>
+                        <p
+                          className="text-[13px]"
+                          style={{ color: 'var(--text-ghost)' }}
+                        >
+                          {n.desc}
                         </p>
                       </button>
                     ))}
@@ -1085,6 +1153,18 @@ export default function CreateLiveSessionPage() {
                     >
                       {FORMATS.find((f) => f.id === format)?.emoji}{' '}
                       {FORMATS.find((f) => f.id === format)?.label}
+                      {sessionNature !== 'curriculum' && (
+                        <span
+                          className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                          style={{
+                            background: 'rgba(201,153,58,0.15)',
+                            color: '#E5B86A',
+                          }}
+                        >
+                          {NATURES.find((n) => n.id === sessionNature)?.emoji}{' '}
+                          {NATURES.find((n) => n.id === sessionNature)?.label}
+                        </span>
+                      )}
                     </p>
                     <h3 className="mb-1 text-lg font-bold text-[var(--text-primary)]">
                       {title || 'Untitled'}

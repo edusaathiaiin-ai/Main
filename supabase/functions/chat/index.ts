@@ -798,7 +798,15 @@ async function buildSystemPrompt(
       ? s.last_session_summary
       : 'This is your first session together.';
   const sessionCount = typeof s?.session_count === 'number' ? s.session_count : 0;
-  const archiveContext = typeof s?.last_archive_context === 'string' ? s.last_archive_context : '';
+  // archive-session prefixes last_archive_context with `[nature:X] ` for
+  // non-curriculum sessions. Parse it here so the LAST CLASSROOM SESSION
+  // block can branch the Saathi's carry-over tone to match what the live
+  // session actually was.
+  const rawArchiveContext = typeof s?.last_archive_context === 'string' ? s.last_archive_context : '';
+  const natureMatch = rawArchiveContext.match(/^\[nature:(curriculum|broader_context|story)\]\s*/);
+  const lastSessionNature: 'curriculum' | 'broader_context' | 'story' =
+    (natureMatch?.[1] as 'curriculum' | 'broader_context' | 'story' | undefined) ?? 'curriculum';
+  const archiveContext = natureMatch ? rawArchiveContext.slice(natureMatch[0].length) : rawArchiveContext;
   const researchSummary = typeof s?.last_research_summary === 'string' ? s.last_research_summary : '';
 
   // ── Calibration fields ─────────────────────────────────────────────────────
@@ -1074,6 +1082,7 @@ ${archiveContext ? `
 ${researchSummary}
 Research context: ${archiveContext}
 Reference this naturally in your first 2 messages — e.g. "Last time we studied [topic]. Shall we go deeper today?"
+${lastSessionNature === 'broader_context' ? `The last session was a BROADER CONTEXT session — the student explored bridges to industry, history, society, or adjacent fields. Carry that openness forward: when natural, connect today's topic outward to the same real-world register, not just to the textbook.` : ''}${lastSessionNature === 'story' ? `The last session was a STORY SESSION — the faculty shared lived experience and narrative, not a lecture. Honour that register: be warmer, quieter, and willing to sit with the personal arc the student heard. Do not pivot abruptly to a Socratic-curriculum tone.` : ''}
 ` : ''}
 # TODAY'S CONTEXT
 ${newsContext}

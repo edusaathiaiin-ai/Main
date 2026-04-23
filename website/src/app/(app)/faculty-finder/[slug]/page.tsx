@@ -86,6 +86,31 @@ const SESSION_TYPES = [
   },
 ]
 
+// session_nature is orthogonal to session_type. Student picks what they need
+// here; faculty sees it in the request card and can counter-propose on accept.
+// Copy matches the student's voice — "I have / I want / I want to hear".
+const SESSION_NATURES = [
+  {
+    id: 'curriculum' as const,
+    emoji: '\u{1F4DA}',
+    label: 'Curriculum',
+    desc: 'I have a specific doubt',
+  },
+  {
+    id: 'broader_context' as const,
+    emoji: '\u{1F310}',
+    label: 'Broader Context',
+    desc: 'I want to go deeper',
+  },
+  {
+    id: 'story' as const,
+    emoji: '✦',
+    label: 'Story Session',
+    desc: 'I want to hear your experience',
+  },
+]
+type SessionNature = (typeof SESSION_NATURES)[number]['id']
+
 function formatFee(paise: number): string {
   return `\u20B9${(paise / 100).toLocaleString('en-IN')}`
 }
@@ -102,6 +127,7 @@ export default function FacultyProfilePage() {
 
   // Booking state
   const [selectedType, setSelectedType] = useState('doubt')
+  const [sessionNature, setSessionNature] = useState<SessionNature>('curriculum')
   const [topic, setTopic] = useState('')
   const [message, setMessage] = useState('')
   const [slots, setSlots] = useState(['', '', ''])
@@ -264,6 +290,7 @@ export default function FacultyProfilePage() {
       student_id: myProfile.id,
       faculty_id: faculty.id,
       session_type: selectedType,
+      session_nature: sessionNature,
       topic: topic.trim().slice(0, 500),
       student_message: message.trim().slice(0, 1000) || null,
       proposed_slots: slots
@@ -831,6 +858,47 @@ export default function FacultyProfilePage() {
                             style={{ color: 'var(--text-ghost)' }}
                           >
                             {st.desc}
+                          </p>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Session nature — the student's voice */}
+                  <label
+                    className="mb-1.5 block text-xs font-semibold"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  >
+                    What kind of session do you need?
+                  </label>
+                  <div className="mb-4 space-y-2">
+                    {SESSION_NATURES.map((n) => {
+                      const sel = sessionNature === n.id
+                      return (
+                        <button
+                          key={n.id}
+                          onClick={() => setSessionNature(n.id)}
+                          className="w-full rounded-xl p-3 text-left transition-all"
+                          style={{
+                            background: sel
+                              ? `${color}15`
+                              : 'var(--bg-elevated)',
+                            border: `1px solid ${sel ? `${color}50` : 'var(--bg-elevated)'}`,
+                          }}
+                        >
+                          <span
+                            className="text-xs font-semibold"
+                            style={{
+                              color: sel ? color : 'var(--text-secondary)',
+                            }}
+                          >
+                            {n.emoji} {n.label}
+                          </span>
+                          <p
+                            className="mt-0.5 text-[10px]"
+                            style={{ color: 'var(--text-ghost)' }}
+                          >
+                            {n.desc}
                           </p>
                         </button>
                       )

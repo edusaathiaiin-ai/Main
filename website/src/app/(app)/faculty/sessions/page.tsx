@@ -6,10 +6,13 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import Link from 'next/link'
 
+type SessionNature = 'curriculum' | 'broader_context' | 'story'
+
 type SessionRow = {
   id: string
   student_id: string
   session_type: string
+  session_nature: SessionNature | null
   topic: string
   student_message: string | null
   proposed_slots: string[]
@@ -23,6 +26,33 @@ type SessionRow = {
   student_name?: string
 }
 
+// Student request spec (Q3): faculty sees requested nature in the card,
+// may counter-propose a different nature before accepting.
+const NATURE_META: Record<
+  SessionNature,
+  { emoji: string; label: string; badgeBg: string; badgeFg: string }
+> = {
+  curriculum: {
+    emoji: '\u{1F4DA}',
+    label: 'Curriculum',
+    badgeBg: 'rgba(148,163,184,0.12)',
+    badgeFg: '#94A3B8',
+  },
+  broader_context: {
+    emoji: '\u{1F310}',
+    label: 'Broader Context',
+    badgeBg: 'rgba(96,165,250,0.12)',
+    badgeFg: '#60A5FA',
+  },
+  story: {
+    emoji: '✦',
+    label: 'Story',
+    badgeBg: 'rgba(245,158,11,0.12)',
+    badgeFg: '#F59E0B',
+  },
+}
+const NATURES: SessionNature[] = ['curriculum', 'broader_context', 'story']
+
 type TabId = 'pending' | 'upcoming' | 'completed' | 'history'
 
 export default function FacultySessionsPage() {
@@ -32,6 +62,14 @@ export default function FacultySessionsPage() {
   const [tab, setTab] = useState<TabId>('pending')
   const [meetingLinks, setMeetingLinks] = useState<Record<string, string>>({})
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  // Counter-propose: faculty may pick a different nature before clicking Accept.
+  // Empty map = no overrides; we use the row's session_nature.
+  const [natureOverrides, setNatureOverrides] = useState<
+    Record<string, SessionNature>
+  >({})
+  const [naturePickerOpen, setNaturePickerOpen] = useState<
+    Record<string, boolean>
+  >({})
 
   useEffect(() => {
     if (!profile) return
@@ -70,6 +108,22 @@ export default function FacultySessionsPage() {
   ) {
     setActionLoading(sessionId)
     const supabase = createClient()
+
+    // Counter-propose: if faculty has chosen a different nature, apply it
+    // before the accept. RLS already allows faculty to update rows they own
+    // (see saveMeetingLink below). On decline we skip — the nature is moot.
+    const override = natureOverrides[sessionId]
+    if (action === 'accept' && override) {
+      const { error: natErr } = await supabase
+        .from('faculty_sessions')
+        .update({ session_nature: override })
+        .eq('id', sessionId)
+      if (natErr) {
+        console.error('[accept] nature counter-propose failed', natErr)
+        // Don't block the accept — server-side Edge Function still runs.
+      }
+    }
+
     const {
       data: { session },
     } = await supabase.auth.getSession()
@@ -96,6 +150,10 @@ export default function FacultySessionsPage() {
                 ...s,
                 status: action === 'accept' ? 'accepted' : 'declined',
                 confirmed_slot: slot ?? null,
+                session_nature:
+                  action === 'accept' && override
+                    ? override
+                    : s.session_nature,
               }
             : s
         )
@@ -265,6 +323,19 @@ export default function FacultySessionsPage() {
                     {'\u20B9'}
                     {(s.faculty_payout_paise / 100).toLocaleString('en-IN')}
                   </span>
+                  {(() => {
+                    const effectiveNature: SessionNature =
+                      natureOverrides[s.id] ?? s.session_nature ?? 'curriculum'
+                    const nm = NATURE_META[effectiveNature]
+                    return (
+                      <span
+                        className="ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                        style={{ background: nm.badgeBg, color: nm.badgeFg }}
+                      >
+                        {nm.emoji} {nm.label}
+                      </span>
+                    )
+                  })()}
                 </div>
 
                 <p className="mb-1 text-sm text-[var(--text-primary)]">{s.topic}</p>
@@ -277,9 +348,104 @@ export default function FacultySessionsPage() {
                   </p>
                 )}
 
-                {/* Pending: accept/decline */}
+                {/* Pending: counter-propose nature + accept/decline */}
                 {s.status === 'requested' && (
                   <div className="mt-3 space-y-2">
+                    {/* Counter-propose nature (collapsed by default).
+                        Student chose a nature; faculty can adjust before accepting. */}
+                    {(() => {
+                      const requested: SessionNature =
+                        s.session_nature ?? 'curriculum'
+                      const current: SessionNature =
+                        natureOverrides[s.id] ?? requested
+                      const open = naturePickerOpen[s.id] ?? false
+                      const changed = current !== requested
+                      return (
+                        <div
+                          className="rounded-lg px-3 py-2"
+                          style={{
+                            background: 'var(--bg-base)',
+                            border: '0.5px solid var(--border-subtle)',
+                          }}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <p
+                              className="text-[12px]"
+                              style={{ color: 'var(--text-tertiary)' }}
+                            >
+                              {changed ? (
+                                <>
+                                  Student requested:{' '}
+                                  <span style={{ color: NATURE_META[requested].badgeFg }}>
+                                    {NATURE_META[requested].emoji}{' '}
+                                    {NATURE_META[requested].label}
+                                  </span>
+                                  . You&rsquo;ll run as:{' '}
+                                  <span style={{ color: NATURE_META[current].badgeFg }}>
+                                    {NATURE_META[current].emoji}{' '}
+                                    {NATURE_META[current].label}
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  Student requested:{' '}
+                                  <span style={{ color: NATURE_META[requested].badgeFg }}>
+                                    {NATURE_META[requested].emoji}{' '}
+                                    {NATURE_META[requested].label}
+                                  </span>
+                                </>
+                              )}
+                            </p>
+                            <button
+                              onClick={() =>
+                                setNaturePickerOpen((p) => ({
+                                  ...p,
+                                  [s.id]: !open,
+                                }))
+                              }
+                              className="text-[11px] font-semibold"
+                              style={{ color: '#C9993A' }}
+                            >
+                              {open ? 'Close' : 'Counter-propose'}
+                            </button>
+                          </div>
+                          {open && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {NATURES.map((n) => {
+                                const nm = NATURE_META[n]
+                                const sel = current === n
+                                return (
+                                  <button
+                                    key={n}
+                                    onClick={() =>
+                                      setNatureOverrides((p) =>
+                                        n === requested
+                                          ? // Reset to student's request — drop the override
+                                            (({ [s.id]: _drop, ...rest }) =>
+                                              rest)(p)
+                                          : { ...p, [s.id]: n }
+                                      )
+                                    }
+                                    className="rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all"
+                                    style={{
+                                      background: sel
+                                        ? nm.badgeBg
+                                        : 'var(--bg-elevated)',
+                                      border: `1px solid ${sel ? nm.badgeFg + '55' : 'var(--border-subtle)'}`,
+                                      color: sel
+                                        ? nm.badgeFg
+                                        : 'var(--text-secondary)',
+                                    }}
+                                  >
+                                    {nm.emoji} {nm.label}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })()}
                     <p
                       className="text-[13px] font-semibold"
                       style={{ color: 'var(--text-tertiary)' }}

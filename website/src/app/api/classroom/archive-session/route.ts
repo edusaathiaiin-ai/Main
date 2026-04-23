@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   // Verify caller is faculty of this session
   const { data: session } = await supabase
     .from('live_sessions')
-    .select('id, faculty_id, vertical_id, title, started_at, session_artifacts')
+    .select('id, faculty_id, vertical_id, title, started_at, session_artifacts, session_nature')
     .eq('id', session_id)
     .single()
 
@@ -137,6 +137,27 @@ export async function POST(req: NextRequest) {
 
       const homeworkSummary = (homeworkRows ?? []).map(h => `- HW: ${h.question_text}`).join('\n')
 
+      // session_nature shapes what the summary prioritises. Default
+      // (curriculum or null) = existing behaviour; no regression.
+      const nature = (session as { session_nature?: string | null }).session_nature ?? 'curriculum'
+      const systemByNature: Record<string, string> = {
+        curriculum: `Summarise this research session in 2-3 sentences.
+Focus on what was studied academically, not the tools used.
+Do not mention software names. Be specific about compounds,
+theorems, cases, or concepts that were covered.`,
+        broader_context: `Summarise this BROADER CONTEXT session in 2-3 sentences.
+The session deliberately went beyond the syllabus — capture the bridges
+drawn to industry, history, policy, society, or adjacent disciplines,
+not just the academic topic. Be specific about the connections made.
+Do not mention software names.`,
+        story: `Summarise this STORY SESSION in 2-3 sentences.
+The faculty shared personal experience, a subject's narrative arc, or
+a lived perspective. Capture the story the student heard — people,
+moments, reflections — not a textbook recap. Warm, narrative tone.
+Do not mention software names.`,
+      }
+      const systemPrompt = systemByNature[nature] ?? systemByNature.curriculum
+
       const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -147,13 +168,10 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 200,
-          system: `Summarise this research session in 2-3 sentences.
-Focus on what was studied academically, not the tools used.
-Do not mention software names. Be specific about compounds,
-theorems, cases, or concepts that were covered.`,
+          system: systemPrompt,
           messages: [{
             role: 'user',
-            content: `Session: ${session.title}\nSaathi: ${saathiSlug}\n\nArtifacts:\n${artifactSummary}\n\n${homeworkSummary ? `Homework assigned:\n${homeworkSummary}` : ''}`,
+            content: `Session: ${session.title}\nSaathi: ${saathiSlug}\nNature: ${nature}\n\nArtifacts:\n${artifactSummary}\n\n${homeworkSummary ? `Homework assigned:\n${homeworkSummary}` : ''}`,
           }],
         }),
       })
@@ -184,13 +202,18 @@ theorems, cases, or concepts that were covered.`,
     depthScore += DEPTH_WEIGHTS[t] ?? 0
   }
 
-  // 8. Build archive context for soul engine (max 400 chars)
+  // 8. Build archive context for soul engine (max 400 chars). Prepend the
+  // nature tag so the chat Edge Function can carry the tone forward when
+  // it injects LAST CLASSROOM SESSION context.
+  const sessionNature =
+    (session as { session_nature?: string | null }).session_nature ?? 'curriculum'
   const topArtifacts = artifacts
     .filter(a => a.type !== 'command_log' && a.type !== 'session_notes')
     .slice(0, 5)
     .map(a => `${a.type}: ${JSON.stringify(a.data).slice(0, 60)}`)
     .join('; ')
-  const archiveContext = topArtifacts.slice(0, 400)
+  const natureTag = sessionNature === 'curriculum' ? '' : `[nature:${sessionNature}] `
+  const archiveContext = (natureTag + topArtifacts).slice(0, 400)
 
   // 9. Get booked students
   const { data: bookings } = await supabase
