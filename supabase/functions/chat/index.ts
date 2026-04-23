@@ -596,6 +596,11 @@ type RawSoul = {
   shell_broken_at: unknown;
   predicted_trajectory: unknown;
   career_interest: unknown;
+  // Curriculum fields (written by AcademicJourneyStep at onboarding)
+  degree: unknown;
+  specialisation: unknown;
+  academic_year: unknown;
+  curriculum_source: unknown;
 };
 
 type RawProfile = {
@@ -724,7 +729,7 @@ async function buildSystemPrompt(
     admin
       .from('student_soul')
       .select(
-        'display_name, ambition_level, preferred_tone, enrolled_subjects, future_subjects, future_research_area, top_topics, struggle_topics, last_session_summary, session_count, academic_level, depth_calibration, peer_mode, exam_mode, flame_stage, career_discovery_stage, prior_knowledge_base, learning_style, passion_intensity, shell_broken, shell_broken_at, predicted_trajectory, career_interest, last_archive_context, last_research_summary'
+        'display_name, ambition_level, preferred_tone, enrolled_subjects, future_subjects, future_research_area, top_topics, struggle_topics, last_session_summary, session_count, academic_level, depth_calibration, peer_mode, exam_mode, flame_stage, career_discovery_stage, prior_knowledge_base, learning_style, passion_intensity, shell_broken, shell_broken_at, predicted_trajectory, career_interest, last_archive_context, last_research_summary, degree, specialisation, academic_year, curriculum_source'
       )
       .eq('user_id', userId)
       .eq('vertical_id', saathiId)
@@ -776,7 +781,14 @@ async function buildSystemPrompt(
     return 'there'; // neutral fallback — bot says "Hello there" not "Hello Student"
   })();
   const ambition = typeof s?.ambition_level === 'string' ? s.ambition_level : 'medium';
-  const enrolled = Array.isArray(s?.enrolled_subjects) ? (s.enrolled_subjects as string[]).join(', ') : 'not specified';
+  const enrolledList: string[] = Array.isArray(s?.enrolled_subjects) ? (s.enrolled_subjects as string[]) : [];
+  const enrolled = enrolledList.length ? enrolledList.join(', ') : 'not specified';
+  // Curriculum context (populated by AcademicJourneyStep at onboarding)
+  const degree            = typeof s?.degree === 'string' ? s.degree : '';
+  const specialisation    = typeof s?.specialisation === 'string' ? s.specialisation : '';
+  const academicYear      = typeof s?.academic_year === 'number' ? s.academic_year : null;
+  const curriculumSource  = typeof s?.curriculum_source === 'string' ? s.curriculum_source : 'manual_entry';
+  const institutionName   = typeof prof?.institution_name === 'string' ? prof.institution_name : '';
   const future = Array.isArray(s?.future_subjects) ? (s.future_subjects as string[]).join(', ') : 'not specified';
   const research = typeof s?.future_research_area === 'string' ? s.future_research_area : 'their future goals';
   const topTopics = Array.isArray(s?.top_topics) ? (s.top_topics as string[]).join(', ') : 'none yet';
@@ -1013,6 +1025,42 @@ They are using you to TEACH BETTER — not to learn themselves.
 ` : ''}
 ${priorKnowledge ? `Prior knowledge base: ${priorKnowledge}` : ''}
 Currently enrolled in: ${enrolled}
+${(() => {
+  // ── CURRICULUM CONTEXT ──
+  // Emitted only when AcademicJourneyStep persisted real curriculum data
+  // to student_soul (degree + at least one enrolled subject). When absent,
+  // the section is skipped entirely so legacy students aren't blanked out
+  // by a stub.
+  if (!degree || enrolledList.length === 0) return '';
+  const sourceNote: Record<string, string> = {
+    university_specific: institutionName ? `Official ${institutionName} syllabus` : 'Official university syllabus',
+    aicte_model:         'AICTE model curriculum',
+    ugc_model:           'UGC model curriculum',
+    pci_model:           'Pharmacy Council of India curriculum',
+    bci_model:           'Bar Council of India curriculum',
+    manual_entry:        'Student-provided subjects',
+  };
+  const programme = specialisation ? `${degree} — ${specialisation}` : degree;
+  const yearLabel = academicYear ? `Year ${academicYear}` : 'Year not set';
+  return `
+# CURRICULUM CONTEXT
+University: ${institutionName || 'Not specified'}
+Programme: ${programme}
+Year: ${yearLabel}
+Source: ${sourceNote[curriculumSource] ?? 'Curriculum data'}
+
+Subjects this student is studying:
+${enrolledList.map((s) => `- ${s}`).join('\n')}
+
+Calibration rules:
+- Year 1: foundational concepts, no assumed prior knowledge
+- Year 2: intermediate — basics known, build on them
+- Year 3: advanced — peer-level discussion acceptable
+- Year 4+: near-graduate — research level where relevant
+- Always connect explanations to their listed subjects
+- If they ask about a topic not in their list — answer fully but note the cross-subject connection
+`;
+})()}
 Future interest areas: ${future}
 Declared research dream: ${research}
 Topics they return to often: ${topTopics}
