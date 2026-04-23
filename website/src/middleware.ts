@@ -28,6 +28,7 @@ const PUBLIC_PATHS = [
   '/api/pubmed',      // direct biomedical search proxy
   '/api/institutions/search',    // public "Find My Institution" — rate-limited
   '/api/institutions/register',  // public B2B registration — rate-limited not required, insert is server-gated
+  '/institutions',               // public B2B pages (register form + thank-you). Distinct from the authenticated /institution dashboard.
 ]
 
 export async function middleware(request: NextRequest) {

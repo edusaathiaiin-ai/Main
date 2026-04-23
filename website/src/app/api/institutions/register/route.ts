@@ -34,6 +34,10 @@ type RegisterBody = {
   approximate_strength?: string
   onboarding_answer?:    string
   active_saathi_slugs?:  string[]
+  /** Caller's self-described role within the institution (Principal / Vice
+      Principal / Faculty / IT Head / Other). Stored in admin_notes so the
+      operations team can see context when reviewing. */
+  contact_role?:         string
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -67,6 +71,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Normalise remaining fields — empty-string → null keeps the row tidy.
+  const contactRole = (body.contact_role ?? '').trim()
   const optional = {
     state:                (body.state ?? '').trim() || 'Gujarat',
     affiliation:          (body.affiliation ?? '').trim() || null,
@@ -78,6 +83,7 @@ export async function POST(req: NextRequest) {
     active_saathi_slugs:  Array.isArray(body.active_saathi_slugs)
                             ? body.active_saathi_slugs.filter((s) => typeof s === 'string' && s.trim().length > 0)
                             : null,
+    admin_notes:          contactRole ? `Contact role: ${contactRole}` : null,
   }
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
@@ -116,6 +122,7 @@ export async function POST(req: NextRequest) {
   void sendRegistrationEmails({
     name, city, principalEmail, slug,
     principalName:       optional.principal_name,
+    contactRole:         contactRole || null,
     affiliation:         optional.affiliation,
     approximateStrength: optional.approximate_strength,
     website:             optional.website,
@@ -134,6 +141,7 @@ async function sendRegistrationEmails(input: {
   principalEmail: string
   slug: string
   principalName: string | null
+  contactRole: string | null
   affiliation: string | null
   approximateStrength: string | null
   website: string | null
@@ -181,8 +189,9 @@ async function sendRegistrationEmails(input: {
   const rows: Array<[string, string]> = [
     ['Institution',           input.name],
     ['City',                  input.city],
-    ['Principal',             input.principalName ?? '—'],
-    ['Principal email',       input.principalEmail],
+    ['Contact',               input.principalName ?? '—'],
+    ['Contact role',          input.contactRole ?? '—'],
+    ['Contact email',         input.principalEmail],
     ['Phone',                 input.phone ?? '—'],
     ['Affiliation',           input.affiliation ?? '—'],
     ['Approx. strength',      input.approximateStrength ?? '—'],
