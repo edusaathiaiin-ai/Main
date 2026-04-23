@@ -9,6 +9,13 @@ import { resolveVerticalId } from '@/lib/resolveVertical'
 import { toSlug } from '@/constants/verticalIds'
 import { useAuthStore } from '@/stores/authStore'
 import { getSubjectChips } from '@/constants/subjectChips'
+import {
+  SESSION_NATURES,
+  SessionNature,
+} from '@/constants/sessionNatures'
+import SessionNatureSelector from '@/components/sessions/SessionNatureSelector'
+import { checkSubjectBoundary } from '@/lib/subjectBoundary'
+import SubjectBoundaryWarning from '@/components/sessions/SubjectBoundaryWarning'
 import Link from 'next/link'
 
 type Step = 'type' | 'content' | 'schedule' | 'pricing' | 'preview'
@@ -46,29 +53,8 @@ const FORMATS = [
   },
 ]
 
-// Session nature — orthogonal to format. Controls Saathi tone + (for story)
-// classroom chrome. Default 'curriculum' = no behavioural change from today.
-const NATURES = [
-  {
-    id: 'curriculum' as const,
-    emoji: '\u{1F4DA}',
-    label: 'Curriculum',
-    desc: 'Syllabus-aligned teaching',
-  },
-  {
-    id: 'broader_context' as const,
-    emoji: '\u{1F310}',
-    label: 'Broader Context',
-    desc: 'Connect to industry, history, society',
-  },
-  {
-    id: 'story' as const,
-    emoji: '✦',
-    label: 'Story Session',
-    desc: 'Your experience, quieter AI',
-  },
-]
-type SessionNature = (typeof NATURES)[number]['id']
+// Session nature moved to shared @/constants/sessionNatures — this surface
+// imports the registry + <SessionNatureSelector> component.
 
 type LectureInput = { title: string; date: string; duration: number }
 
@@ -584,45 +570,11 @@ export default function CreateLiveSessionPage() {
 
                   {/* Session nature — orthogonal to format. Shapes Saathi tone.
                       Story also changes classroom chrome (hidden AI command bar,
-                      amber accents) — rendered in step C follow-up. */}
-                  <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">
-                    And the spirit of this session?
-                  </h2>
-                  <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    {NATURES.map((n) => (
-                      <button
-                        key={n.id}
-                        onClick={() => setSessionNature(n.id)}
-                        className="rounded-xl p-4 text-left transition-all"
-                        style={{
-                          background:
-                            sessionNature === n.id
-                              ? 'rgba(201,153,58,0.12)'
-                              : 'var(--bg-elevated)',
-                          border: `1px solid ${sessionNature === n.id ? 'rgba(201,153,58,0.5)' : 'var(--bg-elevated)'}`,
-                        }}
-                      >
-                        <span className="mb-1 block text-2xl">{n.emoji}</span>
-                        <p
-                          className="text-sm font-semibold"
-                          style={{
-                            color:
-                              sessionNature === n.id
-                                ? '#E5B86A'
-                                : 'var(--text-secondary)',
-                          }}
-                        >
-                          {n.label}
-                        </p>
-                        <p
-                          className="text-[13px]"
-                          style={{ color: 'var(--text-ghost)' }}
-                        >
-                          {n.desc}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
+                      amber accents) — rendered in a step C follow-up. */}
+                  <SessionNatureSelector
+                    value={sessionNature}
+                    onChange={setSessionNature}
+                  />
                   <button
                     onClick={() => setStep('content')}
                     className="w-full rounded-xl py-3.5 text-sm font-bold"
@@ -1161,8 +1113,8 @@ export default function CreateLiveSessionPage() {
                             color: '#E5B86A',
                           }}
                         >
-                          {NATURES.find((n) => n.id === sessionNature)?.emoji}{' '}
-                          {NATURES.find((n) => n.id === sessionNature)?.label}
+                          {SESSION_NATURES[sessionNature].emoji}{' '}
+                          {SESSION_NATURES[sessionNature].label}
                         </span>
                       )}
                     </p>
@@ -1260,6 +1212,20 @@ export default function CreateLiveSessionPage() {
                       {publishError}
                     </div>
                   )}
+                  {/* Subject boundary — dormant today (sessionSaathiSlug is
+                      auto-set to the faculty's primary, so the check returns
+                      null warning). Wired defensively for the day faculty
+                      gains the ability to teach outside their registered
+                      Saathi area. Banner renders itself as null when null. */}
+                  <SubjectBoundaryWarning
+                    warning={
+                      checkSubjectBoundary(
+                        saathiId,
+                        saathiId,
+                        sessionNature
+                      ).warning
+                    }
+                  />
                   <div className="flex gap-3">
                     <button
                       onClick={() => setStep('pricing')}

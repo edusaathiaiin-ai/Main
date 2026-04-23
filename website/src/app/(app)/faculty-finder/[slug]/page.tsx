@@ -7,6 +7,10 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
 import { toSlug } from '@/constants/verticalIds'
+import { SessionNature } from '@/constants/sessionNatures'
+import SessionNatureSelector from '@/components/sessions/SessionNatureSelector'
+import { checkSubjectBoundary } from '@/lib/subjectBoundary'
+import SubjectBoundaryWarning from '@/components/sessions/SubjectBoundaryWarning'
 import Link from 'next/link'
 import { FacultyBadge } from '@/components/faculty/FacultyBadge'
 import { BookmarkButton } from '@/components/faculty/BookmarkButton'
@@ -86,30 +90,9 @@ const SESSION_TYPES = [
   },
 ]
 
-// session_nature is orthogonal to session_type. Student picks what they need
-// here; faculty sees it in the request card and can counter-propose on accept.
-// Copy matches the student's voice — "I have / I want / I want to hear".
-const SESSION_NATURES = [
-  {
-    id: 'curriculum' as const,
-    emoji: '\u{1F4DA}',
-    label: 'Curriculum',
-    desc: 'I have a specific doubt',
-  },
-  {
-    id: 'broader_context' as const,
-    emoji: '\u{1F310}',
-    label: 'Broader Context',
-    desc: 'I want to go deeper',
-  },
-  {
-    id: 'story' as const,
-    emoji: '✦',
-    label: 'Story Session',
-    desc: 'I want to hear your experience',
-  },
-]
-type SessionNature = (typeof SESSION_NATURES)[number]['id']
+// Session nature moved to shared @/constants/sessionNatures — the
+// <SessionNatureSelector> component renders the picker with student-voice
+// label ("What kind of session do you need?").
 
 function formatFee(paise: number): string {
   return `\u20B9${(paise / 100).toLocaleString('en-IN')}`
@@ -864,46 +847,13 @@ export default function FacultyProfilePage() {
                     })}
                   </div>
 
-                  {/* Session nature — the student's voice */}
-                  <label
-                    className="mb-1.5 block text-xs font-semibold"
-                    style={{ color: 'var(--text-tertiary)' }}
-                  >
-                    What kind of session do you need?
-                  </label>
-                  <div className="mb-4 space-y-2">
-                    {SESSION_NATURES.map((n) => {
-                      const sel = sessionNature === n.id
-                      return (
-                        <button
-                          key={n.id}
-                          onClick={() => setSessionNature(n.id)}
-                          className="w-full rounded-xl p-3 text-left transition-all"
-                          style={{
-                            background: sel
-                              ? `${color}15`
-                              : 'var(--bg-elevated)',
-                            border: `1px solid ${sel ? `${color}50` : 'var(--bg-elevated)'}`,
-                          }}
-                        >
-                          <span
-                            className="text-xs font-semibold"
-                            style={{
-                              color: sel ? color : 'var(--text-secondary)',
-                            }}
-                          >
-                            {n.emoji} {n.label}
-                          </span>
-                          <p
-                            className="mt-0.5 text-[10px]"
-                            style={{ color: 'var(--text-ghost)' }}
-                          >
-                            {n.desc}
-                          </p>
-                        </button>
-                      )
-                    })}
-                  </div>
+                  {/* Session nature — the student's voice. Shared component,
+                      student-voice copy ("What kind of session do you need?"). */}
+                  <SessionNatureSelector
+                    value={sessionNature}
+                    onChange={setSessionNature}
+                    label="What kind of session do you need?"
+                  />
 
                   {/* Topic */}
                   <label
@@ -965,6 +915,20 @@ export default function FacultyProfilePage() {
                     ))}
                   </div>
 
+                  {/* Subject boundary — dormant today (the faculty's primary
+                      Saathi is both the session's Saathi and their registered
+                      one, so the check returns null). Wired for the day a
+                      student can request a session under a Saathi different
+                      from the faculty's primary. Banner renders null when null. */}
+                  <SubjectBoundaryWarning
+                    warning={
+                      checkSubjectBoundary(
+                        toSlug(faculty.primary_saathi_id) ?? '',
+                        toSlug(faculty.primary_saathi_id) ?? '',
+                        sessionNature
+                      ).warning
+                    }
+                  />
                   {/* Submit */}
                   <button
                     onClick={handleBooking}
