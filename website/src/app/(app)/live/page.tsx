@@ -161,12 +161,16 @@ export default function LivePage() {
   const nextLecture = (sessionId: string): LectureRow | undefined =>
     lectures.find((l) => l.session_id === sessionId)
 
+  // Selects render on the light `--bg-elevated` surface below the hero.
+  // Text must be dark so the option label reads; white was a dark-theme
+  // remnant. Same fix pattern as commit 4797c19 — rely on the platform
+  // theme tokens instead of hex-coding whites.
   const selectStyle: React.CSSProperties = {
     padding: '8px 14px',
     background: 'var(--bg-elevated)',
     border: '0.5px solid var(--border-medium)',
     borderRadius: '10px',
-    color: '#fff',
+    color: 'var(--text-primary)',
     fontSize: '12px',
     outline: 'none',
     cursor: 'pointer',
@@ -243,15 +247,22 @@ export default function LivePage() {
             <span className="absolute top-1/2 left-4 -translate-y-1/2 text-lg opacity-40">
               {'\u{1F50D}'}
             </span>
+            {/* Input floats on the dark hero gradient but its own background
+                is the light `--bg-elevated` cream. Text + placeholder must
+                be dark on dark-ish-bg; white text here was a dark-theme
+                carry-over that turned invisible after the platform-wide
+                light-first fix (commit 4797c19). The placeholder uses an
+                arbitrary Tailwind token to route through the ghost color. */}
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search sessions, topics, faculty..."
-              className="w-full rounded-[14px] py-3 pr-4 pl-12 text-sm text-white outline-none"
+              className="w-full rounded-[14px] py-3 pr-4 pl-12 text-sm outline-none placeholder:text-[var(--text-ghost)]"
               style={{
                 background: 'var(--bg-elevated)',
                 border: '0.5px solid var(--border-medium)',
+                color: 'var(--text-primary)',
               }}
             />
           </div>
@@ -298,7 +309,10 @@ export default function LivePage() {
         {/* For You section */}
         {forYou.length > 0 && (
           <section className="mb-10">
-            <h2 className="font-playfair mb-4 text-xl font-bold text-white">
+            <h2
+              className="font-playfair mb-4 text-xl font-bold"
+              style={{ color: 'var(--text-primary)' }}
+            >
               For You
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -316,7 +330,10 @@ export default function LivePage() {
 
         {/* All sessions */}
         <section>
-          <h2 className="font-playfair mb-4 text-xl font-bold text-white">
+          <h2
+            className="font-playfair mb-4 text-xl font-bold"
+            style={{ color: 'var(--text-primary)' }}
+          >
             All Upcoming
           </h2>
           {loading ? (
@@ -332,7 +349,10 @@ export default function LivePage() {
           ) : filtered.length === 0 ? (
             <div className="py-16 text-center">
               <p className="mb-3 text-4xl">{'\u{1F3AC}'}</p>
-              <p className="font-playfair mb-1 text-xl text-white/30">
+              <p
+                className="font-playfair mb-1 text-xl"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
                 No live sessions yet
               </p>
               <p
@@ -430,7 +450,10 @@ function SessionCard({
           </span>
         </div>
 
-        <h3 className="mb-1 line-clamp-2 text-[15px] leading-tight font-bold text-white">
+        <h3
+          className="mb-1 line-clamp-2 text-[15px] leading-tight font-bold"
+          style={{ color: 'var(--text-primary)' }}
+        >
           {s.title}
         </h3>
 
@@ -526,7 +549,10 @@ function SessionCard({
         }}
       >
         <div>
-          <p className="text-lg font-bold text-white">
+          <p
+            className="text-lg font-bold"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {formatFee(s.bundle_price_paise ?? s.price_per_seat_paise)}
           </p>
           {s.bundle_price_paise &&
