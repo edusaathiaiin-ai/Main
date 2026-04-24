@@ -1,1 +1,8 @@
 npx lint-staged
+
+# Invisible-text regression guard — blocks commits that introduce
+# text-white / hex-white / rgba-white as a TEXT color on authenticated
+# Saathi surfaces. Runs in ~3 seconds. If it fails, either fix the
+# color or add an // @allow-text-white pragma. See the test file for
+# full instructions.
+npx jest invisible-text-regression --silent

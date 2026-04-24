@@ -1,0 +1,1628 @@
+[
+  {
+    "file": "app/(app)/classroom/[id]/page.tsx",
+    "line": 561,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/classroom/[id]/page.tsx",
+    "line": 1031,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/classroom/[id]/page.tsx",
+    "line": 1414,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: color, color: '#fff', cursor: 'pointer' }}"
+  },
+  {
+    "file": "app/(app)/classroom/[id]/page.tsx",
+    "line": 1499,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 362,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair mb-2 text-2xl text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 447,
+    "label": "text-white Tailwind class",
+    "snippet": "<h1 className=\"font-playfair mb-1 text-2xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 556,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"mb-2 text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 606,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-[13px] font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 634,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"mb-3 text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 647,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"line-clamp-3 text-xs text-white/60\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 677,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"mb-3 text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 702,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"mb-1 text-xs text-white/60\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 727,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-lg font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 741,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-lg font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 767,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-playfair mb-2 text-xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 801,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"mb-3 text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 835,
+    "label": "text-white Tailwind class",
+    "snippet": "<span className=\"text-xs font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 870,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"mb-3 w-full resize-none rounded-xl px-4 py-3 text-xs text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 883,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"mb-3 w-full resize-none rounded-xl px-4 py-3 text-xs text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 908,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-lg px-3 py-2 text-xs text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 1025,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"mb-4 text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 1043,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"mb-1 text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 1144,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-playfair mb-2 text-xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 1169,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-playfair mb-1 text-lg font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 1194,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 1222,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full resize-none rounded-xl px-4 py-3 text-xs text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 1245,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-[10px] font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/[slug]/page.tsx",
+    "line": 1264,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-[10px] font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/page.tsx",
+    "line": 177,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/faculty-finder/page.tsx",
+    "line": 203,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"font-playfair mb-2.5 font-black text-white\""
+  },
+  {
+    "file": "app/(app)/faculty-finder/page.tsx",
+    "line": 257,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-[14px] py-3.5 pr-4 pl-12 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/faculty-finder/page.tsx",
+    "line": 387,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair mb-1 text-xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/page.tsx",
+    "line": 423,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-sm font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/page.tsx",
+    "line": 496,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-playfair mb-2 text-2xl text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/page.tsx",
+    "line": 569,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-[15px] leading-tight font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty-finder/page.tsx",
+    "line": 771,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-lg font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/faculty/live/page.tsx",
+    "line": 282,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "background: '#DC2626', color: '#fff', textDecoration: 'none',"
+  },
+  {
+    "file": "app/(app)/faculty/live/page.tsx",
+    "line": 331,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "background: '#DC2626', color: '#fff', border: 'none',"
+  },
+  {
+    "file": "app/(app)/faculty/nominations/page.tsx",
+    "line": 138,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 251,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "Every text node declares color: '#fff' explicitly. Global h1/p"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 260,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 263,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<div style={{ fontSize: '13px', color: '#fff', opacity: 0.75, marginBottom: '4px' }}>"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 271,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 275,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<div style={{ fontSize: '13px', color: '#fff', opacity: 0.85 }}>"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 283,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<p style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#fff' }}>{stats.sessions}</p>"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 284,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<p style={{ fontSize: '13px', margin: 0, color: '#fff', opacity: 0.75 }}>Sessions</p>"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 287,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<p style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#fff' }}>{stats.students}</p>"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 288,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<p style={{ fontSize: '13px', margin: 0, color: '#fff', opacity: 0.75 }}>Students helped</p>"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 291,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<p style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#fff' }}>₹{stats.earnings}</p>"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 292,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<p style={{ fontSize: '13px', margin: 0, color: '#fff', opacity: 0.75 }}>Earnings</p>"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 390,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color:         '#fff',"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 460,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color:        '#fff',"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 528,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "background: color, color: '#fff',"
+  },
+  {
+    "file": "app/(app)/faculty/page.tsx",
+    "line": 574,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "background: color, color: '#fff', border: 'none', cursor: 'pointer',"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 640,
+    "label": "text-white Tailwind class",
+    "snippet": "<h1 className=\"font-playfair mb-2 text-3xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 703,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"font-playfair text-3xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 719,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair mb-4 text-xl text-white\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 724,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"font-playfair mb-3 text-2xl text-white/30\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 727,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"mb-6 text-sm text-white/20\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 752,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 838,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair text-xl text-white\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 875,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 897,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1026,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1049,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1070,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1159,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1196,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair text-xl text-white\">Applicants</h2>"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1207,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"font-playfair text-xl text-white/30\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1210,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"mt-2 text-sm text-white/20\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1227,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1276,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair text-xl text-white\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1291,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1307,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"font-playfair mb-3 text-xl text-white/40\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1310,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"mb-6 text-sm text-white/20\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1319,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1379,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1428,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair text-xl text-white\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1460,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1479,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1503,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1529,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1549,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1660,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1713,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1758,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1809,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1831,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full rounded-xl px-4 py-3 text-sm text-white outline-none\""
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1917,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1941,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair text-xl text-white\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1974,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"font-playfair text-xl text-white/30\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1977,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"mt-2 text-sm text-white/20\">"
+  },
+  {
+    "file": "app/(app)/institution/page.tsx",
+    "line": 1994,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 222,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-playfair text-lg font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 263,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 413,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-playfair text-lg font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 457,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 489,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 511,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 639,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 736,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 802,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-playfair text-base font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 945,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 1102,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--bg-base)', color: '#fff' }}"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 1107,
+    "label": "text-white Tailwind class",
+    "snippet": "<h1 className=\"font-playfair mb-1 text-3xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 1280,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"font-playfair mb-2 text-xl text-white\">"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 1306,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"font-playfair mb-2 text-xl text-white\">"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 1324,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair mb-4 text-xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/internships/page.tsx",
+    "line": 1341,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"truncate text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 139,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 448,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 502,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 524,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 578,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 801,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 949,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 1065,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 1095,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 1357,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 1384,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 1459,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 1488,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 1515,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/learn/page.tsx",
+    "line": 1540,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 434,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair mb-2 text-2xl text-white\">"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 561,
+    "label": "text-white Tailwind class",
+    "snippet": "<h1 className=\"font-playfair mb-3 text-3xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 578,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 613,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-sm font-bold text-white\">Your meeting link</p>"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 709,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"mb-2 text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 781,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"mb-3 text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 801,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"truncate text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 882,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-playfair mb-2 text-xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 914,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-playfair mb-2 text-xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 1036,
+    "label": "text-white Tailwind class",
+    "snippet": "<span className=\"text-xs font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 1105,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"truncate text-xs text-white\">"
+  },
+  {
+    "file": "app/(app)/live/[id]/page.tsx",
+    "line": 1118,
+    "label": "text-white Tailwind class",
+    "snippet": "<span className=\"text-xs font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/live/page.tsx",
+    "line": 202,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"font-playfair mb-2 font-black text-white\""
+  },
+  {
+    "file": "app/(app)/my-sessions/page.tsx",
+    "line": 245,
+    "label": "text-white Tailwind class",
+    "snippet": "<h1 className=\"font-playfair mb-2 text-3xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/my-sessions/page.tsx",
+    "line": 327,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-sm font-semibold text-white\">"
+  },
+  {
+    "file": "app/(app)/my-sessions/page.tsx",
+    "line": 358,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"mb-2 text-xs text-white/60\">{s.topic}</p>"
+  },
+  {
+    "file": "app/(app)/my-sessions/page.tsx",
+    "line": 439,
+    "label": "text-white Tailwind class",
+    "snippet": "<span className=\"text-sm font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/requests/[id]/page.tsx",
+    "line": 279,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<h2 style={{ fontSize: '20px', color: '#fff', fontFamily: 'Playfair Display, serif', margin: '0 0 10px' }}>"
+  },
+  {
+    "file": "app/(app)/requests/[id]/page.tsx",
+    "line": 283,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "Your request for <strong style={{ color: '#fff' }}>{request.subject}</strong> has"
+  },
+  {
+    "file": "app/(app)/requests/[id]/page.tsx",
+    "line": 302,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<h2 style={{ fontSize: '20px', color: '#fff', fontFamily: 'Playfair Display, serif', margin: '0 0 10px' }}>"
+  },
+  {
+    "file": "app/(app)/requests/[id]/page.tsx",
+    "line": 346,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "fontWeight: 800, color: '#fff', margin: '0 0 10px',"
+  },
+  {
+    "file": "app/(app)/requests/[id]/page.tsx",
+    "line": 352,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<strong style={{ color: '#fff' }}>{request.subject}</strong>."
+  },
+  {
+    "file": "app/(app)/requests/[id]/page.tsx",
+    "line": 361,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<p style={{ fontSize: '14px', fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>"
+  },
+  {
+    "file": "app/(app)/requests/[id]/page.tsx",
+    "line": 450,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "fontWeight: 800, color: '#fff', margin: '0 0 6px',"
+  },
+  {
+    "file": "app/(app)/requests/[id]/page.tsx",
+    "line": 501,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "<p style={{ fontSize: '22px', fontWeight: 800, color: '#fff', margin: '0 0 3px' }}>"
+  },
+  {
+    "file": "app/(app)/requests/page.tsx",
+    "line": 129,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/requests/page.tsx",
+    "line": 152,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"font-playfair mb-2 font-black text-white\""
+  },
+  {
+    "file": "app/(app)/requests/page.tsx",
+    "line": 211,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"font-playfair mb-1 text-xl text-white/30\">"
+  },
+  {
+    "file": "app/(app)/requests/page.tsx",
+    "line": 255,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"mb-1 text-sm font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/research/page.tsx",
+    "line": 189,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-playfair text-lg font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/research/page.tsx",
+    "line": 252,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/research/page.tsx",
+    "line": 388,
+    "label": "text-white Tailwind class",
+    "snippet": "<h3 className=\"font-playfair text-base leading-snug font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/research/page.tsx",
+    "line": 495,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "app/(app)/research/page.tsx",
+    "line": 604,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--bg-base)', color: '#fff' }}"
+  },
+  {
+    "file": "app/(app)/research/page.tsx",
+    "line": 609,
+    "label": "text-white Tailwind class",
+    "snippet": "<h1 className=\"font-playfair mb-2 text-3xl font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/research/page.tsx",
+    "line": 732,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"font-playfair mb-2 text-xl text-white\">"
+  },
+  {
+    "file": "app/(app)/saved-faculty/page.tsx",
+    "line": 147,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"font-playfair mb-2 font-black text-white\""
+  },
+  {
+    "file": "app/(app)/saved-faculty/page.tsx",
+    "line": 177,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair mb-2 text-2xl text-white\">"
+  },
+  {
+    "file": "app/(app)/saved-faculty/page.tsx",
+    "line": 245,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"truncate text-[15px] leading-tight font-bold text-white\">"
+  },
+  {
+    "file": "app/(app)/saved-faculty/page.tsx",
+    "line": 373,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-base font-bold text-white\">"
+  },
+  {
+    "file": "components/board/PostQuestionModal.tsx",
+    "line": 259,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/board/PostQuestionModal.tsx",
+    "line": 357,
+    "label": "text-white Tailwind class",
+    "snippet": "<h2 className=\"font-playfair mb-1 text-2xl font-bold text-white\">"
+  },
+  {
+    "file": "components/board/PostQuestionModal.tsx",
+    "line": 397,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full resize-none rounded-xl px-4 py-3 text-sm text-white transition-all outline-none\""
+  },
+  {
+    "file": "components/board/PostQuestionModal.tsx",
+    "line": 455,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-sm font-medium text-white\">"
+  },
+  {
+    "file": "components/board/QuestionCard.tsx",
+    "line": 175,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#FFFFFF',"
+  },
+  {
+    "file": "components/board/QuestionFeed.tsx",
+    "line": 464,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#FFFFFF',"
+  },
+  {
+    "file": "components/board/QuestionFeed.tsx",
+    "line": 599,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/board/QuestionFeed.tsx",
+    "line": 642,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--saathi-primary)', color: '#FFFFFF' }}"
+  },
+  {
+    "file": "components/board/QuestionFeed.tsx",
+    "line": 660,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--saathi-primary)', color: '#FFFFFF' }}"
+  },
+  {
+    "file": "components/chat/AnatomyViewer.tsx",
+    "line": 130,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.65)',"
+  },
+  {
+    "file": "components/chat/AnatomyViewer.tsx",
+    "line": 140,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.25)',"
+  },
+  {
+    "file": "components/chat/AnatomyViewer.tsx",
+    "line": 175,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)' }}>"
+  },
+  {
+    "file": "components/chat/AnatomyViewer.tsx",
+    "line": 205,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>"
+  },
+  {
+    "file": "components/chat/AnatomyViewer.tsx",
+    "line": 208,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>"
+  },
+  {
+    "file": "components/chat/ArchModel3D.tsx",
+    "line": 38,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.4)',"
+  },
+  {
+    "file": "components/chat/ArchModel3D.tsx",
+    "line": 71,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.65)' }}>"
+  },
+  {
+    "file": "components/chat/ArchTimeline.tsx",
+    "line": 324,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/chat/ArchTimeline.tsx",
+    "line": 345,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.75)',"
+  },
+  {
+    "file": "components/chat/ArchTimeline.tsx",
+    "line": 380,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.4)',"
+  },
+  {
+    "file": "components/chat/ChatColumn.tsx",
+    "line": 421,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff', border: 'none',"
+  },
+  {
+    "file": "components/chat/CircuitSimulator.tsx",
+    "line": 141,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.65)',"
+  },
+  {
+    "file": "components/chat/CircuitSimulator.tsx",
+    "line": 190,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)' }}>"
+  },
+  {
+    "file": "components/chat/CircuitSimulator.tsx",
+    "line": 219,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>"
+  },
+  {
+    "file": "components/chat/CircuitSimulator.tsx",
+    "line": 222,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>"
+  },
+  {
+    "file": "components/chat/DailyChallengeWidget.tsx",
+    "line": 334,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/chat/GoldenRatioTool.tsx",
+    "line": 179,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.5)',"
+  },
+  {
+    "file": "components/chat/GoldenRatioTool.tsx",
+    "line": 198,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/chat/GoldenRatioTool.tsx",
+    "line": 207,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.5)',"
+  },
+  {
+    "file": "components/chat/GoldenRatioTool.tsx",
+    "line": 226,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/chat/GoldenRatioTool.tsx",
+    "line": 252,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.4)',"
+  },
+  {
+    "file": "components/chat/GraphPlotter.tsx",
+    "line": 169,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.65)',"
+  },
+  {
+    "file": "components/chat/GraphPlotter.tsx",
+    "line": 370,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.65)',"
+  },
+  {
+    "file": "components/chat/GraphPlotter.tsx",
+    "line": 380,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ color: 'rgba(255,255,255,0.4)' }}>"
+  },
+  {
+    "file": "components/chat/InputArea.tsx",
+    "line": 164,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>"
+  },
+  {
+    "file": "components/chat/MechanismViewer.tsx",
+    "line": 563,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.65)' }}>"
+  },
+  {
+    "file": "components/chat/MechanismViewer.tsx",
+    "line": 573,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.18)',"
+  },
+  {
+    "file": "components/chat/MermaidBlock.tsx",
+    "line": 65,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.5)',"
+  },
+  {
+    "file": "components/chat/MermaidBlock.tsx",
+    "line": 77,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.6)',"
+  },
+  {
+    "file": "components/chat/MessageBubble.tsx",
+    "line": 766,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/chat/MessageBubble.tsx",
+    "line": 796,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/chat/MessageBubble.tsx",
+    "line": 954,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#FFFFFF',"
+  },
+  {
+    "file": "components/chat/MindMap.tsx",
+    "line": 78,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.65)',"
+  },
+  {
+    "file": "components/chat/Molecule3DViewer.tsx",
+    "line": 217,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.65)' }}>"
+  },
+  {
+    "file": "components/chat/Molecule3DViewer.tsx",
+    "line": 238,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>"
+  },
+  {
+    "file": "components/chat/Molecule3DViewer.tsx",
+    "line": 241,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>"
+  },
+  {
+    "file": "components/chat/Molecule3DViewer.tsx",
+    "line": 267,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>"
+  },
+  {
+    "file": "components/chat/Molecule3DViewer.tsx",
+    "line": 270,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "<span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>"
+  },
+  {
+    "file": "components/chat/MoleculeViewer.tsx",
+    "line": 101,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.65)',"
+  },
+  {
+    "file": "components/chat/MoleculeViewer.tsx",
+    "line": 113,
+    "label": "rgba(255,255,255,x) used as a color",
+    "snippet": "color: 'rgba(255,255,255,0.65)',"
+  },
+  {
+    "file": "components/chat/NasaCard.tsx",
+    "line": 107,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "fontSize: '9px', fontWeight: 600, color: '#fff',"
+  },
+  {
+    "file": "components/chat/NewBoardModal.tsx",
+    "line": 263,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/chat/RichFeaturesSection.tsx",
+    "line": 427,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/chat/Scene360Viewer.tsx",
+    "line": 329,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color:        '#fff',"
+  },
+  {
+    "file": "components/classroom/CommandBar.tsx",
+    "line": 112,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "background: saathiColor, color: '#fff',"
+  },
+  {
+    "file": "components/classroom/ElsevierPanels.tsx",
+    "line": 43,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}>"
+  },
+  {
+    "file": "components/classroom/ElsevierPanels.tsx",
+    "line": 101,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}>"
+  },
+  {
+    "file": "components/classroom/QuestionQueue.tsx",
+    "line": 71,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "background: 'var(--saathi-primary)', color: '#fff', border: 'none',"
+  },
+  {
+    "file": "components/classroom/QuestionQueue.tsx",
+    "line": 171,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "background: accentColor, color: '#fff', fontSize: '10px', fontWeight: 700,"
+  },
+  {
+    "file": "components/classroom/RcsbPanel.tsx",
+    "line": 116,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}>"
+  },
+  {
+    "file": "components/classroom/WolframPanel.tsx",
+    "line": 60,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}>"
+  },
+  {
+    "file": "components/faculty/FacultyArtifactRail.tsx",
+    "line": 117,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color:        '#fff',"
+  },
+  {
+    "file": "components/faculty/FacultySidebar.tsx",
+    "line": 102,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "background: color, color: '#fff', fontSize: '10px', fontWeight: 700,"
+  },
+  {
+    "file": "components/faculty/FacultyToolsButton.tsx",
+    "line": 64,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color:     '#fff',"
+  },
+  {
+    "file": "components/faculty/NominateFacultyModal.tsx",
+    "line": 257,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/faculty/NominateFacultyModal.tsx",
+    "line": 299,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/faculty/NominateFacultyModal.tsx",
+    "line": 339,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/faculty/NominateFacultyModal.tsx",
+    "line": 390,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/faculty/panels/ComingSoonPanel.tsx",
+    "line": 23,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}"
+  },
+  {
+    "file": "components/faculty/panels/EnsemblPanel.tsx",
+    "line": 120,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}"
+  },
+  {
+    "file": "components/faculty/panels/EuropePMCPanel.tsx",
+    "line": 105,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}"
+  },
+  {
+    "file": "components/faculty/panels/NasaImagesPanel.tsx",
+    "line": 93,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}"
+  },
+  {
+    "file": "components/faculty/panels/NasaImagesPanel.tsx",
+    "line": 145,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color:    '#fff',"
+  },
+  {
+    "file": "components/faculty/panels/NCBIGenePanel.tsx",
+    "line": 96,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}"
+  },
+  {
+    "file": "components/faculty/panels/NtrsPanel.tsx",
+    "line": 95,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}"
+  },
+  {
+    "file": "components/faculty/panels/OpenFdaPanel.tsx",
+    "line": 99,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}"
+  },
+  {
+    "file": "components/faculty/panels/PubMedPanel.tsx",
+    "line": 71,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}"
+  },
+  {
+    "file": "components/faculty/panels/SemanticScholarPanel.tsx",
+    "line": 72,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}"
+  },
+  {
+    "file": "components/faculty/panels/UniProtPanel.tsx",
+    "line": 84,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}"
+  },
+  {
+    "file": "components/faculty/panels/WikimediaCommonsPanel.tsx",
+    "line": 104,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: 'var(--gold)', color: '#fff' }}"
+  },
+  {
+    "file": "components/faculty/panels/WikimediaCommonsPanel.tsx",
+    "line": 131,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/flashcards/FlashcardsClient.tsx",
+    "line": 172,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/flashcards/FlashcardsClient.tsx",
+    "line": 359,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/flashcards/FlashcardsClient.tsx",
+    "line": 399,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/institutions/InstitutionLeaveModal.tsx",
+    "line": 200,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/layout/Navbar.tsx",
+    "line": 41,
+    "label": "text-white Tailwind class",
+    "snippet": "<span className=\"font-playfair text-base font-bold text-white\">"
+  },
+  {
+    "file": "components/layout/Navbar.tsx",
+    "line": 46,
+    "label": "text-white Tailwind class",
+    "snippet": "<span className=\"font-playfair text-base font-semibold text-white\">"
+  },
+  {
+    "file": "components/layout/NotificationBell.tsx",
+    "line": 170,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/layout/NotificationBell.tsx",
+    "line": 220,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/profile/DeleteAccountModal.tsx",
+    "line": 174,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/profile/ProfileTab.tsx",
+    "line": 584,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: '#25D366', color: '#fff', whiteSpace: 'nowrap' }}"
+  },
+  {
+    "file": "components/profile/ProfileTab.tsx",
+    "line": 634,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: '#25D366', color: '#fff' }}"
+  },
+  {
+    "file": "components/profile/ProfileTab.tsx",
+    "line": 913,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "style={{ background: '#F43F5E', color: '#fff' }}"
+  },
+  {
+    "file": "components/profile/SmartEducationInput.tsx",
+    "line": 267,
+    "label": "text-white Tailwind class",
+    "snippet": "className=\"w-full resize-none rounded-xl px-4 py-3.5 text-sm text-white transition-all outline-none\""
+  },
+  {
+    "file": "components/profile/SmartEducationInput.tsx",
+    "line": 332,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"mb-0.5 text-sm font-medium text-white\">"
+  },
+  {
+    "file": "components/profile/SmartEducationInput.tsx",
+    "line": 414,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-sm font-medium text-white\">"
+  },
+  {
+    "file": "components/profile/SmartEducationInput.tsx",
+    "line": 453,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-xs text-white/70\">{alt.name}</p>"
+  },
+  {
+    "file": "components/profile/SmartEducationInput.tsx",
+    "line": 454,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-[10px] text-white/35\">"
+  },
+  {
+    "file": "components/profile/SmartEducationInput.tsx",
+    "line": 517,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-xs font-medium text-white\">"
+  },
+  {
+    "file": "components/profile/SmartEducationInput.tsx",
+    "line": 520,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"text-[10px] text-white/35\">"
+  },
+  {
+    "file": "components/profile/SmartEducationInput.tsx",
+    "line": 604,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"mb-2 text-xs text-white/70\">"
+  },
+  {
+    "file": "components/profile/SmartEducationInput.tsx",
+    "line": 606,
+    "label": "text-white Tailwind class",
+    "snippet": "<span className=\"font-semibold text-white capitalize\">"
+  },
+  {
+    "file": "components/progress/ProgressClient.tsx",
+    "line": 18,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/progress/ProgressDashboard.tsx",
+    "line": 308,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/progress/ProgressDashboard.tsx",
+    "line": 563,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/settings/DeleteAccountSection.tsx",
+    "line": 312,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "background: RED, color: '#fff',"
+  },
+  {
+    "file": "components/ui/CollegeAutocomplete.tsx",
+    "line": 93,
+    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
+    "snippet": "color: '#fff',"
+  },
+  {
+    "file": "components/ui/CollegeAutocomplete.tsx",
+    "line": 145,
+    "label": "text-white Tailwind class",
+    "snippet": "<p className=\"truncate text-sm font-semibold text-white\">"
+  }
+]
