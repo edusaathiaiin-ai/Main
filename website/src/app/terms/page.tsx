@@ -33,6 +33,7 @@ export default function TermsPage() {
     { id: 'user-account', title: '5. User Account' },
     { id: 'acceptable-use', title: '6. Acceptable Use' },
     { id: 'subscription', title: '7. Subscription and Payments' },
+    { id: 'live-bookings', title: '7a. Live-Session Bookings' },
     { id: 'intellectual-property', title: '8. Intellectual Property' },
     { id: 'privacy', title: '9. Privacy' },
     { id: 'liability', title: '10. Limitation of Liability' },
@@ -222,6 +223,103 @@ export default function TermsPage() {
           <p>
             Plus, Pro, and Unlimited subscribers may pause their subscription
             (max 2 times/year). Billing is frozen during pause period.
+          </p>
+
+          <Heading id="live-bookings">7a. Live-Session Bookings</Heading>
+          <p>
+            This section governs payments for individual live sessions or
+            workshops booked through the platform — separate from the monthly
+            subscription plans covered in section 7.
+          </p>
+
+          <SubHeading>The three parties</SubHeading>
+          <p>
+            Every live-session booking involves three parties with distinct
+            commitments:
+          </p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>
+              <strong>EdUsaathiAI (platform):</strong> processes the payment via
+              Razorpay, delivers the meeting link 24 hours before the session,
+              and guarantees a full refund if the session is cancelled by the
+              faculty or by the platform.
+            </li>
+            <li>
+              <strong>Faculty:</strong> sets the price, any prerequisites or
+              terms, and the refund window for student-initiated cancellation.
+              These become part of the booking contract at the moment the
+              first seat is booked and cannot be unilaterally changed
+              afterwards.
+            </li>
+            <li>
+              <strong>Student:</strong> pays to hold a specific seat, not to
+              attend. A booked seat is committed — see the no-show clause
+              below.
+            </li>
+          </ul>
+
+          <SubHeading>Refund eligibility</SubHeading>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>
+              <strong>Faculty cancels the session:</strong> 100% refund to
+              every booked student, processed within 7 working days to the
+              original payment method.
+            </li>
+            <li>
+              <strong>Platform cancels the session</strong> (rare — technical
+              failure, faculty-account suspension, safety concern):
+              same as above — 100% refund within 7 working days.
+            </li>
+            <li>
+              <strong>Student cancels within the faculty&#39;s refund
+              window:</strong> 100% refund. The refund window is shown on the
+              booking page as &quot;Full refund if cancelled N hours or more
+              before the first lecture&quot; and is fixed once the first seat
+              is booked.
+            </li>
+            <li>
+              <strong>Student cancels after the refund window:</strong> no
+              refund. The seat was held from another student for the
+              committed duration.
+            </li>
+            <li>
+              <strong>Student books and does not attend (no-show):</strong>{' '}
+              no refund. A paid booking is a commitment to attend — the fee
+              secures the seat, not the act of attendance.
+            </li>
+          </ul>
+
+          <SubHeading>Free sessions</SubHeading>
+          <p>
+            Sessions priced at ₹0 follow the same seat-commitment rules —
+            cancelling within the faculty&#39;s window frees the seat for
+            another student. No-show on a free session does not carry a
+            financial forfeit but may affect your standing for high-demand
+            bookings in the future.
+          </p>
+
+          <SubHeading>Disputes</SubHeading>
+          <p>
+            If you believe a refund was wrongly denied, email{' '}
+            <a
+              href="mailto:support@edusaathiai.in"
+              style={{ color: '#1e40af' }}
+            >
+              support@edusaathiai.in
+            </a>{' '}
+            within 7 days of the session. Include your booking ID and a brief
+            explanation. The admin team reviews the frozen faculty terms at
+            time of booking alongside your complaint. Razorpay chargeback is
+            the last resort and should only be used after a platform
+            resolution attempt.
+          </p>
+
+          <SubHeading>Consent</SubHeading>
+          <p>
+            Clicking &quot;Pay&quot; on the booking page constitutes your
+            informed consent to this section and the specific terms set by
+            the faculty for that session. A consent checkbox is presented
+            before every paid and free booking.
           </p>
 
           <Heading id="intellectual-property">8. Intellectual Property</Heading>

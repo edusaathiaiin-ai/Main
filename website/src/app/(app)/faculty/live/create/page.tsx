@@ -99,11 +99,18 @@ export default function CreateLiveSessionPage() {
   const [singleDuration, setSingleDuration] = useState(60)
   const [totalSeats, setTotalSeats] = useState(25)
   const [minSeats, setMinSeats] = useState(5)
-  const [pricePerSeat, setPricePerSeat] = useState(500)
+  const [pricePerSeat, setPricePerSeat] = useState(199)
+  // When true, faculty is typing a non-preset price via the Custom input.
+  // When false (default), one of the preset chips is active.
+  const [customPriceMode, setCustomPriceMode] = useState(false)
   const [bundlePrice, setBundlePrice] = useState(0)
   const [earlyBirdEnabled, setEarlyBirdEnabled] = useState(false)
   const [earlyBirdSeats, setEarlyBirdSeats] = useState(5)
   const [earlyBirdPrice, setEarlyBirdPrice] = useState(0)
+  // Faculty's own commitment to the student (migration 137). Editable here
+  // until the first seat is booked — DB trigger freezes it after that.
+  const [terms, setTerms] = useState('')
+  const [refundWindowHours, setRefundWindowHours] = useState<number>(24)
   const [meetingLink, setMeetingLink] = useState('')
   const [saving, setSaving] = useState(false)
   const [published, setPublished] = useState(false)
@@ -210,6 +217,8 @@ export default function CreateLiveSessionPage() {
       min_seats: minSeats,
       meeting_link: trimmedMeetingLink,
       session_nature: sessionNature,
+      terms: terms.trim() || null,
+      refund_window_hours: refundWindowHours,
       status: 'published', // auto-publish for verified faculty
     }
     if (intentId) {
@@ -946,31 +955,106 @@ export default function CreateLiveSessionPage() {
                     >
                       Price per seat ({'\u20B9'})
                     </label>
-                    <input
-                      type="number"
-                      min={0}
-                      value={pricePerSeat}
-                      onChange={(e) => {
-                        const v = parseInt(e.target.value)
-                        setPricePerSeat(Number.isNaN(v) ? 0 : Math.max(0, v))
-                      }}
-                      className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                      style={inputStyle}
-                    />
+                    {/* Preset chips — anchor on price points Indian students
+                        recognise from Unacademy / PW / Vedantu. "Custom…"
+                        toggles a numeric input for anything outside this
+                        set. The Razorpay booking edge function reads
+                        price_per_seat_paise from the DB, so whatever lands
+                        here flows through unchanged. */}
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { v: 0,   label: 'Free' },
+                        { v: 49,  label: '₹49' },
+                        { v: 99,  label: '₹99' },
+                        { v: 199, label: '₹199' },
+                        { v: 299, label: '₹299' },
+                        { v: 499, label: '₹499' },
+                        { v: 999, label: '₹999' },
+                      ].map((opt) => {
+                        const active =
+                          !customPriceMode && pricePerSeat === opt.v
+                        return (
+                          <button
+                            key={opt.v}
+                            type="button"
+                            onClick={() => {
+                              setCustomPriceMode(false)
+                              setPricePerSeat(opt.v)
+                            }}
+                            className="rounded-lg px-3 py-2 text-xs font-semibold"
+                            style={{
+                              background: active
+                                ? '#C9993A'
+                                : 'var(--bg-elevated)',
+                              color: active
+                                ? '#060F1D'
+                                : 'var(--text-secondary)',
+                              border: active
+                                ? '1px solid #C9993A'
+                                : '1px solid var(--border-subtle)',
+                              minWidth: '64px',
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        )
+                      })}
+                      <button
+                        type="button"
+                        onClick={() => setCustomPriceMode(true)}
+                        className="rounded-lg px-3 py-2 text-xs font-semibold"
+                        style={{
+                          background: customPriceMode
+                            ? '#C9993A'
+                            : 'var(--bg-elevated)',
+                          color: customPriceMode
+                            ? '#060F1D'
+                            : 'var(--text-secondary)',
+                          border: customPriceMode
+                            ? '1px solid #C9993A'
+                            : '1px solid var(--border-subtle)',
+                        }}
+                      >
+                        {'Custom…'}
+                      </button>
+                    </div>
+
+                    {customPriceMode && (
+                      <div className="mt-3">
+                        <label
+                          className="mb-1.5 block text-[11px] font-semibold"
+                          style={{ color: 'var(--text-tertiary)' }}
+                        >
+                          Custom price per seat ({'₹'})
+                        </label>
+                        <input
+                          type="number"
+                          min={50}
+                          value={pricePerSeat}
+                          onChange={(e) => {
+                            const v = parseInt(e.target.value)
+                            setPricePerSeat(Number.isNaN(v) ? 0 : Math.max(0, v))
+                          }}
+                          placeholder="e.g. 149"
+                          className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                          style={inputStyle}
+                        />
+                      </div>
+                    )}
                     <p
-                      className="mt-1 text-[9px]"
+                      className="mt-2 text-[10px]"
                       style={{ color: 'var(--text-ghost)' }}
                     >
                       {pricePerSeat === 0
-                        ? 'Free session — students reserve a seat at no cost'
-                        : `You receive 80% (₹${Math.round(pricePerSeat * 0.8)})`}
+                        ? 'Free session — students reserve a seat at no cost.'
+                        : `You receive 80% (₹${Math.round(pricePerSeat * 0.8)} per seat). Platform fee covers Razorpay + support.`}
                     </p>
-                    {pricePerSeat > 0 && pricePerSeat < 50 && (
+                    {pricePerSeat > 0 && pricePerSeat < 49 && (
                       <p
                         className="mt-1 text-[10px]"
                         style={{ color: '#F59E0B' }}
                       >
-                        ₹{pricePerSeat} is below Razorpay's minimum (₹1). Use 0 for free, or ₹50+ for paid.
+                        ₹{pricePerSeat} is below the ₹49 minimum for paid sessions. Pick Free, or set at least ₹49.
                       </p>
                     )}
                   </div>
@@ -1058,6 +1142,102 @@ export default function CreateLiveSessionPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Faculty commitment — shown on /live/[id] as "Set by
+                      faculty" box. Editable until the first seat is booked;
+                      DB trigger (migration 137) freezes it after that so
+                      students never agree to terms that later shift. */}
+                  <div
+                    className="mt-2 rounded-xl p-4"
+                    style={{
+                      background: 'rgba(201,153,58,0.05)',
+                      border: '0.5px solid rgba(201,153,58,0.25)',
+                    }}
+                  >
+                    <p
+                      className="mb-1 text-[11px] font-bold tracking-wider uppercase"
+                      style={{ color: '#C9993A' }}
+                    >
+                      Your commitment to students
+                    </p>
+                    <p
+                      className="mb-4 text-[11px]"
+                      style={{ color: 'var(--text-tertiary)' }}
+                    >
+                      Shown on the public booking page. Locked once the first
+                      seat is booked — please be exact.
+                    </p>
+
+                    <label
+                      className="mb-1.5 block text-xs font-semibold"
+                      style={labelStyle}
+                    >
+                      Terms & prerequisites (optional)
+                    </label>
+                    <textarea
+                      value={terms}
+                      onChange={(e) => setTerms(e.target.value.slice(0, 1000))}
+                      rows={4}
+                      placeholder={
+                        'E.g. Bring your own notebook. Basic calculus recommended. No recording will be shared.'
+                      }
+                      className="mb-1 w-full rounded-xl px-4 py-3 text-sm outline-none"
+                      style={inputStyle}
+                    />
+                    <p
+                      className="mb-4 text-[10px]"
+                      style={{ color: 'var(--text-tertiary)' }}
+                    >
+                      {terms.length}/1000 characters
+                    </p>
+
+                    <label
+                      className="mb-1.5 block text-xs font-semibold"
+                      style={labelStyle}
+                    >
+                      Refund policy
+                    </label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { h: 48, label: '48h before' },
+                        { h: 24, label: '24h before' },
+                        { h: 6, label: '6h before' },
+                        { h: 0, label: 'Non-refundable' },
+                      ].map((opt) => {
+                        const active = refundWindowHours === opt.h
+                        return (
+                          <button
+                            key={opt.h}
+                            type="button"
+                            onClick={() => setRefundWindowHours(opt.h)}
+                            className="rounded-lg px-2 py-2 text-[11px] font-semibold"
+                            style={{
+                              background: active
+                                ? '#C9993A'
+                                : 'var(--bg-elevated)',
+                              color: active
+                                ? '#060F1D'
+                                : 'var(--text-secondary)',
+                              border: active
+                                ? '1px solid #C9993A'
+                                : '1px solid var(--border-subtle)',
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <p
+                      className="mt-2 text-[10px]"
+                      style={{ color: 'var(--text-tertiary)' }}
+                    >
+                      {refundWindowHours === 0
+                        ? 'Students cannot request a refund once booked.'
+                        : `Students can cancel up to ${refundWindowHours}h before the first lecture for a full refund.`}
+                    </p>
+                  </div>
+
                   <div className="flex gap-3">
                     <button
                       onClick={() => setStep('schedule')}

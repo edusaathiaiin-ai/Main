@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
 import { toSlug } from '@/constants/verticalIds'
+import { BookingConsentModal } from '@/components/live/BookingConsentModal'
 import Link from 'next/link'
 
 type SessionDetail = {
@@ -29,6 +30,8 @@ type SessionDetail = {
   meeting_platform: string | null
   meeting_link: string | null
   meeting_link_shared_at: string | null
+  terms: string | null
+  refund_window_hours: number
 }
 
 type LectureRow = {
@@ -69,6 +72,10 @@ export default function LiveSessionDetailPage() {
     new Set()
   )
   const [bookingMode, setBookingMode] = useState<'full' | 'single'>('full')
+  // Consent gate — student must tick the modal's checkbox before handleBook
+  // fires. The modal itself explains the three-way contract (platform,
+  // faculty, student) and links to /terms#live-bookings.
+  const [showConsent, setShowConsent] = useState(false)
   const [countdown, setCountdown] = useState('')
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -442,6 +449,56 @@ export default function LiveSessionDetailPage() {
   const pct = (seatsBooked / session.total_seats) * 100
   const urgencyColor = pct >= 80 ? '#F87171' : pct >= 50 ? '#FBBF24' : '#4ADE80'
 
+  // Status gate — the booking edge functions reject anything != 'published',
+  // so the UI must match. Without this, students see "Book Seat" on draft /
+  // completed / archived sessions and get a generic edge-function rejection.
+  const isBookable = session.status === 'published'
+  const statusMeta: {
+    label: string
+    color: string
+    pulse: boolean
+    empty: { emoji: string; title: string; body: string }
+  } =
+    session.status === 'published'
+      ? {
+          label: 'Live',
+          color: '#F87171',
+          pulse: true,
+          empty: { emoji: '', title: '', body: '' },
+        }
+      : session.status === 'completed'
+        ? {
+            label: 'Ended',
+            color: 'var(--text-tertiary)',
+            pulse: false,
+            empty: {
+              emoji: '\u{1F3AC}',
+              title: 'This session has ended',
+              body: 'The live lecture is over. You can still view the faculty and catch future sessions.',
+            },
+          }
+        : session.status === 'draft'
+          ? {
+              label: 'Draft',
+              color: '#FBBF24',
+              pulse: false,
+              empty: {
+                emoji: '\u{1F58B}',
+                title: 'Not yet published',
+                body: 'Faculty is still finalising this session. Check back soon.',
+              },
+            }
+          : {
+              label: 'Archived',
+              color: 'var(--text-tertiary)',
+              pulse: false,
+              empty: {
+                emoji: '\u{1F4E6}',
+                title: 'Archived session',
+                body: 'This session is no longer open for booking.',
+              },
+            }
+
   const earlyBirdActive =
     session.early_bird_seats &&
     session.early_bird_price_paise &&
@@ -480,14 +537,18 @@ export default function LiveSessionDetailPage() {
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              {/* Format badge */}
+              {/* Format badge — status-aware so a completed/draft/archived
+                  session stops pretending to be LIVE. */}
               <div className="mb-3 flex items-center gap-2">
-                <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
+                <div
+                  className={`h-2.5 w-2.5 rounded-full ${statusMeta.pulse ? 'animate-pulse' : ''}`}
+                  style={{ background: statusMeta.color }}
+                />
                 <span
                   className="text-[10px] font-bold tracking-wider uppercase"
-                  style={{ color: '#F87171' }}
+                  style={{ color: statusMeta.color }}
                 >
-                  Live
+                  {statusMeta.label}
                 </span>
                 <span
                   className="rounded-lg px-2 py-0.5 text-[10px]"
@@ -659,6 +720,61 @@ export default function LiveSessionDetailPage() {
                 </p>
               </div>
 
+              {/* Faculty's commitment (migration 137) — always render the
+                  refund policy so the student sees the exact window they
+                  get at this price. Terms are optional; show only if set. */}
+              <div
+                className="mb-6 rounded-2xl p-5"
+                style={{
+                  background: 'rgba(201,153,58,0.05)',
+                  border: '0.5px solid rgba(201,153,58,0.25)',
+                }}
+              >
+                <p
+                  className="mb-3 text-[10px] font-bold tracking-wider uppercase"
+                  style={{ color: '#C9993A' }}
+                >
+                  Set by faculty
+                </p>
+
+                {session.terms && (
+                  <div className="mb-4">
+                    <p
+                      className="mb-1.5 text-[11px] font-semibold"
+                      style={{ color: 'var(--text-tertiary)' }}
+                    >
+                      Terms & prerequisites
+                    </p>
+                    <p
+                      className="text-xs leading-relaxed"
+                      style={{
+                        color: 'var(--text-secondary)',
+                        whiteSpace: 'pre-wrap',
+                      }}
+                    >
+                      {session.terms}
+                    </p>
+                  </div>
+                )}
+
+                <div>
+                  <p
+                    className="mb-1 text-[11px] font-semibold"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  >
+                    Refund policy
+                  </p>
+                  <p
+                    className="text-xs leading-relaxed"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    {session.refund_window_hours === 0
+                      ? 'Non-refundable. No refunds once booked.'
+                      : `Full refund if cancelled ${session.refund_window_hours}h or more before the first lecture.`}
+                  </p>
+                </div>
+              </div>
+
               {/* Lecture schedule */}
               {lectures.length > 0 && (
                 <div className="mb-6">
@@ -752,7 +868,39 @@ export default function LiveSessionDetailPage() {
 
           {/* RIGHT: Booking widget */}
           <div className="self-start md:sticky md:top-4">
-            {booked ? (
+            {!isBookable && !booked ? (
+              // Non-published (completed / draft / archived) — no Book Seat.
+              // Matches the edge-function gate so the UI doesn't lie.
+              <div
+                className="rounded-2xl p-6 text-center"
+                style={{
+                  background: 'var(--bg-elevated)',
+                  border: '0.5px solid var(--border-medium)',
+                }}
+              >
+                <p className="mb-3 text-4xl">{statusMeta.empty.emoji}</p>
+                <h3 className="font-playfair mb-2 text-xl font-bold text-white">
+                  {statusMeta.empty.title}
+                </h3>
+                <p
+                  className="mb-5 text-xs"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  {statusMeta.empty.body}
+                </p>
+                <Link
+                  href="/live"
+                  className="rounded-lg px-4 py-2 text-xs font-semibold"
+                  style={{
+                    background: '#C9993A',
+                    color: '#060F1D',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Browse live sessions &rarr;
+                </Link>
+              </div>
+            ) : booked ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -988,9 +1136,10 @@ export default function LiveSessionDetailPage() {
                       {bookError}
                     </div>
                   )}
-                  {/* Book CTA */}
+                  {/* Book CTA — opens consent modal. handleBook only fires
+                      after the student ticks the checkbox and clicks Pay. */}
                   <button
-                    onClick={handleBook}
+                    onClick={() => setShowConsent(true)}
                     disabled={
                       booking ||
                       isFull ||
@@ -1029,7 +1178,7 @@ export default function LiveSessionDetailPage() {
                         { icon: '\u2713', text: 'Seat reserved the moment you click' },
                       ]
                     : [
-                        { icon: '\u2713', text: 'Full refund if session cancelled' },
+                        { icon: '\u2713', text: 'Full refund if faculty cancels the session' },
                         { icon: '\u2713', text: 'Meeting link shared 24h before' },
                         { icon: '\u2713', text: 'Payment secure via Razorpay' },
                       ]
@@ -1049,6 +1198,36 @@ export default function LiveSessionDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Consent modal — gates every Book button click (paid and free).
+          Confirm calls handleBook after the student ticks the checkbox;
+          Cancel / Escape / backdrop click simply close the modal without
+          booking. Rendered once at the main level so it can overlay the
+          whole surface regardless of scroll position. */}
+      <BookingConsentModal
+        open={showConsent}
+        onClose={() => setShowConsent(false)}
+        onConfirm={() => {
+          setShowConsent(false)
+          handleBook()
+        }}
+        isFree={session.price_per_seat_paise === 0}
+        amountLabel={
+          session.price_per_seat_paise === 0
+            ? 'Free'
+            : bookingMode === 'full'
+              ? formatFee(
+                  earlyBirdActive
+                    ? session.early_bird_price_paise!
+                    : (session.bundle_price_paise ??
+                        session.price_per_seat_paise),
+                )
+              : formatFee(session.price_per_seat_paise * selectedLectures.size)
+        }
+        facultyTerms={session.terms}
+        refundWindowHours={session.refund_window_hours}
+        saathiPrimary={color}
+      />
     </main>
   )
 }
