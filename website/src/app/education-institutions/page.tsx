@@ -1,19 +1,21 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// /institutions — public B2B landing page
+// /education-institutions — public landing page for schools, colleges, and
+// universities joining EdUsaathiAI's classroom layer. Distinct from the older
+// "Institution" role surface (/institution) used for B2B internship posting.
 //
 // Hero → 3 benefit cards → 9-tile subject grid → how-it-works → pricing.
-// Static content, Server Component. Primary CTA routes to /institutions/register
-// (public); "See pricing" uses a hash anchor with smooth-scroll already set
-// globally on html in globals.css.
+// Static content, Server Component. Primary CTA routes to
+// /education-institutions/register (public); "See pricing" uses a hash anchor
+// with smooth-scroll already set globally on html in globals.css.
 //
-// Middleware exposes the whole /institutions tree (Step 3) so no login bounce.
+// Middleware exposes the whole /education-institutions tree so no login bounce.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'EdUsaathiAI for Institutions — A research-grade classroom for every subject',
+  title: 'EdUsaathiAI for Education Institutions — A research-grade classroom for every subject',
   description:
     'Bring AI-powered interactive classrooms to your entire institution. 30 subject companions, permanent Research Archive, principal analytics + NAAC report. ₹89 per student per month. 7-day free trial, no credit card.',
 }
@@ -124,7 +126,7 @@ export default function InstitutionsLandingPage() {
             flexWrap: 'wrap',
           }}>
             <Link
-              href="/institutions/register"
+              href="/education-institutions/register"
               className="btn btn-primary btn-large"
               style={{
                 padding: '16px 28px',
@@ -501,7 +503,7 @@ export default function InstitutionsLandingPage() {
 
             {/* Final CTA */}
             <Link
-              href="/institutions/register"
+              href="/education-institutions/register"
               className="btn btn-primary btn-large"
               style={{
                 width: '100%',

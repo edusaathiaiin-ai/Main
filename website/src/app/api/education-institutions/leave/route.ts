@@ -1,11 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// POST /api/institutions/leave
+// POST /api/education-institutions/leave
 //
 // Authenticated. Body: { reason?: string }. Unlinks the student from their
-// current institution:
-//   - sets profiles.institution_drop_requested_at = NOW()
-//   - sets profiles.institution_id = NULL
-//   - sets profiles.institution_role = NULL
+// current education institution:
+//   - sets profiles.education_institution_drop_requested_at = NOW()
+//   - sets profiles.education_institution_id = NULL
+//   - sets profiles.education_institution_role = NULL
 //
 // Sends two emails via Resend:
 //   1. Student: confirmation of archive export + 7-day window notice
@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerSupabase } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
+import { sendAdminWhatsAppText } from '@/lib/whatsapp-admin'
 
 const SUPABASE_URL     = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -45,15 +46,15 @@ export async function POST(req: NextRequest) {
   // Snapshot the student + institution so the emails have readable context.
   const { data: snap } = await supabase
     .from('profiles')
-    .select('full_name, institution_id, institutions:institution_id ( name )')
+    .select('full_name, education_institution_id, education_institutions:education_institution_id ( name )')
     .eq('id', user.id)
     .maybeSingle()
 
   const studentName = (snap?.full_name as string | null) ?? 'there'
   const institutionName =
-    (snap?.institutions as { name?: string | null } | null)?.name ?? null
+    (snap?.education_institutions as { name?: string | null } | null)?.name ?? null
 
-  if (!snap?.institution_id) {
+  if (!snap?.education_institution_id) {
     // Nothing to do — user isn't linked.
     return NextResponse.json({ success: true, already_solo: true })
   }
@@ -65,9 +66,9 @@ export async function POST(req: NextRequest) {
   const { error: updErr } = await admin
     .from('profiles')
     .update({
-      institution_drop_requested_at: new Date().toISOString(),
-      institution_id:                null,
-      institution_role:              null,
+      education_institution_drop_requested_at: new Date().toISOString(),
+      education_institution_id:                null,
+      education_institution_role:              null,
     })
     .eq('id', user.id)
 
@@ -83,6 +84,12 @@ export async function POST(req: NextRequest) {
     reason,
   })
 
+  // Admin WhatsApp alert (free-form, 24h service window).
+  void sendAdminWhatsAppText(
+    `${studentName} left ${institutionName ?? 'their institution'}.`,
+    'education-institutions/leave',
+  )
+
   return NextResponse.json({ success: true })
 }
 
@@ -95,7 +102,7 @@ async function sendLeaveEmails(input: {
   reason: string | null
 }): Promise<void> {
   if (!RESEND_API_KEY) {
-    console.error('[institutions/leave] RESEND_API_KEY missing — emails skipped')
+    console.error('[education-institutions/leave] RESEND_API_KEY missing — emails skipped')
     return
   }
 
@@ -158,10 +165,10 @@ async function sendLeaveEmails(input: {
       })
       if (!res.ok) {
         const detail = await res.text().catch(() => '')
-        console.error('[institutions/leave] Resend error', res.status, detail.slice(0, 300))
+        console.error('[education-institutions/leave] Resend error', res.status, detail.slice(0, 300))
       }
     } catch (e) {
-      console.error('[institutions/leave] Resend threw', e)
+      console.error('[education-institutions/leave] Resend threw', e)
     }
   }
 

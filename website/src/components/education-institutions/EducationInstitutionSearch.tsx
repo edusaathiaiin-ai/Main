@@ -1,15 +1,16 @@
 'use client'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// InstitutionSearch — debounced query against /api/institutions/search.
-// Used by InstitutionJoinModal. 300ms debounce, min 2 chars, up to 8 results
-// rendered as clickable cards. onPick hands back the chosen row for the
-// parent to drive the join confirmation step.
+// EducationInstitutionSearch — debounced query against
+// /api/education-institutions/search. Used by EducationInstitutionJoinModal.
+// 300ms debounce, min 2 chars, up to 8 results rendered as clickable cards.
+// onPick hands back the chosen row for the parent to drive the join
+// confirmation step.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react'
 
-export type InstitutionSearchHit = {
+export type EducationInstitutionSearchHit = {
   id:          string
   slug:        string
   name:        string
@@ -19,12 +20,12 @@ export type InstitutionSearchHit = {
 
 type Props = {
   autoFocus?: boolean
-  onPick:     (hit: InstitutionSearchHit) => void
+  onPick:     (hit: EducationInstitutionSearchHit) => void
 }
 
-export function InstitutionSearch({ autoFocus = true, onPick }: Props) {
+export function EducationInstitutionSearch({ autoFocus = true, onPick }: Props) {
   const [q, setQ]           = useState('')
-  const [hits, setHits]     = useState<InstitutionSearchHit[]>([])
+  const [hits, setHits]     = useState<EducationInstitutionSearchHit[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError]   = useState<string | null>(null)
 
@@ -48,7 +49,7 @@ export function InstitutionSearch({ autoFocus = true, onPick }: Props) {
       setError(null)
       try {
         const res = await fetch(
-          `/api/institutions/search?q=${encodeURIComponent(q.trim())}`,
+          `/api/education-institutions/search?q=${encodeURIComponent(q.trim())}`,
           { signal: controller.signal, cache: 'no-store' },
         )
         if (!res.ok) {
@@ -58,7 +59,7 @@ export function InstitutionSearch({ autoFocus = true, onPick }: Props) {
           setLoading(false)
           return
         }
-        const data = await res.json() as { results?: InstitutionSearchHit[] }
+        const data = await res.json() as { results?: EducationInstitutionSearchHit[] }
         setHits(data.results ?? [])
         setLoading(false)
       } catch (e) {
@@ -133,12 +134,12 @@ export function InstitutionSearch({ autoFocus = true, onPick }: Props) {
               We don&apos;t see <strong>{q.trim()}</strong> here yet. Your institution
               may not have registered. You can invite them from the{' '}
               <a
-                href="/institutions"
+                href="/education-institutions"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 600 }}
               >
-                institutions page
+                education institutions page
               </a>.
             </p>
           </div>

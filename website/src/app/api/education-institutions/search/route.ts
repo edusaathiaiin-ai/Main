@@ -1,10 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// GET /api/institutions/search?q=<2+ chars>
+// GET /api/education-institutions/search?q=<2+ chars>
 //
-// Public "Find My Institution" endpoint. Returns up to 8 institutions whose
-// status is 'trial' or 'active', matched on name OR city via ilike. Rate
-// limited to 30 requests per minute per client IP via Upstash (fails open
-// when Upstash env vars are absent so local dev stays unobstructed).
+// Public "Find My Institution" endpoint for education institutions.
+// Returns up to 8 rows whose status is 'trial' or 'active', matched on name
+// OR city via ilike. Rate limited to 30 requests per minute per client IP
+// via Upstash (fails open when Upstash env vars are absent so local dev
+// stays unobstructed).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -16,7 +17,7 @@ const SUPABASE_ANON    = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export async function GET(req: NextRequest) {
   // Rate limit first — cheap and keeps scraper traffic off the DB.
-  const ok = await checkRateLimit('institutions-search', clientIp(req), 30, 60)
+  const ok = await checkRateLimit('education-institutions-search', clientIp(req), 30, 60)
   if (!ok) return rateLimitResponse()
 
   const q = (req.nextUrl.searchParams.get('q') ?? '').trim()
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
   const pattern = `%${escaped}%`
 
   const { data, error } = await supabase
-    .from('institutions')
+    .from('education_institutions')
     .select('id, slug, name, city, affiliation')
     .in('status', ['trial', 'active'])
     .or(`name.ilike.${pattern},city.ilike.${pattern}`)

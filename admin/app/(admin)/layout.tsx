@@ -8,13 +8,15 @@ type NavSection = { title?: string; items: NavItem[] }
 
 async function getPendingCounts() {
   const admin = getAdminClient()
-  const [apps, noms] = await Promise.all([
+  const [apps, noms, insts] = await Promise.all([
     admin.from('faculty_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     admin.from('faculty_nominations').select('id', { count: 'exact', head: true }).eq('status', 'invited'),
+    admin.from('education_institutions').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
   ])
   return {
     pendingApplications: apps.count ?? 0,
     pendingNominations: noms.count ?? 0,
+    pendingEducationInstitutions: insts.count ?? 0,
   }
 }
 
@@ -22,6 +24,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     items: [
       { href: '/users', label: 'Users', emoji: '👥' },
+      { href: '/education-institutions', label: 'Education Institutions', emoji: '🎓' },
       { href: '/revenue', label: 'Revenue', emoji: '💳' },
       { href: '/moderation', label: 'Moderation', emoji: '🛡️' },
       { href: '/observability', label: 'Observability', emoji: '📡' },
@@ -68,14 +71,16 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   await requireAdmin()
-  const { pendingApplications, pendingNominations } = await getPendingCounts()
+  const { pendingApplications, pendingNominations, pendingEducationInstitutions } =
+    await getPendingCounts()
 
   // Inject live badge counts into nav items
   const sections = NAV_SECTIONS.map((s) => ({
     ...s,
     items: s.items.map((n) => {
-      if (n.href === '/faculty/applications') return { ...n, badge: pendingApplications || null }
-      if (n.href === '/faculty/nominations') return { ...n, badge: pendingNominations || null }
+      if (n.href === '/faculty/applications')   return { ...n, badge: pendingApplications || null }
+      if (n.href === '/faculty/nominations')    return { ...n, badge: pendingNominations || null }
+      if (n.href === '/education-institutions') return { ...n, badge: pendingEducationInstitutions || null }
       return n
     }),
   }))

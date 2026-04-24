@@ -363,8 +363,8 @@ export default async function RootPage() {
             </Link>
           </p>
 
-          {/* Subtle institutional entry — sits below the student CTA, soft and
-              non-competing. Full B2B pitch lives at /institutions. */}
+          {/* Subtle education-institution entry — sits below the student CTA,
+              soft and non-competing. Full pitch lives at /education-institutions. */}
           <p
             style={{
               textAlign: 'center',
@@ -375,7 +375,7 @@ export default async function RootPage() {
           >
             Are you a college or university?{' '}
             <Link
-              href="/institutions"
+              href="/education-institutions"
               style={{
                 color: 'var(--gold)',
                 textDecoration: 'underline',

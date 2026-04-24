@@ -1,11 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// slugify.ts — URL-safe slug generation for institutions (and friends).
+// slugify.ts — URL-safe slug generation for education institutions.
 //
 // Lowercase → replace whitespace/underscores/dots with hyphens → strip any
 // non [a-z0-9-] → collapse repeat hyphens → trim leading/trailing hyphens →
-// truncate to a sane length. Then ensureUniqueSlug() tacks on -2, -3, …
-// until the DB rejects a collision, matching how institution URLs will
-// read in public marketing.
+// truncate to a sane length. Then ensureUniqueEducationInstitutionSlug()
+// tacks on -2, -3, … until the DB rejects a collision, matching how
+// institution URLs will read in public marketing.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -21,15 +21,15 @@ export function slugify(input: string): string {
     .replace(/[^a-z0-9-]+/g, '')       // drop anything not [a-z0-9-]
     .replace(/-+/g, '-')               // collapse repeated hyphens
     .replace(/^-+|-+$/g, '')           // trim leading / trailing hyphens
-    .slice(0, MAX_SLUG_LEN) || 'institution'
+    .slice(0, MAX_SLUG_LEN) || 'education-institution'
 }
 
 /**
- * Ensure the slug is unique in `institutions.slug`. On collision, append
- * -2, -3, ... until the first free suffix is found. Caller passes a
+ * Ensure the slug is unique in `education_institutions.slug`. On collision,
+ * append -2, -3, ... until the first free suffix is found. Caller passes a
  * service-role client so the check runs regardless of RLS.
  */
-export async function ensureUniqueInstitutionSlug(
+export async function ensureUniqueEducationInstitutionSlug(
   supabase: SupabaseClient,
   base: string,
 ): Promise<string> {
@@ -41,7 +41,7 @@ export async function ensureUniqueInstitutionSlug(
   // has gone wrong (spamming duplicate submissions?).
   while (attempt < 50) {
     const { data, error } = await supabase
-      .from('institutions')
+      .from('education_institutions')
       .select('id')
       .eq('slug', candidate)
       .maybeSingle()

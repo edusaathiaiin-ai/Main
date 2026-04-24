@@ -45,7 +45,7 @@ import { FacultyToolDock } from '@/components/faculty/FacultyToolDock'
 // ── Below-fold / conditional — lazy ───────────────────────────────────────────
 const DidYouKnow            = dynamic(() => import('./DidYouKnow').then(m => ({ default: m.DidYouKnow })), { ssr: false })
 const CompanionshipCard     = dynamic(() => import('./CompanionshipCard').then(m => ({ default: m.CompanionshipCard })), { ssr: false })
-const InstitutionSection    = dynamic(() => import('@/components/institutions/InstitutionSection').then(m => ({ default: m.InstitutionSection })), { ssr: false })
+const EducationInstitutionSection = dynamic(() => import('@/components/education-institutions/EducationInstitutionSection').then(m => ({ default: m.EducationInstitutionSection })), { ssr: false })
 const ConversionModal       = dynamic(() => import('./ConversionModal').then(m => ({ default: m.ConversionModal })), { ssr: false })
 const SuspensionScreen      = dynamic(() => import('./SuspensionScreen').then(m => ({ default: m.SuspensionScreen })), { ssr: false })
 const SaathiCommunityBanner = dynamic(() => import('./SaathiCommunityBanner').then(m => ({ default: m.SaathiCommunityBanner })), { ssr: false })
@@ -1211,9 +1211,9 @@ export function ChatWindow() {
                     }}
                   />
                 )}
-                {/* Institution prompt / badge — auto-hides for faculty/institution roles. */}
+                {/* Education Institution prompt / badge — auto-hides for faculty/institution roles. */}
                 <div style={{ margin: '12px 0' }}>
-                  <InstitutionSection variant="dashboard" />
+                  <EducationInstitutionSection variant="dashboard" />
                 </div>
                 <YesterdaySummary />
                 <EmptyState

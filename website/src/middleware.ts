@@ -26,9 +26,9 @@ const PUBLIC_PATHS = [
   '/api/contact',     // public contact form — anonymous visitors must be able to POST
   '/api/classroom',   // read-only proxies to public APIs (PubMed/NCBI, RCSB, PubChem, NASA, openFDA …)
   '/api/pubmed',      // direct biomedical search proxy
-  '/api/institutions/search',    // public "Find My Institution" — rate-limited
-  '/api/institutions/register',  // public B2B registration — rate-limited not required, insert is server-gated
-  '/institutions',               // public B2B pages (register form + thank-you). Distinct from the authenticated /institution dashboard.
+  '/api/education-institutions/search',    // public "Find My Institution" — rate-limited
+  '/api/education-institutions/register',  // public Education Institution registration — insert is server-gated
+  '/education-institutions',               // public landing + register form + thank-you for schools/colleges. Distinct from the authenticated /institution dashboard (internship-posting role).
 ]
 
 export async function middleware(request: NextRequest) {

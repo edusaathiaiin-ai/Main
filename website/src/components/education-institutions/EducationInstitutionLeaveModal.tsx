@@ -1,9 +1,10 @@
 'use client'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// InstitutionLeaveModal — confirmation dialog for leaving an institution.
-// Shows the 7-day data export notice from the brief, accepts an optional
-// free-text reason, POSTs to /api/institutions/leave, then invokes onLeft.
+// EducationInstitutionLeaveModal — confirmation dialog for leaving an
+// education institution. Shows the 7-day data export notice from the brief,
+// accepts an optional free-text reason, POSTs to
+// /api/education-institutions/leave, then invokes onLeft.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react'
@@ -17,7 +18,7 @@ type Props = {
 
 type Status = 'idle' | 'leaving' | 'error'
 
-export function InstitutionLeaveModal({ open, institutionName, onClose, onLeft }: Props) {
+export function EducationInstitutionLeaveModal({ open, institutionName, onClose, onLeft }: Props) {
   const [status, setStatus] = useState<Status>('idle')
   const [reason, setReason] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
@@ -39,7 +40,7 @@ export function InstitutionLeaveModal({ open, institutionName, onClose, onLeft }
     setStatus('leaving')
     setErrorMsg('')
     try {
-      const res = await fetch('/api/institutions/leave', {
+      const res = await fetch('/api/education-institutions/leave', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: reason.trim() || undefined }),

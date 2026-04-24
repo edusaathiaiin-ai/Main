@@ -1,9 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// POST /api/institutions/register
+// POST /api/education-institutions/register
 //
-// Public registration for schools / colleges. Server-side validation,
-// slug generation (URL-safe + unique), insert with status='pending', and
-// two Resend emails:
+// Public registration for education institutions (schools / colleges / universities).
+// Distinct from the older "Institution" user role (institution_profiles) — this
+// is the Phase I-1 classroom-use namespace. Server-side validation, slug
+// generation (URL-safe + unique), insert into education_institutions with
+// status='pending', and two Resend emails:
 //   1. Auto-response to principal_email (warm acknowledgement)
 //   2. Admin notification to admin@edusaathiai.in (operational alert)
 //
@@ -13,14 +15,15 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { ensureUniqueInstitutionSlug } from '@/lib/slugify'
+import { ensureUniqueEducationInstitutionSlug } from '@/lib/slugify'
+import { sendAdminWhatsAppText } from '@/lib/whatsapp-admin'
 
 const SUPABASE_URL     = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const RESEND_API_KEY   = process.env.RESEND_API_KEY
 const FROM_ADDRESS     = process.env.RESEND_FROM_EMAIL ?? 'EdUsaathiAI <admin@edusaathiai.in>'
 const ADMIN_EMAIL      = 'admin@edusaathiai.in'
-const ADMIN_DASHBOARD  = 'https://edusaathiai-admin.vercel.app/institutions'
+const ADMIN_DASHBOARD_BASE = 'https://edusaathiai-admin.vercel.app/education-institutions'
 
 type RegisterBody = {
   name?:                 string
@@ -93,13 +96,13 @@ export async function POST(req: NextRequest) {
   // ── Generate unique slug + insert ──────────────────────────────────────────
   let slug: string
   try {
-    slug = await ensureUniqueInstitutionSlug(admin, name)
+    slug = await ensureUniqueEducationInstitutionSlug(admin, name)
   } catch {
     return NextResponse.json({ error: 'slug_generation_failed' }, { status: 500 })
   }
 
   const { data: inserted, error: insErr } = await admin
-    .from('institutions')
+    .from('education_institutions')
     .insert({
       slug,
       name,
@@ -118,9 +121,12 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  const institutionId = inserted.id as string
+
   // ── Emails (fire-and-forget on failure — row is already saved) ─────────────
   void sendRegistrationEmails({
     name, city, principalEmail, slug,
+    institutionId,
     principalName:       optional.principal_name,
     contactRole:         contactRole || null,
     affiliation:         optional.affiliation,
@@ -129,6 +135,12 @@ export async function POST(req: NextRequest) {
     phone:               optional.contact_phone,
     onboardingAnswer:    optional.onboarding_answer,
   })
+
+  // ── Admin WhatsApp (free-form, 24h service window) ────────────────────────
+  void sendAdminWhatsAppText(
+    `New institution: ${name}, ${city}. Check admin dashboard.`,
+    'education-institutions/register',
+  )
 
   return NextResponse.json({ success: true, slug })
 }
@@ -140,6 +152,7 @@ async function sendRegistrationEmails(input: {
   city: string
   principalEmail: string
   slug: string
+  institutionId: string
   principalName: string | null
   contactRole: string | null
   affiliation: string | null
@@ -149,7 +162,7 @@ async function sendRegistrationEmails(input: {
   onboardingAnswer: string | null
 }): Promise<void> {
   if (!RESEND_API_KEY) {
-    console.error('[institutions/register] RESEND_API_KEY missing — emails skipped')
+    console.error('[education-institutions/register] RESEND_API_KEY missing — emails skipped')
     return
   }
 
@@ -215,7 +228,7 @@ async function sendRegistrationEmails(input: {
     <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #E8E4DD;border-radius:10px;overflow:hidden;">${rowsHtml}</table>
     ${answerBlock}
     <p style="margin:22px 0 0;font-size:13px;">
-      <a href="${ADMIN_DASHBOARD}" style="display:inline-block;padding:10px 18px;background:#B8860B;color:#fff;border-radius:10px;text-decoration:none;font-weight:600;">Open admin dashboard →</a>
+      <a href="${ADMIN_DASHBOARD_BASE}/${esc(input.institutionId)}" style="display:inline-block;padding:10px 18px;background:#B8860B;color:#fff;border-radius:10px;text-decoration:none;font-weight:600;">Open institution page →</a>
     </p>
     <p style="margin-top:24px;font-size:11px;color:#A8A49E;">Status: pending · Manual verification required.</p>
   </div>
@@ -239,10 +252,10 @@ async function sendRegistrationEmails(input: {
       })
       if (!res.ok) {
         const detail = await res.text().catch(() => '')
-        console.error('[institutions/register] Resend error', res.status, detail.slice(0, 300))
+        console.error('[education-institutions/register] Resend error', res.status, detail.slice(0, 300))
       }
     } catch (e) {
-      console.error('[institutions/register] Resend threw', e)
+      console.error('[education-institutions/register] Resend threw', e)
     }
   }
 

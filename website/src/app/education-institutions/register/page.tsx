@@ -1,12 +1,13 @@
 'use client'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// /institutions/register — public B2B registration form
+// /education-institutions/register — public registration form for schools,
+// colleges, and universities joining EdUsaathiAI's classroom layer.
 //
 // Four sections, single page, light theme, warm tone. Writes to
-// /api/institutions/register (no auth). On success → /institutions/register/thank-you.
-// On error → inline banner above the submit button; form state preserved so
-// the visitor doesn't retype anything.
+// /api/education-institutions/register (no auth). On success →
+// /education-institutions/register/thank-you. On error → inline banner above
+// the submit button; form state preserved so the visitor doesn't retype anything.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useMemo, useState } from 'react'
@@ -110,7 +111,7 @@ export default function InstitutionRegisterPage() {
     setError(null)
 
     try {
-      const res = await fetch('/api/institutions/register', {
+      const res = await fetch('/api/education-institutions/register', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -140,7 +141,7 @@ export default function InstitutionRegisterPage() {
         return
       }
 
-      router.push('/institutions/register/thank-you')
+      router.push('/education-institutions/register/thank-you')
     } catch {
       setError('Network error — please check your connection and try again.')
       setSubmitting(false)

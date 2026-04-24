@@ -1,24 +1,28 @@
 'use client'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// InstitutionSection — single drop-in for student-facing surfaces.
+// EducationInstitutionSection — single drop-in for student-facing surfaces.
 //
-//   If profile.institution_id is NULL  → "Is your college on EdUsaathiAI?" card
-//                                         that opens InstitutionJoinModal
-//   If profile.institution_id is SET   → compact institution badge with
-//                                         name, city, and a subtle "Leave" link
-//                                         that opens InstitutionLeaveModal
+//   profile.education_institution_id NULL  → "Is your college on EdUsaathiAI?"
+//                                             card that opens the join modal
+//   profile.education_institution_id SET   → compact institution badge with
+//                                             name, city, and a subtle "Leave"
+//                                             link that opens the leave modal
 //
 // Self-refreshes after join/leave via window.location.reload() — explicit,
 // no stale Zustand cache, matches the "page refreshes, institution badge
 // appears" UX in the brief.
+//
+// This is the Phase I-1 "Education Institution" surface. It is distinct from
+// the older "Institution" user role (institution_profiles) used for B2B
+// internship posting — the two concepts never collide.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { createClient } from '@/lib/supabase/client'
-import { InstitutionJoinModal } from './InstitutionJoinModal'
-import { InstitutionLeaveModal } from './InstitutionLeaveModal'
+import { EducationInstitutionJoinModal } from './EducationInstitutionJoinModal'
+import { EducationInstitutionLeaveModal } from './EducationInstitutionLeaveModal'
 
 type InstSnapshot = {
   name:        string
@@ -31,23 +35,23 @@ type Props = {
   variant?: 'dashboard' | 'profile'
 }
 
-export function InstitutionSection({ variant = 'dashboard' }: Props) {
+export function EducationInstitutionSection({ variant = 'dashboard' }: Props) {
   const { profile } = useAuthStore()
   const [inst, setInst]             = useState<InstSnapshot>(null)
   const [instLoading, setInstLoading] = useState(false)
   const [joinOpen, setJoinOpen]     = useState(false)
   const [leaveOpen, setLeaveOpen]   = useState(false)
 
-  const institutionId = profile?.institution_id ?? null
+  const eduInstId = profile?.education_institution_id ?? null
 
   const fetchInst = useCallback(async () => {
-    if (!institutionId) { setInst(null); return }
+    if (!eduInstId) { setInst(null); return }
     setInstLoading(true)
     const supabase = createClient()
     const { data } = await supabase
-      .from('institutions')
+      .from('education_institutions')
       .select('name, city, affiliation')
-      .eq('id', institutionId)
+      .eq('id', eduInstId)
       .maybeSingle()
     setInst(data ? {
       name:        (data.name as string) ?? '',
@@ -55,7 +59,7 @@ export function InstitutionSection({ variant = 'dashboard' }: Props) {
       affiliation: (data.affiliation as string | null) ?? null,
     } : null)
     setInstLoading(false)
-  }, [institutionId])
+  }, [eduInstId])
 
   useEffect(() => { void fetchInst() }, [fetchInst])
 
@@ -65,7 +69,7 @@ export function InstitutionSection({ variant = 'dashboard' }: Props) {
   if (profile.role === 'institution' || profile.role === 'faculty') return null
 
   // ── Not linked → prompt card ────────────────────────────────────────────
-  if (!institutionId) {
+  if (!eduInstId) {
     return (
       <>
         <section
@@ -93,7 +97,7 @@ export function InstitutionSection({ variant = 'dashboard' }: Props) {
               fontSize: 11, fontWeight: 700, letterSpacing: 1.2,
               textTransform: 'uppercase', color: 'var(--gold)', margin: 0,
             }}>
-              Institution membership
+              Education Institution membership
             </p>
             <h3 style={{
               fontFamily: 'var(--font-display)',
@@ -108,7 +112,7 @@ export function InstitutionSection({ variant = 'dashboard' }: Props) {
               margin: 0, lineHeight: 1.6,
             }}>
               {variant === 'profile'
-                ? 'Link your account to your institution — unlocks classroom sessions and Research Archive.'
+                ? 'Link your account to your education institution — unlocks classroom sessions and Research Archive.'
                 : 'Link your account to unlock institutional classrooms and research tools.'}
             </p>
           </div>
@@ -127,11 +131,11 @@ export function InstitutionSection({ variant = 'dashboard' }: Props) {
           </button>
         </section>
 
-        <InstitutionJoinModal
+        <EducationInstitutionJoinModal
           open={joinOpen}
           onClose={() => setJoinOpen(false)}
           onJoined={() => {
-            // Force a full reload — authStore picks up the new institution_id
+            // Force a full reload — authStore picks up the new education_institution_id
             // and downstream surfaces refetch cleanly.
             if (typeof window !== 'undefined') window.location.reload()
           }}
@@ -168,7 +172,7 @@ export function InstitutionSection({ variant = 'dashboard' }: Props) {
             fontSize: 11, fontWeight: 700, letterSpacing: 1.2,
             textTransform: 'uppercase', color: 'var(--gold)', margin: 0,
           }}>
-            Your institution
+            Your education institution
           </p>
           {instLoading ? (
             <p style={{ fontSize: 14, color: 'var(--text-tertiary)', margin: '4px 0 0', fontStyle: 'italic' }}>
@@ -217,7 +221,7 @@ export function InstitutionSection({ variant = 'dashboard' }: Props) {
         </button>
       </section>
 
-      <InstitutionLeaveModal
+      <EducationInstitutionLeaveModal
         open={leaveOpen}
         institutionName={inst?.name ?? 'this institution'}
         onClose={() => setLeaveOpen(false)}

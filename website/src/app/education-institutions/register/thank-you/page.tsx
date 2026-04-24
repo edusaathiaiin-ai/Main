@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// /institutions/register/thank-you — warm post-submission page.
+// /education-institutions/register/thank-you — warm post-submission page.
 //
 // No login, no next steps, no lead-capture tricks — just acknowledgement and
 // a soft invitation to explore the student-facing product while they wait
@@ -11,10 +11,10 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Registration received · EdUsaathiAI',
-  description: 'Your institution registration is with us. Jaydeep Buch will reach out within 48 hours.',
+  description: 'Your education institution registration is with us. Jaydeep Buch will reach out within 48 hours.',
 }
 
-export default function InstitutionRegisterThankYouPage() {
+export default function EducationInstitutionRegisterThankYouPage() {
   return (
     <main
       style={{

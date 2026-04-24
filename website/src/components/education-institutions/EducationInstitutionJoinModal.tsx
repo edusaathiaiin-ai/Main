@@ -1,24 +1,27 @@
 'use client'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// InstitutionJoinModal — two-step modal: search → confirm → POST /join.
+// EducationInstitutionJoinModal — two-step modal: search → confirm → POST /join.
 // ESC closes, backdrop click closes, focus trap skipped for simplicity
 // (small modal, short flow, deferred to Phase I-2 if a11y audit demands it).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react'
-import { InstitutionSearch, type InstitutionSearchHit } from './InstitutionSearch'
+import {
+  EducationInstitutionSearch,
+  type EducationInstitutionSearchHit,
+} from './EducationInstitutionSearch'
 
 type Props = {
   open:    boolean
   onClose: () => void
-  onJoined: (hit: InstitutionSearchHit) => void
+  onJoined: (hit: EducationInstitutionSearchHit) => void
 }
 
 type Status = 'idle' | 'joining' | 'error'
 
-export function InstitutionJoinModal({ open, onClose, onJoined }: Props) {
-  const [picked, setPicked] = useState<InstitutionSearchHit | null>(null)
+export function EducationInstitutionJoinModal({ open, onClose, onJoined }: Props) {
+  const [picked, setPicked] = useState<EducationInstitutionSearchHit | null>(null)
   const [status, setStatus] = useState<Status>('idle')
   const [errorMsg, setErrorMsg] = useState<string>('')
 
@@ -43,17 +46,17 @@ export function InstitutionJoinModal({ open, onClose, onJoined }: Props) {
     setStatus('joining')
     setErrorMsg('')
     try {
-      const res = await fetch('/api/institutions/join', {
+      const res = await fetch('/api/education-institutions/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ institution_id: picked.id }),
+        body: JSON.stringify({ education_institution_id: picked.id }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         setErrorMsg(
-          data?.error === 'institution_not_open' ? 'This institution isn\'t accepting students yet. Try again later.' :
-          data?.error === 'institution_not_found' ? 'That institution was removed. Please pick another.' :
-          data?.error === 'unauthorized'           ? 'Please sign in again.' :
+          data?.error === 'education_institution_not_open'  ? 'This institution isn\'t accepting students yet. Try again later.' :
+          data?.error === 'education_institution_not_found' ? 'That institution was removed. Please pick another.' :
+          data?.error === 'unauthorized'                    ? 'Please sign in again.' :
           'Something went wrong. Try again.'
         )
         setStatus('error')
@@ -125,7 +128,7 @@ export function InstitutionJoinModal({ open, onClose, onJoined }: Props) {
 
         {/* Body */}
         {!picked && (
-          <InstitutionSearch onPick={(hit) => setPicked(hit)} />
+          <EducationInstitutionSearch onPick={(hit) => setPicked(hit)} />
         )}
 
         {picked && (

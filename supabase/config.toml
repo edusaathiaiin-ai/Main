@@ -541,3 +541,9 @@ verify_jwt = false
 
 [functions.book-free-session]
 verify_jwt = false
+
+# Daily cron — sends Day 5 reminder + Day 7 expiry emails to education
+# institutions whose trial is ending / has ended. Auth handled inline via
+# CRON_SECRET. Distinct from the older "Institution" user role surfaces.
+[functions.education-institution-trial-check]
+verify_jwt = false

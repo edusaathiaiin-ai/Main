@@ -16,11 +16,12 @@ export type Profile = {
   full_name: string | null
   city: string | null
   institution_name: string | null
-  // Institutional membership (migration 136)
-  institution_id?:                string | null
-  institution_role?:              'principal' | 'faculty' | 'student' | null
-  institution_joined_at?:         string | null
-  institution_drop_requested_at?: string | null
+  // Education Institution membership (migrations 136 + 139 rename)
+  // Distinct from the older "Institution" user role (institution_profiles).
+  education_institution_id?:                string | null
+  education_institution_role?:              'principal' | 'faculty' | 'student' | null
+  education_institution_joined_at?:         string | null
+  education_institution_drop_requested_at?: string | null
   year_of_study: string | null
   exam_target: string | null
   exam_target_id: string | null
