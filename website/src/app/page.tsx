@@ -362,6 +362,31 @@ export default async function RootPage() {
               Sign in here →
             </Link>
           </p>
+
+          {/* Subtle institutional entry — sits below the student CTA, soft and
+              non-competing. Full B2B pitch lives at /institutions. */}
+          <p
+            style={{
+              textAlign: 'center',
+              marginTop: '10px',
+              fontSize: '13px',
+              color: 'rgba(255,255,255,0.35)',
+            }}
+          >
+            Are you a college or university?{' '}
+            <Link
+              href="/institutions"
+              style={{
+                color: 'var(--gold)',
+                textDecoration: 'underline',
+                textUnderlineOffset: '3px',
+                fontWeight: 500,
+              }}
+            >
+              Bring EdUsaathiAI to your institution →
+            </Link>
+          </p>
+
           <div className="hero-stats">
             <div className="stat">
               <div className="stat-num">30</div>

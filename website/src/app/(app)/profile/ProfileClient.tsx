@@ -16,6 +16,7 @@ import DataTab from '@/components/profile/DataTab'
 import ArchiveTab from '@/components/profile/ArchiveTab'
 import { FacultyProfileTab } from '@/components/faculty/FacultyProfileTab'
 import SubscriptionCard from '@/components/profile/SubscriptionCard'
+import { InstitutionSection } from '@/components/institutions/InstitutionSection'
 import type { QuotaState, Saathi } from '@/types'
 
 const DEFAULT_QUOTA: QuotaState = {
@@ -241,8 +242,13 @@ export function ProfileClient() {
             </motion.div>
           </AnimatePresence>
 
-          {/* ── Subscription card — always shown below tabs ─────── */}
+          {/* ── Institution membership — show above subscription ─── */}
           <div className="mt-10">
+            <InstitutionSection variant="profile" />
+          </div>
+
+          {/* ── Subscription card — always shown below tabs ─────── */}
+          <div className="mt-4">
             <SubscriptionCard profile={profile} />
           </div>
         </div>
