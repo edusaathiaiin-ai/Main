@@ -1,0 +1,28 @@
+-- 139_drop_ghost_book_live_seat_rpc.sql
+--
+-- Drops public.book_live_seat(uuid, uuid, text) — a 3-arg booking RPC
+-- superseded by book_live_session_seat (8-arg) months ago. No runtime
+-- callers exist anywhere in the repo (confirmed by codebase-wide grep
+-- 2026-04-24). References are limited to:
+--   - migration 082 (creation of the function)
+--   - migration 117 (search_path hardening)
+--   - SPEC.md (historical documentation note)
+--
+-- Two reasons to remove:
+--
+-- 1. Dead code with GRANT EXECUTE to authenticated/service_role is a
+--    theoretical attack surface. The old RPC blindly accepts a NULL
+--    razorpay_order_id and writes payment_status='free' — it would
+--    let a logged-in student bypass Razorpay on a paid session if it
+--    still worked.
+--
+-- 2. It ALSO wouldn't work — later migrations renamed live_bookings.
+--    booked_at → created_at. Any call would throw
+--    'column "booked_at" ... does not exist'. So we're not breaking
+--    anything live; we're cleaning away a dormant trap.
+--
+-- If you see "book_live_seat" referenced in a future PR, it's either
+-- SPEC.md (fine to keep as history) or a mistake — point the caller
+-- at book_live_session_seat.
+
+DROP FUNCTION IF EXISTS public.book_live_seat(uuid, uuid, text);
