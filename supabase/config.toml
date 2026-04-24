@@ -524,3 +524,20 @@ verify_jwt = false
 # ChemSpider (Royal Society of Chemistry) — 100M+ compounds.
 [functions.fetch-chemspider]
 verify_jwt = false
+
+# Live-session booking trio — each function does its own auth via
+# userClient.auth.getUser() inside the handler. verify_jwt MUST be false
+# on all three, or the Supabase gateway rejects every student booking
+# POST with 401 before the handler runs — producing the "Could not
+# create payment order" failure mode (the gateway's 401 body has no
+# `error` field, so the client falls back to a generic string).
+# See April 2026 outage → https://github.com/... (tracked in CLAUDE.md
+# WhatsApp-webhook precedent). Do not remove these entries.
+[functions.razorpay-booking-order]
+verify_jwt = false
+
+[functions.verify-live-booking]
+verify_jwt = false
+
+[functions.book-free-session]
+verify_jwt = false
