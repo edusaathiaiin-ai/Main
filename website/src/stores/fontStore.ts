@@ -46,26 +46,27 @@ export const FONT_TYPE_PREVIEW: Record<FontType, string> = {
   native:  'System',
 }
 
-// ─── Colour — colorblind-safe palette ────────────────────────────────────────
+// ─── Colour — colorblind-safe palette, light-theme only ─────────────────────
 // Tested against deuteranopia, protanopia, and tritanopia.
-// Mid-brightness: readable on both dark navy and white backgrounds.
+// All values designed for readability on the Saathi-tinted light backgrounds
+// (cream, mint, lavender, pale blue, etc.). The platform is LIGHT THEME —
+// dark-text-on-light-bg is the only supported combination for chat.
+//
+// The 'default' option is intentionally a CSS var, not a hex — it resolves
+// to each Saathi's own --text-primary, so the reply text always matches the
+// active Saathi's ink (deep green on BioSaathi, deep navy on CompSaathi, etc.)
+// without a per-Saathi switch inside this file. Single source of truth.
 
-export const FONT_COLOR_MAP: Record<FontColor, string> = {
-  default: '#F0F0F0', // near-white — standard
-  warm:    '#F5C842', // amber — deuteranopia-safe
-  cool:    '#7EC8E3', // sky blue — universally visible
-  sage:    '#A8C5A0', // muted green — tritanopia-safe
-  rose:    '#E8A0A0', // dusty rose — safe for deuteranopia
-}
-
-// Light mode equivalents — darker for readability on white
 export const FONT_COLOR_LIGHT_MAP: Record<FontColor, string> = {
-  default: '#1A1A1A',
+  default: 'var(--text-primary)',
   warm:    '#8A6A00',
   cool:    '#1A6A8A',
   sage:    '#2A5A30',
   rose:    '#8A2A40',
 }
+
+// Back-compat alias — any legacy import still resolves to the same palette.
+export const FONT_COLOR_MAP = FONT_COLOR_LIGHT_MAP
 
 export const FONT_COLOR_LABELS: Record<FontColor, string> = {
   default: 'Default',
@@ -137,22 +138,19 @@ export function useFontStoreSync() {
 // ─── Style helper — used in MessageBubble ────────────────────────────────────
 
 export function getChatFontStyle(
-  fontSize:     FontSize,
-  fontType:     FontType,
-  fontColor:    FontColor,
-  isLegalTheme  = false,
-  highContrast  = false,
+  fontSize: FontSize,
+  fontType: FontType,
+  fontColor: FontColor,
+  // Legacy param — retained so older callsites keep compiling. Ignored.
+  // Saathi chat is always light theme; text color always resolves from
+  // var(--text-primary) or the user's chosen palette swatch.
+  _legacyIsLegalTheme: boolean = false,
+  highContrast: boolean = false,
 ): React.CSSProperties {
-  const baseColor = isLegalTheme
-    ? FONT_COLOR_LIGHT_MAP[fontColor]
-    : FONT_COLOR_MAP[fontColor]
-
   return {
     fontFamily: FONT_FAMILY_MAP[fontType],
     fontSize:   FONT_SIZE_MAP[fontSize],
     lineHeight: FONT_LINE_HEIGHT_MAP[fontSize],
-    color: highContrast
-      ? (isLegalTheme ? '#000000' : '#FFFFFF')
-      : baseColor,
+    color: highContrast ? '#000000' : FONT_COLOR_LIGHT_MAP[fontColor],
   }
 }

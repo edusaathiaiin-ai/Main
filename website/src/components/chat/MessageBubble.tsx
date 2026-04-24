@@ -934,7 +934,7 @@ export function MessageBubble({
                   border: '1px solid var(--border-subtle)',
                   boxShadow: 'var(--shadow-xs)',
                   transition: 'background 0.4s ease, border-color 0.3s ease',
-                  ...getChatFontStyle(fontSize, fontType, fontColor, true, highContrast),
+                  ...getChatFontStyle(fontSize, fontType, fontColor, false, highContrast),
                 }
           }
         >
