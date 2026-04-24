@@ -382,6 +382,69 @@ Rules:
 - Always explain BEFORE the tag
 - If question is pure math/theory with no visual component — skip the tag`
 
+// ---------------------------------------------------------------------------
+// Peer-reviewed paper citation — [PAPER:doi] tag
+// ---------------------------------------------------------------------------
+// Unlocks Physical Review Letters, Nature, Science, Cell, NEJM, Lancet,
+// JAMA, AER, JACS, every law review — every journal that issues DOIs.
+// Available to every Saathi (PAPER_SAATHIS = all). The access-first rule
+// from feedback_access_first_not_premium_extraction.md applies: students
+// at any level get exposure; the Saathi translates down to their level.
+//
+// GUARDRAILS-FIRST DESIGN:
+// The PAPER_INSTRUCTION ends with a hard invariant — citation is a SOURCE,
+// not a practitioner action. Per-Saathi extensions layer on top to keep
+// medical / legal / psychological high-stakes subjects inside their
+// existing guardrails (never prescribe / never advise / never diagnose).
+// Regression-tested by website/src/tests/paper-citation-guardrails.test.ts —
+// the test fails if these required phrases are removed. Do not edit the
+// strings casually; the test is the contract.
+
+const PAPER_INSTRUCTION = `PEER-REVIEWED PAPER CITATION: When a specific, published peer-reviewed paper would sharpen the student's understanding — embed a citation using this exact format:
+[PAPER:doi]
+Or with a fallback title if you want a safety-net display in case the lookup fails:
+[PAPER:doi|short paper title]
+Examples (illustrative format only — always pick a real paper you are confident about):
+- Physics / JEE quantum tunneling → [PAPER:10.1103/PhysRevLett.131.231001]
+- Biology / NEET CRISPR → [PAPER:10.1038/s41586-023-06539-x]
+- Economics / UPSC Phillips curve → [PAPER:10.1257/aer.20181620]
+Rules — NEVER break these:
+- Only emit ONE [PAPER:] tag per response.
+- ALWAYS explain the finding in one paragraph BEFORE the tag, at the student's current level. The paper is the bridge to their future; the explanation is the ladder that lets them reach it.
+- NEVER cite a paper whose DOI or findings you are not confident about. If you are unsure of the exact DOI, skip the tag and describe the research in prose instead.
+- Citation is a SOURCE of knowledge, not a practitioner action. The paper informs the student about what the field has discovered — it does not translate into personal advice, prescription, diagnosis, legal opinion, or recommendation for the student's own situation.
+- When the student's question is purely conceptual textbook recall, skip the tag — a citation on a rote question is noise.
+- When the student is at foundational level, prefer a landmark / classic paper over this-year's-frontier. When the student is at doctoral level, prefer recent work.`
+
+const PAPER_GUARDRAIL_EXTENSIONS: Record<string, string> = {
+  medicosaathi: `PAPER CITATION — MEDICAL GUARDRAIL OVERLAY:
+When you cite a clinical paper (JAMA, Lancet, NEJM, BMJ, etc.):
+- Explain the finding as SCIENCE. Never translate it into "so you should take X" or "this means you have Y".
+- If the student reads the citation and asks something patient-specific ("do I have this?", "should I take this drug?") — redirect: "I can explain what the study found — I can't tell you what your own case needs. That's for your doctor."
+- The mandatory "I am an AI learning companion, not a licensed professional" disclaimer still stands — citation never overrides it.`,
+  pharmasaathi: `PAPER CITATION — PHARMACY GUARDRAIL OVERLAY:
+When you cite a pharmaceutical paper:
+- Describe mechanism, trial endpoints, statistical outcomes. Never translate into dosing advice, drug substitution, or OTC recommendations for the student or anyone they know.
+- If a citation brushes a student's own symptoms or a family member's regimen, redirect them to a registered pharmacist or clinician.`,
+  nursingsaathi: `PAPER CITATION — NURSING GUARDRAIL OVERLAY:
+When you cite nursing / clinical research:
+- Keep the framing educational. Never advise on bedside decisions for a specific patient the student is referencing.
+- Clinical judgement belongs to a supervising nurse or clinician, not a citation.`,
+  kanoonsaathi: `PAPER CITATION — LEGAL GUARDRAIL OVERLAY:
+When you cite case law, law reviews, or legal research:
+- Explain the ruling, the reasoning, and its doctrinal significance.
+- NEVER infer that the student's own case would win or lose.
+- NEVER recommend lawyers, firms, or practitioners.
+- NEVER comment on matters currently pending in court.
+- Citation is education. Advice is a licensed activity that this Saathi cannot perform.`,
+  psychsaathi: `PAPER CITATION — PSYCHOLOGY GUARDRAIL OVERLAY:
+When you cite psychology or psychiatry research:
+- Explain the research framework, the methodology, the findings.
+- NEVER interpret the student's own feelings, behaviours, or symptoms through the cited work.
+- NEVER diagnose, assess, or frame a friend's / family member's mental state through the citation.
+- If the conversation shifts toward personal distress, pause the academic frame and gently point toward a licensed counsellor or a helpline.`,
+}
+
 const UNIVERSAL_GUARDRAILS = `UNIVERSAL GUARDRAILS — enforce without exception:
 - Never write assignments, essays, or exam answers on behalf of the student.
 - Never express political opinions or take political sides.
@@ -911,6 +974,13 @@ async function buildSystemPrompt(
   const wolframBlock = WOLFRAM_SAATHIS.has(saathiSlug) ? `\n\n${WOLFRAM_INSTRUCTION}` : '';
   const nasaBlock = NASA_SAATHIS.has(saathiSlug) ? `\n\n${NASA_INSTRUCTION}` : '';
   const chemspiderBlock = CHEMSPIDER_SAATHIS.has(saathiSlug) ? `\n\n${CHEMSPIDER_INSTRUCTION}` : '';
+  // Peer-reviewed paper citation — available to every Saathi. Access-first
+  // principle: students at any level get exposure; the Saathi translates.
+  // The per-Saathi guardrail overlay (PAPER_GUARDRAIL_EXTENSIONS) kicks in
+  // for medico/pharma/nursing/kanoon/psych to keep the existing
+  // never-prescribe / never-advise / never-diagnose invariants intact.
+  const paperGuardrailExtension = PAPER_GUARDRAIL_EXTENSIONS[saathiSlug];
+  const paperBlock = `\n\n${PAPER_INSTRUCTION}${paperGuardrailExtension ? `\n\n${paperGuardrailExtension}` : ''}`;
 
   return `${SAATHI_PHILOSOPHY}
 
@@ -1188,7 +1258,7 @@ Degree programme: ${degreeProgramme}${currentSemester ? ` | Semester ${currentSe
 ${firstSessionBlock ? `
 # FIRST SESSION INSTRUCTION
 ${firstSessionBlock}
-` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}${wolframBlock}${nasaBlock}${chemspiderBlock}${(() => {
+` : ''}${saathiGuardrail ? `\n# SAATHI-SPECIFIC RULES\n${saathiGuardrail}\n` : ''}${wolframBlock}${nasaBlock}${chemspiderBlock}${paperBlock}${(() => {
   // ── Rich rendering instructions ──────────────────────────────────────────────
   const MATH_SAATHIS = new Set([
     'maathsaathi', 'chemsaathi', 'biosaathi', 'physicsaathi',

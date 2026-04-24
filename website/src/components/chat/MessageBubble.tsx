@@ -31,6 +31,7 @@ import { WolframCard } from './WolframCard'
 import { NasaCard } from './NasaCard'
 import { ChemSpiderCard } from './ChemSpiderCard'
 import { PubmedCitationCard } from './PubmedCitationCard'
+import { PaperCitationCard } from './PaperCitationCard'
 
 // ─── Segment types ────────────────────────────────────────────────────────────
 
@@ -57,6 +58,7 @@ type Segment =
   | { type: 'nasa'; query: string }
   | { type: 'chemspider'; query: string }
   | { type: 'pubmed'; query: string }
+  | { type: 'paper'; doi: string; fallbackTitle: string | null }
   | {
       type: 'plot'
       expression: string
@@ -319,6 +321,26 @@ function parseMessageContent(text: string): Segment[] {
       }
     }
 
+    // 4s. Generic peer-reviewed paper tag [PAPER:doi] or [PAPER:doi|title]
+    //     Unlocks every journal that issues DOIs — PRL, Nature, Science,
+    //     Cell, NEJM, Lancet, JAMA, AER, JACS, etc. — via Crossref metadata.
+    //     DOI is mandatory; fallback title is optional (shown when lookup
+    //     errors so the student still sees a meaningful reference).
+    const paperMatch = /\[PAPER:\s*(10\.\d{4,9}\/[^\]|]+)(?:\|([^\]]+))?\]/.exec(
+      remaining,
+    )
+    if (paperMatch && paperMatch.index < currentIndex()) {
+      earliest = {
+        index: paperMatch.index,
+        length: paperMatch[0].length,
+        segment: {
+          type: 'paper' as const,
+          doi: paperMatch[1].trim(),
+          fallbackTitle: paperMatch[2]?.trim() ?? null,
+        },
+      }
+    }
+
     // 5. Inline math $...$ (guard against $$)
     const inlineMath = /(?<!\$)\$([^$\n]+?)\$(?!\$)/.exec(remaining)
     if (inlineMath && inlineMath.index < currentIndex()) {
@@ -546,6 +568,15 @@ function RenderSegments({
 
           case 'pubmed':
             return <PubmedCitationCard key={i} query={seg.query} />
+
+          case 'paper':
+            return (
+              <PaperCitationCard
+                key={i}
+                doi={seg.doi}
+                fallbackTitle={seg.fallbackTitle}
+              />
+            )
 
           case 'case_law':
             return (

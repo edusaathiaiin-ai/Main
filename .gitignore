@@ -18,3 +18,4 @@ rzp-key*
 *.p12
 *.p8
 *.pfx
+.stage-chat-deploy/
