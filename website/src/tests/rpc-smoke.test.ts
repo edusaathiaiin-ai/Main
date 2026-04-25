@@ -164,8 +164,31 @@ const RPC_CASES: RpcCase[] = [
 ]
 
 // ─── The suite ────────────────────────────────────────────────────────
-const dbUrl = process.env.DATABASE_URL
-const skip  = !dbUrl
+// Pick the first non-empty connection string from the candidates below.
+// Supabase has effectively deprecated the direct hostname (`db.<ref>
+// .supabase.co:5432`) — DNS no longer resolves it for most projects —
+// so we prefer the pooler URLs (Vercel-Postgres-integration names) and
+// fall back through the alternates. Whichever Doppler / .env supplies
+// first is what we use.
+const DB_URL_CANDIDATES = [
+  'POSTGRES_URL',                  // Vercel/Supabase pooled (preferred)
+  'POSTGRES_PRISMA_URL',           // Vercel/Supabase pooled with pgbouncer params
+  'DATABASE_URL',                  // generic
+  'SUPABASE_DB_URL',               // legacy
+  'POSTGRES_URL_NON_POOLING',      // direct (last resort)
+  'DIRECT_URL',                    // direct (last resort)
+] as const
+
+function pickConnectionString(): { url?: string; source?: string } {
+  for (const name of DB_URL_CANDIDATES) {
+    const v = process.env[name]
+    if (v && v.trim().length > 0) return { url: v, source: name }
+  }
+  return {}
+}
+
+const { url: dbUrl, source: dbUrlSource } = pickConnectionString()
+const skip = !dbUrl
 
 describe('RPC smoke — schema-level bugs in money/economy paths', () => {
   let client: Client | null = null
@@ -180,13 +203,16 @@ describe('RPC smoke — schema-level bugs in money/economy paths', () => {
     if (client) await client.end()
   })
 
-  it('DATABASE_URL is configured (sanity)', () => {
+  it('database connection string available (sanity)', () => {
     if (skip) {
       // eslint-disable-next-line no-console
       console.warn(
-        '[rpc-smoke] DATABASE_URL not set — skipping all RPC tests. ' +
-        'Run via `doppler run -- npm run test:rpc-smoke` to exercise.',
+        `[rpc-smoke] No database URL in env. Looked for: ${DB_URL_CANDIDATES.join(', ')}. ` +
+        'All RPC tests skipped. Run via `doppler run -- npm run test:rpc-smoke` to exercise.',
       )
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(`[rpc-smoke] Using ${dbUrlSource} for connection.`)
     }
     // Always passes — opt-in test design.
     expect(true).toBe(true)
