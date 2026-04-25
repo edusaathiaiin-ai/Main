@@ -1,19 +1,28 @@
 'use client'
 
 /**
- * SaathiHorizon — floating, draggable career-pathways panel.
+ * SaathiHorizon — career-pathways panel docked below the chat input.
  *
  * Key behaviours:
- *   • Fixed-position, floats over chat. Draggable by the header. Position
- *     persists in localStorage. Double-click header = reset to default
- *     (bottom-right of viewport).
- *   • Collapsible (chevron) + dismissible (circular × button). Dismissed
- *     state is session-only; sidebar "✦ Your Horizon" CTA re-opens it via
- *     the `horizon:open` window event.
- *   • Cards area scrolls internally (max-height 420px) — any filter
+ *   • Inline-docked surface (position: relative, full-width up to 820px,
+ *     centred). Sits below <InputArea> in ChatWindow.
+ *   • Default-expanded on desktop (≥ 768px), default-collapsed on mobile;
+ *     toggleable via the chevron in the header.
+ *   • Dismissible via the circular × button. Dismissed state is
+ *     session-only — the sidebar "✦ Your Horizon" CTA fires a
+ *     `horizon:open` window event that re-mounts the panel.
+ *   • The header retains pointer handlers for drag (legacy from when the
+ *     panel was a floating overlay). They are inert in the current
+ *     inline-docked layout — kept so that if we ever flip back to
+ *     floating mode, the persisted position + drag handlers light up
+ *     without a rewrite.
+ *   • Cards area scrolls internally (max-height 420px) so any filter
  *     combination lays out without clipping.
- *   • Accent colour follows the active Saathi (var(--saathi-primary) on
- *     the dark panel surface — adapts for every Saathi theme).
+ *   • Palette is fully theme-token driven — every text and surface
+ *     colour resolves from var(--text-*), var(--bg-*), var(--saathi-*).
+ *     Adapts cleanly to each Saathi's tinted light surface (BioSaathi
+ *     mint, KanoonSaathi gold-cream, ChemSaathi lavender, etc.) without
+ *     a per-Saathi override.
  *   • Academic-level scoped: self-fetches student_soul.academic_level,
  *     hides rows whose `academic_levels` excludes the student.
  *
@@ -75,13 +84,19 @@ const PILLS: { id: Category; emoji: string; label: string }[] = [
 
 type Filter = 'all' | Category
 
-// ── Palette (dark island; accents use per-Saathi CSS vars) ───────────────
-const BG_SURFACE = '#0F1923'
-const BG_CARD    = 'var(--bg-elevated)'
-const BRD_SOFT   = 'var(--bg-elevated)'
-const TEXT_HIGH  = '#FFFFFF'
-const TEXT_MID   = 'var(--text-secondary)'
-const TEXT_LOW   = 'var(--text-ghost)'
+// ── Palette (light, Saathi-aware via theme tokens) ──────────────────────
+// Migrated 2026-04-25 from the previous dark-island palette
+// (BG_SURFACE='#0F1923', TEXT_HIGH='#FFFFFF') which clashed with the
+// platform-wide light theme rule (website/CLAUDE.md: "platform is LIGHT
+// THEME, not dark"). The panel now reads as a clean white card sitting
+// on the Saathi-tinted base, with cards inside on a slightly raised
+// elevated surface, and Saathi-coloured accents at the header + buttons.
+const BG_SURFACE = 'var(--bg-surface)'      // panel — crisp white
+const BG_CARD    = 'var(--bg-elevated)'     // each horizon card — cream
+const BRD_SOFT   = 'var(--border-subtle)'   // hairline borders
+const TEXT_HIGH  = 'var(--text-primary)'    // titles, strong copy
+const TEXT_MID   = 'var(--text-secondary)'  // descriptions
+const TEXT_LOW   = 'var(--text-ghost)'      // meta + show-more
 
 // ── Layout constants ─────────────────────────────────────────────────────
 const PANEL_WIDTH           = 420
@@ -280,8 +295,11 @@ export function SaathiHorizon({
   if (scoped.length === 0) return null
 
   return (
-    <section
+    <motion.section
       id="saathi-horizon-panel"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut', delay: 0.15 }}
       style={{
         position:      'relative',
         width:         '100%',
@@ -289,12 +307,16 @@ export function SaathiHorizon({
         maxWidth:      '820px',
         background:    BG_SURFACE,
         borderRadius:  '12px 12px 0 0',
-        boxShadow:     '0 -4px 20px rgba(0, 0, 0, 0.12)',
+        border:        `1px solid ${BRD_SOFT}`,
+        borderBottom:  'none',
+        boxShadow:     '0 -4px 20px rgba(0, 0, 0, 0.04)',
         fontFamily:    'var(--font-body, "Plus Jakarta Sans"), sans-serif',
         overflow:      'visible', // let the close-button overflow
       }}
     >
-      {/* Prominent close × (dismiss) */}
+      {/* Prominent close × (dismiss) — the sidebar "✦ Your Horizon" CTA
+          re-opens the panel by dispatching a `horizon:open` window event,
+          so dismissing here is non-destructive. */}
       <button
         type="button"
         onClick={() => setIsDismissed(true)}
@@ -306,10 +328,10 @@ export function SaathiHorizon({
           width:          '28px',
           height:         '28px',
           borderRadius:   '50%',
-          background:     '#FFFFFF',
-          color:          '#0F1923',
-          border:         '1px solid rgba(0,0,0,0.12)',
-          boxShadow:      '0 4px 12px rgba(0,0,0,0.25)',
+          background:     'var(--bg-elevated)',
+          color:          'var(--text-primary)',
+          border:         '1px solid var(--border-medium)',
+          boxShadow:      'var(--shadow-md)',
           fontSize:       '14px',
           fontWeight:     700,
           cursor:         'pointer',
@@ -475,7 +497,7 @@ export function SaathiHorizon({
           </motion.div>
         )}
       </AnimatePresence>
-    </section>
+    </motion.section>
   )
 }
 
@@ -564,7 +586,9 @@ function HorizonCard({
               top:          '10px',
               right:        '12px',
               background:   'var(--saathi-primary, #C9993A)',
-              color:        '#0F1923',
+              // White text on Saathi-primary (always a deep colour like
+              // #1A5C2E for BioSaathi, #1E3A5F for KanoonSaathi).
+              color:        '#FFFFFF', // @allow-text-white
               fontSize:     '10.5px',
               fontWeight:   700,
               letterSpacing:'0.4px',
@@ -707,7 +731,9 @@ function HorizonCard({
         whileHover={!clicked && !confirming ? { opacity: 0.88 } : {}}
         style={{
           background:    'var(--saathi-primary, #C9993A)',
-          color:         '#0F1923',
+          // White text on Saathi-primary. The previous '#0F1923' here
+          // rendered the CTA invisible (dark-on-dark).
+          color:         '#FFFFFF', // @allow-text-white
           border:        'none',
           borderRadius:  '10px',
           padding:       '8px 14px',

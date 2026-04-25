@@ -352,6 +352,18 @@ export function Sidebar({
           isActive={pathname === '/progress'}
           accentColor="#34D399"
         />
+        {/* Re-opens a dismissed Horizon panel. SaathiHorizon listens for
+            'horizon:open' on window — we don't navigate, we re-mount in
+            place. The route stays /chat so the user keeps their context.
+            The breathing ✦ uses the .horizon-breathe keyframes already
+            defined in globals.css for this exact CTA. */}
+        <ExpandableSidebarItem
+          id="your-horizon"
+          icon={<span className="horizon-breathe">✦</span>}
+          label="Your Horizon"
+          onClick={() => window.dispatchEvent(new CustomEvent('horizon:open'))}
+          accentColor="var(--saathi-primary)"
+        />
         <ExpandableSidebarItem
           id="profile"
           icon="👤"
