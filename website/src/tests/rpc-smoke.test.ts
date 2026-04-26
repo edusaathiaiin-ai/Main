@@ -49,6 +49,39 @@
  *   only when called by service_role). Doppler's DATABASE_URL points
  *   at the Supabase pooler with the service role automatically.
  *
+ * Where the connection string lives — and why
+ * ───────────────────────────────────────────
+ *   Doppler config: `dev` ONLY. NOT `prd`.
+ *     The Vercel/Doppler integration auto-syncs `prd` to production
+ *     runtime env, and no production app code consumes a raw pg
+ *     connection string today (the app uses the Supabase JS client
+ *     with the service role key + edge functions). Putting a
+ *     service-role-equivalent DB URL in `prd` adds attack surface
+ *     for zero benefit. If a future feature genuinely needs raw pg
+ *     in production, evaluate a more scoped role first.
+ *
+ *   Pooler choice: SESSION pooler (port 5432). NOT transaction (6543).
+ *     This test uses BEGIN/ROLLBACK transactions and parameterised
+ *     queries ($1, $2, ...). The transaction pooler at 6543 releases
+ *     the connection at every COMMIT and breaks prepared statements
+ *     and cross-statement state. The session pooler at 5432 is
+ *     Postgres-protocol-complete. When generating the URL from the
+ *     Supabase dashboard, pick the "Session pooler" tab.
+ *
+ *   Direct hostname (db.<ref>.supabase.co): avoid.
+ *     DNS no longer resolves it for many projects; Supabase is
+ *     phasing it out. The pooler hostname
+ *     `aws-N-<region>.pooler.supabase.com` is the supported path.
+ *     Username on the pooler is `postgres.<project_ref>` (NOT plain
+ *     `postgres` — that's the direct-connection username).
+ *
+ *   One-shot override (no Doppler edit needed):
+ *     ```
+ *     cd website && DATABASE_URL='postgresql://postgres.<ref>:<pwd>@\
+ *       aws-N-<region>.pooler.supabase.com:5432/postgres' \
+ *       ./node_modules/.bin/jest rpc-smoke
+ *     ```
+ *
  * Adding a new RPC
  * ────────────────
  *   1. Append a `describe.each(...)` row in the array below with
