@@ -547,3 +547,10 @@ verify_jwt = false
 # CRON_SECRET. Distinct from the older "Institution" user role surfaces.
 [functions.education-institution-trial-check]
 verify_jwt = false
+
+# Daily cron — aggregates yesterday IST teaching activity for each
+# education_institution (status IN trial/active) into the
+# education_institution_stats_cache rollup. Auth handled inline via
+# CRON_SECRET or service-role bearer.
+[functions.refresh-institution-stats]
+verify_jwt = false
