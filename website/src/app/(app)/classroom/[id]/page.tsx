@@ -9,6 +9,7 @@ import { SAATHIS } from '@/constants/saathis'
 import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
 import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvider'
+import { liveblocksAvailable } from '@/components/classroom/liveblocks.config'
 import { FormulaBar } from '@/components/classroom/FormulaBar'
 import { CommandBar } from '@/components/classroom/CommandBar'
 import { CanvasOverlay } from '@/components/classroom/CanvasOverlay'
@@ -97,6 +98,26 @@ function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
   return m > 0 ? `${h}h ${m}m` : `${h}h`
+}
+
+/* True for hosts that send X-Frame-Options: DENY (or a frame-ancestors CSP)
+   and so cannot be embedded in our classroom iframe. The video panel falls
+   back to a "open in new tab" launcher for these — otherwise the student
+   sees a blank "refused to connect" page. */
+function refusesIframe(url: string | null | undefined): boolean {
+  if (!url) return false
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    return (
+      host === 'meet.google.com'           || host.endsWith('.meet.google.com') ||
+      host === 'zoom.us'                   || host.endsWith('.zoom.us')         ||
+      host === 'zoom.com'                  || host.endsWith('.zoom.com')        ||
+      host === 'teams.microsoft.com'       || host.endsWith('.teams.microsoft.com') ||
+      host === 'teams.live.com'            || host.endsWith('.teams.live.com')
+    )
+  } catch {
+    return false
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -802,7 +823,10 @@ export default function ClassroomPage() {
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm">🔗</span>
                   <span className="text-xs" style={{ color: 'var(--text-ghost)' }}>
-                    {session.meeting_platform ?? 'Google Meet'} &middot; opens inside EdUsaathiAI
+                    {session.meeting_platform ?? 'Google Meet'} &middot;{' '}
+                    {refusesIframe(session.meeting_link ?? session.external_url)
+                      ? 'opens in a new tab'
+                      : 'opens inside EdUsaathiAI'}
                   </span>
                 </div>
               )}
@@ -971,6 +995,31 @@ export default function ClassroomPage() {
           </div>
         </div>
 
+        {/* Multiplayer-offline banner — shown only when the Liveblocks
+            public key wasn't available at build time. Defensive fallback
+            (commit 2026-04-25): the page still renders, tools still work,
+            but canvas sync / presence / broadcast events are disabled.
+            Faculty needs to know they're not actually sharing a synced
+            canvas with students until the env is restored. */}
+        {!liveblocksAvailable && (
+          <div
+            role="status"
+            className="flex shrink-0 items-center gap-2 px-4 py-2 text-xs"
+            style={{
+              background: 'var(--warning-bg)',
+              color: 'var(--warning)',
+              borderBottom: '1px solid var(--border-subtle)',
+            }}
+          >
+            <span aria-hidden="true">⚠️</span>
+            <span>
+              Multiplayer offline — canvas sync, presence and live Q&amp;A
+              broadcast are disabled. Tools still work; classroom is
+              running in single-user mode.
+            </span>
+          </div>
+        )}
+
         {/* Content area — wrapped in Liveblocks for mode broadcast */}
         <ClassroomRoomProvider
           sessionId={sessionId}
@@ -994,11 +1043,10 @@ export default function ClassroomPage() {
               }}
             >
               {embedUrl ? (
-                classroomMode === 'standard' ? (
+                classroomMode === 'standard' && !refusesIframe(embedUrl) ? (
                   <iframe
                     src={embedUrl}
                     allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media"
-                    allowFullScreen
                     className="h-full w-full border-0"
                     style={{ background: '#000' }}
                   />
@@ -1015,7 +1063,7 @@ export default function ClassroomPage() {
                     </div>
                     <div style={{ textAlign: 'center', maxWidth: '280px' }}>
                       <p style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>
-                        Open Google Meet
+                        Open {session?.meeting_platform ?? 'meeting'}
                       </p>
                       <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', lineHeight: 1.6, margin: '0 0 16px' }}>
                         Your meeting opens in a new tab.
@@ -1032,7 +1080,7 @@ export default function ClassroomPage() {
                           textDecoration: 'none',
                         }}
                       >
-                        Open Meet →
+                        Open {session?.meeting_platform ?? 'meeting'} →
                       </a>
                     </div>
                     <p style={{ fontSize: '11px', color: 'var(--text-ghost)', marginTop: '8px' }}>

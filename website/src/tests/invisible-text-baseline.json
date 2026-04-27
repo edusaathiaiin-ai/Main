@@ -1,25 +1,25 @@
 [
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 561,
+    "line": 582,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 1031,
+    "line": 1079,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 1414,
+    "line": 1462,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "style={{ background: color, color: '#fff', cursor: 'pointer' }}"
   },
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 1499,
+    "line": 1547,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
@@ -1478,12 +1478,6 @@
   {
     "file": "components/flashcards/FlashcardsClient.tsx",
     "line": 399,
-    "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
-    "snippet": "color: '#fff',"
-  },
-  {
-    "file": "components/institutions/InstitutionLeaveModal.tsx",
-    "line": 200,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
