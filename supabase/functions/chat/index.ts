@@ -1957,7 +1957,9 @@ Deno.serve(async (req: Request) => {
     // ── Observability trace setup ───────────────────────────────────────────
     const traceId = crypto.randomUUID();
     const t0 = Date.now();
-    let ttfbMs: number | null = null;
+    let ttfbMs: number | null = null;        // end-to-end: t0 → first chunk
+    let aiStartedAt: number | null = null;   // set just before first AI fetch()
+    let aiTtfbMs: number | null = null;      // aiStartedAt → first chunk
     let lastError: { code?: string; message: string } | null = null;
     // ────────────────────────────────────────────────────────────────────────
 
@@ -2518,13 +2520,16 @@ ${fs.session_nature === 'story'
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         try {
-          // Wrap streaming to capture TTFB on first token
+          // Wrap streaming to capture both end-to-end TTFB and AI-only TTFB
+          // on the first chunk that reaches the controller.
           let firstToken = true;
           const wrappedController: ReadableStreamDefaultController<Uint8Array> = {
             ...controller,
             enqueue(chunk: Uint8Array) {
               if (firstToken) {
-                ttfbMs = Date.now() - t0;
+                const now = Date.now();
+                ttfbMs   = now - t0;
+                aiTtfbMs = aiStartedAt !== null ? now - aiStartedAt : null;
                 firstToken = false;
               }
               controller.enqueue(chunk);
@@ -2533,6 +2538,7 @@ ${fs.session_nature === 'story'
 
           if (imageBase64 && sketchSystemPrompt) {
             // Vision path — always Claude, ignores speed/Gemini routing
+            aiStartedAt = Date.now();
             assistantText = await streamClaudeVision(sketchSystemPrompt, messages, imageBase64, wrappedController as ReadableStreamDefaultController<Uint8Array>);
           } else {
             const streamFn = isSpeedSlot
@@ -2540,6 +2546,7 @@ ${fs.session_nature === 'story'
               : isGeminiFirst
                 ? streamGeminiWithFallback
                 : streamClaudeWithStemFallback;
+            aiStartedAt = Date.now();
             assistantText = await streamFn(systemPrompt, messages, wrappedController as ReadableStreamDefaultController<Uint8Array>);
           }
         } catch (err) {
@@ -2640,6 +2647,8 @@ ${fs.session_nature === 'story'
             completed_at:      new Date().toISOString(),
             duration_ms:       Date.now() - t0,
             ttfb_ms:           ttfbMs,
+            prep_ms:           aiStartedAt !== null ? aiStartedAt - t0 : null,
+            ai_ttfb_ms:        aiTtfbMs,
             ai_provider:       isSpeedSlot ? 'groq' : isGeminiFirst ? 'gemini' : 'claude',
             prompt_tokens:     estPromptTokens,
             total_tokens:      estPromptTokens + estOutputTokens,

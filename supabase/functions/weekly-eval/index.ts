@@ -37,6 +37,11 @@ function pct(num: number, denom: number): number {
   return Math.round((num / denom) * 100);
 }
 
+// Minimum cohort size before a rate metric is reported as a number rather
+// than N/A. With pre-launch traffic (single-digit users), a 0/0 cohort would
+// otherwise render as 0% FAIL and bury real signal in spurious red pills.
+const MIN_COHORT = 5;
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS_HEADERS });
@@ -69,12 +74,17 @@ Deno.serve(async (req: Request) => {
       admin.from('traces').select('*', { count: 'exact', head: true })
         .eq('action_type', 'chat').eq('soul_updated', true).gte('created_at', since7d),
     ]);
-    const completionPct = pct(soulUpdatedChats ?? 0, totalChats ?? 1);
+    const totalChatsCount = totalChats ?? 0;
+    const completionPct = pct(soulUpdatedChats ?? 0, totalChatsCount);
+    const completionBelowFloor = totalChatsCount < MIN_COHORT;
     metrics.push({
       name: 'Session completion rate',
-      value: `${completionPct}%`,
+      value: completionBelowFloor ? `N/A (${totalChatsCount} chats)` : `${completionPct}%`,
       target: '≥ 80%',
-      status: completionPct >= 80 ? 'PASS' : completionPct >= 60 ? 'WARN' : 'FAIL',
+      status: completionBelowFloor ? 'N/A'
+            : completionPct >= 80 ? 'PASS'
+            : completionPct >= 60 ? 'WARN'
+            : 'FAIL',
     });
 
     // ── 2. Passion ignition rate (flame_stage != cold, 8–12 sessions) ─────────
@@ -84,12 +94,17 @@ Deno.serve(async (req: Request) => {
       admin.from('student_soul').select('*', { count: 'exact', head: true })
         .gte('session_count', 8).lte('session_count', 12),
     ]);
-    const ignitionPct = pct(burningStudents ?? 0, eligibleStudents ?? 1);
+    const eligibleStudentsCount = eligibleStudents ?? 0;
+    const ignitionPct = pct(burningStudents ?? 0, eligibleStudentsCount);
+    const ignitionBelowFloor = eligibleStudentsCount < MIN_COHORT;
     metrics.push({
       name: 'Passion ignition rate (8–12 sessions)',
-      value: `${ignitionPct}%`,
+      value: ignitionBelowFloor ? `N/A (${eligibleStudentsCount} students)` : `${ignitionPct}%`,
       target: '≥ 60%',
-      status: ignitionPct >= 60 ? 'PASS' : ignitionPct >= 40 ? 'WARN' : 'FAIL',
+      status: ignitionBelowFloor ? 'N/A'
+            : ignitionPct >= 60 ? 'PASS'
+            : ignitionPct >= 40 ? 'WARN'
+            : 'FAIL',
     });
 
     // ── 3. Career discovery rate (career_discovery_stage != unaware) ──────────
@@ -99,45 +114,64 @@ Deno.serve(async (req: Request) => {
       admin.from('student_soul').select('*', { count: 'exact', head: true })
         .gte('session_count', 6).lte('session_count', 10),
     ]);
-    const discoveryPct = pct(discoveredStudents ?? 0, careerEligible ?? 1);
+    const careerEligibleCount = careerEligible ?? 0;
+    const discoveryPct = pct(discoveredStudents ?? 0, careerEligibleCount);
+    const discoveryBelowFloor = careerEligibleCount < MIN_COHORT;
     metrics.push({
       name: 'Career discovery rate (6–10 sessions)',
-      value: `${discoveryPct}%`,
+      value: discoveryBelowFloor ? `N/A (${careerEligibleCount} students)` : `${discoveryPct}%`,
       target: '≥ 50%',
-      status: discoveryPct >= 50 ? 'PASS' : discoveryPct >= 30 ? 'WARN' : 'FAIL',
+      status: discoveryBelowFloor ? 'N/A'
+            : discoveryPct >= 50 ? 'PASS'
+            : discoveryPct >= 30 ? 'WARN'
+            : 'FAIL',
     });
 
-    // ── 4. AI TTFB P50 and P95 by provider ───────────────────────────────────
+    // ── 4. AI TTFB P50 / P95 by provider, plus chat prep latency ─────────────
+    // ai_ttfb_ms isolates the actual AI fetch() → first chunk window. prep_ms
+    // captures everything before that (auth, DB, system-prompt build). Pre-142
+    // rows have null for both — we filter them out so the metric reflects the
+    // post-instrumentation cohort only.
     const { data: ttfbRows } = await admin
       .from('traces')
-      .select('ai_provider, ttfb_ms')
+      .select('ai_provider, ai_ttfb_ms, prep_ms')
       .gte('created_at', since7d)
-      .not('ttfb_ms', 'is', null)
+      .not('ai_ttfb_ms', 'is', null)
       .limit(1000);
 
-    type TtfbRow = { ai_provider: string; ttfb_ms: number };
-    const groqTtfbs = (ttfbRows ?? []).filter((r): r is TtfbRow => (r as TtfbRow).ai_provider === 'groq').map(r => r.ttfb_ms).sort((a, b) => a - b);
-    const claudeTtfbs = (ttfbRows ?? []).filter((r): r is TtfbRow => (r as TtfbRow).ai_provider === 'claude').map(r => r.ttfb_ms).sort((a, b) => a - b);
+    type TtfbRow = { ai_provider: string; ai_ttfb_ms: number; prep_ms: number | null };
+    const rows = (ttfbRows ?? []) as TtfbRow[];
+    const groqTtfbs   = rows.filter(r => r.ai_provider === 'groq').map(r => r.ai_ttfb_ms).sort((a, b) => a - b);
+    const claudeTtfbs = rows.filter(r => r.ai_provider === 'claude').map(r => r.ai_ttfb_ms).sort((a, b) => a - b);
+    const prepMs      = rows.map(r => r.prep_ms).filter((n): n is number => n !== null).sort((a, b) => a - b);
 
     const percentile = (arr: number[], p: number) =>
       arr.length > 0 ? arr[Math.floor(arr.length * p)] : 0;
 
-    const groqP50 = percentile(groqTtfbs, 0.5);
-    const groqP95 = percentile(groqTtfbs, 0.95);
+    const groqP50   = percentile(groqTtfbs,   0.5);
+    const groqP95   = percentile(groqTtfbs,   0.95);
     const claudeP50 = percentile(claudeTtfbs, 0.5);
     const claudeP95 = percentile(claudeTtfbs, 0.95);
+    const prepP50   = percentile(prepMs,      0.5);
+    const prepP95   = percentile(prepMs,      0.95);
 
     metrics.push({
-      name: 'Groq TTFB (P50 / P95)',
+      name: 'Groq AI TTFB (P50 / P95)',
       value: groqTtfbs.length > 0 ? `${groqP50}ms / ${groqP95}ms` : 'No data',
       target: 'P95 < 2000ms',
       status: groqTtfbs.length === 0 ? 'N/A' : groqP95 < 2000 ? 'PASS' : groqP95 < 3000 ? 'WARN' : 'FAIL',
     });
     metrics.push({
-      name: 'Claude TTFB (P50 / P95)',
+      name: 'Claude AI TTFB (P50 / P95)',
       value: claudeTtfbs.length > 0 ? `${claudeP50}ms / ${claudeP95}ms` : 'No data',
       target: 'P95 < 4000ms',
       status: claudeTtfbs.length === 0 ? 'N/A' : claudeP95 < 4000 ? 'PASS' : claudeP95 < 6000 ? 'WARN' : 'FAIL',
+    });
+    metrics.push({
+      name: 'Chat prep latency (P50 / P95)',
+      value: prepMs.length > 0 ? `${prepP50}ms / ${prepP95}ms` : 'No data',
+      target: 'P95 < 1500ms',
+      status: prepMs.length === 0 ? 'N/A' : prepP95 < 1500 ? 'PASS' : prepP95 < 2500 ? 'WARN' : 'FAIL',
     });
 
 

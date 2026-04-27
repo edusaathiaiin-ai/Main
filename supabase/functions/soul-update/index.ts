@@ -551,6 +551,20 @@ Deno.serve(async (req: Request) => {
 
     if (upsertError) throw new Error(`soul upsert: ${upsertError.message}`)
 
+    // ── Flip soul_updated on contributing chat traces ─────────────────────────
+    // All unmarked chat traces for this (user, saathi) fed into the soul we
+    // just wrote. Marking them lets the weekly-eval session-completion metric
+    // distinguish chats that produced soul updates from chats that didn't.
+    admin.from('traces')
+      .update({ soul_updated: true })
+      .eq('user_id',     user.id)
+      .eq('saathi_id',   saathiId)
+      .eq('action_type', 'chat')
+      .eq('soul_updated', false)
+      .then(({ error }: { error: { message: string } | null }) => {
+        if (error) console.warn('[soul-update] trace flag update failed:', error.message)
+      })
+
     // ── Award points on flame stage advancement (fire-and-forget) ────────────
     if (flameChanged) {
       const { data: profile } = await admin
