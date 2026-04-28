@@ -858,13 +858,73 @@ export default function CreateLiveSessionPage() {
                       style={inputStyle}
                       required
                     />
+
+                    {/* Quick-create helper. Removes the "open another tab,
+                        find Google Meet, click New meeting, copy the URL"
+                        ritual — both buttons open a meeting-creation flow
+                        directly. Faculty grabs the link, comes back, pastes
+                        above. The "Don't have one yet?" framing is
+                        deliberately permissive so faculty who already have
+                        a recurring Zoom link don't feel they need to use
+                        these. */}
+                    <div
+                      className="mt-2.5 rounded-lg px-3 py-2.5"
+                      style={{
+                        background: 'var(--bg-elevated)',
+                        border:     '1px solid var(--border-subtle)',
+                      }}
+                    >
+                      <p
+                        className="text-[11px]"
+                        style={{ color: 'var(--text-secondary)' }}
+                      >
+                        Don&apos;t have one yet?
+                      </p>
+                      <div className="mt-1.5 flex flex-wrap gap-2">
+                        <a
+                          href="https://meet.google.com/new"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-md px-3 py-1.5 text-xs font-semibold transition-opacity hover:opacity-90"
+                          style={{
+                            background:     'var(--gold)',
+                            color:          'var(--bg-surface)',
+                            textDecoration: 'none',
+                            display:        'inline-block',
+                          }}
+                        >
+                          Create a Google Meet link →
+                        </a>
+                        <a
+                          href="https://zoom.us/start"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
+                          style={{
+                            background:     'transparent',
+                            color:          'var(--gold)',
+                            border:         '1px solid var(--gold)',
+                            textDecoration: 'none',
+                            display:        'inline-block',
+                          }}
+                        >
+                          Or use Zoom →
+                        </a>
+                      </div>
+                      <p
+                        className="mt-2 text-[10px]"
+                        style={{ color: 'var(--text-ghost)' }}
+                      >
+                        Once you have the link, paste it above.
+                      </p>
+                    </div>
+
                     <p
-                      className="mt-1 text-[9px]"
+                      className="mt-2 text-[9px]"
                       style={{ color: 'var(--text-ghost)' }}
                     >
-                      Please create your Google Meet or Zoom link with the scheduled date/time
-                      first, then paste it here. Students receive this link 1 hour before
-                      the session. You can update it anytime from your sessions dashboard.
+                      Students receive this link 1 hour before the session.
+                      You can update it anytime from your sessions dashboard.
                     </p>
                   </div>
 
