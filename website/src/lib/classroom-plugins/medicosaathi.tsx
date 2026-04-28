@@ -4,8 +4,8 @@ import { useState, useCallback, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
-import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
-import { RcsbPanel } from '@/components/classroom/RcsbPanel'
+import { MoleculesPanel } from '@/components/classroom/MoleculesPanel'
+import { PapersPanel } from '@/components/classroom/PapersPanel'
 import { WolframPanel } from '@/components/classroom/WolframPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
 
@@ -13,21 +13,23 @@ import { useAutoQueryHandler } from './useAutoQueryHandler'
 // existing currentTab === '...' switches in the component below keep
 // working unchanged — only the visible labels and their order moved
 // per Phase I-2 / Classroom #2.
+// Phase I-2 #4 — ScienceDirect + Citations dropped from the visible tab
+// list; their content is now folded into 📄 Papers via the shared
+// PapersPanel filter chips. Proteins tab content is now MoleculesPanel
+// (RCSB-first with PubChem fallback + UniProt collapsible).
 const TABS: ReadonlyArray<{ id: string; label: string; sources?: string }> = [
   { id: 'Canvas',          label: '✏️ Draw' },
-  { id: 'Proteins',        label: '🔬 Molecules',         sources: 'RCSB Protein Data Bank' },
-  { id: 'PubMed',          label: '📄 Papers',            sources: 'PubMed' },
+  { id: 'Proteins',        label: '🔬 Molecules',         sources: 'RCSB Protein Data Bank + UniProt + PubChem' },
+  { id: 'PubMed',          label: '📄 Papers',            sources: 'PubMed + ScienceDirect + Scopus' },
   { id: 'Wolfram',         label: '🔢 Calculate',         sources: 'Wolfram Alpha' },
   { id: 'Anatomy 3D',      label: '🫀 Anatomy',           sources: 'OpenAnatomy (Harvard)' },
-  { id: 'Citations',       label: 'Citations',            sources: 'Scopus' },
   { id: 'Clinical Images', label: '🩻 Clinical Images',   sources: 'Sketchfab + OpenI NIH' },
   { id: 'Drug Reference',  label: '💊 Drug Reference',    sources: 'openFDA' },
   { id: 'Neuro Atlas',     label: 'Neuro Atlas',          sources: 'OpenAnatomy' },
-  { id: 'ScienceDirect',   label: 'ScienceDirect',        sources: 'ScienceDirect' },
 ] as const
 type Tab =
   | 'Canvas' | 'Anatomy 3D' | 'Neuro Atlas' | 'Proteins' | 'Wolfram'
-  | 'PubMed' | 'ScienceDirect' | 'Citations' | 'Drug Reference' | 'Clinical Images'
+  | 'PubMed' | 'Drug Reference' | 'Clinical Images'
 
 // Zygote Body — free 3D anatomy viewer (no auth required, allows embedding)
 const ANATOMY_VIEWS = [
@@ -48,65 +50,6 @@ const SKETCHFAB_ANATOMY = [
 
 type PubMedResult = { pmid: string; title: string; abstract: string; authors: string; journal: string; year: string }
 
-function PubMedPanel({ onArtifact }: { onArtifact?: PluginProps['onArtifact'] }) {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<PubMedResult[]>([])
-  const [loading, setLoading] = useState(false)
-
-  useAutoQueryHandler('pubmed', (params) => {
-    const q = (params.query as string) ?? ''
-    if (q) { setQuery(q); doSearch(q) }
-  })
-
-  async function doSearch(q: string) {
-    if (!q.trim()) return
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/classroom/pubmed?q=${encodeURIComponent(q.trim())}`)
-      const data = await res.json()
-      const papers = data.papers ?? []
-      setResults(papers)
-      for (const p of papers) {
-        onArtifact?.({
-          type: 'pubmed_citation', source: 'PubMed / NCBI',
-          source_url: `https://pubmed.ncbi.nlm.nih.gov/${p.pmid}`,
-          data: { pmid: p.pmid, title: p.title, authors: p.authors ?? [], journal: p.journal ?? '', year: p.year ?? '' },
-          timestamp: new Date().toISOString(),
-        })
-      }
-    } catch { setResults([]) }
-    setLoading(false)
-  }
-
-  return (
-    <div style={{ height: '100%', overflowY: 'auto', padding: '16px' }}>
-      <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-        📄 PubMed — Medical Literature Search
-      </h3>
-      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
-        <input
-          value={query} onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && doSearch(query)}
-          placeholder="Search — e.g. diabetes management, CRISPR therapy..."
-          style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', fontSize: '13px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', outline: 'none' }}
-        />
-        <button onClick={() => doSearch(query)} disabled={loading}
-          style={{ padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, background: 'var(--saathi-primary)', color: '#fff', border: 'none', cursor: 'pointer' }}>
-          {loading ? '…' : 'Search'}
-        </button>
-      </div>
-      {results.map((r) => (
-        <div key={r.pmid} style={{ padding: '10px 14px', borderRadius: '10px', marginBottom: '8px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-          <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>{r.title}</p>
-          <p style={{ fontSize: '11px', color: 'var(--text-ghost)', margin: '0 0 4px' }}>{r.authors} · {r.journal} · {r.year}</p>
-          <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', margin: '0 0 6px', lineHeight: 1.5 }}>{r.abstract?.slice(0, 250)}…</p>
-          <a href={`https://pubmed.ncbi.nlm.nih.gov/${r.pmid}/`} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: '11px', color: 'var(--saathi-primary)', fontWeight: 600, textDecoration: 'none' }}>View on PubMed →</a>
-        </div>
-      ))}
-    </div>
-  )
-}
 
 function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps) {
   const currentTab = (activeTab || 'Canvas') as Tab
@@ -213,8 +156,12 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
           </FullscreenPanel>
         </div>
 
+        {/* Phase I-2 #4 — Proteins / PubMed / ScienceDirect / Citations
+            collapsed into 🔬 Molecules + 📄 Papers via the shared
+            consolidated panels. ScienceDirect + Citations are now
+            filter chips inside Papers, not separate tabs. */}
         <div style={{ display: currentTab === 'Proteins' ? 'block' : 'none', height: '100%' }}>
-          <RcsbPanel placeholder="Search protein... e.g. Troponin, 1J1E" onArtifact={onArtifact} />
+          <MoleculesPanel onArtifact={onArtifact} />
         </div>
 
         <div style={{ display: currentTab === 'Wolfram' ? 'block' : 'none', height: '100%' }}>
@@ -222,15 +169,7 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
         </div>
 
         <div style={{ display: currentTab === 'PubMed' ? 'block' : 'none', height: '100%' }}>
-          <PubMedPanel onArtifact={onArtifact} />
-        </div>
-
-        <div style={{ display: currentTab === 'ScienceDirect' ? 'block' : 'none', height: '100%' }}>
-          <ScienceDirectPanel />
-        </div>
-
-        <div style={{ display: currentTab === 'Citations' ? 'block' : 'none', height: '100%' }}>
-          <ScopusPanel />
+          <PapersPanel onArtifact={onArtifact} />
         </div>
 
         <div style={{ display: currentTab === 'Drug Reference' ? 'block' : 'none', height: '100%', overflowY: 'auto', padding: '16px' }}>
@@ -275,21 +214,21 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
 
 const plugin: SaathiPlugin = {
   Component: MedicoPlugin,
-  sourceLabel: 'RCSB PDB + OpenAnatomy (Harvard) + Wolfram Alpha + PubMed + ScienceDirect + Scopus',
+  sourceLabel: 'RCSB PDB + UniProt + PubChem + OpenAnatomy (Harvard) + Wolfram Alpha + PubMed + ScienceDirect + Scopus',
   // Mirror of the in-component TABS (labels + ordering). Keeping IDs
   // equal to the historical strings preserves toolToTab compatibility
   // and the currentTab === '...' switches inside MedicoPlugin.
+  // Phase I-2 #4 — ScienceDirect + Citations dropped here; folded into
+  // 📄 Papers (PapersPanel) as filter chips alongside PubMed.
   tabs: [
     { id: 'Canvas',          label: '✏️ Draw' },
-    { id: 'Proteins',        label: '🔬 Molecules',         sources: 'RCSB Protein Data Bank' },
-    { id: 'PubMed',          label: '📄 Papers',            sources: 'PubMed' },
+    { id: 'Proteins',        label: '🔬 Molecules',         sources: 'RCSB Protein Data Bank + UniProt + PubChem' },
+    { id: 'PubMed',          label: '📄 Papers',            sources: 'PubMed + ScienceDirect + Scopus' },
     { id: 'Wolfram',         label: '🔢 Calculate',         sources: 'Wolfram Alpha' },
     { id: 'Anatomy 3D',      label: '🫀 Anatomy',           sources: 'OpenAnatomy (Harvard)' },
-    { id: 'Citations',       label: 'Citations',            sources: 'Scopus' },
     { id: 'Clinical Images', label: '🩻 Clinical Images',   sources: 'Sketchfab + OpenI NIH' },
     { id: 'Drug Reference',  label: '💊 Drug Reference',    sources: 'openFDA' },
     { id: 'Neuro Atlas',     label: 'Neuro Atlas',          sources: 'OpenAnatomy' },
-    { id: 'ScienceDirect',   label: 'ScienceDirect',        sources: 'ScienceDirect' },
   ],
   toolToTab: { pubmed: 'PubMed', rcsb: 'Proteins', wolfram: 'Wolfram' },
 }

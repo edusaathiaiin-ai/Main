@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
-import { ScienceDirectPanel, ScopusPanel } from '@/components/classroom/ElsevierPanels'
+import { PapersPanel } from '@/components/classroom/PapersPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -290,79 +290,17 @@ function DrugTargetPanel() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
-/*  PubMed panel (pharma-focused)                                             */
+/*  PharmaPlugin                                                              */
+/*                                                                            */
+/*  Phase I-2 #4 — ScienceDirect + Citations dropped here; folded into        */
+/*  📄 Papers (PapersPanel) as filter chips alongside PubMed. The             */
+/*  pharma-specific DrugStructurePanel (PubChem-tuned for small-molecule      */
+/*  drugs) and DrugTargetPanel (RCSB binding-site visualizer) stay because    */
+/*  they answer different questions for pharma students than the generic     */
+/*  MoleculesPanel would.                                                    */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-type Paper = { pmid: string; title: string; authors: string[]; journal: string; year: string }
-
-function PharmaPubMedPanel() {
-  const [query, setQuery] = useState('')
-  const [papers, setPapers] = useState<Paper[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  const handleSearch = useCallback(async () => {
-    if (!query.trim()) return
-    setLoading(true)
-    setError('')
-    setPapers([])
-    try {
-      const res = await fetch(`/api/classroom/pubmed?q=${encodeURIComponent(query.trim() + ' pharmacology')}`)
-      const data = await res.json()
-      if (res.ok) {
-        setPapers(data.papers ?? [])
-        if (data.papers?.length === 0) setError('No papers found')
-      } else setError(data.error)
-    } catch { setError('Search failed') }
-    setLoading(false)
-  }, [query])
-
-  return (
-    <div className="flex h-full flex-col">
-      <div className="flex shrink-0 items-center gap-2 px-3 py-2" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-        <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="Search pharma literature... e.g. imatinib mechanism"
-          className="flex-1 border-0 bg-transparent text-sm outline-none" style={{ color: 'var(--text-primary)' }} />
-        <button onClick={handleSearch} disabled={loading || !query.trim()}
-          className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-30"
-          style={{ background: 'var(--gold)', color: '#fff' }}>
-          {loading ? '...' : 'Search'}
-        </button>
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        {error && <p className="px-3 py-6 text-center text-sm" style={{ color: 'var(--error)' }}>{error}</p>}
-        {papers.map((p) => (
-          <div key={p.pmid} className="border-b px-3 py-3" style={{ borderColor: 'var(--border-subtle)' }}>
-            <a href={`https://pubmed.ncbi.nlm.nih.gov/${p.pmid}`} target="_blank" rel="noopener noreferrer"
-              className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>
-              {p.title}
-            </a>
-            <p className="mt-1 text-xs" style={{ color: 'var(--text-tertiary)' }}>
-              {p.authors.slice(0, 3).join(', ')}{p.authors.length > 3 ? ' et al.' : ''}
-            </p>
-            <p className="mt-0.5 text-[10px]" style={{ color: 'var(--text-ghost)' }}>
-              {p.journal} &middot; {p.year} &middot; PMID: {p.pmid}
-            </p>
-          </div>
-        ))}
-        {papers.length === 0 && !error && !loading && (
-          <div className="flex flex-col items-center justify-center px-3 py-12 text-center">
-            <p className="mb-1 text-3xl">📄</p>
-            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Search pharmaceutical literature</p>
-            <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>PubMed — pharmacology focused</p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════ */
-/*  Pharma Plugin Component                                                   */
-/* ═══════════════════════════════════════════════════════════════════════════ */
-
-type PharmaTab = 'canvas' | 'drug_structure' | 'drug_target' | 'pubmed' | 'sciencedirect' | 'citations'
+type PharmaTab = 'canvas' | 'drug_structure' | 'drug_target' | 'pubmed'
 
 function PharmaPlugin({ role, onArtifact }: PluginProps) {
   const [tab, setTab] = useState<PharmaTab>('canvas')
@@ -370,10 +308,8 @@ function PharmaPlugin({ role, onArtifact }: PluginProps) {
   const tabs: { id: PharmaTab; label: string; sources?: string }[] = [
     { id: 'canvas',         label: '✏️ Draw' },
     { id: 'drug_structure', label: '🔬 Molecules',  sources: 'PubChem' },
-    { id: 'pubmed',         label: '📄 Papers',     sources: 'PubMed' },
+    { id: 'pubmed',         label: '📄 Papers',     sources: 'PubMed + ScienceDirect + Scopus' },
     { id: 'drug_target',    label: 'Binding Sites', sources: 'RCSB Protein Data Bank' },
-    { id: 'citations',      label: 'Citations',     sources: 'Scopus' },
-    { id: 'sciencedirect',  label: 'ScienceDirect', sources: 'ScienceDirect' },
   ]
 
   return (
@@ -391,12 +327,10 @@ function PharmaPlugin({ role, onArtifact }: PluginProps) {
         ))}
       </div>
       <div className="relative flex-1">
-        {tab === 'canvas' && <CollaborativeCanvas role={role} />}
+        {tab === 'canvas'         && <CollaborativeCanvas role={role} />}
         {tab === 'drug_structure' && <DrugStructurePanel />}
-        {tab === 'drug_target' && <DrugTargetPanel />}
-        {tab === 'pubmed' && <PharmaPubMedPanel />}
-        {tab === 'sciencedirect' && <ScienceDirectPanel />}
-        {tab === 'citations' && <ScopusPanel />}
+        {tab === 'drug_target'    && <DrugTargetPanel />}
+        {tab === 'pubmed'         && <PapersPanel onArtifact={onArtifact} />}
       </div>
     </div>
   )
