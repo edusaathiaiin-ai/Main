@@ -155,6 +155,15 @@ export default function ClassroomPage() {
   const [homeworkSent, setHomeworkSent] = useState(false)
   const [sessionQuestions, setSessionQuestions] = useState<{ text: string; studentName: string; timestamp: string }[]>([])
 
+  // Phase I-2 Step 5 — institution daily-minutes window for faculty.
+  // null until the lobby check resolves; for non-institution users the
+  // check still resolves but the response carries no minutes_remaining,
+  // so the gating UI stays hidden.
+  type WindowCheck =
+    | { allowed: true;  minutes_remaining?: number; minutes_used?: number; minutes_budget?: number }
+    | { allowed: false; reason: 'weekend' | 'window_exhausted'; message: string; minutes_used?: number; minutes_budget?: number }
+  const [institutionWindow, setInstitutionWindow] = useState<WindowCheck | null>(null)
+
   const { emit: emitArtifact } = useArtifactLog(sessionId)
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -509,6 +518,27 @@ export default function ClassroomPage() {
     if (isStory) setCommandBarOpen(false)
   }, [isStory])
 
+  // Phase I-2 Step 5 — institution daily-minutes window check.
+  // Fires once when faculty enter the lobby. Independent faculty (no
+  // education_institution_id) get { allowed: true } with no
+  // minutes_remaining, so the gating UI naturally stays hidden.
+  // Students never trigger this (gated on isFaculty above).
+  // Failure is silent — faculty proceeds without the gating UI rather
+  // than being blocked by a transient API hiccup.
+  useEffect(() => {
+    if (state !== 'lobby' || !isFaculty) return
+    let cancelled = false
+    fetch('/api/classroom/check-institution-window', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ session_id: sessionId }),
+    })
+      .then((r) => r.json())
+      .then((data: WindowCheck) => { if (!cancelled) setInstitutionWindow(data) })
+      .catch(() => { /* fail-open */ })
+    return () => { cancelled = true }
+  }, [state, isFaculty, sessionId])
+
   // Next upcoming lecture (for countdown display in lobby)
   const nextLecture = lectures
     .filter((l) => l.scheduled_at && new Date(l.scheduled_at) > new Date())
@@ -791,30 +821,107 @@ export default function ClassroomPage() {
               </div>
             )}
 
-            {/* Join button */}
-            <motion.button
-              onClick={handleJoin}
-              disabled={!canJoin && !isFaculty}
-              whileHover={canJoin || isFaculty ? { scale: 1.02 } : {}}
-              whileTap={canJoin || isFaculty ? { scale: 0.98 } : {}}
-              className="rounded-2xl px-10 py-4 text-base font-bold transition-all disabled:opacity-40"
-              style={{
-                background: canJoin || isFaculty ? color : 'var(--bg-elevated)',
-                color: canJoin || isFaculty ? '#fff' : 'var(--text-ghost)',
-                cursor: canJoin || isFaculty ? 'pointer' : 'not-allowed',
-              }}
-            >
-              {canJoin || isFaculty
-                ? classroomMode === 'interactive' ? 'Join Interactive Classroom' : 'Join Classroom'
-                : countdown
-                  ? `Opens ${countdown.includes('d') ? 'in ' + countdown : 'in ' + countdown}`
-                  : 'Session not yet scheduled'}
-            </motion.button>
+            {/* Phase I-2 Step 5 — institution daily-minutes gate.
+                Replaces the Join button entirely when the faculty's
+                institution is on weekend or has exhausted its window.
+                Falls through to the normal Join button + (optional)
+                "minutes remaining" hint when allowed. */}
+            {institutionWindow && !institutionWindow.allowed ? (
+              institutionWindow.reason === 'weekend' ? (
+                <div
+                  className="mx-auto max-w-md rounded-2xl px-6 py-5"
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-medium)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <p
+                    className="text-base font-semibold"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    Classroom sessions are available on weekdays only.
+                  </p>
+                  <p
+                    className="mt-1 text-sm"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    See you Monday.
+                  </p>
+                </div>
+              ) : (
+                <div
+                  className="mx-auto max-w-md rounded-2xl px-6 py-5"
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-medium)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <p
+                    className="text-base font-semibold"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    Today&apos;s classroom window is full.
+                  </p>
+                  <p
+                    className="mt-2 text-sm"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    {institutionWindow.minutes_used ?? 0} / {institutionWindow.minutes_budget ?? 180} minutes used today.
+                  </p>
+                  <div
+                    className="mx-auto mt-3 h-2 max-w-xs overflow-hidden rounded-full"
+                    style={{ background: 'var(--border-subtle)' }}
+                    aria-label="Daily classroom window — full"
+                  >
+                    <div style={{ width: '100%', height: '100%', background: 'var(--gold)' }} />
+                  </div>
+                  <p
+                    className="mt-3 text-xs"
+                    style={{ color: 'var(--text-ghost)' }}
+                  >
+                    Opens again at midnight IST.
+                  </p>
+                </div>
+              )
+            ) : (
+              <>
+                {/* Join button */}
+                <motion.button
+                  onClick={handleJoin}
+                  disabled={!canJoin && !isFaculty}
+                  whileHover={canJoin || isFaculty ? { scale: 1.02 } : {}}
+                  whileTap={canJoin || isFaculty ? { scale: 0.98 } : {}}
+                  className="rounded-2xl px-10 py-4 text-base font-bold transition-all disabled:opacity-40"
+                  style={{
+                    background: canJoin || isFaculty ? color : 'var(--bg-elevated)',
+                    color: canJoin || isFaculty ? '#fff' : 'var(--text-ghost)',
+                    cursor: canJoin || isFaculty ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  {canJoin || isFaculty
+                    ? classroomMode === 'interactive' ? 'Join Interactive Classroom' : 'Join Classroom'
+                    : countdown
+                      ? `Opens ${countdown.includes('d') ? 'in ' + countdown : 'in ' + countdown}`
+                      : 'Session not yet scheduled'}
+                </motion.button>
 
-            {!canJoin && !isFaculty && countdown && (
-              <p className="mt-3 text-xs" style={{ color: 'var(--text-ghost)' }}>
-                Join button activates 10 minutes before the session.
-              </p>
+                {/* Minutes-remaining hint — only for institution faculty.
+                    minutes_remaining is undefined for independent faculty
+                    and students, so this never renders for them. */}
+                {institutionWindow?.allowed && institutionWindow.minutes_remaining !== undefined && (
+                  <p className="mt-3 text-xs" style={{ color: 'var(--text-ghost)' }}>
+                    {institutionWindow.minutes_remaining} minutes remaining in today&apos;s window
+                  </p>
+                )}
+
+                {!canJoin && !isFaculty && countdown && (
+                  <p className="mt-3 text-xs" style={{ color: 'var(--text-ghost)' }}>
+                    Join button activates 10 minutes before the session.
+                  </p>
+                )}
+              </>
             )}
 
             {/* Delivery type hint */}

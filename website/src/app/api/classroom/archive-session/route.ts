@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { requireAuth } from '@/lib/requireAuth'
 
 const DEPTH_WEIGHTS: Record<string, number> = {
@@ -279,6 +280,53 @@ Do not mention software names.`,
         research_depth_score: currentScore + depthScore,
         last_archive_context: archiveContext,
       }, { onConflict: 'user_id,vertical_id' })
+  }
+
+  // 13. Institution daily-minutes rollup (Phase I-2 Step 5).
+  //     Group classroom sessions taught by institution faculty count
+  //     against the institution's daily window. Independent faculty
+  //     and faculty without an education_institution_id are unaffected
+  //     — the lookup short-circuits to a no-op for them.
+  //
+  //     Race-safe via the increment_institution_minutes RPC (migration
+  //     145), which does the self-healing reset and the increment in a
+  //     single UPDATE. Service-role client because:
+  //       (a) the RPC is GRANT EXECUTE TO service_role only — a
+  //           logged-in user cannot bump arbitrary institutions, and
+  //       (b) faculty don't have UPDATE on education_institutions
+  //           through their RLS policies.
+  //
+  //     Fire-and-forget: a network blip on this rollup must not fail
+  //     the archive write, which is the user-visible action.
+  try {
+    const { data: facultyProfile } = await supabase
+      .from('profiles')
+      .select('education_institution_id')
+      .eq('id', user.id)
+      .maybeSingle<{ education_institution_id: string | null }>()
+
+    if (facultyProfile?.education_institution_id) {
+      const minutes = Math.max(1, Math.ceil(durationMs / 60_000))
+      const todayIst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+
+      const adminClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { persistSession: false, autoRefreshToken: false } },
+      )
+
+      const { error: rpcErr } = await adminClient.rpc('increment_institution_minutes', {
+        p_institution_id: facultyProfile.education_institution_id,
+        p_add_minutes:    minutes,
+        p_today_ist:      todayIst,
+      })
+      if (rpcErr) {
+        console.warn('[archive-session] institution minutes RPC failed:', rpcErr.message)
+      }
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'unknown'
+    console.warn('[archive-session] institution minutes rollup threw:', msg)
   }
 
   return NextResponse.json({
