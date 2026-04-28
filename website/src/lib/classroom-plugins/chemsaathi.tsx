@@ -252,7 +252,7 @@ function KetcherPanel() {
 
 type ChemTab = 'canvas' | 'pubchem' | 'ketcher'
 
-function ChemPlugin({ role, activeTab, onTabChange }: PluginProps) {
+function ChemPlugin({ role, activeTab, onTabChange, unlockedTabIds, onShowAllTools }: PluginProps) {
   const currentTab = (activeTab || 'canvas') as ChemTab
   const setTab = (t: ChemTab) => onTabChange?.(t)
 
@@ -266,6 +266,12 @@ function ChemPlugin({ role, activeTab, onTabChange }: PluginProps) {
     { id: 'ketcher', label: '2D/3D Editor',  sources: 'MolView' },
   ]
 
+  // Phase I-2 / Classroom #5 — progressive tab reveal.
+  const visibleTabs = unlockedTabIds === undefined
+    ? tabs
+    : tabs.filter((t, i) => i === 0 || unlockedTabIds.includes(t.id))
+  const hasLockedTabs = visibleTabs.length < tabs.length
+
   return (
     <div className="flex h-full flex-col">
       {/* Tab bar */}
@@ -273,7 +279,7 @@ function ChemPlugin({ role, activeTab, onTabChange }: PluginProps) {
         className="flex shrink-0 items-center gap-1 px-2 py-1"
         style={{ borderBottom: '1px solid var(--border-subtle)' }}
       >
-        {tabs.map((t) => (
+        {visibleTabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
@@ -286,6 +292,16 @@ function ChemPlugin({ role, activeTab, onTabChange }: PluginProps) {
             {t.label}
           </button>
         ))}
+        {hasLockedTabs && onShowAllTools && (
+          <button
+            type="button"
+            onClick={() => onShowAllTools(tabs.map((t) => t.id))}
+            className="ml-auto rounded-md px-2 py-1 text-[11px] transition-colors hover:opacity-80"
+            style={{ background: 'transparent', color: 'var(--text-tertiary)', cursor: 'pointer' }}
+          >
+            Show all tools ↓
+          </button>
+        )}
       </div>
 
       {/* Tab content */}

@@ -9,6 +9,7 @@ import { SAATHIS } from '@/constants/saathis'
 import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
 import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvider'
+import { TabUnlockProvider, useTabUnlock } from '@/components/classroom/TabUnlockContext'
 import { StudentWelcomeCard } from '@/components/classroom/StudentWelcomeCard'
 import { liveblocksAvailable } from '@/components/classroom/liveblocks.config'
 import { FormulaBar } from '@/components/classroom/FormulaBar'
@@ -119,6 +120,79 @@ function refusesIframe(url: string | null | undefined): boolean {
   } catch {
     return false
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  Phase I-2 / Classroom #5 — Liveblocks-aware wrappers                      */
+/*                                                                            */
+/*  These small wrappers exist so the main ClassroomPage can stay outside     */
+/*  the Liveblocks RoomProvider. useTabUnlock() must be called from a         */
+/*  component rendered INSIDE the provider; that's what these two do.         */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+function CommandBarWithUnlock({
+  sessionId, saathiSlug, saathiColor, plugin, setActiveTab, setAutoQuery,
+}: {
+  sessionId:    string
+  saathiSlug:   string
+  saathiColor:  string
+  plugin:       SaathiPlugin | null
+  setActiveTab: (id: string) => void
+  setAutoQuery: (v: { tool: string; params: Record<string, unknown> } | null) => void
+}) {
+  const { unlock } = useTabUnlock()
+
+  return (
+    <CommandBar
+      sessionId={sessionId}
+      saathiSlug={saathiSlug}
+      saathiColor={saathiColor}
+      onToolLoad={(result) => {
+        // tool === 'none' means the AI declined to route — no tab unlock,
+        // no active-tab change. The autoQuery still fires so any plugin
+        // that wants to react can.
+        if (result.tool && result.tool !== 'none') {
+          // Plugin's toolToTab maps the (plugin-agnostic) tool name to
+          // the (plugin-specific) tab id. Falls back to the tool name
+          // when no mapping is set — works for plugins where the tab id
+          // happens to equal the tool name (e.g. biosaathi 'rcsb').
+          const tabId = plugin?.toolToTab?.[result.tool] ?? result.tool
+          unlock(tabId)
+          setActiveTab(tabId)
+        }
+        setAutoQuery({ tool: result.tool, params: result.params })
+      }}
+    />
+  )
+}
+
+function PluginWithUnlock({
+  plugin, isFaculty, roomId, role, saathiSlug, activeTab, onTabChange, onArtifact,
+}: {
+  plugin:       NonNullable<SaathiPlugin>
+  isFaculty:    boolean
+  roomId:       string
+  role:         'faculty' | 'student'
+  saathiSlug:   string
+  activeTab:    string
+  onTabChange:  (tab: string) => void
+  onArtifact:   (a: ResearchArtifact) => void
+}) {
+  const { unlockedTabIds, unlockAll } = useTabUnlock()
+  const Plugin = plugin.Component
+  return (
+    <Plugin
+      roomId={roomId}
+      role={role}
+      saathiSlug={saathiSlug}
+      activeTab={activeTab}
+      onTabChange={onTabChange}
+      onArtifact={(a) => onArtifact(a as ResearchArtifact)}
+      unlockedTabIds={unlockedTabIds}
+      // Faculty only — students never unlock.
+      onShowAllTools={isFaculty ? unlockAll : undefined}
+    />
+  )
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -1160,13 +1234,15 @@ export default function ClassroomPage() {
           </div>
         )}
 
-        {/* Content area — wrapped in Liveblocks for mode broadcast */}
+        {/* Content area — wrapped in Liveblocks for mode broadcast and
+            Phase I-2 / Classroom #5 progressive tab-reveal storage. */}
         <ClassroomRoomProvider
           sessionId={sessionId}
           userName={profile?.full_name ?? 'Student'}
           userRole={isFaculty ? 'faculty' : 'student'}
           classroomMode={classroomMode}
         >
+        <TabUnlockProvider>
           <ModeSyncBridge isFaculty={isFaculty} classroomMode={classroomMode} onModeChange={handleModeChange} />
 
           <div
@@ -1278,14 +1354,13 @@ export default function ClassroomPage() {
                   }}
                 >
                   {isFaculty && commandBarOpen && (
-                    <CommandBar
+                    <CommandBarWithUnlock
                       sessionId={sessionId}
                       saathiSlug={saathi?.id ?? 'default'}
                       saathiColor={saathi?.primary ?? '#C9993A'}
-                      onToolLoad={(result) => {
-                        setActiveTab(result.tool)
-                        setAutoQuery({ tool: result.tool, params: result.params })
-                      }}
+                      plugin={plugin}
+                      setActiveTab={setActiveTab}
+                      setAutoQuery={setAutoQuery}
                     />
                   )}
                   {/* Story-mode: faculty's manual "summon tools" affordance.
@@ -1342,7 +1417,9 @@ export default function ClassroomPage() {
                         value={autoQuery}
                         onClear={() => setAutoQuery(null)}
                       >
-                        <plugin.Component
+                        <PluginWithUnlock
+                          plugin={plugin}
+                          isFaculty={isFaculty}
                           roomId={sessionId}
                           role={isFaculty ? 'faculty' : 'student'}
                           saathiSlug={saathi?.id ?? 'default'}
@@ -1404,6 +1481,7 @@ export default function ClassroomPage() {
               facultyName={faculty?.full_name}
             />
           </div>
+        </TabUnlockProvider>
         </ClassroomRoomProvider>
 
         {/* Bottom bar */}

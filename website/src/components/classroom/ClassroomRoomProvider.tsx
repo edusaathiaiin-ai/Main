@@ -29,6 +29,13 @@ export function ClassroomRoomProvider({
         role: userRole,
         classroomMode,
       }}
+      // Phase I-2 / Classroom #5 — progressive tab reveal. Empty array
+      // at room creation; the classroom render layer always shows the
+      // first plugin tab regardless, so "Draw is always present" holds
+      // without baking a plugin-specific id in here.
+      initialStorage={{
+        unlockedTabs: [],
+      }}
     >
       {children}
     </RoomProvider>

@@ -224,7 +224,7 @@ function CodeEditorPanel({ role }: { role: 'faculty' | 'student' }) {
 
 type CodingTab = 'canvas' | 'editor'
 
-function CodingPlugin({ role }: PluginProps) {
+function CodingPlugin({ role, unlockedTabIds, onShowAllTools }: PluginProps) {
   const [tab, setTab] = useState<CodingTab>('editor') // Default to editor for CS
 
   const tabs: { id: CodingTab; label: string; sources?: string }[] = [
@@ -232,10 +232,16 @@ function CodingPlugin({ role }: PluginProps) {
     { id: 'canvas', label: 'Diagrams' },
   ]
 
+  // Phase I-2 / Classroom #5 — progressive tab reveal.
+  const visibleTabs = unlockedTabIds === undefined
+    ? tabs
+    : tabs.filter((t, i) => i === 0 || unlockedTabIds.includes(t.id))
+  const hasLockedTabs = visibleTabs.length < tabs.length
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex shrink-0 items-center gap-1 px-2 py-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-        {tabs.map((t) => (
+        {visibleTabs.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
             style={{
@@ -245,6 +251,16 @@ function CodingPlugin({ role }: PluginProps) {
             {t.label}
           </button>
         ))}
+        {hasLockedTabs && onShowAllTools && (
+          <button
+            type="button"
+            onClick={() => onShowAllTools(tabs.map((t) => t.id))}
+            className="ml-auto rounded-md px-2 py-1 text-[11px] transition-colors hover:opacity-80"
+            style={{ background: 'transparent', color: 'var(--text-tertiary)', cursor: 'pointer' }}
+          >
+            Show all tools ↓
+          </button>
+        )}
       </div>
       <div className="relative flex-1">
         {tab === 'editor' && <CodeEditorPanel role={role} />}

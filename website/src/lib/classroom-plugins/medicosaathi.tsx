@@ -51,7 +51,7 @@ const SKETCHFAB_ANATOMY = [
 type PubMedResult = { pmid: string; title: string; abstract: string; authors: string; journal: string; year: string }
 
 
-function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps) {
+function MedicoPlugin({ role, activeTab, onTabChange, onArtifact, unlockedTabIds, onShowAllTools }: PluginProps) {
   const currentTab = (activeTab || 'Canvas') as Tab
   const setTab = (t: Tab) => onTabChange?.(t)
   const [selectedModel, setSelectedModel] = useState(SKETCHFAB_ANATOMY[0].id)
@@ -60,6 +60,16 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
   const [drugResults, setDrugResults] = useState<{ name: string; description: string }[]>([])
 
   useEffect(() => { if (!activeTab) onTabChange?.('Canvas') }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Phase I-2 / Classroom #5 — progressive tab reveal. Always show the
+  // first tab (Canvas/Draw) plus any explicitly unlocked. Note: medico
+  // uses CSS display:none to switch tabs (not conditional rendering),
+  // so locked tabs need to be filtered OUT of the tab bar render but
+  // can stay in the body — they're hidden by the per-tab display rule.
+  const visibleTabs = unlockedTabIds === undefined
+    ? TABS
+    : TABS.filter((t, i) => i === 0 || unlockedTabIds.includes(t.id))
+  const hasLockedTabs = visibleTabs.length < TABS.length
 
   async function searchDrug() {
     if (!drugQuery.trim()) return
@@ -78,8 +88,8 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ display: 'flex', gap: '2px', padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', flexWrap: 'wrap' }}>
-        {TABS.map((t) => (
+      <div style={{ display: 'flex', gap: '2px', padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', flexWrap: 'wrap', alignItems: 'center' }}>
+        {visibleTabs.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id as Tab)} style={{
             padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: currentTab === t.id ? 700 : 500,
             background: currentTab === t.id ? 'var(--saathi-primary)' : 'transparent',
@@ -87,6 +97,20 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
             border: currentTab === t.id ? 'none' : '1px solid var(--border-subtle)', cursor: 'pointer',
           }}>{t.label}</button>
         ))}
+        {hasLockedTabs && onShowAllTools && (
+          <button
+            type="button"
+            onClick={() => onShowAllTools(TABS.map((t) => t.id))}
+            style={{
+              marginLeft: 'auto',
+              padding: '4px 8px', borderRadius: '6px', fontSize: '11px',
+              background: 'transparent', color: 'var(--text-tertiary)',
+              border: 'none', cursor: 'pointer',
+            }}
+          >
+            Show all tools ↓
+          </button>
+        )}
       </div>
 
       <div style={{ flex: 1, overflow: 'hidden' }}>

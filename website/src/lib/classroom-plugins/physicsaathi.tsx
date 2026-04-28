@@ -126,7 +126,7 @@ function NistPanel() {
 
 type PhysicsTab = 'canvas' | 'geogebra' | 'phet' | 'nist'
 
-function PhysicsPlugin({ role }: PluginProps) {
+function PhysicsPlugin({ role, unlockedTabIds, onShowAllTools }: PluginProps) {
   const [tab, setTab] = useState<PhysicsTab>('canvas')
   const [phetSim, setPhetSim] = useState<string>(PHET_SIMS[0].id)
 
@@ -137,6 +137,12 @@ function PhysicsPlugin({ role }: PluginProps) {
     { id: 'nist',     label: 'Constants',      sources: 'NIST' },
   ]
 
+  // Phase I-2 / Classroom #5 — progressive tab reveal.
+  const visibleTabs = unlockedTabIds === undefined
+    ? tabs
+    : tabs.filter((t, i) => i === 0 || unlockedTabIds.includes(t.id))
+  const hasLockedTabs = visibleTabs.length < tabs.length
+
   return (
     <div className="flex h-full flex-col">
       {/* Tab bar */}
@@ -144,7 +150,7 @@ function PhysicsPlugin({ role }: PluginProps) {
         className="flex shrink-0 items-center gap-1 px-2 py-1"
         style={{ borderBottom: '1px solid var(--border-subtle)' }}
       >
-        {tabs.map((t) => (
+        {visibleTabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
@@ -157,6 +163,16 @@ function PhysicsPlugin({ role }: PluginProps) {
             {t.label}
           </button>
         ))}
+        {hasLockedTabs && onShowAllTools && (
+          <button
+            type="button"
+            onClick={() => onShowAllTools(tabs.map((t) => t.id))}
+            className="ml-auto rounded-md px-2 py-1 text-[11px] transition-colors hover:opacity-80"
+            style={{ background: 'transparent', color: 'var(--text-tertiary)', cursor: 'pointer' }}
+          >
+            Show all tools ↓
+          </button>
+        )}
       </div>
 
       {/* Tab content */}

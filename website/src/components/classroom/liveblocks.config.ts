@@ -84,8 +84,23 @@ type Presence = {
   classroomMode: 'standard' | 'interactive'
 }
 
-// Storage: tldraw document synced via Yjs (no Liveblocks storage needed)
-type Storage = Record<string, never>
+// Storage: tldraw document is synced via Yjs (separate channel), so the
+// only Liveblocks-storage payload here is Phase I-2 / Classroom #5's
+// progressive-tab-reveal state.
+//
+// unlockedTabs — list of plugin-tab-ids unlocked this session. Three
+// ways an entry lands here:
+//   1. AI command bar routes to a tool whose plugin tab maps to an id
+//   2. Faculty clicks "Show all tools ↓" → all plugin tabs unlock at once
+//   3. Already in storage from earlier in the session (refresh / late
+//      student joins read the current set)
+//
+// First plugin tab is ALWAYS visible regardless of this list — that's
+// the "Draw is always there" rule from the spec, enforced at render
+// time so the storage doesn't need to know about plugin-specific ids.
+type Storage = {
+  unlockedTabs: string[]
+}
 
 // Events: broadcast questions, homework, etc.
 type RoomEvent =
@@ -101,4 +116,6 @@ export const {
   useSelf,
   useBroadcastEvent,
   useEventListener,
+  useStorage,
+  useMutation,
 } = createRoomContext<Presence, Storage, never, RoomEvent>(client)
