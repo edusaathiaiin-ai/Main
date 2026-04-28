@@ -106,13 +106,6 @@ function esc(s: string | null | undefined): string {
     .replace(/'/g, '&#39;')
 }
 
-function fmtDateLong(iso: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata',
-  })
-}
-
 function fmtDateLongFromYmd(yyyymmdd: string): string {
   const [y, m, d] = yyyymmdd.split('-').map(Number)
   return new Date(Date.UTC(y, m - 1, d, 12, 0, 0)).toLocaleDateString('en-IN', {
@@ -535,28 +528,39 @@ function renderReport(d: ReportInput): string {
   <style>
     @page {
       size: A4;
-      margin: 18mm 16mm 22mm 16mm;
-      @bottom-right {
-        content: 'Page ' counter(page) ' of ' counter(pages);
-        font-family: Georgia, serif;
-        font-size: 9pt;
-        color: #7A7570;
-      }
-      @bottom-left {
-        content: '${esc(institution.name)} · NAAC Report · AY ${esc(academicYear)}';
+      margin: 2cm;
+      /* "@page :footer { content: counter(page) }" in the spec isn't valid
+         CSS — the standard equivalent is a margin-box. @bottom-center is
+         the closest match for "page numbers in the footer." */
+      @bottom-center {
+        content: counter(page);
         font-family: Georgia, serif;
         font-size: 9pt;
         color: #7A7570;
       }
     }
     @media print {
-      body { background: #fff; }
-      .no-print { display: none !important; }
-      .section { page-break-before: always; }
-      .section.first { page-break-before: avoid; }
+      /* Hide site chrome and the floating Print button. Report content
+         lives in .report-header / main.naac-sections / .report-footer
+         (deliberately not <header>/<footer> tags) so this rule cannot
+         accidentally hide it. */
+      nav, header, footer.site-footer, button { display: none; }
+
+      /* Force black-on-white in print — clean accreditation aesthetic */
+      body { color: #000; background: #fff; }
+      a { color: #000; text-decoration: none; }
+
+      /* Section breaks — every NAAC section starts on a fresh page,
+         except the first which immediately follows the report header */
+      .naac-section { page-break-before: always; }
+      .naac-section:first-child { page-break-before: avoid; }
+
+      /* Tables must not break mid-row; thead repeats across pages */
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; page-break-after: auto; }
       thead { display: table-header-group; }
+
+      .no-print { display: none !important; }
     }
     * { box-sizing: border-box; }
     html, body {
@@ -653,8 +657,8 @@ function renderReport(d: ReportInput): string {
       margin: 14px 0 6px;
       font-weight: 700;
     }
-    .section { margin-top: 22px; }
-    .section.first { margin-top: 14px; }
+    .naac-section { margin-top: 22px; }
+    .naac-section:first-child { margin-top: 14px; }
 
     table {
       width: 100%;
@@ -735,7 +739,7 @@ function renderReport(d: ReportInput): string {
       margin-top: 4px;
     }
 
-    .footer {
+    .report-footer {
       margin-top: 32px;
       padding-top: 12px;
       border-top: 1px solid #E8E4DD;
@@ -744,7 +748,7 @@ function renderReport(d: ReportInput): string {
       text-align: center;
       line-height: 1.6;
     }
-    .footer .tagline {
+    .report-footer .tagline {
       color: #B8860B;
       font-weight: 700;
       font-style: italic;
@@ -771,7 +775,10 @@ function renderReport(d: ReportInput): string {
   <div class="page">
 
     <!-- HEADER ────────────────────────────────────────────────────────── -->
-    <header>
+    <!-- Deliberately a <div>, not <header>: the @media print rule
+         "nav, header, footer.site-footer, button { display:none }" would
+         otherwise hide our report header. -->
+    <div class="report-header">
       <div class="logo">
         <span class="logo-mark">E</span>
         <span class="logo-word">EdUsaathi<span class="ai">AI</span></span>
@@ -782,10 +789,14 @@ function renderReport(d: ReportInput): string {
       <p class="ay-line">Academic Year ${esc(academicYear)}</p>
       <p class="meta">Generated: <strong>${esc(generatedAt)} IST</strong></p>
       <p class="meta">Affiliation: <strong>${esc(institution.affiliation ?? '—')}</strong></p>
-    </header>
+    </div>
+
+    <!-- All four NAAC sections are direct children of <main> so
+         .naac-section:first-child reliably matches the first one. -->
+    <main class="naac-sections">
 
     <!-- SECTION 1 — Executive Summary ─────────────────────────────────── -->
-    <section class="section first">
+    <section class="naac-section">
       <h2>Section 1 &middot; Executive Summary</h2>
       <table>
         <tbody>
@@ -803,7 +814,7 @@ function renderReport(d: ReportInput): string {
     </section>
 
     <!-- SECTION 2 — Teaching-Learning Process (NAAC 2.3) ─────────────── -->
-    <section class="section">
+    <section class="naac-section">
       <h2>Section 2 &middot; Teaching-Learning Process <small>NAAC Criterion 2.3</small></h2>
 
       <h3>2.3.1 &middot; Monthly Sessions</h3>
@@ -892,7 +903,7 @@ function renderReport(d: ReportInput): string {
     </section>
 
     <!-- SECTION 3 — Research Activity (NAAC 3.1) ─────────────────────── -->
-    <section class="section">
+    <section class="naac-section">
       <h2>Section 3 &middot; Research Activity <small>NAAC Criterion 3.1</small></h2>
 
       <h3>3.1.1 &middot; Research Infrastructure Used</h3>
@@ -930,7 +941,7 @@ function renderReport(d: ReportInput): string {
     </section>
 
     <!-- SECTION 4 — Faculty Profile (NAAC 2.4) ───────────────────────── -->
-    <section class="section">
+    <section class="naac-section">
       <h2>Section 4 &middot; Faculty Profile <small>NAAC Criterion 2.4</small></h2>
       <p class="meta" style="margin:6px 0 12px;">Total faculty: <strong>${d.facultyTotal}</strong></p>
 
@@ -961,12 +972,18 @@ function renderReport(d: ReportInput): string {
       </p>
     </section>
 
+    </main>
+
     <!-- FOOTER ────────────────────────────────────────────────────────── -->
-    <footer class="footer">
-      <p>This report was generated by <span class="tagline">EdUsaathiAI</span> &middot; <a href="https://edusaathiai.in" style="color:#7A7570;text-decoration:none;">edusaathiai.in</a></p>
+    <!-- Deliberately a <div>, not <footer>, for the same reason as the
+         report-header above: the print rule hides any <footer.site-footer>
+         and we don't want our report footer caught by a sibling rule
+         elsewhere in the cascade. -->
+    <div class="report-footer">
+      <p>This report was generated by <span class="tagline">EdUsaathiAI</span> &middot; <a href="https://edusaathiai.in">edusaathiai.in</a></p>
       <p>Data period: <strong>${esc(fmtDateLongFromYmd(d.startIst))}</strong> to <strong>${esc(fmtDateLongFromYmd(d.endIst))}</strong></p>
       <p>Powered by Anthropic Claude</p>
-    </footer>
+    </div>
   </div>
 
   <script>
