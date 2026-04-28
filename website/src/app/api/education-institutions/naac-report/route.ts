@@ -12,27 +12,38 @@
 // derived from the caller's profile, so only one principal can ever
 // produce a report for one institution.
 //
-// Reporting window — last 90 days IST (sliding). Standard for NAAC
-// internal-quality assessment cycles, long enough to smooth daily noise.
+// Reporting window — institution.activated_at → today IST, falling back
+// to trial_started_at then created_at when an institution hasn't been
+// activated yet. Matches the "Date range" row in the executive summary
+// so the numbers and the label always agree.
 //
-// Sections — match CLAUDE.md website spec exactly:
+// Sections — match the exact NAAC structure from CLAUDE.md (website):
 //   1. Executive Summary
-//   2. Teaching-Learning Process (NAAC Criterion 2.3)
-//   3. Research Activity (NAAC Criterion 3.1)
-//   4. Faculty Profile (NAAC Criterion 2.4)
+//   2. Teaching-Learning Process (NAAC 2.3)
+//      2.3.1 Monthly Sessions
+//      2.3.2 Subject Coverage
+//      2.3.3 Student Engagement
+//   3. Research Activity (NAAC 3.1)
+//      3.1.1 Research Infrastructure Used
+//      3.1.2 Research Archive Statistics
+//   4. Faculty Profile (NAAC 2.4)
 //
 // Source tables — read-only, all via service-role after auth verification:
 //   education_institutions
-//   education_institution_stats_cache (90 days)
+//   education_institution_stats_cache
 //   profiles (faculty + student rosters)
-//   research_archives (artifacts jsonb iterated for type counts)
-//   student_soul (research_depth_score average)
 //   live_sessions (faculty-side activity, vertical_id breakdown)
+//   live_bookings (paid bookings → "students reached" per subject)
+//   research_archives (artifacts jsonb iterated for type counts)
+//   student_soul (flame_stage histogram + research_depth_score average)
 //   verticals (slug → display name lookup)
 //
-// All aggregation client-side in this handler. Volumes for a typical
-// institution at 90 days are small enough that fetching all rows and
-// reducing in JS is faster than designing a custom RPC per metric.
+// All aggregation client-side. Volumes for a typical institution at
+// activation-to-today scale are small enough that fetching all rows and
+// reducing in JS is faster than designing custom RPCs per metric.
+//
+// DPDP — faculty section shows display_name (full_name) only. Email,
+// phone, and any other PII never appear on the rendered report.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from 'next/server'
@@ -42,9 +53,12 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 const SUPABASE_URL     = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-const REPORT_WINDOW_DAYS = 90
+// Hard cap on the data window so a long-running institution doesn't blow up
+// memory at report time. NAAC accreditation cycles are 5 years; one academic
+// year is the upper bound any sensible report would actually cover.
+const MAX_WINDOW_DAYS = 400
 
-// ── IST date helpers (mirror the principal dashboard's logic) ────────────────
+// ── IST date helpers ────────────────────────────────────────────────────────
 
 function todayIstYmd(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
@@ -57,8 +71,8 @@ function shiftIstYmd(yyyymmdd: string, deltaDays: number): string {
   return dt.toISOString().slice(0, 10)
 }
 
-/** Half-open UTC bounds for [startIstYmd, endIstYmd) — IST midnight is
- *  previous-UTC-day 18:30 (no DST). Used to filter live_sessions.started_at. */
+/** Half-open UTC bounds for [startIstYmd, endIstYmd). IST midnight is the
+ *  previous-UTC-day 18:30 (no DST). */
 function istRangeUtc(startIstYmd: string, endIstYmd: string): { startUtc: string; endUtc: string } {
   const [sy, sm, sd] = startIstYmd.split('-').map(Number)
   const [ey, em, ed] = endIstYmd.split('-').map(Number)
@@ -66,6 +80,20 @@ function istRangeUtc(startIstYmd: string, endIstYmd: string): { startUtc: string
     startUtc: new Date(Date.UTC(sy, sm - 1, sd - 1, 18, 30, 0)).toISOString(),
     endUtc:   new Date(Date.UTC(ey, em - 1, ed - 1, 18, 30, 0)).toISOString(),
   }
+}
+
+/** Convert an ISO timestamp to its IST calendar date (YYYY-MM-DD). */
+function isoToIstYmd(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+}
+
+/** Indian academic year for a given IST date. June 1 is the boundary —
+ *  before June, the AY started the previous calendar year. */
+function academicYearFor(yyyymmdd: string): string {
+  const [y, m] = yyyymmdd.split('-').map(Number)
+  const start = m >= 6 ? y : y - 1
+  const end   = (start + 1) % 100
+  return `${start}-${String(end).padStart(2, '0')}`
 }
 
 function esc(s: string | null | undefined): string {
@@ -85,10 +113,24 @@ function fmtDateLong(iso: string | null): string {
   })
 }
 
+function fmtDateLongFromYmd(yyyymmdd: string): string {
+  const [y, m, d] = yyyymmdd.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d, 12, 0, 0)).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC',
+  })
+}
+
 function fmtDateTimeIst(iso: string): string {
   return new Date(iso).toLocaleString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata',
+  })
+}
+
+function monthLabel(yyyymm: string): string {
+  const [y, m] = yyyymm.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-IN', {
+    month: 'long', year: 'numeric',
   })
 }
 
@@ -102,6 +144,8 @@ type Institution = {
   state:             string | null
   affiliation:       string | null
   status:            string
+  created_at:        string
+  trial_started_at:  string | null
   activated_at:      string | null
   declared_capacity: number | null
 }
@@ -116,14 +160,25 @@ type StatsRow = {
 }
 
 type SessionRow = {
+  id:          string
   faculty_id:  string
   vertical_id: string
   started_at:  string
   ended_at:    string | null
 }
 
+type BookingRow = {
+  session_id: string
+  student_id: string
+}
+
 type ArchiveRow = {
   artifacts: Array<{ type?: string }> | null
+}
+
+type SoulRow = {
+  research_depth_score: number | null
+  flame_stage:          string | null
 }
 
 type FacultyRow = {
@@ -135,6 +190,36 @@ type VerticalRow = {
   id:   string
   name: string
 }
+
+type FlameStage = 'cold' | 'spark' | 'ember' | 'fire' | 'wings'
+const FLAME_ORDER: FlameStage[] = ['cold', 'spark', 'ember', 'fire', 'wings']
+
+// Fixed artifact-type buckets matching the user's spec. Maps the verbose
+// label shown in the report to the type keys actually stored in
+// research_archives.artifacts[*].type. CLAUDE.md (website) lists 14 valid
+// type strings; this report displays the 7 most NAAC-relevant ones.
+const ARTIFACT_BUCKETS: Array<{ label: string; key: string }> = [
+  { label: 'Protein structures (RCSB)',     key: 'protein_structure' },
+  { label: 'Literature citations (PubMed)', key: 'pubmed_citation'   },
+  { label: 'Computations (Wolfram)',        key: 'wolfram_query'     },
+  { label: 'Formulas (LaTeX)',              key: 'formula_katex'     },
+  { label: '3D Molecules (PubChem)',        key: 'molecule_3d'       },
+  { label: 'Code snapshots',                key: 'code_snapshot'     },
+  { label: 'Canvas annotations',            key: 'canvas_snapshot'   },
+]
+
+// External research databases shown verbatim in 3.1.1.
+const EXTERNAL_DBS: string[] = [
+  'RCSB Protein Data Bank',
+  'PubMed / NCBI',
+  'Wolfram Alpha',
+  'Indian Kanoon',
+  'NASA Open Data',
+  'PubChem',
+  'NIST',
+  'ScienceDirect (Elsevier)',
+  'Scopus (Elsevier)',
+]
 
 // ── Handler ─────────────────────────────────────────────────────────────────
 
@@ -162,28 +247,37 @@ export async function GET(): Promise<NextResponse> {
     return NextResponse.json({ error: 'forbidden_principal_only' }, { status: 403 })
   }
 
-  // 2. Service-role for the privileged read fan-out
+  // 2. Service-role for the read fan-out
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 
-  const todayIst    = todayIstYmd()
-  const startIst    = shiftIstYmd(todayIst, -REPORT_WINDOW_DAYS)
-  const { startUtc, endUtc } = istRangeUtc(startIst, todayIst)
-
-  // 3. Institution row + faculty + student rosters in parallel
   const institutionId = profile.education_institution_id
 
-  const [
-    instRes,
-    facultyRes,
-    studentsRes,
-  ] = await Promise.all([
-    admin
-      .from('education_institutions')
-      .select('id, slug, name, city, state, affiliation, status, activated_at, declared_capacity')
-      .eq('id', institutionId)
-      .maybeSingle(),
+  // 3. Fetch institution row first — its activated_at/created_at gates the
+  //    data window for everything downstream.
+  const { data: instData } = await admin
+    .from('education_institutions')
+    .select('id, slug, name, city, state, affiliation, status, created_at, trial_started_at, activated_at, declared_capacity')
+    .eq('id', institutionId)
+    .maybeSingle()
+  const institution = (instData ?? null) as Institution | null
+
+  if (!institution) {
+    return NextResponse.json({ error: 'institution_not_found' }, { status: 404 })
+  }
+
+  // Window = activated_at → today, falling back to trial_started_at then
+  // created_at. Capped at MAX_WINDOW_DAYS to bound query size.
+  const todayIst = todayIstYmd()
+  const anchorIso = institution.activated_at ?? institution.trial_started_at ?? institution.created_at
+  const anchorIst = isoToIstYmd(anchorIso)
+  const earliestAllowed = shiftIstYmd(todayIst, -MAX_WINDOW_DAYS)
+  const startIst = anchorIst < earliestAllowed ? earliestAllowed : anchorIst
+  const { startUtc, endUtc } = istRangeUtc(startIst, todayIst)
+
+  // 4. Faculty + student rosters, then everything else in parallel
+  const [facultyRes, studentsRes] = await Promise.all([
     admin
       .from('profiles')
       .select('id, full_name')
@@ -197,19 +291,14 @@ export async function GET(): Promise<NextResponse> {
       .eq('education_institution_role', 'student'),
   ])
 
-  const institution = (instRes.data ?? null) as Institution | null
-  if (!institution) {
-    return NextResponse.json({ error: 'institution_not_found' }, { status: 404 })
-  }
-
-  const faculty: FacultyRow[] = (facultyRes.data ?? []) as unknown as FacultyRow[]
+  const faculty: FacultyRow[]   = (facultyRes.data ?? []) as unknown as FacultyRow[]
   const studentIds = ((studentsRes.data ?? []) as unknown as Array<{ id: string }>).map(r => r.id)
   const facultyIds = faculty.map(f => f.id)
 
-  // 4. Stats cache, sessions, archives, soul, verticals — all in parallel
   const noFaculty = facultyIds.length === 0
   const noStudent = studentIds.length === 0
 
+  // First fan-out — depends only on faculty/student id lists
   const [
     statsRes,
     sessionsRes,
@@ -227,7 +316,7 @@ export async function GET(): Promise<NextResponse> {
       ? Promise.resolve({ data: [] as SessionRow[] } as const)
       : admin
           .from('live_sessions')
-          .select('faculty_id, vertical_id, started_at, ended_at')
+          .select('id, faculty_id, vertical_id, started_at, ended_at')
           .in('faculty_id', facultyIds)
           .not('started_at', 'is', null)
           .not('ended_at',   'is', null)
@@ -241,10 +330,10 @@ export async function GET(): Promise<NextResponse> {
           .in('student_id', studentIds)
           .gte('session_date', startIst),
     noStudent
-      ? Promise.resolve({ data: [] as Array<{ research_depth_score: number | null }> } as const)
+      ? Promise.resolve({ data: [] as SoulRow[] } as const)
       : admin
           .from('student_soul')
-          .select('research_depth_score')
+          .select('research_depth_score, flame_stage')
           .in('user_id', studentIds),
     admin
       .from('verticals')
@@ -254,108 +343,140 @@ export async function GET(): Promise<NextResponse> {
   const stats:    StatsRow[]    = (statsRes.data    ?? []) as unknown as StatsRow[]
   const sessions: SessionRow[]  = (sessionsRes.data ?? []) as unknown as SessionRow[]
   const archives: ArchiveRow[]  = (archivesRes.data ?? []) as unknown as ArchiveRow[]
-  const soulRows                = (soulRes.data     ?? []) as unknown as Array<{ research_depth_score: number | null }>
+  const soulRows: SoulRow[]     = (soulRes.data     ?? []) as unknown as SoulRow[]
   const verticals: VerticalRow[] = (verticalsRes.data ?? []) as unknown as VerticalRow[]
+
+  // Second fan-out — bookings depend on session ids resolved above
+  const sessionIds = sessions.map(s => s.id)
+  const { data: bookingsData } = sessionIds.length === 0
+    ? { data: [] as BookingRow[] }
+    : await admin
+        .from('live_bookings')
+        .select('session_id, student_id')
+        .in('session_id', sessionIds)
+        .eq('payment_status', 'paid')
+  const bookings: BookingRow[] = (bookingsData ?? []) as unknown as BookingRow[]
 
   // 5. Aggregate
   const verticalNameById = new Map(verticals.map(v => [v.id, v.name]))
+  const sessionById      = new Map(sessions.map(s => [s.id, s]))
 
-  // 5a. Executive summary totals
-  const totalSessions  = stats.reduce((a, r) => a + r.sessions_count,    0)
-  const totalMinutes   = stats.reduce((a, r) => a + r.minutes_used,      0)
-  const totalArtifacts = stats.reduce((a, r) => a + r.artifacts_created, 0)
-  const totalHours     = Math.round(totalMinutes / 60)
+  // 5a. Section 1 — Executive Summary
+  const totalSessions  = sessions.length
+  const totalMinutes   = sessions.reduce((a, s) => {
+    if (!s.ended_at) return a
+    const ms = new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()
+    return a + (Number.isFinite(ms) && ms > 0 ? Math.round(ms / 60_000) : 0)
+  }, 0)
+  const totalHours = Math.round(totalMinutes / 60)
 
-  const peakStudentsActive = stats.reduce((a, r) => Math.max(a, r.students_active), 0)
-  const peakFacultyActive  = stats.reduce((a, r) => Math.max(a, r.faculty_active),  0)
+  const totalArchives  = archives.length
+  const totalArtifacts = archives.reduce((a, r) => a + (r.artifacts?.length ?? 0), 0)
 
-  // 5b. Monthly rollup of stats_cache
-  type MonthRow = {
-    month: string  // 'YYYY-MM'
-    sessions: number
-    minutes:  number
-    artifacts: number
-  }
+  // 5b. Section 2.3.1 — Monthly Sessions table
+  type MonthRow = { month: string; sessions: number; studentsActive: number; hours: number }
   const monthMap = new Map<string, MonthRow>()
   for (const r of stats) {
     const month = r.date.slice(0, 7)
-    const m = monthMap.get(month) ?? { month, sessions: 0, minutes: 0, artifacts: 0 }
-    m.sessions  += r.sessions_count
-    m.minutes   += r.minutes_used
-    m.artifacts += r.artifacts_created
+    const m = monthMap.get(month) ?? { month, sessions: 0, studentsActive: 0, hours: 0 }
+    m.sessions       += r.sessions_count
+    m.studentsActive  = Math.max(m.studentsActive, r.students_active)  // peak students_active in month
+    m.hours          += Math.round(r.minutes_used / 60)
     monthMap.set(month, m)
   }
-  const monthlyRollup = Array.from(monthMap.values()).sort((a, b) => a.month.localeCompare(b.month))
+  const monthlySessions = Array.from(monthMap.values()).sort((a, b) => a.month.localeCompare(b.month))
 
-  // 5c. Subject breakdown (sessions per vertical) + sessions per (vertical × month)
-  type SubjectRow = { vertical_id: string; sessions: number; minutes: number }
-  const subjectMap = new Map<string, SubjectRow>()
-  type SubjectMonthKey = string  // 'vertical_id|month'
-  const subjectMonthMap = new Map<SubjectMonthKey, number>()
-
-  // Sessions per faculty
-  const facultySessionCounts = new Map<string, number>()
-
+  // 5c. Section 2.3.2 — Subject Coverage table
+  type SubjectRow = {
+    vertical_id:      string
+    sessions:         number
+    studentsReached:  number  // distinct students who paid for sessions of this vertical
+  }
+  const subjectMap = new Map<string, { sessions: number; studentSet: Set<string> }>()
   for (const s of sessions) {
-    const subj = subjectMap.get(s.vertical_id) ?? { vertical_id: s.vertical_id, sessions: 0, minutes: 0 }
-    subj.sessions += 1
-    if (s.ended_at) {
-      const dur = (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 60_000
-      if (Number.isFinite(dur) && dur > 0) subj.minutes += Math.round(dur)
-    }
-    subjectMap.set(s.vertical_id, subj)
-
-    const monthKey = s.started_at.slice(0, 7)  // ISO is UTC; close enough for monthly bucket
-    const k: SubjectMonthKey = `${s.vertical_id}|${monthKey}`
-    subjectMonthMap.set(k, (subjectMonthMap.get(k) ?? 0) + 1)
-
-    facultySessionCounts.set(s.faculty_id, (facultySessionCounts.get(s.faculty_id) ?? 0) + 1)
+    const v = subjectMap.get(s.vertical_id) ?? { sessions: 0, studentSet: new Set<string>() }
+    v.sessions += 1
+    subjectMap.set(s.vertical_id, v)
   }
-  const subjectBreakdown = Array.from(subjectMap.values()).sort((a, b) => b.sessions - a.sessions)
-
-  // 5d. Artifact type histogram across all archives in window
-  const artifactTypeCounts = new Map<string, number>()
-  let totalArtifactObjects = 0
-  for (const a of archives) {
-    const arr = a.artifacts ?? []
-    for (const item of arr) {
-      const type = (item?.type ?? 'unknown').toString()
-      artifactTypeCounts.set(type, (artifactTypeCounts.get(type) ?? 0) + 1)
-      totalArtifactObjects += 1
-    }
+  for (const b of bookings) {
+    const sess = sessionById.get(b.session_id)
+    if (!sess) continue
+    const v = subjectMap.get(sess.vertical_id)
+    if (v) v.studentSet.add(b.student_id)
   }
-  const artifactByType = Array.from(artifactTypeCounts.entries())
-    .map(([type, count]) => ({ type, count }))
-    .sort((a, b) => b.count - a.count)
+  const subjectCoverage: SubjectRow[] = Array.from(subjectMap.entries())
+    .map(([vid, v]) => ({ vertical_id: vid, sessions: v.sessions, studentsReached: v.studentSet.size }))
+    .sort((a, b) => b.sessions - a.sessions)
 
-  // 5e. Average research depth (across all student_soul rows in scope)
+  // 5d. Section 2.3.3 — Student Engagement
+  // attendance rate = average(students_active per day) / declared_capacity × 100
+  const declaredCapacity = institution.declared_capacity ?? 200
+  const avgStudentsActive = stats.length === 0
+    ? 0
+    : stats.reduce((a, r) => a + r.students_active, 0) / stats.length
+  const attendanceRate = declaredCapacity > 0
+    ? Math.round((avgStudentsActive / declaredCapacity) * 1000) / 10  // 1 decimal
+    : 0
+
+  const flameDistribution: Record<FlameStage, number> = {
+    cold: 0, spark: 0, ember: 0, fire: 0, wings: 0,
+  }
+  for (const r of soulRows) {
+    const stage = (r.flame_stage ?? 'cold') as FlameStage
+    if (stage in flameDistribution) flameDistribution[stage] += 1
+  }
+  const flameTotal = soulRows.length
+
   const depthVals = soulRows.map(r => r.research_depth_score ?? 0)
   const avgDepth = depthVals.length
     ? Math.round(depthVals.reduce((a, n) => a + n, 0) / depthVals.length)
     : 0
 
-  // 6. Render the HTML report
+  // 5e. Section 3.1.2 — Artifact buckets
+  const artifactTypeCounts = new Map<string, number>()
+  for (const a of archives) {
+    for (const item of a.artifacts ?? []) {
+      const type = (item?.type ?? 'unknown').toString()
+      artifactTypeCounts.set(type, (artifactTypeCounts.get(type) ?? 0) + 1)
+    }
+  }
+
+  // 5f. Section 4 — Faculty Profile (subjects per faculty)
+  const facultySubjects = new Map<string, Set<string>>()
+  const facultySessions = new Map<string, number>()
+  for (const s of sessions) {
+    const subs = facultySubjects.get(s.faculty_id) ?? new Set<string>()
+    subs.add(s.vertical_id)
+    facultySubjects.set(s.faculty_id, subs)
+    facultySessions.set(s.faculty_id, (facultySessions.get(s.faculty_id) ?? 0) + 1)
+  }
+  const facultyList = faculty.map(f => ({
+    id:        f.id,
+    full_name: f.full_name,
+    sessions:  facultySessions.get(f.id) ?? 0,
+    subjects:  Array.from(facultySubjects.get(f.id) ?? []).map(vid => verticalNameById.get(vid) ?? vid).sort(),
+  }))
+
+  // 6. Render
   const html = renderReport({
     institution,
-    facultyTotal:  faculty.length,
-    studentTotal:  studentIds.length,
+    facultyTotal: faculty.length,
+    studentTotal: studentIds.length,
     totalSessions,
     totalHours,
     totalMinutes,
+    totalArchives,
     totalArtifacts,
-    totalArtifactObjects,
-    peakStudentsActive,
-    peakFacultyActive,
+    monthlySessions,
+    subjectCoverage,
+    attendanceRate,
+    avgStudentsActive: Math.round(avgStudentsActive * 10) / 10,
+    declaredCapacity,
+    flameDistribution,
+    flameTotal,
     avgDepth,
-    monthlyRollup,
-    subjectBreakdown,
-    subjectMonthMap,
-    artifactByType,
-    facultyList: faculty.map(f => ({
-      id:        f.id,
-      full_name: f.full_name,
-      sessions:  facultySessionCounts.get(f.id) ?? 0,
-    })),
+    artifactTypeCounts,
+    facultyList,
     verticalNameById,
     startIst,
     endIst:    todayIst,
@@ -364,8 +485,7 @@ export async function GET(): Promise<NextResponse> {
   return new NextResponse(html, {
     status: 200,
     headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      // Don't cache — every load reflects fresh data.
+      'Content-Type':  'text/html; charset=utf-8',
       'Cache-Control': 'private, no-cache, no-store, max-age=0, must-revalidate',
     },
   })
@@ -374,49 +494,60 @@ export async function GET(): Promise<NextResponse> {
 // ── HTML rendering ──────────────────────────────────────────────────────────
 
 type ReportInput = {
-  institution:           Institution
-  facultyTotal:          number
-  studentTotal:          number
-  totalSessions:         number
-  totalHours:            number
-  totalMinutes:          number
-  totalArtifacts:        number
-  totalArtifactObjects:  number
-  peakStudentsActive:    number
-  peakFacultyActive:     number
-  avgDepth:              number
-  monthlyRollup:         Array<{ month: string; sessions: number; minutes: number; artifacts: number }>
-  subjectBreakdown:      Array<{ vertical_id: string; sessions: number; minutes: number }>
-  subjectMonthMap:       Map<string, number>
-  artifactByType:        Array<{ type: string; count: number }>
-  facultyList:           Array<{ id: string; full_name: string | null; sessions: number }>
-  verticalNameById:      Map<string, string>
-  startIst:              string
-  endIst:                string
+  institution:         Institution
+  facultyTotal:        number
+  studentTotal:        number
+  totalSessions:       number
+  totalHours:          number
+  totalMinutes:        number
+  totalArchives:       number
+  totalArtifacts:      number
+  monthlySessions:     Array<{ month: string; sessions: number; studentsActive: number; hours: number }>
+  subjectCoverage:     Array<{ vertical_id: string; sessions: number; studentsReached: number }>
+  attendanceRate:      number  // %
+  avgStudentsActive:   number
+  declaredCapacity:    number
+  flameDistribution:   Record<FlameStage, number>
+  flameTotal:          number
+  avgDepth:            number
+  artifactTypeCounts:  Map<string, number>
+  facultyList:         Array<{ id: string; full_name: string | null; sessions: number; subjects: string[] }>
+  verticalNameById:    Map<string, string>
+  startIst:            string
+  endIst:              string
 }
 
 function renderReport(d: ReportInput): string {
   const { institution } = d
-
-  // Months involved (for column headers in subject × month table)
-  const allMonths = Array.from(new Set(d.monthlyRollup.map(m => m.month))).sort()
-  const monthLabel = (yyyymm: string) => {
-    const [y, m] = yyyymm.split('-').map(Number)
-    return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' })
-  }
-
   const generatedAt = fmtDateTimeIst(new Date().toISOString())
+  const academicYear = academicYearFor(d.endIst)
+
+  const flameLabel: Record<FlameStage, string> = {
+    cold: 'Cold', spark: 'Spark', ember: 'Ember', fire: 'Fire', wings: 'Wings',
+  }
 
   return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>NAAC Report — ${esc(institution.name)}</title>
+  <title>NAAC Report — ${esc(institution.name)} — AY ${esc(academicYear)}</title>
   <meta name="robots" content="noindex,nofollow">
   <style>
     @page {
       size: A4;
-      margin: 18mm 16mm;
+      margin: 18mm 16mm 22mm 16mm;
+      @bottom-right {
+        content: 'Page ' counter(page) ' of ' counter(pages);
+        font-family: Georgia, serif;
+        font-size: 9pt;
+        color: #7A7570;
+      }
+      @bottom-left {
+        content: '${esc(institution.name)} · NAAC Report · AY ${esc(academicYear)}';
+        font-family: Georgia, serif;
+        font-size: 9pt;
+        color: #7A7570;
+      }
     }
     @media print {
       body { background: #fff; }
@@ -445,23 +576,56 @@ function renderReport(d: ReportInput): string {
       padding: 24px 28px;
       background: #fff;
     }
+    /* Text-based logo — gold gradient bar + wordmark, no image dependency */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .logo-mark {
+      display: inline-block;
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #B8860B 0%, #C9993A 100%);
+      color: #fff;
+      font-family: Georgia, serif;
+      font-weight: 700;
+      font-size: 16pt;
+      text-align: center;
+      line-height: 28px;
+    }
+    .logo-word {
+      font-family: Georgia, serif;
+      font-size: 13pt;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #1A1814;
+    }
+    .logo-word .ai { color: #B8860B; }
     .gold-bar {
       height: 4px;
       background: linear-gradient(90deg, #B8860B 0%, #C9993A 100%);
       border-radius: 2px;
-      margin-bottom: 14px;
+      margin: 6px 0 14px;
     }
     .report-title {
       font-size: 18pt;
       color: #B8860B;
-      margin: 0 0 4px;
+      margin: 6px 0 4px;
       font-weight: 700;
     }
-    .report-subtitle {
-      font-size: 13pt;
+    .institution-line {
+      font-size: 14pt;
       color: #1A1814;
-      margin: 0 0 6px;
+      margin: 0 0 4px;
       font-weight: 600;
+    }
+    .ay-line {
+      font-size: 11pt;
+      color: #4A4740;
+      margin: 0 0 4px;
+      font-style: italic;
     }
     .meta {
       color: #4A4740;
@@ -469,6 +633,7 @@ function renderReport(d: ReportInput): string {
       margin: 4px 0 0;
     }
     .meta strong { color: #1A1814; }
+
     h2 {
       font-size: 14pt;
       color: #1A1814;
@@ -482,20 +647,19 @@ function renderReport(d: ReportInput): string {
       font-weight: 400;
       margin-left: 8px;
     }
-    .section {
-      margin-top: 22px;
+    h3 {
+      font-size: 12pt;
+      color: #1A1814;
+      margin: 14px 0 6px;
+      font-weight: 700;
     }
-    .section.first { margin-top: 18px; }
-    .lede {
-      color: #4A4740;
-      font-size: 10pt;
-      margin: 8px 0 12px;
-      font-style: italic;
-    }
+    .section { margin-top: 22px; }
+    .section.first { margin-top: 14px; }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 10px 0;
+      margin: 8px 0;
       font-size: 10pt;
     }
     th, td {
@@ -513,44 +677,8 @@ function renderReport(d: ReportInput): string {
       letter-spacing: 0.4px;
     }
     .num { text-align: right; font-variant-numeric: tabular-nums; }
-    .totals {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin: 14px 0 18px;
-    }
-    .totals .cell {
-      border: 1px solid #E8E4DD;
-      border-radius: 6px;
-      padding: 10px 12px;
-      background: #FAF7F2;
-    }
-    .totals .label {
-      font-size: 8pt;
-      color: #7A7570;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      font-weight: 700;
-    }
-    .totals .value {
-      font-size: 16pt;
-      color: #1A1814;
-      font-weight: 700;
-      margin-top: 2px;
-    }
-    .footer {
-      margin-top: 32px;
-      padding-top: 12px;
-      border-top: 1px solid #E8E4DD;
-      color: #7A7570;
-      font-size: 9pt;
-      text-align: center;
-    }
-    .footer .tagline {
-      color: #B8860B;
-      font-weight: 700;
-      font-style: italic;
-    }
+    .pct { text-align: right; font-variant-numeric: tabular-nums; color: #4A4740; }
+
     .empty {
       color: #7A7570;
       font-style: italic;
@@ -559,6 +687,69 @@ function renderReport(d: ReportInput): string {
       background: #FAF7F2;
       border-radius: 6px;
     }
+
+    .bullets {
+      margin: 8px 0;
+      padding-left: 22px;
+      font-size: 10.5pt;
+    }
+    .bullets li { padding: 2px 0; }
+    .verified-note {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: #FAF7F2;
+      border-left: 3px solid #B8860B;
+      font-size: 10pt;
+      color: #4A4740;
+      font-style: italic;
+    }
+
+    .engage-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 10px;
+    }
+    .engage-card {
+      border: 1px solid #E8E4DD;
+      border-radius: 6px;
+      padding: 12px 14px;
+      background: #FAF7F2;
+    }
+    .engage-card .label {
+      font-size: 9pt;
+      color: #7A7570;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+    .engage-card .value {
+      font-size: 16pt;
+      color: #1A1814;
+      font-weight: 700;
+    }
+    .engage-card .hint {
+      font-size: 9pt;
+      color: #7A7570;
+      margin-top: 4px;
+    }
+
+    .footer {
+      margin-top: 32px;
+      padding-top: 12px;
+      border-top: 1px solid #E8E4DD;
+      color: #7A7570;
+      font-size: 9.5pt;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .footer .tagline {
+      color: #B8860B;
+      font-weight: 700;
+      font-style: italic;
+    }
+
     .print-hint {
       position: fixed;
       top: 12px;
@@ -579,224 +770,178 @@ function renderReport(d: ReportInput): string {
 
   <div class="page">
 
+    <!-- HEADER ────────────────────────────────────────────────────────── -->
     <header>
+      <div class="logo">
+        <span class="logo-mark">E</span>
+        <span class="logo-word">EdUsaathi<span class="ai">AI</span></span>
+      </div>
       <div class="gold-bar"></div>
       <h1 class="report-title">EdUsaathiAI Digital Learning Impact Report</h1>
-      <p class="report-subtitle">${esc(institution.name)} — Reporting Period ${esc(d.startIst)} to ${esc(d.endIst)}</p>
-      <p class="meta">
-        <strong>${esc(institution.city)}</strong>${institution.state ? ', ' + esc(institution.state) : ''}${institution.affiliation ? ' &middot; ' + esc(institution.affiliation) : ''}
-      </p>
-      <p class="meta">
-        Activated: <strong>${esc(fmtDateLong(institution.activated_at))}</strong>
-        &middot; Status: <strong>${esc(institution.status)}</strong>
-        ${institution.declared_capacity != null ? `&middot; Declared capacity: <strong>${institution.declared_capacity}</strong>` : ''}
-      </p>
+      <p class="institution-line">${esc(institution.name)} — ${esc(institution.city)}</p>
+      <p class="ay-line">Academic Year ${esc(academicYear)}</p>
       <p class="meta">Generated: <strong>${esc(generatedAt)} IST</strong></p>
+      <p class="meta">Affiliation: <strong>${esc(institution.affiliation ?? '—')}</strong></p>
     </header>
 
-    <!-- Section 1 — Executive Summary -->
+    <!-- SECTION 1 — Executive Summary ─────────────────────────────────── -->
     <section class="section first">
-      <h2>1. Executive Summary</h2>
-      <p class="lede">Aggregate teaching, learning, and research activity over the past ${REPORT_WINDOW_DAYS} days.</p>
-
-      <div class="totals">
-        <div class="cell">
-          <div class="label">Total Sessions</div>
-          <div class="value">${d.totalSessions}</div>
-        </div>
-        <div class="cell">
-          <div class="label">Total Hours Taught</div>
-          <div class="value">${d.totalHours}</div>
-        </div>
-        <div class="cell">
-          <div class="label">Students Enrolled</div>
-          <div class="value">${d.studentTotal}</div>
-        </div>
-        <div class="cell">
-          <div class="label">Faculty Active on Platform</div>
-          <div class="value">${d.facultyTotal}</div>
-        </div>
-      </div>
-
+      <h2>Section 1 &middot; Executive Summary</h2>
       <table>
-        <thead>
-          <tr><th>Metric</th><th class="num">Last ${REPORT_WINDOW_DAYS} Days</th></tr>
-        </thead>
         <tbody>
-          <tr><td>Total faculty-led sessions</td><td class="num">${d.totalSessions}</td></tr>
-          <tr><td>Total minutes of teaching</td><td class="num">${d.totalMinutes.toLocaleString('en-IN')}</td></tr>
-          <tr><td>Peak students active in a single day</td><td class="num">${d.peakStudentsActive}</td></tr>
-          <tr><td>Peak faculty active in a single day</td><td class="num">${d.peakFacultyActive}</td></tr>
-          <tr><td>Research artifacts created</td><td class="num">${d.totalArtifactObjects.toLocaleString('en-IN')}</td></tr>
-          <tr><td>Research archives (sessions captured)</td><td class="num">${d.totalArtifacts}</td></tr>
+          <tr><td>Total classroom sessions</td><td class="num">${d.totalSessions}</td></tr>
+          <tr><td>Total students enrolled</td><td class="num">${d.studentTotal}</td></tr>
+          <tr><td>Total faculty</td><td class="num">${d.facultyTotal}</td></tr>
+          <tr><td>Total teaching hours</td><td class="num">${d.totalHours.toLocaleString('en-IN')}</td></tr>
+          <tr><td>Total research artifacts</td><td class="num">${d.totalArtifacts.toLocaleString('en-IN')}</td></tr>
+          <tr>
+            <td>Date range</td>
+            <td class="num">${esc(fmtDateLongFromYmd(d.startIst))} &rarr; ${esc(fmtDateLongFromYmd(d.endIst))}</td>
+          </tr>
         </tbody>
       </table>
     </section>
 
-    <!-- Section 2 — Teaching-Learning Process (NAAC 2.3) -->
+    <!-- SECTION 2 — Teaching-Learning Process (NAAC 2.3) ─────────────── -->
     <section class="section">
-      <h2>2. Teaching-Learning Process <small>NAAC Criterion 2.3</small></h2>
-      <p class="lede">Pedagogic activity broken down by subject and month, with engagement signals.</p>
+      <h2>Section 2 &middot; Teaching-Learning Process <small>NAAC Criterion 2.3</small></h2>
 
-      <h3 style="font-size:11pt;margin:14px 0 4px;">2.1 Sessions per subject</h3>
-      ${d.subjectBreakdown.length === 0
-        ? `<p class="empty">No sessions recorded in the reporting window.</p>`
-        : `<table>
-            <thead>
-              <tr>
-                <th>Subject (Saathi)</th>
-                <th class="num">Sessions</th>
-                <th class="num">Minutes</th>
-                <th class="num">Avg. session length</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${d.subjectBreakdown.map(s => `
-                <tr>
-                  <td>${esc(d.verticalNameById.get(s.vertical_id) ?? s.vertical_id)}</td>
-                  <td class="num">${s.sessions}</td>
-                  <td class="num">${s.minutes.toLocaleString('en-IN')}</td>
-                  <td class="num">${s.sessions ? Math.round(s.minutes / s.sessions) : 0} min</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>`}
-
-      <h3 style="font-size:11pt;margin:18px 0 4px;">2.2 Sessions per subject per month</h3>
-      ${(d.subjectBreakdown.length === 0 || allMonths.length === 0)
-        ? `<p class="empty">No sessions recorded in the reporting window.</p>`
-        : `<table>
-            <thead>
-              <tr>
-                <th>Subject</th>
-                ${allMonths.map(m => `<th class="num">${esc(monthLabel(m))}</th>`).join('')}
-                <th class="num">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${d.subjectBreakdown.map(s => {
-                const cells = allMonths.map(m => d.subjectMonthMap.get(`${s.vertical_id}|${m}`) ?? 0)
-                const total = cells.reduce((a, n) => a + n, 0)
-                return `<tr>
-                  <td>${esc(d.verticalNameById.get(s.vertical_id) ?? s.vertical_id)}</td>
-                  ${cells.map(n => `<td class="num">${n}</td>`).join('')}
-                  <td class="num"><strong>${total}</strong></td>
-                </tr>`
-              }).join('')}
-            </tbody>
-          </table>`}
-
-      <h3 style="font-size:11pt;margin:18px 0 4px;">2.3 Monthly activity rollup</h3>
-      ${d.monthlyRollup.length === 0
-        ? `<p class="empty">No daily rollups available for the reporting window.</p>`
+      <h3>2.3.1 &middot; Monthly Sessions</h3>
+      ${d.monthlySessions.length === 0
+        ? `<p class="empty">No monthly rollups available for the reporting window.</p>`
         : `<table>
             <thead>
               <tr>
                 <th>Month</th>
                 <th class="num">Sessions</th>
-                <th class="num">Minutes</th>
-                <th class="num">Research Artifacts</th>
+                <th class="num">Students Active (peak)</th>
+                <th class="num">Teaching Hours</th>
               </tr>
             </thead>
             <tbody>
-              ${d.monthlyRollup.map(m => `
+              ${d.monthlySessions.map(m => `
                 <tr>
                   <td>${esc(monthLabel(m.month))}</td>
                   <td class="num">${m.sessions}</td>
-                  <td class="num">${m.minutes.toLocaleString('en-IN')}</td>
-                  <td class="num">${m.artifacts}</td>
+                  <td class="num">${m.studentsActive}</td>
+                  <td class="num">${m.hours}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>`}
-    </section>
 
-    <!-- Section 3 — Research Activity (NAAC 3.1) -->
-    <section class="section">
-      <h2>3. Research Activity <small>NAAC Criterion 3.1</small></h2>
-      <p class="lede">Permanent research artifacts created during teaching sessions, plus aggregate engagement depth.</p>
-
-      <div class="totals">
-        <div class="cell">
-          <div class="label">Research Archives</div>
-          <div class="value">${d.totalArtifacts}</div>
-        </div>
-        <div class="cell">
-          <div class="label">Total Artifacts Captured</div>
-          <div class="value">${d.totalArtifactObjects}</div>
-        </div>
-        <div class="cell">
-          <div class="label">Avg. Research Depth</div>
-          <div class="value">${d.avgDepth}<span style="font-size:9pt;color:#7A7570;"> / 100</span></div>
-        </div>
-        <div class="cell">
-          <div class="label">Distinct Artifact Types</div>
-          <div class="value">${d.artifactByType.length}</div>
-        </div>
-      </div>
-
-      <h3 style="font-size:11pt;margin:14px 0 4px;">3.1 Artifacts captured by source / type</h3>
-      ${d.artifactByType.length === 0
-        ? `<p class="empty">No artifacts captured in the reporting window.</p>`
+      <h3>2.3.2 &middot; Subject Coverage</h3>
+      ${d.subjectCoverage.length === 0
+        ? `<p class="empty">No sessions recorded for any subject in the reporting window.</p>`
         : `<table>
             <thead>
               <tr>
-                <th>Artifact type</th>
-                <th class="num">Count</th>
-                <th class="num">Share</th>
+                <th>Subject</th>
+                <th>Saathi</th>
+                <th class="num">Sessions</th>
+                <th class="num">Students Reached</th>
               </tr>
             </thead>
             <tbody>
-              ${d.artifactByType.map(a => `
-                <tr>
-                  <td>${esc(a.type)}</td>
-                  <td class="num">${a.count}</td>
-                  <td class="num">${d.totalArtifactObjects ? Math.round((a.count / d.totalArtifactObjects) * 100) : 0}%</td>
-                </tr>
-              `).join('')}
+              ${d.subjectCoverage.map(s => {
+                const name = d.verticalNameById.get(s.vertical_id) ?? s.vertical_id
+                return `<tr>
+                  <td>${esc(name)}</td>
+                  <td>${esc(name)}</td>
+                  <td class="num">${s.sessions}</td>
+                  <td class="num">${s.studentsReached}</td>
+                </tr>`
+              }).join('')}
             </tbody>
           </table>`}
 
-      <p class="meta" style="margin-top:14px;">
-        External knowledge bases accessed via inline tools: PubMed, RCSB Protein Data Bank, Wolfram Alpha,
-        Indian Kanoon, NASA, PubChem, NIST, ChemSpider, ScienceDirect, Scopus, Bhuvan (ISRO).
-      </p>
-    </section>
-
-    <!-- Section 4 — Faculty Profile (NAAC 2.4) -->
-    <section class="section">
-      <h2>4. Faculty Profile <small>NAAC Criterion 2.4</small></h2>
-      <p class="lede">Faculty active on the platform during the reporting window with their session counts.</p>
-
-      <div class="totals">
-        <div class="cell">
-          <div class="label">Faculty enrolled</div>
-          <div class="value">${d.facultyTotal}</div>
+      <h3>2.3.3 &middot; Student Engagement</h3>
+      <div class="engage-grid">
+        <div class="engage-card">
+          <p class="label">Average attendance rate</p>
+          <p class="value">${d.attendanceRate}%</p>
+          <p class="hint">${d.avgStudentsActive} avg active &middot; capacity ${d.declaredCapacity}</p>
         </div>
-        <div class="cell">
-          <div class="label">Faculty active in window</div>
-          <div class="value">${d.facultyList.filter(f => f.sessions > 0).length}</div>
-        </div>
-        <div class="cell">
-          <div class="label">Subjects covered</div>
-          <div class="value">${d.subjectBreakdown.length}</div>
-        </div>
-        <div class="cell">
-          <div class="label">Sessions per active faculty</div>
-          <div class="value">${(() => {
-            const active = d.facultyList.filter(f => f.sessions > 0)
-            return active.length ? Math.round(d.totalSessions / active.length) : 0
-          })()}</div>
+        <div class="engage-card">
+          <p class="label">Research Archive depth (avg)</p>
+          <p class="value">${d.avgDepth} <span style="font-size:9pt;color:#7A7570;">/ 100</span></p>
+          <p class="hint">Average across ${d.flameTotal} student soul ${d.flameTotal === 1 ? 'profile' : 'profiles'}</p>
         </div>
       </div>
+      <h4 style="font-size:10.5pt;margin:14px 0 4px;color:#4A4740;font-weight:700;">Flame stage distribution (aggregate counts)</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Stage</th>
+            <th class="num">Students</th>
+            <th class="pct">Share</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${FLAME_ORDER.map(stage => {
+            const n = d.flameDistribution[stage]
+            const pct = d.flameTotal === 0 ? 0 : Math.round((n / d.flameTotal) * 100)
+            return `<tr>
+              <td>${flameLabel[stage]}</td>
+              <td class="num">${n}</td>
+              <td class="pct">${pct}%</td>
+            </tr>`
+          }).join('')}
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 3 — Research Activity (NAAC 3.1) ─────────────────────── -->
+    <section class="section">
+      <h2>Section 3 &middot; Research Activity <small>NAAC Criterion 3.1</small></h2>
+
+      <h3>3.1.1 &middot; Research Infrastructure Used</h3>
+      <p>External knowledge bases accessed via inline classroom tools during the reporting window:</p>
+      <ul class="bullets">
+        ${EXTERNAL_DBS.map(db => `<li>${esc(db)}</li>`).join('')}
+      </ul>
+      <p class="verified-note">Sources verified as research-grade international databases.</p>
+
+      <h3>3.1.2 &middot; Research Archive Statistics</h3>
+      <p class="meta" style="margin:6px 0 12px;">Total artifacts created: <strong>${d.totalArtifacts.toLocaleString('en-IN')}</strong></p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Artifact type</th>
+            <th class="num">Count</th>
+            <th class="pct">Share</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${ARTIFACT_BUCKETS.map(b => {
+            const count = d.artifactTypeCounts.get(b.key) ?? 0
+            const pct = d.totalArtifacts === 0 ? 0 : Math.round((count / d.totalArtifacts) * 100)
+            return `<tr>
+              <td>${esc(b.label)}</td>
+              <td class="num">${count}</td>
+              <td class="pct">${pct}%</td>
+            </tr>`
+          }).join('')}
+        </tbody>
+      </table>
+
+      <p class="meta" style="margin-top:12px;">Average research depth score: <strong>${d.avgDepth} / 100</strong></p>
+    </section>
+
+    <!-- SECTION 4 — Faculty Profile (NAAC 2.4) ───────────────────────── -->
+    <section class="section">
+      <h2>Section 4 &middot; Faculty Profile <small>NAAC Criterion 2.4</small></h2>
+      <p class="meta" style="margin:6px 0 12px;">Total faculty: <strong>${d.facultyTotal}</strong></p>
 
       ${d.facultyList.length === 0
         ? `<p class="empty">No faculty enrolled yet.</p>`
         : `<table>
             <thead>
               <tr>
-                <th>Faculty</th>
-                <th class="num">Sessions taught (last ${REPORT_WINDOW_DAYS}d)</th>
+                <th>Faculty Name</th>
+                <th class="num">Sessions Taught</th>
+                <th>Subjects</th>
               </tr>
             </thead>
             <tbody>
@@ -804,21 +949,29 @@ function renderReport(d: ReportInput): string {
                 <tr>
                   <td>${esc(f.full_name?.trim() || '(name not set)')}</td>
                   <td class="num">${f.sessions}</td>
+                  <td>${f.subjects.length === 0 ? '—' : esc(f.subjects.join(', '))}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>`}
+
+      <p class="meta" style="margin-top:12px;font-size:9pt;color:#7A7570;font-style:italic;">
+        Display name only. No email, phone, or other contact details are
+        included in this report (DPDP-aligned by design).
+      </p>
     </section>
 
+    <!-- FOOTER ────────────────────────────────────────────────────────── -->
     <footer class="footer">
-      <p>Data generated by <span class="tagline">EdUsaathiAI</span> &middot; <a href="https://edusaathiai.in" style="color:#7A7570;text-decoration:none;">edusaathiai.in</a> &middot; Powered by Anthropic Claude</p>
-      <p>This is an automated report. Numbers are computed from authoritative platform data; aggregate-only, never individual student behaviour.</p>
+      <p>This report was generated by <span class="tagline">EdUsaathiAI</span> &middot; <a href="https://edusaathiai.in" style="color:#7A7570;text-decoration:none;">edusaathiai.in</a></p>
+      <p>Data period: <strong>${esc(fmtDateLongFromYmd(d.startIst))}</strong> to <strong>${esc(fmtDateLongFromYmd(d.endIst))}</strong></p>
+      <p>Powered by Anthropic Claude</p>
     </footer>
   </div>
 
   <script>
-    // Auto-trigger the print dialog once the page loads. Brief delay so
-    // the rendering settles. The "Print / Save as PDF" button (no-print)
+    // Auto-trigger the print dialog after the page renders. Brief delay so
+    // fonts / layout settle. The "Print / Save as PDF" button (no-print)
     // gives a fallback if the auto-trigger is blocked.
     window.addEventListener('load', function () {
       setTimeout(function () { window.print(); }, 400);
