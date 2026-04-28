@@ -158,11 +158,11 @@ type MathTab = 'canvas' | 'geogebra' | 'wolfram' | 'sagemath'
 function MathPlugin({ role }: PluginProps) {
   const [tab, setTab] = useState<MathTab>('canvas')
 
-  const tabs: { id: MathTab; label: string }[] = [
-    { id: 'canvas', label: 'Canvas' },
-    { id: 'geogebra', label: 'GeoGebra' },
-    { id: 'wolfram', label: 'Wolfram' },
-    { id: 'sagemath', label: 'SageMath' },
+  const tabs: { id: MathTab; label: string; sources?: string }[] = [
+    { id: 'canvas',   label: '✏️ Draw' },
+    { id: 'wolfram',  label: '🔢 Calculate', sources: 'Wolfram Alpha' },
+    { id: 'geogebra', label: '📐 Geometry',  sources: 'GeoGebra' },
+    { id: 'sagemath', label: '∑ SageMath',   sources: 'SageMath' },
   ]
 
   return (

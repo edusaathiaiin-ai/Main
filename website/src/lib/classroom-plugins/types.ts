@@ -7,13 +7,18 @@ import type { ReactNode } from 'react'
 export interface SaathiPlugin {
   /** The main plugin component rendered in the 60% right panel */
   Component: React.FC<PluginProps>
-  /** Tab definitions — id + label. First tab is default. */
-  tabs?: { id: string; label: string }[]
+  /** Tab definitions — id + label, plus optional per-tab source attribution.
+   *  When a tab specifies `sources`, the SourceBadge renders that string
+   *  (with an auto-derived plain-English description below) instead of the
+   *  plugin-level sourceLabel. First tab is default. */
+  tabs?: { id: string; label: string; sources?: string }[]
   /** Map from AI command tool name → tab id */
   toolToTab?: Record<string, string>
   /** Additional toolbar buttons shown in the plugin header */
   toolbarItems?: ToolbarItem[]
-  /** Data source attribution shown as badge, e.g. "RCSB Protein Data Bank" */
+  /** Plugin-level source attribution. Used as a fallback when no active
+   *  tab specifies its own sources, and for single-pane plugins that
+   *  don't use the tabs array at all. e.g. "RCSB Protein Data Bank". */
   sourceLabel?: string
   /** Cleanup on session end — save state, flush artifacts */
   onSessionEnd?: () => Promise<void>

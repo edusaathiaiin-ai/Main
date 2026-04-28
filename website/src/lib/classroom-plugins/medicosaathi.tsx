@@ -9,8 +9,25 @@ import { RcsbPanel } from '@/components/classroom/RcsbPanel'
 import { WolframPanel } from '@/components/classroom/WolframPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
 
-const TABS = ['Canvas', 'Anatomy 3D', 'Neuro Atlas', 'Proteins', 'Wolfram', 'PubMed', 'ScienceDirect', 'Citations', 'Drug Reference', 'Clinical Images'] as const
-type Tab = typeof TABS[number]
+// IDs match the historical labels (e.g. 'Canvas', 'Anatomy 3D') so the
+// existing currentTab === '...' switches in the component below keep
+// working unchanged — only the visible labels and their order moved
+// per Phase I-2 / Classroom #2.
+const TABS: ReadonlyArray<{ id: string; label: string; sources?: string }> = [
+  { id: 'Canvas',          label: '✏️ Draw' },
+  { id: 'Proteins',        label: '🔬 Molecules',         sources: 'RCSB Protein Data Bank' },
+  { id: 'PubMed',          label: '📄 Papers',            sources: 'PubMed' },
+  { id: 'Wolfram',         label: '🔢 Calculate',         sources: 'Wolfram Alpha' },
+  { id: 'Anatomy 3D',      label: '🫀 Anatomy',           sources: 'OpenAnatomy (Harvard)' },
+  { id: 'Citations',       label: 'Citations',            sources: 'Scopus' },
+  { id: 'Clinical Images', label: '🩻 Clinical Images',   sources: 'Sketchfab + OpenI NIH' },
+  { id: 'Drug Reference',  label: '💊 Drug Reference',    sources: 'openFDA' },
+  { id: 'Neuro Atlas',     label: 'Neuro Atlas',          sources: 'OpenAnatomy' },
+  { id: 'ScienceDirect',   label: 'ScienceDirect',        sources: 'ScienceDirect' },
+] as const
+type Tab =
+  | 'Canvas' | 'Anatomy 3D' | 'Neuro Atlas' | 'Proteins' | 'Wolfram'
+  | 'PubMed' | 'ScienceDirect' | 'Citations' | 'Drug Reference' | 'Clinical Images'
 
 // Zygote Body — free 3D anatomy viewer (no auth required, allows embedding)
 const ANATOMY_VIEWS = [
@@ -120,12 +137,12 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', gap: '2px', padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', flexWrap: 'wrap' }}>
         {TABS.map((t) => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: currentTab === t ? 700 : 500,
-            background: currentTab === t ? 'var(--saathi-primary)' : 'transparent',
-            color: currentTab === t ? '#fff' : 'var(--text-secondary)',
-            border: currentTab === t ? 'none' : '1px solid var(--border-subtle)', cursor: 'pointer',
-          }}>{t}</button>
+          <button key={t.id} onClick={() => setTab(t.id as Tab)} style={{
+            padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: currentTab === t.id ? 700 : 500,
+            background: currentTab === t.id ? 'var(--saathi-primary)' : 'transparent',
+            color: currentTab === t.id ? '#fff' : 'var(--text-secondary)',
+            border: currentTab === t.id ? 'none' : '1px solid var(--border-subtle)', cursor: 'pointer',
+          }}>{t.label}</button>
         ))}
       </div>
 
@@ -259,13 +276,20 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact }: PluginProps)
 const plugin: SaathiPlugin = {
   Component: MedicoPlugin,
   sourceLabel: 'RCSB PDB + OpenAnatomy (Harvard) + Wolfram Alpha + PubMed + ScienceDirect + Scopus',
+  // Mirror of the in-component TABS (labels + ordering). Keeping IDs
+  // equal to the historical strings preserves toolToTab compatibility
+  // and the currentTab === '...' switches inside MedicoPlugin.
   tabs: [
-    { id: 'Canvas', label: 'Canvas' }, { id: 'Anatomy 3D', label: 'Anatomy 3D' },
-    { id: 'Neuro Atlas', label: 'Neuro Atlas' },
-    { id: 'Proteins', label: 'Proteins' }, { id: 'Wolfram', label: 'Wolfram' },
-    { id: 'PubMed', label: 'PubMed' }, { id: 'ScienceDirect', label: 'ScienceDirect' },
-    { id: 'Citations', label: 'Citations' }, { id: 'Drug Reference', label: 'Drug Reference' },
-    { id: 'Clinical Images', label: 'Clinical Images' },
+    { id: 'Canvas',          label: '✏️ Draw' },
+    { id: 'Proteins',        label: '🔬 Molecules',         sources: 'RCSB Protein Data Bank' },
+    { id: 'PubMed',          label: '📄 Papers',            sources: 'PubMed' },
+    { id: 'Wolfram',         label: '🔢 Calculate',         sources: 'Wolfram Alpha' },
+    { id: 'Anatomy 3D',      label: '🫀 Anatomy',           sources: 'OpenAnatomy (Harvard)' },
+    { id: 'Citations',       label: 'Citations',            sources: 'Scopus' },
+    { id: 'Clinical Images', label: '🩻 Clinical Images',   sources: 'Sketchfab + OpenI NIH' },
+    { id: 'Drug Reference',  label: '💊 Drug Reference',    sources: 'openFDA' },
+    { id: 'Neuro Atlas',     label: 'Neuro Atlas',          sources: 'OpenAnatomy' },
+    { id: 'ScienceDirect',   label: 'ScienceDirect',        sources: 'ScienceDirect' },
   ],
   toolToTab: { pubmed: 'PubMed', rcsb: 'Proteins', wolfram: 'Wolfram' },
 }

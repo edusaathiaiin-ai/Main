@@ -260,10 +260,10 @@ function ChemPlugin({ role, activeTab, onTabChange }: PluginProps) {
     if (!activeTab) onTabChange?.('canvas')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const tabs: { id: ChemTab; label: string }[] = [
-    { id: 'canvas', label: 'Canvas' },
-    { id: 'pubchem', label: '3D Molecules' },
-    { id: 'ketcher', label: '2D/3D Editor' },
+  const tabs: { id: ChemTab; label: string; sources?: string }[] = [
+    { id: 'canvas',  label: '✏️ Draw' },
+    { id: 'pubchem', label: '🔬 Molecules',  sources: 'PubChem' },
+    { id: 'ketcher', label: '2D/3D Editor',  sources: 'MolView' },
   ]
 
   return (
@@ -312,9 +312,9 @@ const plugin: SaathiPlugin = {
   Component: ChemPlugin,
   sourceLabel: 'PubChem + 3Dmol.js + MolView',
   tabs: [
-    { id: 'canvas', label: 'Canvas' },
-    { id: 'pubchem', label: '3D Molecules' },
-    { id: 'ketcher', label: '2D/3D Editor' },
+    { id: 'canvas',  label: '✏️ Draw' },
+    { id: 'pubchem', label: '🔬 Molecules',  sources: 'PubChem' },
+    { id: 'ketcher', label: '2D/3D Editor',  sources: 'MolView' },
   ],
   toolToTab: {
     pubchem: 'pubchem',

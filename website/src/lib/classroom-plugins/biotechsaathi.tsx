@@ -322,13 +322,13 @@ type BiotechTab = 'canvas' | 'rcsb' | 'ensembl' | 'ncbi_gene' | 'sciencedirect' 
 function BiotechPlugin({ role, onArtifact }: PluginProps) {
   const [tab, setTab] = useState<BiotechTab>('canvas')
 
-  const tabs: { id: BiotechTab; label: string }[] = [
-    { id: 'canvas', label: 'Canvas' },
-    { id: 'rcsb', label: '3D Proteins' },
-    { id: 'ensembl', label: 'Genome' },
-    { id: 'ncbi_gene', label: 'Genes' },
-    { id: 'sciencedirect', label: 'ScienceDirect' },
-    { id: 'citations', label: 'Citations' },
+  const tabs: { id: BiotechTab; label: string; sources?: string }[] = [
+    { id: 'canvas',        label: '✏️ Draw' },
+    { id: 'rcsb',          label: '🔬 Molecules',  sources: 'RCSB Protein Data Bank' },
+    { id: 'citations',     label: 'Citations',     sources: 'Scopus' },
+    { id: 'ncbi_gene',     label: 'Genes',         sources: 'NCBI Gene' },
+    { id: 'ensembl',       label: 'Genome',        sources: 'Ensembl' },
+    { id: 'sciencedirect', label: 'ScienceDirect', sources: 'ScienceDirect' },
   ]
 
   return (

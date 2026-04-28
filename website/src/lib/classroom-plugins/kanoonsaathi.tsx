@@ -300,11 +300,11 @@ type LawTab = 'canvas' | 'kanoon' | 'bns' | 'pdf'
 function LawPlugin({ role }: PluginProps) {
   const [tab, setTab] = useState<LawTab>('canvas')
 
-  const tabs: { id: LawTab; label: string }[] = [
-    { id: 'canvas', label: 'Canvas' },
-    { id: 'kanoon', label: 'Indian Kanoon' },
-    { id: 'bns', label: 'IPC → BNS' },
-    { id: 'pdf', label: 'PDF Viewer' },
+  const tabs: { id: LawTab; label: string; sources?: string }[] = [
+    { id: 'canvas', label: '✏️ Draw' },
+    { id: 'kanoon', label: '⚖️ Judgments', sources: 'Indian Kanoon' },
+    { id: 'bns',    label: 'IPC → BNS',    sources: 'BNS 2023' },
+    { id: 'pdf',    label: 'PDF Viewer' },
   ]
 
   return (

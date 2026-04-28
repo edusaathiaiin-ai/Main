@@ -1330,7 +1330,15 @@ export default function ClassroomPage() {
                         />
                       </div>
                     )}
-                    {plugin?.sourceLabel && <SourceBadge label={plugin.sourceLabel} />}
+                    {(() => {
+                      // Per-tab source wins over plugin-level sourceLabel.
+                      // Single-pane plugins (no tabs) and tabs that don't
+                      // declare their own sources fall through to the
+                      // plugin's sourceLabel.
+                      const tabSources = plugin?.tabs?.find((t) => t.id === activeTab)?.sources
+                      const sources    = tabSources ?? plugin?.sourceLabel ?? ''
+                      return sources ? <SourceBadge sources={sources} /> : null
+                    })()}
                   </div>
                 </div>
               </>

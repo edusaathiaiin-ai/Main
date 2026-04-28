@@ -130,11 +130,11 @@ function PhysicsPlugin({ role }: PluginProps) {
   const [tab, setTab] = useState<PhysicsTab>('canvas')
   const [phetSim, setPhetSim] = useState<string>(PHET_SIMS[0].id)
 
-  const tabs: { id: PhysicsTab; label: string }[] = [
-    { id: 'canvas', label: 'Canvas' },
-    { id: 'geogebra', label: 'GeoGebra' },
-    { id: 'phet', label: 'PhET' },
-    { id: 'nist', label: 'Constants' },
+  const tabs: { id: PhysicsTab; label: string; sources?: string }[] = [
+    { id: 'canvas',   label: '✏️ Draw' },
+    { id: 'geogebra', label: '📐 Geometry',    sources: 'GeoGebra' },
+    { id: 'phet',     label: '⚡ Simulations', sources: 'PhET' },
+    { id: 'nist',     label: 'Constants',      sources: 'NIST' },
   ]
 
   return (

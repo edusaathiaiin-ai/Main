@@ -457,13 +457,16 @@ function BioPlugin({ role, onArtifact, activeTab, onTabChange }: PluginProps) {
 
   useEffect(() => { if (!activeTab) onTabChange?.('canvas') }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const tabs: { id: BioTab; label: string }[] = [
-    { id: 'canvas', label: 'Canvas' },
-    { id: 'rcsb', label: '3D Proteins' },
-    { id: 'uniprot', label: 'UniProt' },
-    { id: 'pubmed', label: 'PubMed' },
-    { id: 'sciencedirect', label: 'ScienceDirect' },
-    { id: 'citations', label: 'Citations' },
+  // Universal classroom-tab order — Draw → primary tabs → others alphabetical.
+  // Per-tab `sources` drives the SourceBadge; tabs without sources fall
+  // through to the plugin-level sourceLabel below.
+  const tabs: { id: BioTab; label: string; sources?: string }[] = [
+    { id: 'canvas',        label: '✏️ Draw' },
+    { id: 'rcsb',          label: '🔬 Molecules',   sources: 'RCSB Protein Data Bank' },
+    { id: 'pubmed',        label: '📄 Papers',      sources: 'PubMed' },
+    { id: 'citations',     label: 'Citations',      sources: 'Scopus' },
+    { id: 'sciencedirect', label: 'ScienceDirect',  sources: 'ScienceDirect' },
+    { id: 'uniprot',       label: 'UniProt',        sources: 'UniProt' },
   ]
 
   return (

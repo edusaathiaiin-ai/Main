@@ -367,13 +367,13 @@ type PharmaTab = 'canvas' | 'drug_structure' | 'drug_target' | 'pubmed' | 'scien
 function PharmaPlugin({ role, onArtifact }: PluginProps) {
   const [tab, setTab] = useState<PharmaTab>('canvas')
 
-  const tabs: { id: PharmaTab; label: string }[] = [
-    { id: 'canvas', label: 'Canvas' },
-    { id: 'drug_structure', label: 'Drug 3D' },
-    { id: 'drug_target', label: 'Binding Sites' },
-    { id: 'pubmed', label: 'Literature' },
-    { id: 'sciencedirect', label: 'ScienceDirect' },
-    { id: 'citations', label: 'Citations' },
+  const tabs: { id: PharmaTab; label: string; sources?: string }[] = [
+    { id: 'canvas',         label: '✏️ Draw' },
+    { id: 'drug_structure', label: '🔬 Molecules',  sources: 'PubChem' },
+    { id: 'pubmed',         label: '📄 Papers',     sources: 'PubMed' },
+    { id: 'drug_target',    label: 'Binding Sites', sources: 'RCSB Protein Data Bank' },
+    { id: 'citations',      label: 'Citations',     sources: 'Scopus' },
+    { id: 'sciencedirect',  label: 'ScienceDirect', sources: 'ScienceDirect' },
   ]
 
   return (

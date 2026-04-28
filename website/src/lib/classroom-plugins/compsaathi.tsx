@@ -227,8 +227,8 @@ type CodingTab = 'canvas' | 'editor'
 function CodingPlugin({ role }: PluginProps) {
   const [tab, setTab] = useState<CodingTab>('editor') // Default to editor for CS
 
-  const tabs: { id: CodingTab; label: string }[] = [
-    { id: 'editor', label: 'Code Editor' },
+  const tabs: { id: CodingTab; label: string; sources?: string }[] = [
+    { id: 'editor', label: '💻 Code',     sources: 'Monaco Editor + Piston Runtime' },
     { id: 'canvas', label: 'Diagrams' },
   ]
 

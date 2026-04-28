@@ -13,13 +13,13 @@
   },
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 1569,
+    "line": 1577,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "style={{ background: color, color: '#fff', cursor: 'pointer' }}"
   },
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 1654,
+    "line": 1662,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
