@@ -2,11 +2,16 @@
 # Sync Doppler secrets → Supabase Edge Function secrets
 # Run: bash scripts/sync-doppler-to-supabase.sh
 #
-# This reads the dev config from Doppler and pushes matching
-# secrets to Supabase. Only syncs secrets that Edge Functions need.
+# Reads the prd Doppler config explicitly (was implicit-default before;
+# silently no-op'd on machines whose local Doppler context didn't have a
+# default project/config, e.g. a CLI token with workplace scope only).
+# Pushes the matching secrets to the production Supabase project so its
+# Edge Functions can read them at runtime.
 
 set -e
 
+DOPPLER_PROJECT="edusaathiai"
+DOPPLER_CONFIG="prd"
 PROJECT_REF="vpmpuxosyrijknbxautx"
 
 # Secrets that Edge Functions need (from Supabase secrets)
@@ -33,15 +38,20 @@ SUPABASE_SECRETS=(
   DATAGOVIN_API_KEY
   BHUVAN_USERNAME
   BHUVAN_PASSWORD
+  # Phase I-2 Step 3 — HMAC secret for faculty-invite tokens.
+  # auth-register (Step 3b) verifies tokens signed by the Next.js
+  # /api/education-institutions/invite-faculty route. Both ends must
+  # share the same secret.
+  INVITE_TOKEN_SECRET
 )
 
-echo "Syncing Doppler → Supabase secrets..."
+echo "Syncing Doppler ($DOPPLER_PROJECT/$DOPPLER_CONFIG) → Supabase secrets..."
 echo "Project: $PROJECT_REF"
 echo ""
 
 ARGS=""
 for KEY in "${SUPABASE_SECRETS[@]}"; do
-  VALUE=$(doppler secrets get "$KEY" --plain 2>/dev/null || echo "")
+  VALUE=$(doppler secrets get "$KEY" --plain --project "$DOPPLER_PROJECT" --config "$DOPPLER_CONFIG" 2>/dev/null || echo "")
   if [ -n "$VALUE" ]; then
     ARGS="$ARGS $KEY=$VALUE"
     echo "  ✓ $KEY"
