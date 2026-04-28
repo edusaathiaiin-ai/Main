@@ -13,10 +13,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerSupabase } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
-import { sendAdminWhatsAppText } from '@/lib/whatsapp-admin'
 
 const SUPABASE_URL     = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const RESEND_API_KEY   = process.env.RESEND_API_KEY
+const FROM_ADDRESS     = process.env.RESEND_FROM_EMAIL ?? 'EdUsaathiAI <admin@edusaathiai.in>'
+const ADMIN_EMAIL      = 'admin@edusaathiai.in'
+const ADMIN_DASHBOARD_BASE = 'https://edusaathiai-admin.vercel.app/education-institutions'
 
 // Phase I-2 Step 7 — capacity caps. Hard cap is 10% over the
 // declared_capacity an institution self-reported. Between 100% and 110%
@@ -89,11 +92,12 @@ export async function POST(req: NextRequest) {
   // failure must never block a student's join. The .catch swallows any
   // rejected promise that could otherwise crash the route handler.
   if (currentStudents >= declaredCapacity) {
-    void sendAdminWhatsAppText(
-      `⚠️ Capacity reached: ${inst.name} — ${currentStudents} of ${declaredCapacity} ` +
-      `declared (joins still allowed up to ${hardCap}). Time to re-negotiate.`,
-      'education-institutions/join/capacity-reached',
-    ).catch(() => {})
+    void notifyAdminCapacityReached({
+      institutionName: inst.name,
+      institutionId:   inst.id,
+      currentStudents,
+      declaredCapacity,
+    }).catch(() => {})
   }
 
   const { error: updErr } = await admin
@@ -111,4 +115,101 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ success: true })
+}
+
+// ── Capacity notification ────────────────────────────────────────────────────
+//
+// Phase I-2 Step 7. Sent to admin@edusaathiai.in when an institution
+// crosses 100% of its declared capacity but is still under the 110%
+// hard cap (the join itself is allowed). Fire-and-forget — never
+// awaited from the request path; a Resend outage cannot block a join.
+// Mirrors the gold-accent visual style used by
+// /api/education-institutions/register so the founder sees a
+// consistent format for institution-lifecycle alerts.
+
+function esc(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+async function notifyAdminCapacityReached(params: {
+  institutionName:  string
+  institutionId:    string
+  currentStudents:  number
+  declaredCapacity: number
+}): Promise<void> {
+  if (!RESEND_API_KEY) {
+    console.warn('[education-institutions/join] RESEND_API_KEY missing — capacity alert skipped')
+    return
+  }
+
+  const adminUrl = `${ADMIN_DASHBOARD_BASE}/${esc(params.institutionId)}`
+
+  const subject = `Institution at declared capacity — ${params.institutionName}`
+
+  const html = `
+<!doctype html>
+<html><body style="margin:0;padding:0;background:#FAF7F2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1A1814;">
+  <div style="max-width:620px;margin:0 auto;padding:28px 24px;">
+    <div style="height:4px;background:linear-gradient(90deg,#B8860B 0%,#C9993A 100%);border-radius:2px;margin-bottom:18px;"></div>
+    <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#B8860B;margin:0 0 6px;">Institution at declared capacity</h1>
+    <p style="color:#7A7570;font-size:13px;font-style:italic;margin:0 0 22px;">EdUsaathiAI · capacity alert</p>
+
+    <p style="font-size:15px;line-height:1.65;margin:0 0 14px;">
+      <strong>${esc(params.institutionName)}</strong> has reached its declared capacity
+      of <strong>${params.declaredCapacity}</strong> students.
+    </p>
+
+    <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #E8E4DD;border-radius:10px;overflow:hidden;margin:14px 0;">
+      <tr>
+        <td style="padding:8px 12px;color:#7A7570;font-size:12px;letter-spacing:0.3px;text-transform:uppercase;font-weight:700;">Current registered</td>
+        <td style="padding:8px 12px;font-size:14px;font-variant-numeric:tabular-nums;">${params.currentStudents}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;color:#7A7570;font-size:12px;letter-spacing:0.3px;text-transform:uppercase;font-weight:700;border-top:1px solid #E8E4DD;">Declared capacity</td>
+        <td style="padding:8px 12px;font-size:14px;font-variant-numeric:tabular-nums;border-top:1px solid #E8E4DD;">${params.declaredCapacity}</td>
+      </tr>
+    </table>
+
+    <p style="font-size:15px;line-height:1.65;margin:14px 0;">
+      The join was allowed. Consider discussing an upgrade with the principal.
+    </p>
+
+    <p style="margin:22px 0 0;">
+      <a href="${adminUrl}" style="display:inline-block;padding:10px 18px;background:#B8860B;color:#fff;border-radius:10px;text-decoration:none;font-weight:600;">View in Admin →</a>
+    </p>
+
+    <p style="margin-top:24px;font-size:11px;color:#A8A49E;">
+      Hard cap is set at ${Math.floor(params.declaredCapacity * CAPACITY_BUFFER_RATIO)} students
+      (110% of declared). New joins above the hard cap are blocked
+      with HTTP 409.
+    </p>
+  </div>
+</body></html>`.trim()
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        Authorization:   `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from:    FROM_ADDRESS,
+        to:      [ADMIN_EMAIL],
+        subject,
+        html,
+      }),
+    })
+    if (!res.ok) {
+      const detail = await res.text().catch(() => '')
+      console.error('[education-institutions/join] Resend non-200', res.status, detail.slice(0, 300))
+    }
+  } catch (e) {
+    console.error('[education-institutions/join] Resend threw', e)
+  }
 }
