@@ -506,19 +506,22 @@ export default async function PrincipalDashboard({
             >
               Download invoice
             </button>
-            <button
-              type="button"
-              disabled
-              className="cursor-not-allowed rounded-xl px-4 py-2 text-sm font-semibold opacity-60"
+            <a
+              href="/api/education-institutions/naac-report"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
               style={{
-                background: 'var(--bg-elevated)',
-                color: 'var(--text-tertiary)',
-                border: '1px solid var(--border-subtle)',
+                background: 'var(--gold)',
+                color: 'var(--bg-surface)',
+                border: '1px solid var(--gold)',
+                textDecoration: 'none',
+                display: 'inline-block',
               }}
-              title="NAAC PDF generator wires up in Step 4"
+              title="Opens the report in a new tab; the browser print dialog appears automatically"
             >
               Download NAAC report →
-            </button>
+            </a>
           </div>
 
           <p className="mt-3 text-[11px]" style={{ color: 'var(--text-ghost)' }}>
