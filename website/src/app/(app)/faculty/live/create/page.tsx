@@ -16,6 +16,7 @@ import {
 import SessionNatureSelector from '@/components/sessions/SessionNatureSelector'
 import { checkSubjectBoundary } from '@/lib/subjectBoundary'
 import SubjectBoundaryWarning from '@/components/sessions/SubjectBoundaryWarning'
+import { PreFlightWizard } from '@/components/classroom/PreFlightWizard'
 import Link from 'next/link'
 
 type Step = 'type' | 'content' | 'schedule' | 'pricing' | 'preview'
@@ -91,6 +92,14 @@ export default function CreateLiveSessionPage() {
     run()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Pre-flight gate — first-time faculty go through the 4-step wizard
+  // before reaching the form. Once flipped to true (or skipped from
+  // Step 1), classroom_onboarded stays true forever for this profile.
+  useEffect(() => {
+    if (!profile) return
+    setShowPreFlight(profile.classroom_onboarded === false)
+  }, [profile])
   const [tags, setTags] = useState<string[]>([])
   const [lectures, setLectures] = useState<LectureInput[]>([
     { title: 'Lecture 1', date: '', duration: 60 },
@@ -112,6 +121,16 @@ export default function CreateLiveSessionPage() {
   const [terms, setTerms] = useState('')
   const [refundWindowHours, setRefundWindowHours] = useState<number>(24)
   const [meetingLink, setMeetingLink] = useState('')
+  // Wizard collects classroomMode in Step 2 (interactive default).
+  // Persisted into live_sessions.classroom_mode at insert time so the
+  // classroom route renders the chosen variant on first join.
+  const [classroomMode, setClassroomMode] = useState<'standard' | 'interactive'>('interactive')
+
+  // Pre-flight gate. null = haven't checked yet (first paint), true = show
+  // wizard, false = render the regular form. Reading classroom_onboarded
+  // off the cached profile from useAuthStore avoids an extra round-trip.
+  // AuthProvider already does .select('*') so the column is in the cache.
+  const [showPreFlight, setShowPreFlight] = useState<boolean | null>(null)
   const [saving, setSaving] = useState(false)
   const [published, setPublished] = useState(false)
   const [sessionUrl, setSessionUrl] = useState('')
@@ -216,6 +235,7 @@ export default function CreateLiveSessionPage() {
       total_seats: totalSeats,
       min_seats: minSeats,
       meeting_link: trimmedMeetingLink,
+      classroom_mode: classroomMode,
       session_nature: sessionNature,
       terms: terms.trim() || null,
       refund_window_hours: refundWindowHours,
@@ -358,6 +378,31 @@ export default function CreateLiveSessionPage() {
     color: 'var(--text-primary)',
   }
   const labelStyle: React.CSSProperties = { color: 'var(--text-secondary)' }
+
+  // Pre-flight wizard for first-time faculty. Hand-off:
+  //   - Step 1's pasted link → setMeetingLink (form pre-fills it)
+  //   - Step 2's mode choice → setClassroomMode (insert payload picks it up)
+  //   - On finish: flip profiles.classroom_onboarded = true (fire-and-forget)
+  if (showPreFlight) {
+    return (
+      <PreFlightWizard
+        onComplete={({ meetingLink: ml, classroomMode: cm }) => {
+          if (ml) setMeetingLink(ml)
+          setClassroomMode(cm)
+          setShowPreFlight(false)
+
+          if (profile) {
+            const supabase = createClient()
+            supabase
+              .from('profiles')
+              .update({ classroom_onboarded: true })
+              .eq('id', profile.id)
+              .then(() => { /* fire-and-forget */ })
+          }
+        }}
+      />
+    )
+  }
 
   return (
     <main

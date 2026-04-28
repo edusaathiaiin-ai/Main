@@ -9,6 +9,7 @@ import { SAATHIS } from '@/constants/saathis'
 import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
 import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvider'
+import { StudentWelcomeCard } from '@/components/classroom/StudentWelcomeCard'
 import { liveblocksAvailable } from '@/components/classroom/liveblocks.config'
 import { FormulaBar } from '@/components/classroom/FormulaBar'
 import { CommandBar } from '@/components/classroom/CommandBar'
@@ -163,6 +164,32 @@ export default function ClassroomPage() {
     | { allowed: true;  minutes_remaining?: number; minutes_used?: number; minutes_budget?: number }
     | { allowed: false; reason: 'weekend' | 'window_exhausted'; message: string; minutes_used?: number; minutes_budget?: number }
   const [institutionWindow, setInstitutionWindow] = useState<WindowCheck | null>(null)
+
+  // Phase I-2 — first-time student welcome card. Renders once when a
+  // student lands on a classroom they've never seen, then never again.
+  // Faculty are gated by the dedicated PreFlightWizard at session-create
+  // time (different surface, different copy) so they never see this card.
+  const [showStudentWelcome, setShowStudentWelcome] = useState(false)
+  useEffect(() => {
+    if (!profile) return
+    const isStudent = profile.id !== session?.faculty_id
+    if (isStudent && profile.classroom_onboarded === false && state === 'live') {
+      setShowStudentWelcome(true)
+    }
+  }, [profile, session?.faculty_id, state])
+
+  function dismissStudentWelcome() {
+    setShowStudentWelcome(false)
+    if (!profile) return
+    // Fire-and-forget — a network blip on the flag write must not block
+    // the student's classroom experience.
+    const supabase = createClient()
+    supabase
+      .from('profiles')
+      .update({ classroom_onboarded: true })
+      .eq('id', profile.id)
+      .then(() => { /* swallow */ })
+  }
 
   const { emit: emitArtifact } = useArtifactLog(sessionId)
 
@@ -962,6 +989,12 @@ export default function ClassroomPage() {
         className="flex h-screen flex-col"
         style={{ background: 'var(--bg-base)' }}
       >
+        {/* First-time student welcome — overlays but does not block.
+            Renders only when classroom_onboarded === false; dismiss
+            flips the flag and the card never appears again. */}
+        {showStudentWelcome && (
+          <StudentWelcomeCard onDismiss={dismissStudentWelcome} />
+        )}
         {/* Classroom chrome — top bar */}
         <div
           className="flex shrink-0 items-center justify-between px-4 py-2"

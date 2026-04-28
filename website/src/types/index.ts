@@ -22,6 +22,8 @@ export type Profile = {
   education_institution_role?:              'principal' | 'faculty' | 'student' | null
   education_institution_joined_at?:         string | null
   education_institution_drop_requested_at?: string | null
+  // Classroom pre-flight + welcome card (migration 146)
+  classroom_onboarded?:                     boolean
   year_of_study: string | null
   exam_target: string | null
   exam_target_id: string | null
