@@ -10,6 +10,7 @@ import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
 import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvider'
 import { TabUnlockProvider, useTabUnlock } from '@/components/classroom/TabUnlockContext'
+import { useOthers } from '@/components/classroom/liveblocks.config'
 import { StudentWelcomeCard } from '@/components/classroom/StudentWelcomeCard'
 import { liveblocksAvailable } from '@/components/classroom/liveblocks.config'
 import { FormulaBar } from '@/components/classroom/FormulaBar'
@@ -163,6 +164,89 @@ function CommandBarWithUnlock({
         setAutoQuery({ tool: result.tool, params: result.params })
       }}
     />
+  )
+}
+
+// Phase I-2 — when delivery_type === 'external' and the meeting URL refuses
+// iframe embedding (Meet/Zoom/Teams send X-Frame-Options: DENY), the left
+// panel can't host the video. Step #1 already opened Meet in a separate
+// tab via the pre-flight wizard or the meeting-link click, so this panel
+// fills the space gracefully — session context + elapsed timer + a quiet
+// "open in separate window" line. No CTA, no error tone — this is the
+// expected state, not a failure.
+function ExternalSessionPanel({
+  sessionTitle, facultyName, saathiPrimary, elapsed,
+}: {
+  sessionTitle:  string
+  facultyName:   string | null
+  saathiPrimary: string
+  elapsed:       string
+}) {
+  const others = useOthers()
+  // +1 for self. useOthers excludes the current user by design.
+  const participantCount = others.length + 1
+
+  return (
+    <div
+      className="flex h-full w-full flex-col px-8 py-10"
+      style={{ background: 'var(--bg-base)' }}
+    >
+      {/* Session header — Fraunces title, faculty + participants + elapsed */}
+      <div>
+        <h1
+          style={{
+            fontFamily:   'var(--font-display)',
+            fontSize:     '28px',
+            fontWeight:   700,
+            lineHeight:   1.2,
+            color:        'var(--text-primary)',
+            margin:       0,
+          }}
+        >
+          {sessionTitle}
+        </h1>
+
+        <div
+          className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          {facultyName && <span>{facultyName}</span>}
+          <span style={{ color: 'var(--text-ghost)' }}>·</span>
+          <span>{participantCount} {participantCount === 1 ? 'participant' : 'participants'}</span>
+          {elapsed && (
+            <>
+              <span style={{ color: 'var(--text-ghost)' }}>·</span>
+              <span style={{ fontVariantNumeric: 'tabular-nums' }}>{elapsed}</span>
+            </>
+          )}
+        </div>
+
+        {/* Subtle Saathi accent — a thin gold-gradient bar under the header,
+            same visual signature as the NAAC report and the trial emails. */}
+        <div
+          className="mt-4"
+          style={{
+            height:       '2px',
+            width:        '64px',
+            background:   `linear-gradient(90deg, ${saathiPrimary} 0%, ${saathiPrimary}66 100%)`,
+            borderRadius: '2px',
+          }}
+        />
+      </div>
+
+      {/* Breathing space — the left panel intentionally stays empty here.
+          The faculty's video is in the separate Meet window; the canvas
+          and command bar live on the right. This area is for visual rest. */}
+      <div className="flex-1" />
+
+      {/* Bottom note — quiet, no CTA */}
+      <p
+        className="text-xs"
+        style={{ color: 'var(--text-tertiary)' }}
+      >
+        Meeting open in separate window
+      </p>
+    </div>
   )
 }
 
@@ -1267,42 +1351,12 @@ export default function ClassroomPage() {
                     style={{ background: '#000' }}
                   />
                 ) : (
-                  <div
-                    className="flex h-full w-full flex-col items-center justify-center gap-4"
-                    style={{ background: 'var(--bg-sunken, #f5f5f0)' }}
-                  >
-                    <div
-                      className="flex h-16 w-16 items-center justify-center rounded-2xl"
-                      style={{ background: `${saathi?.primary ?? '#C9993A'}12` }}
-                    >
-                      <span style={{ fontSize: '28px' }}>📹</span>
-                    </div>
-                    <div style={{ textAlign: 'center', maxWidth: '280px' }}>
-                      <p style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>
-                        Open {session?.meeting_platform ?? 'meeting'}
-                      </p>
-                      <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-                        Your meeting opens in a new tab.
-                        Return here for the interactive canvas, tools, and AI assistant.
-                      </p>
-                      <a
-                        href={embedUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors"
-                        style={{
-                          background: saathi?.primary ?? '#C9993A',
-                          color: '#fff',
-                          textDecoration: 'none',
-                        }}
-                      >
-                        Open {session?.meeting_platform ?? 'meeting'} →
-                      </a>
-                    </div>
-                    <p style={{ fontSize: '11px', color: 'var(--text-ghost)', marginTop: '8px' }}>
-                      Canvas, command bar, and all tools stay here
-                    </p>
-                  </div>
+                  <ExternalSessionPanel
+                    sessionTitle={session?.title ?? 'Live session'}
+                    facultyName={faculty?.full_name ?? null}
+                    saathiPrimary={saathi?.primary ?? '#C9993A'}
+                    elapsed={elapsed}
+                  />
                 )
               ) : session?.delivery_type === 'in_app' ? (
                 <div
