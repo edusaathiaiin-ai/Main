@@ -65,7 +65,7 @@ const BENEFITS = [
 
 const STEPS = [
   { n: '01', title: 'Register in 3 minutes',      body: 'Short form, no credit card, no commitment. Just tell us about your institution.' },
-  { n: '02', title: 'We call you within 48 hours', body: 'Jaydeep Buch personally walks your team through the platform. Questions answered before trial starts.' },
+  { n: '02', title: 'We call you within 48 hours', body: 'Site Admin personally walks your team through the platform. Questions answered before trial starts.' },
   { n: '03', title: 'Free 7-day trial',           body: 'Full access to every Saathi, every tool, every classroom feature. Nothing gated.' },
   { n: '04', title: 'Students never leave the app', body: 'Chat, classroom, notes, research — all under one roof. No tab-switching, no context loss.' },
 ]
@@ -156,7 +156,7 @@ export default function InstitutionsLandingPage() {
             margin: '20px 0 0',
             letterSpacing: 0.2,
           }}>
-            ✦ No credit card · Personal call from Jaydeep · Cancel anytime
+            ✦ No credit card · Personal call from Site Admin · Cancel anytime
           </p>
         </div>
       </section>

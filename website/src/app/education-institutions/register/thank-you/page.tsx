@@ -11,7 +11,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Registration received · EdUsaathiAI',
-  description: 'Your education institution registration is with us. Jaydeep Buch will reach out within 48 hours.',
+  description: 'Your education institution registration is with us. Site Admin will reach out within 48 hours.',
 }
 
 export default function EducationInstitutionRegisterThankYouPage() {
@@ -73,7 +73,7 @@ export default function EducationInstitutionRegisterThankYouPage() {
           margin:     '0 0 14px',
         }}>
           <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-            Jaydeep Buch
+            Site Admin
           </strong> will reach out within 48 hours to schedule a short demo
           session with your team.
         </p>

@@ -175,7 +175,7 @@ export default function InstitutionRegisterPage() {
             color: 'var(--text-secondary)',
             maxWidth: 560, margin: '0 auto',
           }}>
-            Seven-day fully-featured trial. No credit card. Jaydeep personally
+            Seven-day fully-featured trial. No credit card. Site Admin personally
             reaches out within 48 hours to set up a short demo for your team.
           </p>
         </header>

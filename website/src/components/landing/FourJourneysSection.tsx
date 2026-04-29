@@ -265,7 +265,7 @@ const ROLE_CONTENT: Record<RoleId, RoleContent> = {
     ctaLink: '/education-institutions',
     ctaColor: '#38BDF8',
     ctaTextColor: '#0B1F3A',
-    note: 'Personal call from Jaydeep within 48 hours. No credit card.',
+    note: 'Personal call from Site Admin within 48 hours. No credit card.',
     subCtaText: 'See pricing →',
     subCtaLink: '/education-institutions#pricing',
   },
@@ -377,7 +377,10 @@ export function FourJourneysSection() {
         })}
       </div>
 
-      {/* Animated content */}
+      {/* Animated content — wrapped in a soft card so the active journey
+          reads as a contained surface rather than free-floating text on
+          the dark hero background. The accent border picks up the active
+          role's color so the card visually echoes the selected tab. */}
       <AnimatePresence mode="wait">
         <motion.div
           key={active}
@@ -385,7 +388,15 @@ export function FourJourneysSection() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 16 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}
-          style={{ maxWidth: '680px', margin: '0 auto' }}
+          style={{
+            maxWidth: '720px',
+            margin: '0 auto',
+            background: 'rgba(255,255,255,0.03)',
+            border: `0.5px solid ${content.ctaColor}33`,
+            borderRadius: '20px',
+            padding: 'clamp(28px, 4vw, 44px)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          }}
         >
           <h3
             style={{
