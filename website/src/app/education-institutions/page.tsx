@@ -333,7 +333,7 @@ export default function InstitutionsLandingPage() {
             textAlign: 'center',
           }}>
             <Link
-              href="/explore"
+              href="/#saathis"
               className="saathi-more-cta"
               style={{
                 display: 'inline-block',
