@@ -65,14 +65,12 @@ export default async function RootPage() {
         .btn-primary:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 20px 60px rgba(201,153,58,0.4)}
         .btn-secondary{display:inline-flex;align-items:center;gap:8px;background:transparent;color:rgba(255,255,255,0.7);font-size:15px;font-weight:400;padding:16px 24px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);text-decoration:none;cursor:pointer;transition:all 0.3s ease}
         .btn-secondary:hover{color:#fff;border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.05)}
-        /* Role cards — 5 cards laid out as 3 + 2 centered on desktop, 1 col on mobile.
-           6-col grid lets each card span 2 cols; the 4th + 5th use explicit
-           grid-column starts so the bottom row centers cleanly without any margin
-           hacks. */
-        .role-cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;max-width:900px;margin:0 auto 32px;animation:fadeUp 0.8s ease 0.5s both}
-        .role-card{grid-column:span 2;border-radius:16px;padding:20px 16px;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform 0.25s ease,box-shadow 0.25s ease,border-color 0.25s ease;cursor:pointer}
-        .role-card:nth-child(4){grid-column:2 / span 2}
-        .role-card:nth-child(5){grid-column:4 / span 2}
+        /* Role cards — flexbox wraps 5 cards into 3 + 2 with a centered second
+           row. Each card claims (100% - 2 gaps) / 3, so all 5 cards are the
+           same width on row 1 and row 2 alike. justify-content:center pushes
+           the lone trailing pair into the middle on the wrap line. */
+        .role-cards{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:900px;margin:0 auto 32px;animation:fadeUp 0.8s ease 0.5s both}
+        .role-card{flex:0 0 calc((100% - 24px) / 3);min-width:0;box-sizing:border-box;border-radius:16px;padding:20px 16px;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform 0.25s ease,box-shadow 0.25s ease,border-color 0.25s ease;cursor:pointer}
         .role-card:hover{transform:translateY(-4px)}
         .role-card-student{background:rgba(201,153,58,0.12);border:0.5px solid rgba(201,153,58,0.4)}
         .role-card-student:hover{border-color:rgba(201,153,58,0.8);box-shadow:0 16px 48px rgba(201,153,58,0.2)}
@@ -94,8 +92,7 @@ export default async function RootPage() {
         .role-feature-list li::before{content:'✓';color:var(--gold);font-weight:700;flex-shrink:0;margin-top:1px}
         @media(max-width:768px){
           /* All 5 stack vertically on mobile — odd count makes any grid awkward */
-          .role-cards{grid-template-columns:1fr}
-          .role-card,.role-card:nth-child(4),.role-card:nth-child(5){grid-column:auto}
+          .role-card{flex-basis:100%}
           .role-tabs{flex-wrap:wrap;justify-content:center}
         }
         .hero-stats{display:flex;align-items:center;justify-content:center;gap:48px;margin-top:40px;animation:fadeUp 0.8s ease 0.6s both}
