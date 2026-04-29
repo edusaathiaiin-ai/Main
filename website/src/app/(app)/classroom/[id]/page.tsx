@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvider'
 import { TabUnlockProvider, useTabUnlock } from '@/components/classroom/TabUnlockContext'
 import { useOthers } from '@/components/classroom/liveblocks.config'
+import { VoiceCommandButton } from '@/components/classroom/VoiceCommandButton'
 import { StudentWelcomeCard } from '@/components/classroom/StudentWelcomeCard'
 import { liveblocksAvailable } from '@/components/classroom/liveblocks.config'
 import { FormulaBar } from '@/components/classroom/FormulaBar'
@@ -132,14 +133,15 @@ function refusesIframe(url: string | null | undefined): boolean {
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
 function CommandBarWithUnlock({
-  sessionId, saathiSlug, saathiColor, plugin, setActiveTab, setAutoQuery,
+  sessionId, saathiSlug, saathiColor, plugin, setActiveTab, setAutoQuery, pendingCommand,
 }: {
-  sessionId:    string
-  saathiSlug:   string
-  saathiColor:  string
-  plugin:       SaathiPlugin | null
-  setActiveTab: (id: string) => void
-  setAutoQuery: (v: { tool: string; params: Record<string, unknown> } | null) => void
+  sessionId:      string
+  saathiSlug:     string
+  saathiColor:    string
+  plugin:         SaathiPlugin | null
+  setActiveTab:   (id: string) => void
+  setAutoQuery:   (v: { tool: string; params: Record<string, unknown> } | null) => void
+  pendingCommand?: { text: string } | null
 }) {
   const { unlock } = useTabUnlock()
 
@@ -148,6 +150,7 @@ function CommandBarWithUnlock({
       sessionId={sessionId}
       saathiSlug={saathiSlug}
       saathiColor={saathiColor}
+      pendingCommand={pendingCommand}
       onToolLoad={(result) => {
         // tool === 'none' means the AI declined to route — no tab unlock,
         // no active-tab change. The autoQuery still fires so any plugin
@@ -328,6 +331,11 @@ export default function ClassroomPage() {
   // Faculty are gated by the dedicated PreFlightWizard at session-create
   // time (different surface, different copy) so they never see this card.
   const [showStudentWelcome, setShowStudentWelcome] = useState(false)
+
+  // Voice → CommandBar bridge. A fresh object each invocation makes the
+  // CommandBar's effect fire even if two identical transcripts come in
+  // back-to-back; null while idle.
+  const [voiceCommand, setVoiceCommand] = useState<{ text: string } | null>(null)
   useEffect(() => {
     if (!profile) return
     const isStudent = profile.id !== session?.faculty_id
@@ -1250,8 +1258,17 @@ export default function ClassroomPage() {
             )}
           </div>
 
-          {/* Right: Questions + Notes + End */}
+          {/* Right: Voice + Questions + Notes + End */}
           <div className="flex items-center gap-2">
+            {/* Faculty-only voice command. ~₹0 — Web Speech API in the
+                browser. Transcript flows into the AI command bar via the
+                voiceCommand state below; same routing as a typed command. */}
+            {isFaculty && (
+              <VoiceCommandButton
+                onTranscript={(text) => setVoiceCommand({ text })}
+                saathiColor={saathi?.primary ?? '#C9993A'}
+              />
+            )}
             {isFaculty && (
               <button
                 onClick={() => { setQuestionsOpen(o => !o); if (notesOpen) setNotesOpen(false) }}
@@ -1415,6 +1432,7 @@ export default function ClassroomPage() {
                       plugin={plugin}
                       setActiveTab={setActiveTab}
                       setAutoQuery={setAutoQuery}
+                      pendingCommand={voiceCommand}
                     />
                   )}
                   {/* Story-mode: faculty's manual "summon tools" affordance.

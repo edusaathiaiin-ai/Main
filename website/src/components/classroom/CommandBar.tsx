@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 
@@ -15,9 +15,16 @@ type Props = {
   saathiSlug: string
   saathiColor: string
   onToolLoad: (result: CommandResult) => void
+  /** Voice / external trigger — the parent passes a fresh object each
+   *  time it wants the bar to run a command (the object reference is
+   *  what makes the effect fire; the string alone wouldn't, since two
+   *  identical voice commands in a row would deduplicate). When set,
+   *  the bar fills its input and submits — same routing as a typed
+   *  command. */
+  pendingCommand?: { text: string } | null
 }
 
-export function CommandBar({ sessionId, saathiSlug, saathiColor, onToolLoad }: Props) {
+export function CommandBar({ sessionId, saathiSlug, saathiColor, onToolLoad, pendingCommand }: Props) {
   const [input, setInput] = useState('')
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -66,6 +73,20 @@ export function CommandBar({ sessionId, saathiSlug, saathiColor, onToolLoad }: P
 
     setLoading(false)
   }, [input, loading, saathiSlug, sessionId, onToolLoad])
+
+  // Voice / external trigger. Fires when the parent hands us a new
+  // pendingCommand object — fresh ref per invocation so two identical
+  // transcripts in a row both re-fire. handleSubmit excluded from deps
+  // intentionally; the latest closure is stable enough for the
+  // single-shot semantics here, and adding it would re-fire on every
+  // keystroke as `input` changes.
+  useEffect(() => {
+    if (pendingCommand?.text) {
+      setExpanded(true)
+      handleSubmit(pendingCommand.text)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingCommand])
 
   return (
     <div style={{ borderBottom: '1px solid var(--border-subtle)' }}>
