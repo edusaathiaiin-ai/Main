@@ -65,12 +65,14 @@ export default async function RootPage() {
         .btn-primary:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 20px 60px rgba(201,153,58,0.4)}
         .btn-secondary{display:inline-flex;align-items:center;gap:8px;background:transparent;color:rgba(255,255,255,0.7);font-size:15px;font-weight:400;padding:16px 24px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);text-decoration:none;cursor:pointer;transition:all 0.3s ease}
         .btn-secondary:hover{color:#fff;border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.05)}
-        /* Role cards — flexbox wraps 5 cards into 3 + 2 with a centered second
-           row. Each card claims (100% - 2 gaps) / 3, so all 5 cards are the
-           same width on row 1 and row 2 alike. justify-content:center pushes
-           the lone trailing pair into the middle on the wrap line. */
+        /* Role cards — flexbox wraps 5 cards into 3 + 2. Each card has
+           flex-basis (100% - 2 gaps) / 3, so row 1 (3 cards) fills exactly.
+           flex-grow:1 lets the 2 cards on row 2 expand into spare space —
+           no awkward empty margins, the bottom row reads as a balanced pair
+           the same width as the row above's combined trio (minus the gap).
+           min-width:0 keeps long titles from forcing the flex basis bigger. */
         .role-cards{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:900px;margin:0 auto 32px;animation:fadeUp 0.8s ease 0.5s both}
-        .role-card{flex:0 0 calc((100% - 24px) / 3);min-width:0;box-sizing:border-box;border-radius:16px;padding:20px 16px;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform 0.25s ease,box-shadow 0.25s ease,border-color 0.25s ease;cursor:pointer}
+        .role-card{flex:1 1 calc((100% - 24px) / 3);min-width:0;box-sizing:border-box;border-radius:16px;padding:20px 16px;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform 0.25s ease,box-shadow 0.25s ease,border-color 0.25s ease;cursor:pointer}
         .role-card:hover{transform:translateY(-4px)}
         .role-card-student{background:rgba(201,153,58,0.12);border:0.5px solid rgba(201,153,58,0.4)}
         .role-card-student:hover{border-color:rgba(201,153,58,0.8);box-shadow:0 16px 48px rgba(201,153,58,0.2)}
