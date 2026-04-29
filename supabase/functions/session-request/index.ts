@@ -10,6 +10,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { captureError } from '../_shared/sentry.ts';
 import { isUUID, isNonEmptyString, isISODate, isOneOf, sanitize } from '../_shared/validate.ts';
 import { corsHeaders } from '../_shared/cors.ts';
+import { selectVideoProvider } from '../_shared/selectVideoProvider.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -73,9 +74,19 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
       }
 
+      // Video provider — the matrix splits free vs paid 1:1.
+      // - Free (fee_paise === 0): provider locked to google_meet here, since
+      //   no payment webhook will fire. Faculty self-manages the link.
+      // - Paid (fee_paise > 0): provider is set by razorpay-webhook after
+      //   payment lands, and the room is provisioned at Join.
+      const acceptProvider = selectVideoProvider(
+        'faculty_session', 1, session.fee_paise ?? 0,
+      );
+
       await admin.from('faculty_sessions').update({
         status: 'accepted',
         confirmed_slot: (slot && isISODate(slot)) ? slot : null,
+        video_provider: acceptProvider,
         updated_at: new Date().toISOString(),
       }).eq('id', sessionId);
 

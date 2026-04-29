@@ -826,6 +826,34 @@ Saathi branding: Notes branded per Saathi from constants/saathis.ts
    Zero changes to classroom route or core components
 ```
 
+## Classroom — Video Provider Selection Matrix (source of truth)
+
+```
+Session type        Price       Provider       Reason
+────────────────────────────────────────────────────────────────
+faculty_session     ₹0          google_meet    Free = self-managed
+faculty_session     > ₹0        whereby        Paid = platform-managed
+live_session        < 25 seats  whereby        Small group, economics ok
+live_session        ≥ 25 seats  google_meet    Large group, cost control
+```
+
+**Rule:** `selectVideoProvider(sessionType, bookedStudentCount, priceInPaise)`
+**File:** `website/src/lib/classroom/selectVideoProvider.ts`
+**Threshold constant:** 25 participants (`SMALL_GROUP_THRESHOLD`)
+**Never hardcode provider logic outside this function.**
+
+Two-phase enforcement:
+- **Phase 1 (provisional)** — set at session creation when booking count is
+  predicted. `video_provider_locked = false`.
+- **Phase 2 (lock)** — `/api/classroom/create-whereby-room` runs at faculty
+  Join, recomputes from actual booking count, persists, and sets
+  `video_provider_locked = true`. Whereby room is created lazily here and
+  the URL is cached so refresh / second device reuses the same room.
+
+Whereby outage → silent fallback to `google_meet` + Sentry capture. A video
+provider failure must NEVER block a faculty Join; the existing
+MeetLinkGate then prompts for a paste-in Meet URL.
+
 ## Classroom — Subject Plugins
 
 ```

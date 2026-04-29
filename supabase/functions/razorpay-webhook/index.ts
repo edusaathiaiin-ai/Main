@@ -20,6 +20,7 @@ import { captureError, captureEvent } from '../_shared/sentry.ts';
 import { sanitize } from '../_shared/validate.ts';
 import { posthogCapture, posthogSetPersonProps } from '../_shared/posthog.ts';
 import { sendWhatsAppTemplate } from '../_shared/whatsapp.ts';
+import { selectVideoProvider } from '../_shared/selectVideoProvider.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -606,6 +607,17 @@ async function handlePaymentCaptured(
         paid_at:              new Date().toISOString(),
         updated_at:           new Date().toISOString(),
       }).eq('id', sess.id);
+
+      // Provisional video provider — fee_paise > 0 here (we just received
+      // payment), so the matrix routes paid 1:1 sessions to whereby. The
+      // room itself is not created until faculty Join, where the lock
+      // phase recomputes from the locked-in price + bookings and persists
+      // whereby_room_url.
+      const provider = selectVideoProvider('faculty_session', 1, sess.fee_paise ?? 0);
+      await admin
+        .from('faculty_sessions')
+        .update({ video_provider: provider })
+        .eq('id', sess.id);
 
       // Notify faculty
       await admin.from('notifications').insert({

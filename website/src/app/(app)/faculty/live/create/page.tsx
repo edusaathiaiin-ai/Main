@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { resolveVerticalId } from '@/lib/resolveVertical'
 import { toSlug } from '@/constants/verticalIds'
+import { selectVideoProvider } from '@/lib/classroom/selectVideoProvider'
 import { useAuthStore } from '@/stores/authStore'
 import { getSubjectChips } from '@/constants/subjectChips'
 import {
@@ -167,34 +168,41 @@ export default function CreateLiveSessionPage() {
     )
   }
 
+  // Provisional video provider at creation time (Phase 1). bookingCount is
+  // 0 here, so live_sessions always start as 'whereby'. The lock phase at
+  // faculty Join recomputes from the actual booking count and may flip to
+  // google_meet if the room ends up packed (>= 25 students).
+  const videoProvider = selectVideoProvider('live_session', 0, 0)
+
   async function handleSubmit() {
     if (!profile) return
     setSaving(true)
     setPublishError(null)
 
-    // Meeting link is MANDATORY for every published session — the reminder
-    // cron sends it to students 1 hour before the lecture. Without it,
-    // students cannot join. Also enforced by DB CHECK constraint.
+    // Meeting link is mandatory only for the google_meet path. For whereby
+    // (and in_app) the classroom shell handles the URL itself — see
+    // migration 148 for the relaxed CHECK constraint.
     const trimmedMeetingLink = meetingLink.trim()
-    if (!trimmedMeetingLink) {
-      setPublishError(
-        'Please create your meeting link first. Create a Google Meet or Zoom link with the scheduled date/time, then paste the URL in the Meeting link field.'
-      )
-      setSaving(false)
-      return
-    }
-    // Light URL validation — catches obvious typos before the DB rejects
-    try {
-      const u = new URL(trimmedMeetingLink)
-      if (!['http:', 'https:'].includes(u.protocol)) {
-        throw new Error('bad protocol')
+    if (videoProvider === 'google_meet') {
+      if (!trimmedMeetingLink) {
+        setPublishError(
+          'Please create your meeting link first. Create a Google Meet or Zoom link with the scheduled date/time, then paste the URL in the Meeting link field.'
+        )
+        setSaving(false)
+        return
       }
-    } catch {
-      setPublishError(
-        'The meeting link doesn\'t look right. It should start with https:// (e.g. https://meet.google.com/xxx-xxxx-xxx).'
-      )
-      setSaving(false)
-      return
+      try {
+        const u = new URL(trimmedMeetingLink)
+        if (!['http:', 'https:'].includes(u.protocol)) {
+          throw new Error('bad protocol')
+        }
+      } catch {
+        setPublishError(
+          'The meeting link doesn\'t look right. It should start with https:// (e.g. https://meet.google.com/xxx-xxxx-xxx).'
+        )
+        setSaving(false)
+        return
+      }
     }
 
     const supabase = createClient()
@@ -234,7 +242,8 @@ export default function CreateLiveSessionPage() {
       early_bird_seats: earlyBirdEnabled ? earlyBirdSeats : null,
       total_seats: totalSeats,
       min_seats: minSeats,
-      meeting_link: trimmedMeetingLink,
+      meeting_link: videoProvider === 'whereby' ? null : trimmedMeetingLink,
+      video_provider: videoProvider,
       classroom_mode: classroomMode,
       session_nature: sessionNature,
       terms: terms.trim() || null,
@@ -886,92 +895,112 @@ export default function CreateLiveSessionPage() {
                       )}
                     </div>
                   )}
-                  {/* Meeting link — REQUIRED */}
-                  <div>
-                    <label
-                      className="mb-1.5 block text-xs font-semibold"
-                      style={labelStyle}
-                    >
-                      Meeting link <span style={{ color: '#F87171' }}>*</span>
-                    </label>
-                    <input
-                      type="url"
-                      value={meetingLink}
-                      onChange={(e) => setMeetingLink(e.target.value)}
-                      placeholder="https://meet.google.com/xxx-xxxx-xxx or Zoom link"
-                      className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                      style={inputStyle}
-                      required
-                    />
-
-                    {/* Quick-create helper. Removes the "open another tab,
-                        find Google Meet, click New meeting, copy the URL"
-                        ritual — both buttons open a meeting-creation flow
-                        directly. Faculty grabs the link, comes back, pastes
-                        above. The "Don't have one yet?" framing is
-                        deliberately permissive so faculty who already have
-                        a recurring Zoom link don't feel they need to use
-                        these. */}
-                    <div
-                      className="mt-2.5 rounded-lg px-3 py-2.5"
-                      style={{
-                        background: 'var(--bg-elevated)',
-                        border:     '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      <p
-                        className="text-[11px]"
-                        style={{ color: 'var(--text-secondary)' }}
+                  {/* Meeting link — required for the google_meet path
+                      only. For whereby, the classroom shell handles the
+                      URL itself; faculty just sees a calm reassurance
+                      that nothing more is needed here. */}
+                  {videoProvider === 'whereby' ? (
+                    <div>
+                      <label
+                        className="mb-1.5 block text-xs font-semibold"
+                        style={labelStyle}
                       >
-                        Don&apos;t have one yet?
-                      </p>
-                      <div className="mt-1.5 flex flex-wrap gap-2">
-                        <a
-                          href="https://meet.google.com/new"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="rounded-md px-3 py-1.5 text-xs font-semibold transition-opacity hover:opacity-90"
-                          style={{
-                            background:     'var(--gold)',
-                            color:          'var(--bg-surface)',
-                            textDecoration: 'none',
-                            display:        'inline-block',
-                          }}
-                        >
-                          Create a Google Meet link →
-                        </a>
-                        <a
-                          href="https://zoom.us/start"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
-                          style={{
-                            background:     'transparent',
-                            color:          'var(--gold)',
-                            border:         '1px solid var(--gold)',
-                            textDecoration: 'none',
-                            display:        'inline-block',
-                          }}
-                        >
-                          Or use Zoom →
-                        </a>
-                      </div>
+                        Video
+                      </label>
                       <p
-                        className="mt-2 text-[10px]"
-                        style={{ color: 'var(--text-ghost)' }}
+                        className="text-sm"
+                        style={{ color: 'var(--text-tertiary)' }}
                       >
-                        Once you have the link, paste it above.
+                        No link needed — your classroom handles the video.
                       </p>
                     </div>
+                  ) : (
+                    <div>
+                      <label
+                        className="mb-1.5 block text-xs font-semibold"
+                        style={labelStyle}
+                      >
+                        Meeting link <span style={{ color: '#F87171' }}>*</span>
+                      </label>
+                      <input
+                        type="url"
+                        value={meetingLink}
+                        onChange={(e) => setMeetingLink(e.target.value)}
+                        placeholder="https://meet.google.com/xxx-xxxx-xxx or Zoom link"
+                        className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                        style={inputStyle}
+                        required
+                      />
 
-                    <p
-                      className="mt-2 text-[9px]"
-                      style={{ color: 'var(--text-ghost)' }}
-                    >
-                      Students receive this link 1 hour before the session.
-                      You can update it anytime from your sessions dashboard.
-                    </p>
-                  </div>
+                      {/* Quick-create helper. Removes the "open another tab,
+                          find Google Meet, click New meeting, copy the URL"
+                          ritual — both buttons open a meeting-creation flow
+                          directly. Faculty grabs the link, comes back, pastes
+                          above. The "Don't have one yet?" framing is
+                          deliberately permissive so faculty who already have
+                          a recurring Zoom link don't feel they need to use
+                          these. */}
+                      <div
+                        className="mt-2.5 rounded-lg px-3 py-2.5"
+                        style={{
+                          background: 'var(--bg-elevated)',
+                          border:     '1px solid var(--border-subtle)',
+                        }}
+                      >
+                        <p
+                          className="text-[11px]"
+                          style={{ color: 'var(--text-secondary)' }}
+                        >
+                          Don&apos;t have one yet?
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap gap-2">
+                          <a
+                            href="https://meet.google.com/new"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-md px-3 py-1.5 text-xs font-semibold transition-opacity hover:opacity-90"
+                            style={{
+                              background:     'var(--gold)',
+                              color:          'var(--bg-surface)',
+                              textDecoration: 'none',
+                              display:        'inline-block',
+                            }}
+                          >
+                            Create a Google Meet link →
+                          </a>
+                          <a
+                            href="https://zoom.us/start"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
+                            style={{
+                              background:     'transparent',
+                              color:          'var(--gold)',
+                              border:         '1px solid var(--gold)',
+                              textDecoration: 'none',
+                              display:        'inline-block',
+                            }}
+                          >
+                            Or use Zoom →
+                          </a>
+                        </div>
+                        <p
+                          className="mt-2 text-[10px]"
+                          style={{ color: 'var(--text-ghost)' }}
+                        >
+                          Once you have the link, paste it above.
+                        </p>
+                      </div>
+
+                      <p
+                        className="mt-2 text-[9px]"
+                        style={{ color: 'var(--text-ghost)' }}
+                      >
+                        Students receive this link 1 hour before the session.
+                        You can update it anytime from your sessions dashboard.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex gap-3">
                     <button
@@ -1428,7 +1457,23 @@ export default function CreateLiveSessionPage() {
                         ))}
                       </div>
                     )}
-                    {meetingLink.trim() && (
+                    {videoProvider === 'whereby' ? (
+                      <div
+                        className="mb-3 flex items-center gap-2 rounded-lg px-3 py-2.5"
+                        style={{
+                          background: 'rgba(201,153,58,0.08)',
+                          border: '0.5px solid rgba(201,153,58,0.25)',
+                        }}
+                      >
+                        <span style={{ fontSize: '14px' }}>🎥</span>
+                        <p
+                          className="text-[13px]"
+                          style={{ color: 'var(--text-tertiary)' }}
+                        >
+                          Video handled in your classroom — no link needed.
+                        </p>
+                      </div>
+                    ) : meetingLink.trim() && (
                       <div
                         className="mb-3 flex items-center gap-2 rounded-lg px-3 py-2.5"
                         style={{
@@ -1524,14 +1569,22 @@ export default function CreateLiveSessionPage() {
                     </button>
                     <button
                       onClick={handleSubmit}
-                      disabled={saving || !title.trim() || !meetingLink.trim()}
+                      disabled={
+                        saving ||
+                        !title.trim() ||
+                        (videoProvider === 'google_meet' && !meetingLink.trim())
+                      }
                       className="flex-1 rounded-xl py-3.5 text-sm font-bold disabled:opacity-40"
                       style={{ background: '#C9993A', color: '#060F1D' }}
-                      title={!meetingLink.trim() ? 'Please add a meeting link first' : undefined}
+                      title={
+                        videoProvider === 'google_meet' && !meetingLink.trim()
+                          ? 'Please add a meeting link first'
+                          : undefined
+                      }
                     >
                       {saving
                         ? 'Publishing...'
-                        : !meetingLink.trim()
+                        : videoProvider === 'google_meet' && !meetingLink.trim()
                           ? 'Add meeting link first'
                           : 'Publish Session \u{1F680}'}
                     </button>
