@@ -1,19 +1,19 @@
 [
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 805,
+    "line": 851,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 1760,
+    "line": 1881,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "style={{ background: color, color: '#fff', cursor: 'pointer' }}"
   },
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 1845,
+    "line": 1966,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },

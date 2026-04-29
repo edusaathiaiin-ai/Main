@@ -10,7 +10,6 @@ import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
 import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvider'
 import { TabUnlockProvider, useTabUnlock } from '@/components/classroom/TabUnlockContext'
-import { useOthers } from '@/components/classroom/liveblocks.config'
 import { VoiceCommandButton } from '@/components/classroom/VoiceCommandButton'
 import { StudentWelcomeCard } from '@/components/classroom/StudentWelcomeCard'
 import { liveblocksAvailable } from '@/components/classroom/liveblocks.config'
@@ -25,6 +24,8 @@ import type { HomeworkItem } from '@/components/classroom/QuestionQueue'
 import { SourceBadge } from '@/components/classroom/SourceBadge'
 import { useArtifactLog } from '@/hooks/useArtifactLog'
 import { AutoQueryProvider } from '@/lib/classroom-plugins/AutoQueryContext'
+import { MeetLinkGate } from '@/components/classroom/MeetLinkGate'
+import { SessionContextPanel } from '@/components/classroom/SessionContextPanel'
 import type { ResearchArtifact } from '@/hooks/useArtifactLog'
 import type { SaathiPlugin } from '@/lib/classroom-plugins/types'
 
@@ -50,7 +51,16 @@ type SessionRow = {
   started_at: string | null
   ended_at: string | null
   session_nature: 'curriculum' | 'broader_context' | 'story' | null
+  video_provider: 'whereby' | 'google_meet' | 'in_app' | null
+  whereby_room_url: string | null
+  whereby_host_url: string | null
 }
+
+type ProvisionState =
+  | { status: 'loading' }
+  | { status: 'ready';            provider: 'whereby';     roomUrl: string; hostRoomUrl: string }
+  | { status: 'ready';            provider: 'google_meet'; meetUrl: string }
+  | { status: 'needs_meet_link';  provider: 'google_meet'; studentCount: number; message?: string }
 
 type LectureRow = {
   id: string
@@ -167,89 +177,6 @@ function CommandBarWithUnlock({
         setAutoQuery({ tool: result.tool, params: result.params })
       }}
     />
-  )
-}
-
-// Phase I-2 — when delivery_type === 'external' and the meeting URL refuses
-// iframe embedding (Meet/Zoom/Teams send X-Frame-Options: DENY), the left
-// panel can't host the video. Step #1 already opened Meet in a separate
-// tab via the pre-flight wizard or the meeting-link click, so this panel
-// fills the space gracefully — session context + elapsed timer + a quiet
-// "open in separate window" line. No CTA, no error tone — this is the
-// expected state, not a failure.
-function ExternalSessionPanel({
-  sessionTitle, facultyName, saathiPrimary, elapsed,
-}: {
-  sessionTitle:  string
-  facultyName:   string | null
-  saathiPrimary: string
-  elapsed:       string
-}) {
-  const others = useOthers()
-  // +1 for self. useOthers excludes the current user by design.
-  const participantCount = others.length + 1
-
-  return (
-    <div
-      className="flex h-full w-full flex-col px-8 py-10"
-      style={{ background: 'var(--bg-base)' }}
-    >
-      {/* Session header — Fraunces title, faculty + participants + elapsed */}
-      <div>
-        <h1
-          style={{
-            fontFamily:   'var(--font-display)',
-            fontSize:     '28px',
-            fontWeight:   700,
-            lineHeight:   1.2,
-            color:        'var(--text-primary)',
-            margin:       0,
-          }}
-        >
-          {sessionTitle}
-        </h1>
-
-        <div
-          className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
-          style={{ color: 'var(--text-secondary)' }}
-        >
-          {facultyName && <span>{facultyName}</span>}
-          <span style={{ color: 'var(--text-ghost)' }}>·</span>
-          <span>{participantCount} {participantCount === 1 ? 'participant' : 'participants'}</span>
-          {elapsed && (
-            <>
-              <span style={{ color: 'var(--text-ghost)' }}>·</span>
-              <span style={{ fontVariantNumeric: 'tabular-nums' }}>{elapsed}</span>
-            </>
-          )}
-        </div>
-
-        {/* Subtle Saathi accent — a thin gold-gradient bar under the header,
-            same visual signature as the NAAC report and the trial emails. */}
-        <div
-          className="mt-4"
-          style={{
-            height:       '2px',
-            width:        '64px',
-            background:   `linear-gradient(90deg, ${saathiPrimary} 0%, ${saathiPrimary}66 100%)`,
-            borderRadius: '2px',
-          }}
-        />
-      </div>
-
-      {/* Breathing space — the left panel intentionally stays empty here.
-          The faculty's video is in the separate Meet window; the canvas
-          and command bar live on the right. This area is for visual rest. */}
-      <div className="flex-1" />
-
-      {/* Bottom note — quiet, no CTA */}
-      <p
-        className="text-xs"
-        style={{ color: 'var(--text-tertiary)' }}
-      >
-        Meeting open in separate window
-      </p>
-    </div>
   )
 }
 
@@ -495,6 +422,44 @@ export default function ClassroomPage() {
     }
   }, [state])
 
+  // ── Student polling for whereby_room_url ───────────────────────────────
+  // Students never call check-and-provision-video; the orchestrator runs
+  // when faculty clicks Join. While faculty is still in the lobby, the
+  // session row has video_provider='whereby' but no whereby_room_url yet
+  // — that's the "Waiting for faculty to start the session…" state.
+  // Poll every 5s and stop the moment the URL appears.
+  useEffect(() => {
+    if (state !== 'live') return
+    if (!session) return
+    if (profile?.id === session.faculty_id) return            // faculty path: handleFacultyJoin already provisioned
+    if (session.video_provider !== 'whereby') return          // google_meet path uses SessionContextPanel
+    if (session.whereby_room_url) return                      // already populated — nothing to poll for
+
+    const supabase = createClient()
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from('live_sessions')
+        .select('video_provider, whereby_room_url, whereby_host_url')
+        .eq('id', sessionId)
+        .single()
+      if (data?.whereby_room_url) {
+        setSession((prev) =>
+          prev
+            ? {
+                ...prev,
+                video_provider:    data.video_provider as SessionRow['video_provider'],
+                whereby_room_url:  data.whereby_room_url,
+                whereby_host_url:  data.whereby_host_url,
+              }
+            : prev,
+        )
+        clearInterval(interval)
+      }
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [state, sessionId, session, profile?.id])
+
   // ── Realtime presence count ────────────────────────────────────────────
 
   useEffect(() => {
@@ -528,6 +493,12 @@ export default function ClassroomPage() {
 
     return () => { supabase.removeChannel(channel) }
   }, [state, sessionId])
+
+  // ── Faculty Join: video provisioning state (Phase 2 lock) ──────────────
+  // Orchestrator picks Whereby vs Google Meet from the actual booking
+  // count, lazily provisions the Whereby room, and locks the result.
+  // Faculty path only — students never call check-and-provision-video.
+  const [provisionState, setProvisionState] = useState<ProvisionState | null>(null)
 
   // ── Join session ───────────────────────────────────────────────────────
 
@@ -566,6 +537,81 @@ export default function ClassroomPage() {
 
     setState('live')
   }, [profile, session, sessionId, classroomMode])
+
+  // ── Faculty Join: orchestrator call → state machine ───────────────────
+  // Calls check-and-provision-video, sets provisionState, and only
+  // advances to live (handleJoin) when the orchestrator returns 'ready'.
+  // For the 'needs_meet_link' branch the lobby renders MeetLinkGate; the
+  // gate's onLinkSaved retries this function, this time hitting 'ready'.
+  const handleFacultyJoin = useCallback(async () => {
+    if (!profile || !session) return
+    setProvisionState({ status: 'loading' })
+
+    try {
+      const supabase = createClient()
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      const token = authSession?.access_token
+      if (!token) {
+        setProvisionState(null)
+        return
+      }
+
+      const res = await fetch('/api/classroom/check-and-provision-video', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization:  `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          session_id:   sessionId,
+          // This component owns live_sessions only. faculty_session 1:1s
+          // get their own classroom shell; when that lands, branch on a
+          // route prop / session-shape detector.
+          session_type: 'live_session',
+        }),
+      })
+
+      const data = await res.json() as ProvisionState | { error: string }
+      if ('error' in data) {
+        setProvisionState({
+          status:       'needs_meet_link',
+          provider:     'google_meet',
+          studentCount: 0,
+          message:      'Please add a Google Meet or Zoom link to continue.',
+        })
+        return
+      }
+
+      setProvisionState(data)
+
+      if (data.status === 'ready') {
+        // Refresh the row so the live render reads the freshly persisted
+        // video_provider + whereby_room_url written by the orchestrator.
+        const { data: refreshed } = await supabase
+          .from('live_sessions')
+          .select('*')
+          .eq('id', sessionId)
+          .single()
+        if (refreshed) setSession(refreshed as unknown as SessionRow)
+
+        if (data.provider === 'google_meet') {
+          // Same popup behaviour as before — Meet opens in a separate
+          // window; SessionContextPanel fills the left panel.
+          window.open(data.meetUrl, '_blank', 'noopener,noreferrer')
+        }
+
+        await handleJoin()
+      }
+    } catch (err) {
+      console.error('[classroom] check-and-provision-video failed:', err)
+      setProvisionState({
+        status:       'needs_meet_link',
+        provider:     'google_meet',
+        studentCount: 0,
+        message:      'Could not reach the video setup service. Add a meeting link to continue.',
+      })
+    }
+  }, [profile, session, sessionId, handleJoin])
 
   // ── Leave session ──────────────────────────────────────────────────────
 
@@ -1080,25 +1126,52 @@ export default function ClassroomPage() {
               )
             ) : (
               <>
-                {/* Join button */}
-                <motion.button
-                  onClick={handleJoin}
-                  disabled={!canJoin && !isFaculty}
-                  whileHover={canJoin || isFaculty ? { scale: 1.02 } : {}}
-                  whileTap={canJoin || isFaculty ? { scale: 0.98 } : {}}
-                  className="rounded-2xl px-10 py-4 text-base font-bold transition-all disabled:opacity-40"
-                  style={{
-                    background: canJoin || isFaculty ? color : 'var(--bg-elevated)',
-                    color: canJoin || isFaculty ? '#fff' : 'var(--text-ghost)',
-                    cursor: canJoin || isFaculty ? 'pointer' : 'not-allowed',
-                  }}
-                >
-                  {canJoin || isFaculty
-                    ? classroomMode === 'interactive' ? 'Join Interactive Classroom' : 'Join Classroom'
-                    : countdown
-                      ? `Opens ${countdown.includes('d') ? 'in ' + countdown : 'in ' + countdown}`
-                      : 'Session not yet scheduled'}
-                </motion.button>
+                {/* Phase 2 video provisioning — faculty path. Three states:
+                    loading, needs_meet_link (MeetLinkGate), or null/ready
+                    (regular Join button). Students never see provisionState
+                    branches; their click goes straight to handleJoin. */}
+                {isFaculty && provisionState?.status === 'loading' && (
+                  <div
+                    className="text-sm"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  >
+                    Setting up your classroom…
+                  </div>
+                )}
+
+                {isFaculty && provisionState?.status === 'needs_meet_link' && (
+                  <MeetLinkGate
+                    sessionId={sessionId}
+                    studentCount={provisionState.studentCount}
+                    message={provisionState.message}
+                    onLinkSaved={() => {
+                      // Retry — orchestrator now finds external_url and
+                      // returns 'ready', which advances into the live state.
+                      handleFacultyJoin()
+                    }}
+                  />
+                )}
+
+                {(provisionState === null || provisionState?.status === 'ready' || !isFaculty) && (
+                  <motion.button
+                    onClick={isFaculty ? handleFacultyJoin : handleJoin}
+                    disabled={!canJoin && !isFaculty}
+                    whileHover={canJoin || isFaculty ? { scale: 1.02 } : {}}
+                    whileTap={canJoin || isFaculty ? { scale: 0.98 } : {}}
+                    className="rounded-2xl px-10 py-4 text-base font-bold transition-all disabled:opacity-40"
+                    style={{
+                      background: canJoin || isFaculty ? color : 'var(--bg-elevated)',
+                      color: canJoin || isFaculty ? '#fff' : 'var(--text-ghost)',
+                      cursor: canJoin || isFaculty ? 'pointer' : 'not-allowed',
+                    }}
+                  >
+                    {canJoin || isFaculty
+                      ? classroomMode === 'interactive' ? 'Join Interactive Classroom' : 'Join Classroom'
+                      : countdown
+                        ? `Opens ${countdown.includes('d') ? 'in ' + countdown : 'in ' + countdown}`
+                        : 'Session not yet scheduled'}
+                  </motion.button>
+                )}
 
                 {/* Minutes-remaining hint — only for institution faculty.
                     minutes_remaining is undefined for independent faculty
@@ -1359,7 +1432,55 @@ export default function ClassroomPage() {
                 transition: 'flex 200ms ease',
               }}
             >
-              {embedUrl ? (
+              {/* Phase 2 video render — branches on video_provider, not on
+                  the legacy meeting_link/external_url shape. Whereby gets
+                  iframed (faculty hits the host URL with skip-prompt;
+                  students hit the regular room URL). google_meet sessions
+                  hand the visual space to SessionContextPanel since the
+                  call already opened in a separate window when faculty
+                  clicked Join. The "waiting for faculty to start"
+                  placeholder covers the student-arrives-first window
+                  before the room has been provisioned. */}
+              {session?.video_provider === 'whereby' ? (
+                session.whereby_room_url ? (
+                  <iframe
+                    src={
+                      isFaculty
+                        ? `${session.whereby_host_url ?? session.whereby_room_url}?minimal=on&skipMediaPermissionPrompt=on`
+                        : `${session.whereby_room_url}?minimal=on`
+                    }
+                    allow="camera; microphone; fullscreen; display-capture; autoplay; compute-pressure"
+                    className="h-full w-full"
+                    style={{
+                      border:       'none',
+                      borderRadius: '8px',
+                      background:   'var(--bg-base)',
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="flex h-full w-full items-center justify-center"
+                    style={{ background: 'var(--bg-sunken)' }}
+                  >
+                    <div className="text-center">
+                      <p className="mb-2 text-4xl">⏳</p>
+                      <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                        Waiting for faculty to start the session…
+                      </p>
+                    </div>
+                  </div>
+                )
+              ) : session?.video_provider === 'google_meet' ? (
+                <SessionContextPanel
+                  sessionTitle={session?.title ?? 'Live session'}
+                  facultyName={faculty?.full_name ?? null}
+                  saathiPrimary={saathi?.primary ?? '#C9993A'}
+                  elapsed={elapsed}
+                />
+              ) : embedUrl ? (
+                // Legacy fallback: row predates migration 147 and has no
+                // video_provider yet — read meeting_link/external_url and
+                // pick iframe vs panel by the X-Frame-Options refusal list.
                 classroomMode === 'standard' && !refusesIframe(embedUrl) ? (
                   <iframe
                     src={embedUrl}
@@ -1368,7 +1489,7 @@ export default function ClassroomPage() {
                     style={{ background: '#000' }}
                   />
                 ) : (
-                  <ExternalSessionPanel
+                  <SessionContextPanel
                     sessionTitle={session?.title ?? 'Live session'}
                     facultyName={faculty?.full_name ?? null}
                     saathiPrimary={saathi?.primary ?? '#C9993A'}
