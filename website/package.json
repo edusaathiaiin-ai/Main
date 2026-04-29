@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/dom-speech-recognition": "^0.0.9",
     "@types/jest": "^29.5.14",
     "@types/katex": "^0.16.8",
     "@types/node": "^20",

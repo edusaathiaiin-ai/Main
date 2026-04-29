@@ -10,7 +10,6 @@ import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
 import { ClassroomRoomProvider } from '@/components/classroom/ClassroomRoomProvider'
 import { TabUnlockProvider, useTabUnlock } from '@/components/classroom/TabUnlockContext'
-import { VoiceCommandButton } from '@/components/classroom/VoiceCommandButton'
 import { StudentWelcomeCard } from '@/components/classroom/StudentWelcomeCard'
 import { liveblocksAvailable } from '@/components/classroom/liveblocks.config'
 import { FormulaBar } from '@/components/classroom/FormulaBar'
@@ -144,6 +143,7 @@ function refusesIframe(url: string | null | undefined): boolean {
 
 function CommandBarWithUnlock({
   sessionId, saathiSlug, saathiColor, plugin, setActiveTab, setAutoQuery, pendingCommand,
+  value, onChange, onVoiceTranscript, onVoiceInterimTranscript,
 }: {
   sessionId:      string
   saathiSlug:     string
@@ -152,6 +152,10 @@ function CommandBarWithUnlock({
   setActiveTab:   (id: string) => void
   setAutoQuery:   (v: { tool: string; params: Record<string, unknown> } | null) => void
   pendingCommand?: { text: string } | null
+  value:          string
+  onChange:       (text: string) => void
+  onVoiceTranscript:        (text: string) => void
+  onVoiceInterimTranscript: (text: string) => void
 }) {
   const { unlock } = useTabUnlock()
 
@@ -161,6 +165,10 @@ function CommandBarWithUnlock({
       saathiSlug={saathiSlug}
       saathiColor={saathiColor}
       pendingCommand={pendingCommand}
+      value={value}
+      onChange={onChange}
+      onVoiceTranscript={onVoiceTranscript}
+      onVoiceInterimTranscript={onVoiceInterimTranscript}
       onToolLoad={(result) => {
         // tool === 'none' means the AI declined to route — no tab unlock,
         // no active-tab change. The autoQuery still fires so any plugin
@@ -263,6 +271,29 @@ export default function ClassroomPage() {
   // CommandBar's effect fire even if two identical transcripts come in
   // back-to-back; null while idle.
   const [voiceCommand, setVoiceCommand] = useState<{ text: string } | null>(null)
+
+  // Controlled command-bar text. Lifted up so the voice button can pipe
+  // its in-flight transcript here via onInterimTranscript and the bar
+  // mirrors what the faculty is saying in real time. CommandBar consumes
+  // these via value/onChange props (next wiring step).
+  const [commandInput, setCommandInput] = useState('')
+
+  // Voice → command-bar wiring.
+  //   - Interim: mirror the partial transcript into the bar's input so
+  //     faculty sees what's being heard in real time.
+  //   - Final  : drop it into the input AND fire a fresh voiceCommand
+  //     bridge — CommandBar's effect on pendingCommand picks that up
+  //     and runs the same submit path a typed command would. The submit
+  //     logic itself still lives inside CommandBar (calls /api/classroom/
+  //     command, routes through AutoQueryContext via onToolLoad).
+  const handleInterimTranscript = useCallback((text: string) => {
+    setCommandInput(text)
+  }, [])
+
+  const handleVoiceTranscript = useCallback((text: string) => {
+    setCommandInput(text)
+    setVoiceCommand({ text })
+  }, [])
   useEffect(() => {
     if (!profile) return
     const isStudent = profile.id !== session?.faculty_id
@@ -1333,15 +1364,10 @@ export default function ClassroomPage() {
 
           {/* Right: Voice + Questions + Notes + End */}
           <div className="flex items-center gap-2">
-            {/* Faculty-only voice command. ~₹0 — Web Speech API in the
-                browser. Transcript flows into the AI command bar via the
-                voiceCommand state below; same routing as a typed command. */}
-            {isFaculty && (
-              <VoiceCommandButton
-                onTranscript={(text) => setVoiceCommand({ text })}
-                saathiColor={saathi?.primary ?? '#C9993A'}
-              />
-            )}
+            {/* VoiceCommandButton now lives inside CommandBar (left of
+                the input) so faculty can see the live transcript flow
+                straight into the command. The standalone copy in the
+                top chrome was removed to avoid two mics. */}
             {isFaculty && (
               <button
                 onClick={() => { setQuestionsOpen(o => !o); if (notesOpen) setNotesOpen(false) }}
@@ -1554,6 +1580,10 @@ export default function ClassroomPage() {
                       setActiveTab={setActiveTab}
                       setAutoQuery={setAutoQuery}
                       pendingCommand={voiceCommand}
+                      value={commandInput}
+                      onChange={setCommandInput}
+                      onVoiceTranscript={handleVoiceTranscript}
+                      onVoiceInterimTranscript={handleInterimTranscript}
                     />
                   )}
                   {/* Story-mode: faculty's manual "summon tools" affordance.

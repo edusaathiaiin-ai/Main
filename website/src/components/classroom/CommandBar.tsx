@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
+import { VoiceCommandButton } from './VoiceCommandButton'
 
 type CommandResult = {
   tool: string
@@ -22,10 +23,22 @@ type Props = {
    *  the bar fills its input and submits — same routing as a typed
    *  command. */
   pendingCommand?: { text: string } | null
+  /** Controlled input — the parent owns the text. The voice button can
+   *  pipe its in-flight transcript here via onInterimTranscript so the
+   *  bar mirrors what's being heard in real time. */
+  value: string
+  onChange: (text: string) => void
+  /** Voice button sits inline to the left of the input. CommandBar
+   *  itself is faculty-only at the call site (gated by isFaculty in
+   *  the classroom page), so no extra role check needed here. */
+  onVoiceTranscript:        (text: string) => void
+  onVoiceInterimTranscript: (text: string) => void
 }
 
-export function CommandBar({ sessionId, saathiSlug, saathiColor, onToolLoad, pendingCommand }: Props) {
-  const [input, setInput] = useState('')
+export function CommandBar({
+  sessionId, saathiSlug, saathiColor, onToolLoad, pendingCommand, value, onChange,
+  onVoiceTranscript, onVoiceInterimTranscript,
+}: Props) {
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [history, setHistory] = useState<{ command: string; result: CommandResult }[]>([])
@@ -33,7 +46,7 @@ export function CommandBar({ sessionId, saathiSlug, saathiColor, onToolLoad, pen
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = useCallback(async (command?: string) => {
-    const cmd = (command ?? input).trim()
+    const cmd = (command ?? value).trim()
     if (!cmd || loading) return
 
     setLoading(true)
@@ -62,7 +75,7 @@ export function CommandBar({ sessionId, saathiSlug, saathiColor, onToolLoad, pen
 
       setLastResult(data)
       setHistory((prev) => [{ command: cmd, result: data }, ...prev].slice(0, 5))
-      setInput('')
+      onChange('')
 
       if (data.tool !== 'none') {
         onToolLoad(data)
@@ -72,7 +85,7 @@ export function CommandBar({ sessionId, saathiSlug, saathiColor, onToolLoad, pen
     }
 
     setLoading(false)
-  }, [input, loading, saathiSlug, sessionId, onToolLoad])
+  }, [value, onChange, loading, saathiSlug, sessionId, onToolLoad])
 
   // Voice / external trigger. Fires when the parent hands us a new
   // pendingCommand object — fresh ref per invocation so two identical
@@ -103,14 +116,24 @@ export function CommandBar({ sessionId, saathiSlug, saathiColor, onToolLoad, pen
         }}
       >
         <span style={{ fontSize: '14px', opacity: 0.6 }}>✦</span>
+        <VoiceCommandButton
+          onTranscript={onVoiceTranscript}
+          onInterimTranscript={onVoiceInterimTranscript}
+          disabled={loading}
+        />
         <input
           ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           onFocus={() => setExpanded(true)}
-          onBlur={() => { if (!input && !lastResult) setTimeout(() => setExpanded(false), 200) }}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit() }}
-          placeholder="Ask your Teaching Assistant — type any concept, formula, compound, case, or topic..."
+          onBlur={() => { if (!value && !lastResult) setTimeout(() => setExpanded(false), 200) }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && value.trim()) {
+              handleSubmit(value.trim())
+            }
+          }}
+          placeholder="Type or speak any topic to teach..."
           disabled={loading}
           style={{
             flex: 1, border: 'none', outline: 'none',
@@ -124,7 +147,7 @@ export function CommandBar({ sessionId, saathiSlug, saathiColor, onToolLoad, pen
         {loading && (
           <span style={{ fontSize: '12px', color: 'var(--text-ghost)' }}>Thinking…</span>
         )}
-        {input.trim() && !loading && (
+        {value.trim() && !loading && (
           <button
             onClick={() => handleSubmit()}
             style={{

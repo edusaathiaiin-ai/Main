@@ -997,6 +997,14 @@ iframe[src*="liveblocks"] {
   50% { opacity: 0.6; }
 }
 
+/* VoiceCommandButton — soft pulse while listening. The button shows
+   "Listening…" inside a gold pill; this animation lends a calm
+   heartbeat without being attention-grabbing. */
+@keyframes mic-pulse {
+  0%, 100% { opacity: 1;    transform: scale(1); }
+  50%      { opacity: 0.75; transform: scale(0.97); }
+}
+
 /* Horizon scroll container — subtle scrollbar on dark surface */
 .horizon-scroll::-webkit-scrollbar { width: 6px; }
 .horizon-scroll::-webkit-scrollbar-track { background: transparent; }

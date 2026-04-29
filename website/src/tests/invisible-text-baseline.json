@@ -1,19 +1,19 @@
 [
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 851,
+    "line": 882,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 1881,
+    "line": 1911,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "style={{ background: color, color: '#fff', cursor: 'pointer' }}"
   },
   {
     "file": "app/(app)/classroom/[id]/page.tsx",
-    "line": 1966,
+    "line": 1996,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
@@ -1297,7 +1297,7 @@
   },
   {
     "file": "components/classroom/CommandBar.tsx",
-    "line": 133,
+    "line": 156,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "background: saathiColor, color: '#fff',"
   },

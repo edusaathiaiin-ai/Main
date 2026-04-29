@@ -3,28 +3,7 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// Web Speech API type declarations (not in default TypeScript lib)
-interface ISpeechRecognitionEvent extends Event {
-  resultIndex: number
-  results: SpeechRecognitionResultList
-}
-
-interface ISpeechRecognition extends EventTarget {
-  continuous: boolean
-  interimResults: boolean
-  lang: string
-  maxAlternatives: number
-  start(): void
-  stop(): void
-  onstart: ((ev: Event) => void) | null
-  onresult: ((ev: ISpeechRecognitionEvent) => void) | null
-  onerror: ((ev: Event) => void) | null
-  onend: ((ev: Event) => void) | null
-}
-
-interface ISpeechRecognitionConstructor {
-  new (): ISpeechRecognition
-}
+// Web Speech API types come from @types/dom-speech-recognition (global).
 
 type VoiceInputProps = {
   onTranscript: (text: string) => void
@@ -47,7 +26,7 @@ export function VoiceInput({
       ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
   )
   const [language, setLanguage] = useState('hi-IN')
-  const recognitionRef = useRef<ISpeechRecognition | null>(null)
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
 
   const LANGUAGES = [
     { code: 'hi-IN', label: 'हिं' },
@@ -74,12 +53,8 @@ export function VoiceInput({
   const popupShadow  = 'var(--shadow-md)'
 
   function startListening() {
-    const w = window as typeof window & {
-      webkitSpeechRecognition?: ISpeechRecognitionConstructor
-      SpeechRecognition?: ISpeechRecognitionConstructor
-    }
     const SpeechRecognitionAPI =
-      w.webkitSpeechRecognition ?? w.SpeechRecognition
+      window.webkitSpeechRecognition ?? window.SpeechRecognition
 
     if (!SpeechRecognitionAPI) return
 
@@ -96,7 +71,7 @@ export function VoiceInput({
       setTranscript('')
     }
 
-    recognition.onresult = (event: ISpeechRecognitionEvent) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interim = ''
       let final = ''
 
