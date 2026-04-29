@@ -252,20 +252,47 @@ export default function InstitutionsLandingPage() {
             </p>
           </header>
 
+          {/* Tile + CTA hover styles — local to this section so the rest of
+              the marketing page stays unaffected. CSS-only hover keeps the
+              page a Server Component (no React state required). */}
+          <style>{`
+            .saathi-tile{
+              transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            }
+            .saathi-tile:hover{
+              transform: translateY(-3px);
+              border-color: var(--gold);
+              box-shadow: var(--elevation-3-hover);
+            }
+            .saathi-more-cta{
+              transition: color 0.2s ease, border-color 0.2s ease;
+              border-bottom: 1px dashed transparent;
+            }
+            .saathi-more-cta:hover{
+              color: var(--gold);
+              border-bottom-color: var(--gold);
+            }
+          `}</style>
+
           <div style={{
             display: 'grid',
             gap: 12,
             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
           }}>
             {SHOWCASE.map((t) => (
-              <article
+              <Link
                 key={t.name}
+                href="/explore"
+                className="saathi-tile"
                 style={{
                   padding: 20,
                   borderRadius: 'var(--radius-std)',
                   background: 'var(--bg-surface)',
                   border: '1px solid var(--border-subtle)',
                   boxShadow: 'var(--elevation-2)',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  display: 'block',
                 }}
               >
                 <div style={{
@@ -297,19 +324,29 @@ export default function InstitutionsLandingPage() {
                 }}>
                   {t.tools.join(' · ')}
                 </p>
-              </article>
+              </Link>
             ))}
           </div>
 
-          <p style={{
+          <div style={{
             marginTop: 28,
             textAlign: 'center',
-            fontSize: 14,
-            color: 'var(--text-tertiary)',
-            fontStyle: 'italic',
           }}>
-            + 21 more subjects covered — the full 30 Saathi library.
-          </p>
+            <Link
+              href="/explore"
+              className="saathi-more-cta"
+              style={{
+                display: 'inline-block',
+                fontSize: 14,
+                color: 'var(--text-tertiary)',
+                fontStyle: 'italic',
+                textDecoration: 'none',
+                paddingBottom: 1,
+              }}
+            >
+              + 21 more subjects covered — see the full 30 Saathi library →
+            </Link>
+          </div>
         </div>
       </section>
 
