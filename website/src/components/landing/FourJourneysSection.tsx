@@ -7,7 +7,7 @@ import type { ReactNode } from 'react'
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
-type RoleId = 'student' | 'faculty' | 'public' | 'institution'
+type RoleId = 'student' | 'faculty' | 'public' | 'institution' | 'educational_institution'
 
 type RoleContent = {
   heading: string
@@ -19,13 +19,19 @@ type RoleContent = {
   ctaTextColor?: string          // optional override; defaults to navy #0B1F3A
   note: string
   spotlightCard?: ReactNode
+  // Optional secondary call-to-action shown next to the primary CTA. Used
+  // by the Educational Institution tab to surface "See pricing →" without
+  // pulling the visitor off the journey.
+  subCtaText?: string
+  subCtaLink?: string
 }
 
 const TABS: { id: RoleId; emoji: string; label: string }[] = [
-  { id: 'student', emoji: '🎓', label: 'Students' },
-  { id: 'faculty', emoji: '👨‍🏫', label: 'Faculty' },
-  { id: 'public', emoji: '🌐', label: 'General Public' },
-  { id: 'institution', emoji: '🏢', label: 'Institutions' },
+  { id: 'student',                emoji: '🎓',   label: 'Students' },
+  { id: 'faculty',                emoji: '👨‍🏫', label: 'Faculty' },
+  { id: 'public',                 emoji: '🌐',   label: 'General Public' },
+  { id: 'institution',            emoji: '🏢',   label: 'Institutions' },
+  { id: 'educational_institution', emoji: '🏫',  label: 'Educational Institution' },
 ]
 
 const ROLE_CONTENT: Record<RoleId, RoleContent> = {
@@ -243,6 +249,25 @@ const ROLE_CONTENT: Record<RoleId, RoleContent> = {
     ctaLink: '/login?role=institution',
     ctaColor: '#A78BFA',
     note: 'Verified by our team within 48 hours.',
+  },
+  educational_institution: {
+    heading: "Your faculty's knowledge deserves better tools.",
+    subheading:
+      'EdUsaathiAI gives every professor in your institution a research-grade interactive classroom — without requiring them to be technologists. Their knowledge stays at the centre. The platform carries everything else.',
+    bullets: [
+      'Interactive classroom for all 30 subjects',
+      'AI Teaching Assistant — faculty speaks, tools appear',
+      'Permanent Research Archive for every student session',
+      'Principal dashboard + one-click NAAC report',
+      '3 hours/day classroom window included (weekdays)',
+    ],
+    cta: 'Start Free Trial →',
+    ctaLink: '/education-institutions',
+    ctaColor: '#38BDF8',
+    ctaTextColor: '#0B1F3A',
+    note: 'Personal call from Jaydeep within 48 hours. No credit card.',
+    subCtaText: 'See pricing →',
+    subCtaLink: '/education-institutions#pricing',
   },
 }
 
@@ -464,6 +489,21 @@ export function FourJourneysSection() {
             >
               {content.cta}
             </Link>
+
+            {content.subCtaLink && content.subCtaText && (
+              <Link
+                href={content.subCtaLink}
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  color: '#C9993A',
+                  textDecoration: 'underline',
+                  textUnderlineOffset: '3px',
+                }}
+              >
+                {content.subCtaText}
+              </Link>
+            )}
 
             <p
               style={{

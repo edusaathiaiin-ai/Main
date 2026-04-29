@@ -65,9 +65,14 @@ export default async function RootPage() {
         .btn-primary:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 20px 60px rgba(201,153,58,0.4)}
         .btn-secondary{display:inline-flex;align-items:center;gap:8px;background:transparent;color:rgba(255,255,255,0.7);font-size:15px;font-weight:400;padding:16px 24px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);text-decoration:none;cursor:pointer;transition:all 0.3s ease}
         .btn-secondary:hover{color:#fff;border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.05)}
-        /* Role cards */
-        .role-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:900px;margin:0 auto 32px;animation:fadeUp 0.8s ease 0.5s both}
-        .role-card{border-radius:16px;padding:20px 16px;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform 0.25s ease,box-shadow 0.25s ease,border-color 0.25s ease;cursor:pointer}
+        /* Role cards — 5 cards laid out as 3 + 2 centered on desktop, 1 col on mobile.
+           6-col grid lets each card span 2 cols; the 4th + 5th use explicit
+           grid-column starts so the bottom row centers cleanly without any margin
+           hacks. */
+        .role-cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;max-width:900px;margin:0 auto 32px;animation:fadeUp 0.8s ease 0.5s both}
+        .role-card{grid-column:span 2;border-radius:16px;padding:20px 16px;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform 0.25s ease,box-shadow 0.25s ease,border-color 0.25s ease;cursor:pointer}
+        .role-card:nth-child(4){grid-column:2 / span 2}
+        .role-card:nth-child(5){grid-column:4 / span 2}
         .role-card:hover{transform:translateY(-4px)}
         .role-card-student{background:rgba(201,153,58,0.12);border:0.5px solid rgba(201,153,58,0.4)}
         .role-card-student:hover{border-color:rgba(201,153,58,0.8);box-shadow:0 16px 48px rgba(201,153,58,0.2)}
@@ -77,6 +82,8 @@ export default async function RootPage() {
         .role-card-public:hover{border-color:rgba(234,88,12,0.7);box-shadow:0 16px 48px rgba(234,88,12,0.15)}
         .role-card-institution{background:rgba(124,58,237,0.08);border:0.5px solid rgba(124,58,237,0.3)}
         .role-card-institution:hover{border-color:rgba(124,58,237,0.7);box-shadow:0 16px 48px rgba(124,58,237,0.15)}
+        .role-card-edu{background:rgba(56,189,248,0.10);border:0.5px solid rgba(56,189,248,0.35)}
+        .role-card-edu:hover{border-color:rgba(56,189,248,0.75);box-shadow:0 16px 48px rgba(56,189,248,0.18)}
         /* For-everyone tabs */
         .role-tabs{display:flex;gap:4px;background:rgba(255,255,255,0.04);border-radius:14px;padding:4px;width:fit-content;margin:0 auto 48px}
         .role-tab{padding:10px 24px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,0.45);transition:all 0.2s}
@@ -86,7 +93,9 @@ export default async function RootPage() {
         .role-feature-list li{display:flex;align-items:flex-start;gap:12px;font-size:15px;color:rgba(255,255,255,0.7);line-height:1.6}
         .role-feature-list li::before{content:'✓';color:var(--gold);font-weight:700;flex-shrink:0;margin-top:1px}
         @media(max-width:768px){
-          .role-cards{grid-template-columns:repeat(2,1fr)}
+          /* All 5 stack vertically on mobile — odd count makes any grid awkward */
+          .role-cards{grid-template-columns:1fr}
+          .role-card,.role-card:nth-child(4),.role-card:nth-child(5){grid-column:auto}
           .role-tabs{flex-wrap:wrap;justify-content:center}
         }
         .hero-stats{display:flex;align-items:center;justify-content:center;gap:48px;margin-top:40px;animation:fadeUp 0.8s ease 0.6s both}
@@ -336,6 +345,43 @@ export default async function RootPage() {
                 }}
               >
                 Partner with us →
+              </span>
+            </a>
+            <a
+              href="/education-institutions"
+              className="role-card role-card-edu"
+            >
+              <span style={{ fontSize: '32px' }}>🏫</span>
+              <span
+                style={{
+                  fontFamily: 'Playfair Display',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#38BDF8',
+                }}
+              >
+                We are an Educational Institution
+              </span>
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.5)',
+                  textAlign: 'center',
+                  lineHeight: '1.5',
+                }}
+              >
+                Bring a research-grade interactive classroom to every faculty
+                member — from BSc to doctoral level
+              </span>
+              <span
+                style={{
+                  fontSize: '12px',
+                  color: '#38BDF8',
+                  fontWeight: '600',
+                  marginTop: '4px',
+                }}
+              >
+                Start free trial →
               </span>
             </a>
           </div>
