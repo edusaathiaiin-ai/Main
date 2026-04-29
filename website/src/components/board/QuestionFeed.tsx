@@ -79,13 +79,20 @@ export function QuestionFeed() {
   const { mode } = useThemeStore()
   const searchParams = useSearchParams()
 
-  const saathiSlug =
+  const resolvedSlug =
     toSlug(activeSaathiId) ??
     toSlug(profile?.primary_saathi_id) ??
-    SAATHIS[0].id
-  const activeSaathi: Saathi =
-    SAATHIS.find((s) => s.id === saathiSlug) ?? SAATHIS[0]
-  const isLegalTheme = activeSaathi.theme === 'legal' && mode === 'light'
+    null
+  const resolvedSaathi: Saathi | null = resolvedSlug
+    ? SAATHIS.find((s) => s.id === resolvedSlug) ?? null
+    : null
+  // Hooks below need non-null types for saathiSlug + activeSaathi. The
+  // SAATHIS[0] coalesce here is the type-narrowing dummy ONLY; the
+  // !resolvedSaathi early-return below means these defaults never reach
+  // runtime — render exits before any hook reads them in the null state.
+  const saathiSlug = resolvedSlug ?? ''
+  const activeSaathi = (resolvedSaathi ?? SAATHIS[0]) as Saathi
+  const isLegalTheme = resolvedSaathi?.theme === 'legal' && mode === 'light'
 
   const [verticalUuid, setVerticalUuid] = useState<string | null>(null)
   const [questions, setQuestions] = useState<QWithMeta[]>([])
@@ -277,6 +284,24 @@ export function QuestionFeed() {
   }
 
   const hasMore = questions.length < totalCount
+
+  if (!resolvedSaathi) {
+    return (
+      <div
+        className="flex h-screen items-center justify-center px-6 text-center"
+        style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
+      >
+        <div>
+          <p className="mb-3 text-sm">
+            We couldn&apos;t resolve your Saathi for the board.
+          </p>
+          <a href="/onboard" style={{ color: 'var(--gold)' }}>
+            Pick your Saathi →
+          </a>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div

@@ -655,85 +655,85 @@
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 448,
+    "line": 452,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 502,
+    "line": 506,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 524,
+    "line": 528,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 578,
+    "line": 582,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 801,
+    "line": 805,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 949,
+    "line": 953,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 1065,
+    "line": 1069,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 1095,
+    "line": 1099,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 1357,
+    "line": 1361,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 1384,
+    "line": 1388,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 1459,
+    "line": 1463,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 1488,
+    "line": 1492,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 1515,
+    "line": 1519,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "app/(app)/learn/page.tsx",
-    "line": 1540,
+    "line": 1544,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
@@ -1009,25 +1009,25 @@
   },
   {
     "file": "components/board/QuestionFeed.tsx",
-    "line": 464,
+    "line": 489,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#FFFFFF',"
   },
   {
     "file": "components/board/QuestionFeed.tsx",
-    "line": 599,
+    "line": 624,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "components/board/QuestionFeed.tsx",
-    "line": 642,
+    "line": 667,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "style={{ background: 'var(--saathi-primary)', color: '#FFFFFF' }}"
   },
   {
     "file": "components/board/QuestionFeed.tsx",
-    "line": 660,
+    "line": 685,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "style={{ background: 'var(--saathi-primary)', color: '#FFFFFF' }}"
   },
@@ -1465,13 +1465,13 @@
   },
   {
     "file": "components/flashcards/FlashcardsClient.tsx",
-    "line": 359,
+    "line": 361,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
   {
     "file": "components/flashcards/FlashcardsClient.tsx",
-    "line": 399,
+    "line": 401,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },
@@ -1579,7 +1579,7 @@
   },
   {
     "file": "components/progress/ProgressClient.tsx",
-    "line": 18,
+    "line": 45,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color: '#fff',"
   },

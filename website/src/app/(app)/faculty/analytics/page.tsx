@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import { SAATHIS } from '@/constants/saathis'
+import { toSlug } from '@/constants/verticalIds'
 import Link from 'next/link'
 
 type AnswerRow = {
@@ -56,8 +57,12 @@ export default function FacultyAnalyticsPage() {
               .includes(s.name.toLowerCase().replace('saathi', '').trim())
         )
       )
+      // Resolution chain: matched-by-expertise → faculty's primary saathi
+      // (UUID → slug). Empty string when neither resolves so downstream
+      // queries keyed on saathiId surface as "no Saathi yet" rather than
+      // silently mining KanoonSaathi data.
       const saathiId =
-        matchedSaathi?.id ?? profile!.primary_saathi_id ?? SAATHIS[0].id
+        matchedSaathi?.id ?? toSlug(profile!.primary_saathi_id) ?? ''
       setFacultySaathiId(saathiId)
 
       // Total answers

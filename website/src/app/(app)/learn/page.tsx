@@ -362,7 +362,11 @@ function DeclareForm({
   const [done, setDone] = useState(false)
   const [newIntentId, setNewIntentId] = useState('')
 
-  const saathi = SAATHIS.find((s) => s.id === verticalId) ?? SAATHIS[0]
+  // verticalId comes from the parent's selector — if it doesn't resolve
+  // (e.g. user hasn't picked yet), keep saathiName generic instead of
+  // mailing it to the AI as "KanoonSaathi" by accident.
+  const saathi = SAATHIS.find((s) => s.id === verticalId) ?? null
+  const saathiName = saathi?.name ?? 'Saathi'
 
   async function fetchTagSuggestions() {
     if (!topic.trim() || topic.trim().length < 5) return
@@ -371,7 +375,7 @@ function DeclareForm({
       const res = await fetch('/api/learn/suggest-tags', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, saathiName: saathi.name }),
+        body: JSON.stringify({ topic, saathiName }),
       })
       if (res.ok) {
         const data = (await res.json()) as { tags: string[] }
@@ -1643,7 +1647,7 @@ export default function LearnPage() {
         {/* Declare tab */}
         {tab === 'declare' && (
           <DeclareForm
-            defaultVerticalId={saathiId ?? SAATHIS[0].id}
+            defaultVerticalId={toSlug(saathiId) ?? ''}
             onSuccess={() => setTab('browse')}
           />
         )}

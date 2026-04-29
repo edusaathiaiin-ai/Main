@@ -57,12 +57,13 @@ export function ProfileClient() {
   const { profile } = useAuthStore()
   const { activeSaathiId } = useChatStore()
 
-  const saathiId =
+  const resolvedSlug =
     toSlug(activeSaathiId) ??
     toSlug(profile?.primary_saathi_id) ??
-    SAATHIS[0].id
-  const activeSaathi: Saathi =
-    SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
+    null
+  const resolvedSaathi: Saathi | null = resolvedSlug
+    ? SAATHIS.find((s) => s.id === resolvedSlug) ?? null
+    : null
 
   const urlTab = searchParams.get('tab')
   const [activeTab, setActiveTab] = useState<Tab>(
@@ -110,6 +111,27 @@ export function ProfileClient() {
     )
   }
 
+  if (!resolvedSaathi) {
+    return (
+      <div
+        className="flex h-screen items-center justify-center px-6 text-center"
+        style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
+      >
+        <div>
+          <p className="mb-3 text-sm">
+            We couldn&apos;t resolve your Saathi for the profile view.
+          </p>
+          <a href="/onboard" style={{ color: 'var(--gold)' }}>
+            Pick your Saathi →
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  // Past the early returns: TypeScript narrows resolvedSaathi to non-null.
+  const saathiId: string = resolvedSlug ?? ''
+  const activeSaathi: Saathi = resolvedSaathi
   const color = activeSaathi.primary
 
   // "My Soul" reads student_soul (academic_level, future_research_area,

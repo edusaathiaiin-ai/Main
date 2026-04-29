@@ -17,10 +17,10 @@ export function useSaathi(saathiId?: string): Saathi | null {
 export function usePrimarySaathi(): Saathi | null {
   const { profile } = useAuthStore()
   return useMemo(() => {
-    const slug =
-      UUID_TO_SLUG[profile?.primary_saathi_id ?? ''] ??
-      profile?.primary_saathi_id
-    return SAATHIS.find((s) => s.id === slug) ?? SAATHIS[0]
+    const raw = profile?.primary_saathi_id
+    if (!raw) return null
+    const slug = UUID_TO_SLUG[raw] ?? raw
+    return SAATHIS.find((s) => s.id === slug) ?? null
   }, [profile?.primary_saathi_id])
 }
 

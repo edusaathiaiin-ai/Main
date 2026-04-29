@@ -282,8 +282,11 @@ export function ChatWelcomeGate({
       // Only show for first-ever session (session_count === 0)
       if (sessionCount > 0) return
 
-      // Find saathi from constants
-      const found = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
+      // Find saathi from constants. If the slug doesn't resolve, skip
+      // showing the overlay rather than welcoming the student to KanoonSaathi
+      // by accident — they'll see the regular chat shell instead.
+      const found = SAATHIS.find((s) => s.id === saathiId) ?? null
+      if (!found) return
       setSaathi(found)
 
       // Check if welcome was already shown (client-side guard using localStorage as fallback)

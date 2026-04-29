@@ -67,18 +67,28 @@ export function NewsFeed() {
   const { profile } = useAuthStore()
   const { activeSaathiId } = useChatStore()
 
-  const saathiId =
+  // Slug is the lookup key for SAATHIS. Resolve from active store ↦ profile;
+  // if neither yields a slug we render a "pick your Saathi" prompt below
+  // instead of silently theming as KanoonSaathi (the SAATHIS[0] trap).
+  const saathiSlug =
     toSlug(activeSaathiId) ??
     toSlug(profile?.primary_saathi_id) ??
-    SAATHIS[0].id
+    null
   // verticalUuid is the UUID FK required for all DB queries — never insert slugs into vertical_id
   const verticalUuid =
     profile?.primary_saathi_id ??
     toVerticalUuid(activeSaathiId) ??
-    toVerticalUuid(saathiId) ??
+    (saathiSlug ? toVerticalUuid(saathiSlug) : null) ??
     ''
-  const activeSaathi: Saathi =
-    SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
+  const resolvedSaathi: Saathi | null = saathiSlug
+    ? SAATHIS.find((s) => s.id === saathiSlug) ?? null
+    : null
+  // Hooks below need non-null types for saathiId + activeSaathi. The
+  // SAATHIS[0] coalesce here is the type-narrowing dummy ONLY; the
+  // !resolvedSaathi early-return below means these defaults never reach
+  // runtime — render exits before any hook reads them in the null state.
+  const saathiId = saathiSlug ?? ''
+  const activeSaathi = (resolvedSaathi ?? SAATHIS[0]) as Saathi
 
   const [newsItems, setNewsItems] = useState<ExtNewsItem[]>([])
   const [examAlerts, setExamAlerts] = useState<ExamAlert[]>([])
@@ -254,6 +264,24 @@ export function NewsFeed() {
         : filteredNews
 
   const showExams = activeTab === 'all' || activeTab === 'exams'
+
+  if (!resolvedSaathi) {
+    return (
+      <div
+        className="flex h-screen items-center justify-center px-6 text-center"
+        style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
+      >
+        <div>
+          <p className="mb-3 text-sm">
+            We couldn&apos;t resolve your Saathi for the news feed.
+          </p>
+          <a href="/onboard" style={{ color: 'var(--gold)' }}>
+            Pick your Saathi →
+          </a>
+        </div>
+      </div>
+    )
+  }
 
   if (!profile) {
     return (

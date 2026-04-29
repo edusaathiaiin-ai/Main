@@ -301,8 +301,10 @@ export function FlashcardsClient({ saathiId }: Props) {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'due' | 'all'>('due')
 
-  const saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
-  const primaryColor = saathi.primary
+  const saathi = SAATHIS.find((s) => s.id === saathiId) ?? null
+  // Fall back to platform gold (not KanoonSaathi) when the slug doesn't
+  // resolve — accents stay neutral instead of silently themeing as Law.
+  const primaryColor = saathi?.primary ?? 'var(--gold)'
 
   const load = useCallback(async () => {
     const supabase = createClient()

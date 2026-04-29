@@ -162,8 +162,12 @@ function ApplicationStatusBadge({
 
 function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
   const { profile } = useAuthStore()
+  // Default the dropdown to the faculty's own primary Saathi (slug). When
+  // the profile hasn't loaded yet or has no resolvable Saathi, leave the
+  // field empty — better to force a deliberate pick than silently default
+  // to KanoonSaathi (the SAATHIS[0] trap).
   const [form, setForm] = useState({
-    vertical_id: SAATHIS[0].id,
+    vertical_id: toSlug(profile?.primary_saathi_id) ?? '',
     title: '',
     description: '',
     what_you_will_do: '',

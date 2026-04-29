@@ -450,20 +450,29 @@ export function ChatWindow() {
     null
   )
 
-  // Resolve active Saathi — primary_saathi_id is UUID, SAATHIS uses slugs
-  const saathiId =
+  // Resolve active Saathi — primary_saathi_id is UUID, SAATHIS uses slugs.
+  // Resolved-null is the load-state path; we early-return below rather
+  // than silently theme as KanoonSaathi (the SAATHIS[0] trap).
+  const resolvedSlug =
     toSlug(activeSaathiId) ??
     toSlug(profile?.primary_saathi_id) ??
-    SAATHIS[0].id
-  const activeSaathi: Saathi =
-    SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
+    null
+  const resolvedSaathi: Saathi | null = resolvedSlug
+    ? SAATHIS.find((s) => s.id === resolvedSlug) ?? null
+    : null
+  // Hooks below need non-null types for saathiId + activeSaathi. The
+  // SAATHIS[0] coalesce here is the type-narrowing dummy ONLY; the
+  // !resolvedSaathi early-return below means these defaults never reach
+  // runtime — render exits before any hook reads them in the null state.
+  const saathiId = resolvedSlug ?? ''
+  const activeSaathi = (resolvedSaathi ?? SAATHIS[0]) as Saathi
   const isFacultyView = profile?.role === 'faculty' && viewAs === 'faculty'
   const activeBotList = isFacultyView ? FACULTY_BOTS : BOTS
   const activeBot = activeBotList.find((b) => b.slot === activeBotSlot) ?? activeBotList[0]
   const theme = getSaathiTheme(saathiId, mode)
 
   // Legal theme = KanoonSaathi in day (light) mode
-  const isLegalTheme = activeSaathi.theme === 'legal' && mode === 'light'
+  const isLegalTheme = resolvedSaathi?.theme === 'legal' && mode === 'light'
 
   // Apply per-Saathi CSS variable world to body
   useEffect(() => {
@@ -584,7 +593,8 @@ export function ChatWindow() {
   useEffect(() => {
     if (!profile) return
     const sid = profile.primary_saathi_id ?? '' // UUID for DB queries
-    const sidSlug = toSlug(sid) ?? SAATHIS[0].id // slug for chatStore / SAATHIS lookup
+    const sidSlug = toSlug(sid)
+    if (!sidSlug) return // No resolvable Saathi — let the lobby copy lead
     setActiveSaathi(sidSlug)
 
     // Per-saathi theme preference (stored in localStorage)
@@ -972,6 +982,26 @@ export function ChatWindow() {
           className="h-8 w-8 animate-spin rounded-full border-2 border-white/10"
           style={{ borderTopColor: '#C9993A' }}
         />
+      </div>
+    )
+  }
+
+  // Profile loaded but no resolvable Saathi — surface a real prompt
+  // instead of silently theming the chat as KanoonSaathi.
+  if (!resolvedSaathi) {
+    return (
+      <div
+        className="flex h-screen w-full items-center justify-center px-6 text-center"
+        style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
+      >
+        <div>
+          <p className="mb-3 text-sm">
+            We couldn&apos;t resolve your Saathi for chat.
+          </p>
+          <a href="/onboard" style={{ color: 'var(--gold)' }}>
+            Pick your Saathi →
+          </a>
+        </div>
       </div>
     )
   }

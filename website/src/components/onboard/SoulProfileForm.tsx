@@ -356,7 +356,10 @@ function SoulPreviewPanel({
   saathiId: string | null
   pct: number
 }) {
-  const saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
+  // Onboarding preview — the panel can render before the user has picked
+  // a Saathi. Render-friendly fallback to the platform gold rather than
+  // KanoonSaathi when no slug resolves.
+  const saathi = SAATHIS.find((s) => s.id === saathiId) ?? null
   const milestone = getMilestoneLabel(pct)
 
   return (
@@ -394,14 +397,15 @@ function SoulPreviewPanel({
         </motion.div>
       )}
 
-      {/* Saathi emoji */}
+      {/* Saathi emoji — only when a slug resolves to one of the 30. The
+          star is the platform-neutral placeholder while picking. */}
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <motion.span
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
           style={{ fontSize: '40px', display: 'block', lineHeight: 1 }}
         >
-          {saathi.emoji}
+          {saathi?.emoji ?? '✦'}
         </motion.span>
         <p
           style={{
@@ -411,7 +415,9 @@ function SoulPreviewPanel({
             fontStyle: 'italic',
           }}
         >
-          Your {saathi.name} is learning about you
+          {saathi
+            ? `Your ${saathi.name} is learning about you`
+            : 'Your Saathi is learning about you'}
         </p>
       </div>
 
@@ -699,8 +705,11 @@ export function SoulProfileForm({
     return () => clearInterval(interval)
   }, [])
 
-  const saathi = SAATHIS.find((s) => s.id === saathiId) ?? SAATHIS[0]
-  const primaryColor = saathi.primary
+  // Onboarding form runs before a Saathi is locked in for some users —
+  // keep the form usable when the slug doesn't resolve, with a neutral
+  // gold accent instead of silently theming as KanoonSaathi.
+  const saathi = SAATHIS.find((s) => s.id === saathiId) ?? null
+  const primaryColor = saathi?.primary ?? 'var(--gold)'
 
   const subjectOptions = getSubjectChips(saathiId ?? '')
   const interestOptions = getInterestChips(saathiId ?? '')
@@ -906,7 +915,7 @@ export function SoulProfileForm({
             gap: '12px',
           }}
         >
-          <span style={{ fontSize: '28px' }}>{saathi.emoji}</span>
+          <span style={{ fontSize: '28px' }}>{saathi?.emoji ?? '✦'}</span>
           <div style={{ flex: 1 }}>
             <div
               style={{

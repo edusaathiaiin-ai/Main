@@ -282,7 +282,7 @@ export default function InstitutionsLandingPage() {
             {SHOWCASE.map((t) => (
               <Link
                 key={t.name}
-                href="/explore"
+                href="/#saathis"
                 className="saathi-tile"
                 style={{
                   padding: 20,
