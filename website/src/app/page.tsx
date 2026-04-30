@@ -72,7 +72,7 @@ export default async function RootPage() {
            the same width as the row above's combined trio (minus the gap).
            min-width:0 keeps long titles from forcing the flex basis bigger. */
         .role-cards{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:900px;margin:0 auto 32px;animation:fadeUp 0.8s ease 0.5s both}
-        .role-card{flex:1 1 calc((100% - 24px) / 3);min-width:0;box-sizing:border-box;border-radius:16px;padding:20px 16px;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform 0.25s ease,box-shadow 0.25s ease,border-color 0.25s ease;cursor:pointer}
+        .role-card{flex:1 1 calc((100% - 24px) / 3);min-width:0;min-height:200px;box-sizing:border-box;border-radius:16px;padding:20px 16px;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;transition:transform 0.25s ease,box-shadow 0.25s ease,border-color 0.25s ease;cursor:pointer}
         .role-card:hover{transform:translateY(-4px)}
         .role-card-student{background:rgba(201,153,58,0.12);border:0.5px solid rgba(201,153,58,0.4)}
         .role-card-student:hover{border-color:rgba(201,153,58,0.8);box-shadow:0 16px 48px rgba(201,153,58,0.2)}
