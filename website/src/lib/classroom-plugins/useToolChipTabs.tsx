@@ -39,6 +39,7 @@ import { getCircuitVerseChipsFor } from '@/lib/classroom-data/circuitVerse'
 import { getTinkercadChipsFor } from '@/lib/classroom-data/tinkercadCircuits'
 import { getSimScaleChipsFor } from '@/lib/classroom-data/simScale'
 import { getJscadChipsFor } from '@/lib/classroom-data/jscadCAD'
+import { getDesmosChipsFor } from '@/lib/classroom-data/desmos'
 import { getScenariosFor } from '@/lib/classroom-data/canSim'
 import { getDesktopResourcesFor } from '@/lib/classroom-data/desktopResources'
 
@@ -58,6 +59,7 @@ export type ToolTabId =
   | 'tool_tinkercad'
   | 'tool_simscale'
   | 'tool_jscad'
+  | 'tool_desmos'
   | 'tool_scenarios'
   | 'tool_resources'
 
@@ -191,6 +193,15 @@ const SPECS: Spec[] = [
     build: (slug) => {
       const chips = getJscadChipsFor(slug)
       return chips.length === 0 ? null : <ToolChipPanel label="JSCAD" chips={chips} />
+    },
+  },
+  {
+    id: 'tool_desmos',
+    label: '📊 Desmos',
+    sources: 'Desmos (graphing · geometry · 3D · scientific)',
+    build: (slug) => {
+      const chips = getDesmosChipsFor(slug)
+      return chips.length === 0 ? null : <ToolChipPanel label="Desmos" chips={chips} />
     },
   },
   {
