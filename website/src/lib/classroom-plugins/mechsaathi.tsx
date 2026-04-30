@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
+import { getToolTabsFor } from './useToolChipTabs'
 
-const TABS = ['Canvas', 'GeoGebra', 'PhET Sims', 'Sketchfab 3D'] as const
-type Tab = typeof TABS[number]
+const BASE_TABS = ['Canvas', 'GeoGebra', 'PhET Sims', 'Sketchfab 3D'] as const
+type BaseTab = typeof BASE_TABS[number]
+type Tab = BaseTab | string
 
 const PHET_SIMS = [
   { id: 'forces-and-motion-basics', name: 'Forces & Motion' },
@@ -31,10 +33,17 @@ function MechPlugin({ role, activeTab, onTabChange }: PluginProps) {
   const [model, setModel] = useState(SKETCHFAB[0].id)
   useEffect(() => { if (!activeTab) onTabChange?.('Canvas') }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('mechsaathi')
+  const allTabs: { id: Tab; label: string }[] = [
+    ...BASE_TABS.map((t) => ({ id: t as Tab, label: t })),
+    ...toolTabs.map((t) => ({ id: t.id as Tab, label: t.label })),
+  ]
+  const toolNode = renderToolTab(currentTab)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', gap: '2px', padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', flexWrap: 'wrap' }}>
-        {TABS.map((t) => (<button key={t} onClick={() => setTab(t)} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: currentTab === t ? 700 : 500, background: currentTab === t ? 'var(--saathi-primary)' : 'transparent', color: currentTab === t ? '#fff' : 'var(--text-secondary)', border: currentTab === t ? 'none' : '1px solid var(--border-subtle)', cursor: 'pointer' }}>{t}</button>))}
+        {allTabs.map((t) => (<button key={t.id} onClick={() => setTab(t.id)} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: currentTab === t.id ? 700 : 500, background: currentTab === t.id ? 'var(--saathi-primary)' : 'transparent', color: currentTab === t.id ? '#fff' : 'var(--text-secondary)', border: currentTab === t.id ? 'none' : '1px solid var(--border-subtle)', cursor: 'pointer' }}>{t.label}</button>))}
       </div>
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <div style={{ display: currentTab === 'Canvas' ? 'block' : 'none', height: '100%' }}><CollaborativeCanvas role={role} /></div>
@@ -59,6 +68,7 @@ function MechPlugin({ role, activeTab, onTabChange }: PluginProps) {
           </div>
           <FullscreenPanel label="Sketchfab 3D"><iframe title="Sketchfab 3D" src={`https://sketchfab.com/models/${model}/embed?autospin=1&ui_theme=dark&ui_infos=0&ui_watermark=0`} style={{ width: '100%', height: '100%', border: 'none' }} allow="autoplay; fullscreen; xr-spatial-tracking" sandbox="allow-scripts allow-same-origin allow-popups" /></FullscreenPanel>
         </div>
+        {toolNode && <div style={{ height: '100%' }}>{toolNode}</div>}
       </div>
     </div>
   )
