@@ -349,6 +349,17 @@ const PISTON: FacultyTool = {
   sourceUrl:    'https://github.com/engineer-man/piston',
 }
 
+const COMPILER_EXPLORER: FacultyTool = {
+  id:           'godbolt',
+  name:         'Compiler Explorer',
+  emoji:        '⚙️',
+  shortLabel:   'CX',
+  description:  'See C/C++/Java/Rust → assembly across x86/ARM/RISC-V. GATE Computer Architecture staple.',
+  samplePrompt: 'Show this loop compiled to x86-64 with -O2',
+  sourceLabel:  'godbolt.org · Free · Open-source',
+  sourceUrl:    'https://godbolt.org/',
+}
+
 const FRED: FacultyTool = {
   id:           'fred',
   name:         'FRED',
@@ -435,7 +446,7 @@ export const FACULTY_BASKETS: Record<string, FacultyBasket> = {
   compsaathi: {
     headerLabel: "💻 CompSaathi's Code Desk",
     invitation:  'Draft, run, debug — in-browser, no setup.',
-    tools:       [MONACO, PISTON, SEMANTIC_SCHOLAR],
+    tools:       [MONACO, PISTON, COMPILER_EXPLORER, SEMANTIC_SCHOLAR],
   },
   mechsaathi: {
     headerLabel: "⚙️ MechSaathi's Workshop",
@@ -461,7 +472,7 @@ export const FACULTY_BASKETS: Record<string, FacultyBasket> = {
   electronicssaathi: {
     headerLabel: "🔌 ElectronicsSaathi's Bench",
     invitation:  'Signal, systems, circuits — all free-tier.',
-    tools:       [FALSTAD, GEOGEBRA, PHET, SAGEMATHCELL],
+    tools:       [FALSTAD, COMPILER_EXPLORER, GEOGEBRA, PHET, SAGEMATHCELL],
   },
   'chemengg-saathi': {
     headerLabel: "⚗️ ChemEnggSaathi's Process Desk",

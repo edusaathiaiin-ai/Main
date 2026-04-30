@@ -40,6 +40,7 @@ import { getTinkercadChipsFor } from '@/lib/classroom-data/tinkercadCircuits'
 import { getSimScaleChipsFor } from '@/lib/classroom-data/simScale'
 import { getJscadChipsFor } from '@/lib/classroom-data/jscadCAD'
 import { getDesmosChipsFor } from '@/lib/classroom-data/desmos'
+import { getCompilerExplorerChipsFor } from '@/lib/classroom-data/compilerExplorer'
 import { getScenariosFor } from '@/lib/classroom-data/canSim'
 import { getDesktopResourcesFor } from '@/lib/classroom-data/desktopResources'
 
@@ -60,6 +61,7 @@ export type ToolTabId =
   | 'tool_simscale'
   | 'tool_jscad'
   | 'tool_desmos'
+  | 'tool_godbolt'
   | 'tool_scenarios'
   | 'tool_resources'
 
@@ -202,6 +204,15 @@ const SPECS: Spec[] = [
     build: (slug) => {
       const chips = getDesmosChipsFor(slug)
       return chips.length === 0 ? null : <ToolChipPanel label="Desmos" chips={chips} />
+    },
+  },
+  {
+    id: 'tool_godbolt',
+    label: '⚙️ Compiler Explorer',
+    sources: 'Compiler Explorer (godbolt.org) — open-source',
+    build: (slug) => {
+      const chips = getCompilerExplorerChipsFor(slug)
+      return chips.length === 0 ? null : <ToolChipPanel label="Compiler Explorer" chips={chips} />
     },
   },
   {
