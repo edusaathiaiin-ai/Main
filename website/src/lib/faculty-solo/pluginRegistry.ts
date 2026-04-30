@@ -360,6 +360,129 @@ const COMPILER_EXPLORER: FacultyTool = {
   sourceUrl:    'https://godbolt.org/',
 }
 
+// ─── Cross-Saathi tool sweep additions ──────────────────────────────────────
+
+const VIRTUAL_LABS: FacultyTool = {
+  id:           'vlab',
+  name:         'Virtual Labs',
+  emoji:        '🇮🇳',
+  shortLabel:   'VL',
+  description:  'Indian Govt + IIT virtual labs — AICTE-aligned curriculum coverage across engineering + sciences.',
+  samplePrompt: 'Open the Mass Transfer lab for tomorrow\'s lecture demo',
+  sourceLabel:  'vlab.co.in · Free · MoE / IIT consortium',
+  sourceUrl:    'https://vlab.amrita.edu/',
+}
+
+const SIMSCALE: FacultyTool = {
+  id:           'simscale',
+  name:         'SimScale',
+  emoji:        '💨',
+  shortLabel:   'SS',
+  description:  'Cloud CFD / FEA / thermal — academic tier free for faculty research.',
+  samplePrompt: 'Browse public CFD projects for laminar flow examples',
+  sourceLabel:  'simscale.com · Free academic tier · Hosted',
+  sourceUrl:    'https://www.simscale.com/projects/',
+}
+
+const MERLOT: FacultyTool = {
+  id:           'merlot',
+  name:         'MERLOT',
+  emoji:        '📚',
+  shortLabel:   'MR',
+  description:  'CSU multi-institution catalog of vetted educational resources for engineering + sciences.',
+  samplePrompt: 'Find peer-reviewed simulations for fluid dynamics',
+  sourceLabel:  'merlot.org · Free · Higher-ed catalog',
+  sourceUrl:    'https://www.merlot.org/',
+}
+
+const JSCAD: FacultyTool = {
+  id:           'jscad',
+  name:         'JSCAD',
+  emoji:        '📐',
+  shortLabel:   'JC',
+  description:  'Open-source parametric CAD in pure JavaScript — runs in browser, no install.',
+  samplePrompt: 'Sketch a simple gear via parametric code',
+  sourceLabel:  'openjscad.xyz · Free · Open-source',
+  sourceUrl:    'https://openjscad.xyz/',
+}
+
+const LABXCHANGE: FacultyTool = {
+  id:           'labxchange',
+  name:         'LabXchange',
+  emoji:        '🧫',
+  shortLabel:   'LX',
+  description:  'Harvard / Amgen virtual labs + interactives across biology, medicine, chemistry.',
+  samplePrompt: 'Pull the PCR virtual lab for next session',
+  sourceLabel:  'labxchange.org · Free · Harvard / Amgen Foundation',
+  sourceUrl:    'https://www.labxchange.org/',
+}
+
+const HHMI_BIOINTERACTIVE: FacultyTool = {
+  id:           'hhmi',
+  name:         'HHMI BioInteractive',
+  emoji:        '🧬',
+  shortLabel:   'HH',
+  description:  'Howard Hughes Medical Institute Click & Learn interactives — evolution, CRISPR, ecology, physiology.',
+  samplePrompt: 'Find the Stickleback Evolution lab for this lecture',
+  sourceLabel:  'biointeractive.org · Free · HHMI',
+  sourceUrl:    'https://www.biointeractive.org/',
+}
+
+const LEARN_GENETICS: FacultyTool = {
+  id:           'learngenetics',
+  name:         'Learn.Genetics',
+  emoji:        '🔬',
+  shortLabel:   'LG',
+  description:  'University of Utah genetics — PCR, gel electrophoresis, cloning, microarrays virtual labs.',
+  samplePrompt: 'Open the gel electrophoresis virtual lab',
+  sourceLabel:  'learn.genetics.utah.edu · Free · Univ. of Utah',
+  sourceUrl:    'https://learn.genetics.utah.edu/',
+}
+
+const CHEM_COLLECTIVE: FacultyTool = {
+  id:           'chemcollective',
+  name:         'ChemCollective',
+  emoji:        '⚗️',
+  shortLabel:   'CC',
+  description:  'Carnegie Mellon virtual chemistry labs — stoichiometry, acid-base, equilibrium scenarios.',
+  samplePrompt: 'Pull the titration virtual lab',
+  sourceLabel:  'chemcollective.org · Free · Carnegie Mellon',
+  sourceUrl:    'https://chemcollective.org/',
+}
+
+const CIRCUITVERSE: FacultyTool = {
+  id:           'circuitverse',
+  name:         'CircuitVerse',
+  emoji:        '⚡',
+  shortLabel:   'CV',
+  description:  'Open-source online digital logic simulator. Logic gates, ALU, sequential circuits.',
+  samplePrompt: 'Build a 4-bit adder for next class',
+  sourceLabel:  'circuitverse.org · Free · Open-source',
+  sourceUrl:    'https://circuitverse.org/',
+}
+
+const CONCORD: FacultyTool = {
+  id:           'concord',
+  name:         'Concord Consortium',
+  emoji:        '🌍',
+  shortLabel:   'CO',
+  description:  'HTML5 simulations on energy, climate, earth science, chemistry — open educational resources.',
+  samplePrompt: 'Find a building-energy simulation for civil class',
+  sourceLabel:  'learn.concord.org · Free · Concord Consortium',
+  sourceUrl:    'https://learn.concord.org/',
+}
+
+const DESMOS: FacultyTool = {
+  id:           'desmos',
+  name:         'Desmos',
+  emoji:        '📊',
+  shortLabel:   'DS',
+  description:  'Graphing, geometry, 3D, scientific calculators. Sliders, animations, beautiful plots.',
+  samplePrompt: 'Plot y = sin(x)/x with a slider on the period',
+  sourceLabel:  'desmos.com · Free · Hosted',
+  sourceUrl:    'https://www.desmos.com/calculator',
+}
+
 const FRED: FacultyTool = {
   id:           'fred',
   name:         'FRED',
@@ -417,97 +540,103 @@ export const FACULTY_BASKETS: Record<string, FacultyBasket> = {
   biosaathi: {
     headerLabel:  "🧬 BioSaathi's Research Basket",
     invitation:   'Free, forever. Yours to explore — no API charges, no limits.',
-    tools:        [RCSB, UNIPROT, PUBMED, EUROPE_PMC, ENSEMBL, NCBI_GENE, SEMANTIC_SCHOLAR],
+    tools:        [RCSB, UNIPROT, PUBMED, EUROPE_PMC, ENSEMBL, NCBI_GENE, LABXCHANGE, HHMI_BIOINTERACTIVE, LEARN_GENETICS, SEMANTIC_SCHOLAR],
     primaryCount: 4,
   },
   biotechsaathi: {
     headerLabel:  "🔬 BioTechSaathi's Research Basket",
     invitation:   'Your biotech bench — genomes, proteins, literature, free forever.',
-    tools:        [RCSB, UNIPROT, ENSEMBL, NCBI_GENE, PUBMED, EUROPE_PMC],
+    tools:        [RCSB, UNIPROT, ENSEMBL, NCBI_GENE, LABXCHANGE, HHMI_BIOINTERACTIVE, LEARN_GENETICS, PUBMED, EUROPE_PMC],
     primaryCount: 4,
   },
   physicsaathi: {
     headerLabel:  "⚛️ PhysicsSaathi's Lab Bench",
     invitation:   'Plot, simulate, compute — no calculator costs.',
-    tools:        [GEOGEBRA, PHET, SAGEMATHCELL, NASA_IMAGES, SEMANTIC_SCHOLAR],
-    primaryCount: 3,
+    tools:        [GEOGEBRA, PHET, SAGEMATHCELL, VIRTUAL_LABS, CONCORD, MERLOT, NASA_IMAGES, SEMANTIC_SCHOLAR],
+    primaryCount: 4,
   },
   chemsaathi: {
     headerLabel:  "🧪 ChemSaathi's Lab Table",
     invitation:   'Molecules, reactions, compute — all free tier.',
-    tools:        [PUBCHEM, THREEDMOL, MOLVIEW, SAGEMATHCELL, PUBMED],
+    tools:        [PUBCHEM, THREEDMOL, MOLVIEW, SAGEMATHCELL, LABXCHANGE, CHEM_COLLECTIVE, CONCORD, VIRTUAL_LABS, PUBMED],
     primaryCount: 4,
   },
   maathsaathi: {
     headerLabel: "📐 MaathSaathi's Math Bench",
     invitation:  'Symbolic, numeric, graphical — all free.',
-    tools:       [GEOGEBRA, SAGEMATHCELL],
+    tools:       [GEOGEBRA, DESMOS, SAGEMATHCELL],
   },
   compsaathi: {
     headerLabel: "💻 CompSaathi's Code Desk",
     invitation:  'Draft, run, debug — in-browser, no setup.',
-    tools:       [MONACO, PISTON, COMPILER_EXPLORER, SEMANTIC_SCHOLAR],
+    tools:       [MONACO, PISTON, COMPILER_EXPLORER, CIRCUITVERSE, VIRTUAL_LABS, SEMANTIC_SCHOLAR],
   },
   mechsaathi: {
-    headerLabel: "⚙️ MechSaathi's Workshop",
-    invitation:  'Simulate mechanics, draft problems — free tier.',
-    tools:       [GEOGEBRA, PHET, SAGEMATHCELL],
+    headerLabel:  "⚙️ MechSaathi's Workshop",
+    invitation:   'Simulate mechanics, draft problems — free tier.',
+    tools:        [GEOGEBRA, PHET, SAGEMATHCELL, VIRTUAL_LABS, SIMSCALE, JSCAD, MERLOT],
+    primaryCount: 4,
   },
   civilsaathi: {
-    headerLabel: "🏗️ CivilSaathi's Site Desk",
-    invitation:  'Model loads, run sims, pull standards.',
-    tools:       [GEOGEBRA, PHET, SAGEMATHCELL],
+    headerLabel:  "🏗️ CivilSaathi's Site Desk",
+    invitation:   'Model loads, run sims, pull standards.',
+    tools:        [GEOGEBRA, PHET, SAGEMATHCELL, VIRTUAL_LABS, SIMSCALE, JSCAD],
+    primaryCount: 3,
   },
   aerospacesaathi: {
     headerLabel:  "🚀 AerospaceSaathi's Mission Desk",
     invitation:   'Orbits, imagery, missions — NASA + ISRO, free.',
-    tools:        [NASA_IMAGES, NTRS, ISRO_BHUVAN, GEOGEBRA, PHET, SAGEMATHCELL],
+    tools:        [NASA_IMAGES, NTRS, ISRO_BHUVAN, GEOGEBRA, PHET, SAGEMATHCELL, VIRTUAL_LABS, SIMSCALE, JSCAD],
     primaryCount: 3,
   },
   elecsaathi: {
-    headerLabel: "⚡ ElecSaathi's Bench",
-    invitation:  'Circuits, sims, compute — all free-tier.',
-    tools:       [FALSTAD, GEOGEBRA, PHET, SAGEMATHCELL],
+    headerLabel:  "⚡ ElecSaathi's Bench",
+    invitation:   'Circuits, sims, compute — all free-tier.',
+    tools:        [FALSTAD, CIRCUITVERSE, GEOGEBRA, PHET, SAGEMATHCELL, VIRTUAL_LABS, MERLOT],
+    primaryCount: 3,
   },
   electronicssaathi: {
-    headerLabel: "🔌 ElectronicsSaathi's Bench",
-    invitation:  'Signal, systems, circuits — all free-tier.',
-    tools:       [FALSTAD, COMPILER_EXPLORER, GEOGEBRA, PHET, SAGEMATHCELL],
+    headerLabel:  "🔌 ElectronicsSaathi's Bench",
+    invitation:   'Signal, systems, circuits — all free-tier.',
+    tools:        [FALSTAD, CIRCUITVERSE, COMPILER_EXPLORER, GEOGEBRA, PHET, SAGEMATHCELL, VIRTUAL_LABS, MERLOT],
+    primaryCount: 4,
   },
   'chemengg-saathi': {
-    headerLabel: "⚗️ ChemEnggSaathi's Process Desk",
-    invitation:  'Units, molecules, computation — free-tier basket.',
-    tools:       [PUBCHEM, GEOGEBRA, PHET, SAGEMATHCELL],
+    headerLabel:  "⚗️ ChemEnggSaathi's Process Desk",
+    invitation:   'Units, molecules, computation — free-tier basket.',
+    tools:        [PUBCHEM, GEOGEBRA, PHET, SAGEMATHCELL, VIRTUAL_LABS, SIMSCALE, JSCAD, CHEM_COLLECTIVE],
+    primaryCount: 4,
   },
   envirosaathi: {
     headerLabel:  "🌍 EnviroSaathi's Field Desk",
     invitation:   'Maps, satellites, data — all open.',
-    tools:        [LEAFLET, NASA_IMAGES, USGS, GEOGEBRA, DATA_GOV_IN],
+    tools:        [LEAFLET, NASA_IMAGES, USGS, GEOGEBRA, DATA_GOV_IN, LABXCHANGE, HHMI_BIOINTERACTIVE, CONCORD, SIMSCALE],
     primaryCount: 3,
   },
   agrisaathi: {
     headerLabel: "🌾 AgriSaathi's Field Kit",
     invitation:  'Soil maps, crop literature, data — open sources.',
-    tools:       [LEAFLET, PUBMED, DATA_GOV_IN, GEOGEBRA],
+    tools:       [LEAFLET, PUBMED, DATA_GOV_IN, GEOGEBRA, LABXCHANGE, HHMI_BIOINTERACTIVE, LEARN_GENETICS],
+    primaryCount: 4,
   },
 
   // Medical
   medicosaathi: {
     headerLabel:  "🏥 MedicoSaathi's Clinic Desk",
     invitation:   'Anatomy, drugs, literature — all free, all safe.',
-    tools:        [OPEN_ANATOMY, OPENFDA, PUBMED, MEDLINEPLUS, EUROPE_PMC, RCSB],
+    tools:        [OPEN_ANATOMY, OPENFDA, PUBMED, MEDLINEPLUS, EUROPE_PMC, RCSB, LABXCHANGE, HHMI_BIOINTERACTIVE, LEARN_GENETICS],
     primaryCount: 4,
   },
   pharmasaathi: {
     headerLabel:  "💊 PharmaSaathi's Dispensary Desk",
     invitation:   'Molecules, targets, drug references — free tier.',
-    tools:        [PUBCHEM, OPENFDA, RCSB, PUBMED, EUROPE_PMC],
+    tools:        [PUBCHEM, OPENFDA, RCSB, PUBMED, EUROPE_PMC, LABXCHANGE, HHMI_BIOINTERACTIVE, LEARN_GENETICS],
     primaryCount: 3,
   },
   nursingsaathi: {
     headerLabel: "🩺 NursingSaathi's Rounds",
     invitation:  'Evidence-based references for bedside teaching.',
-    tools:       [PUBMED, MEDLINEPLUS, WHO],
+    tools:       [PUBMED, MEDLINEPLUS, WHO, LABXCHANGE, HHMI_BIOINTERACTIVE],
   },
 
   // Social + Law
@@ -529,24 +658,24 @@ export const FACULTY_BASKETS: Record<string, FacultyBasket> = {
   psychsaathi: {
     headerLabel: "🧠 PsychSaathi's Study",
     invitation:  'Evidence-based psychology — free literature only.',
-    tools:       [PUBMED, EUROPE_PMC, SEMANTIC_SCHOLAR],
+    tools:       [PUBMED, EUROPE_PMC, SEMANTIC_SCHOLAR, HHMI_BIOINTERACTIVE],
   },
   geosaathi: {
     headerLabel:  "🗺️ GeoSaathi's Atlas",
     invitation:   'Maps, geology, satellites — all open data.',
-    tools:        [LEAFLET, USGS, NASA_IMAGES, GEOGEBRA],
+    tools:        [LEAFLET, USGS, NASA_IMAGES, GEOGEBRA, CONCORD],
   },
   archsaathi: {
     headerLabel: "🏛️ ArchSaathi's Studio",
     invitation:  'Maps, reference imagery, design sources — free.',
-    tools:       [LEAFLET, WIKIMEDIA_COMMONS, WIKIPEDIA],
+    tools:       [LEAFLET, WIKIMEDIA_COMMONS, WIKIPEDIA, JSCAD],
   },
 
   // Commerce
   econsaathi: {
     headerLabel: "📊 EconSaathi's Research Desk",
     invitation:  'Time-series, macro data, plotting — all open.',
-    tools:       [FRED, DATA_GOV_IN, GEOGEBRA, SEMANTIC_SCHOLAR],
+    tools:       [FRED, DATA_GOV_IN, GEOGEBRA, DESMOS, SEMANTIC_SCHOLAR],
   },
   accountsaathi: {
     headerLabel: "📒 AccountSaathi's Ledger",
@@ -576,7 +705,7 @@ export const FACULTY_BASKETS: Record<string, FacultyBasket> = {
   statssaathi: {
     headerLabel: "📉 StatsSaathi's Workbench",
     invitation:  'Data, compute, plotting — all open-source.',
-    tools:       [SAGEMATHCELL, GEOGEBRA, DATA_GOV_IN, FRED],
+    tools:       [SAGEMATHCELL, GEOGEBRA, DESMOS, DATA_GOV_IN, FRED],
   },
 }
 
