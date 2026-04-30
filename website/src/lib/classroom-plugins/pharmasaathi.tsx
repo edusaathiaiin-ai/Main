@@ -6,6 +6,7 @@ import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { PapersPanel } from '@/components/classroom/PapersPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
+import { getToolTabsFor } from './useToolChipTabs'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  PubChem drug search + 3Dmol.js viewer                                     */
@@ -300,17 +301,24 @@ function DrugTargetPanel() {
 /*  MoleculesPanel would.                                                    */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-type PharmaTab = 'canvas' | 'drug_structure' | 'drug_target' | 'pubmed'
+type PharmaBaseTab = 'canvas' | 'drug_structure' | 'drug_target' | 'pubmed'
+type PharmaTab = PharmaBaseTab | string
 
 function PharmaPlugin({ role, onArtifact, unlockedTabIds, onShowAllTools }: PluginProps) {
   const [tab, setTab] = useState<PharmaTab>('canvas')
 
-  const tabs: { id: PharmaTab; label: string; sources?: string }[] = [
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('pharmasaathi')
+  const baseTabs: { id: PharmaTab; label: string; sources?: string }[] = [
     { id: 'canvas',         label: '✏️ Draw' },
     { id: 'drug_structure', label: '🔬 Molecules',  sources: 'PubChem' },
     { id: 'pubmed',         label: '📄 Papers',     sources: 'PubMed + ScienceDirect + Scopus' },
     { id: 'drug_target',    label: 'Binding Sites', sources: 'RCSB Protein Data Bank' },
   ]
+  const tabs: { id: PharmaTab; label: string; sources?: string }[] = [
+    ...baseTabs,
+    ...toolTabs.map((t) => ({ id: t.id as PharmaTab, label: t.label, sources: t.sources })),
+  ]
+  const toolNode = renderToolTab(tab)
 
   // Phase I-2 / Classroom #5 — progressive tab reveal.
   const visibleTabs = unlockedTabIds === undefined
@@ -347,6 +355,7 @@ function PharmaPlugin({ role, onArtifact, unlockedTabIds, onShowAllTools }: Plug
         {tab === 'drug_structure' && <DrugStructurePanel />}
         {tab === 'drug_target'    && <DrugTargetPanel />}
         {tab === 'pubmed'         && <PapersPanel onArtifact={onArtifact} />}
+        {toolNode}
       </div>
     </div>
   )

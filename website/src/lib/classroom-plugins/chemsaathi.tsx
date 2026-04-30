@@ -5,6 +5,7 @@ import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
+import { getToolTabsFor } from './useToolChipTabs'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  PubChem search + 3Dmol.js viewer                                          */
@@ -250,7 +251,8 @@ function KetcherPanel() {
 /*  Chemistry Plugin Component                                                */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-type ChemTab = 'canvas' | 'pubchem' | 'ketcher'
+type ChemBaseTab = 'canvas' | 'pubchem' | 'ketcher'
+type ChemTab = ChemBaseTab | string
 
 function ChemPlugin({ role, activeTab, onTabChange, unlockedTabIds, onShowAllTools }: PluginProps) {
   const currentTab = (activeTab || 'canvas') as ChemTab
@@ -260,11 +262,17 @@ function ChemPlugin({ role, activeTab, onTabChange, unlockedTabIds, onShowAllToo
     if (!activeTab) onTabChange?.('canvas')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const tabs: { id: ChemTab; label: string; sources?: string }[] = [
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('chemsaathi')
+  const baseTabs: { id: ChemTab; label: string; sources?: string }[] = [
     { id: 'canvas',  label: '✏️ Draw' },
     { id: 'pubchem', label: '🔬 Molecules',  sources: 'PubChem' },
     { id: 'ketcher', label: '2D/3D Editor',  sources: 'MolView' },
   ]
+  const tabs: { id: ChemTab; label: string; sources?: string }[] = [
+    ...baseTabs,
+    ...toolTabs.map((t) => ({ id: t.id as ChemTab, label: t.label, sources: t.sources })),
+  ]
+  const toolNode = renderToolTab(currentTab)
 
   // Phase I-2 / Classroom #5 — progressive tab reveal.
   const visibleTabs = unlockedTabIds === undefined
@@ -315,6 +323,7 @@ function ChemPlugin({ role, activeTab, onTabChange, unlockedTabIds, onShowAllToo
         <div style={{ display: currentTab === 'ketcher' ? 'block' : 'none', height: '100%', transition: 'opacity 0.15s', opacity: currentTab === 'ketcher' ? 1 : 0 }}>
           <KetcherPanel />
         </div>
+        {toolNode && <div style={{ position: 'absolute', inset: 0, height: '100%' }}>{toolNode}</div>}
       </div>
     </div>
   )

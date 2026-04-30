@@ -5,6 +5,7 @@ import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
+import { getToolTabsFor } from './useToolChipTabs'
 
 // ── NACA 4-digit airfoil generator (pure math) ──────────────────────────────
 
@@ -167,7 +168,7 @@ function NacaAirfoilGenerator() {
   )
 }
 
-const TABS = ['Canvas', 'Sketchfab 3D', 'NASA Data', 'ISRO Bhuvan', 'NASA Eyes', 'Airfoil Tools', 'Physics Lab', 'GeoGebra'] as const
+const BASE_TABS = ['Canvas', 'Sketchfab 3D', 'NASA Data', 'ISRO Bhuvan', 'NASA Eyes', 'Airfoil Tools', 'Physics Lab', 'GeoGebra'] as const
 
 // ── PhET simulations relevant to aerospace ──────────────────────────────────
 
@@ -261,7 +262,8 @@ function PhysicsLab() {
     </div>
   )
 }
-type Tab = typeof TABS[number]
+type BaseTab = typeof BASE_TABS[number]
+type Tab = BaseTab | string
 
 // ── ISRO Bhuvan Geoid Data Panel ──────────────────────────────────────────
 
@@ -488,6 +490,13 @@ function AerospacePlugin({ role }: PluginProps) {
     if (params.query) searchNasaImages(String(params.query))
   })
 
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('aerospacesaathi')
+  const allTabs: { id: Tab; label: string }[] = [
+    ...BASE_TABS.map((t) => ({ id: t as Tab, label: t })),
+    ...toolTabs.map((t) => ({ id: t.id as Tab, label: t.label })),
+  ]
+  const toolNode = renderToolTab(tab)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Tab bar */}
@@ -497,20 +506,20 @@ function AerospacePlugin({ role }: PluginProps) {
         background: 'var(--bg-elevated)',
         flexWrap: 'wrap',
       }}>
-        {TABS.map((t) => (
+        {allTabs.map((t) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={t.id}
+            onClick={() => setTab(t.id)}
             style={{
               padding: '6px 14px', borderRadius: '8px',
-              fontSize: '12px', fontWeight: tab === t ? 700 : 500,
-              background: tab === t ? 'var(--saathi-primary, #0A1628)' : 'transparent',
-              color: tab === t ? '#fff' : 'var(--text-secondary)',
-              border: tab === t ? 'none' : '1px solid var(--border-subtle)',
+              fontSize: '12px', fontWeight: tab === t.id ? 700 : 500,
+              background: tab === t.id ? 'var(--saathi-primary, #0A1628)' : 'transparent',
+              color: tab === t.id ? '#fff' : 'var(--text-secondary)',
+              border: tab === t.id ? 'none' : '1px solid var(--border-subtle)',
               cursor: 'pointer', transition: 'all 0.15s',
             }}
           >
-            {t}
+            {t.label}
           </button>
         ))}
       </div>
@@ -713,6 +722,7 @@ function AerospacePlugin({ role }: PluginProps) {
             />
           </FullscreenPanel>
         )}
+        {toolNode && <div style={{ height: '100%' }}>{toolNode}</div>}
       </div>
     </div>
   )

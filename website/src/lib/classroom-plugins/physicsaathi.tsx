@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
+import { getToolTabsFor } from './useToolChipTabs'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  PhET curated simulation list                                              */
@@ -124,18 +125,25 @@ function NistPanel() {
 /*  Physics Plugin Component                                                  */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-type PhysicsTab = 'canvas' | 'geogebra' | 'phet' | 'nist'
+type PhysicsBaseTab = 'canvas' | 'geogebra' | 'phet' | 'nist'
+type PhysicsTab = PhysicsBaseTab | string
 
 function PhysicsPlugin({ role, unlockedTabIds, onShowAllTools }: PluginProps) {
   const [tab, setTab] = useState<PhysicsTab>('canvas')
   const [phetSim, setPhetSim] = useState<string>(PHET_SIMS[0].id)
 
-  const tabs: { id: PhysicsTab; label: string; sources?: string }[] = [
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('physicsaathi')
+  const baseTabs: { id: PhysicsTab; label: string; sources?: string }[] = [
     { id: 'canvas',   label: '✏️ Draw' },
     { id: 'geogebra', label: '📐 Geometry',    sources: 'GeoGebra' },
     { id: 'phet',     label: '⚡ Simulations', sources: 'PhET' },
     { id: 'nist',     label: 'Constants',      sources: 'NIST' },
   ]
+  const tabs: { id: PhysicsTab; label: string; sources?: string }[] = [
+    ...baseTabs,
+    ...toolTabs.map((t) => ({ id: t.id as PhysicsTab, label: t.label, sources: t.sources })),
+  ]
+  const toolNode = renderToolTab(tab)
 
   // Phase I-2 / Classroom #5 — progressive tab reveal.
   const visibleTabs = unlockedTabIds === undefined
@@ -228,6 +236,7 @@ function PhysicsPlugin({ role, unlockedTabIds, onShowAllTools }: PluginProps) {
         )}
 
         {tab === 'nist' && <NistPanel />}
+        {toolNode}
       </div>
     </div>
   )

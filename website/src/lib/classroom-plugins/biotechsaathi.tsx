@@ -6,6 +6,7 @@ import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { MoleculesPanel } from '@/components/classroom/MoleculesPanel'
 import { PapersPanel }    from '@/components/classroom/PapersPanel'
+import { getToolTabsFor } from './useToolChipTabs'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  Ensembl Genome Browser (iframe embed)                                     */
@@ -172,18 +173,25 @@ function NcbiGenePanel() {
 // into 📄 Papers (shared PapersPanel). Genome + Genes stay separate
 // because they answer different questions (DNA region vs gene record).
 // rcsb tab uses the consolidated MoleculesPanel.
-type BiotechTab = 'canvas' | 'rcsb' | 'pubmed' | 'ensembl' | 'ncbi_gene'
+type BiotechBaseTab = 'canvas' | 'rcsb' | 'pubmed' | 'ensembl' | 'ncbi_gene'
+type BiotechTab = BiotechBaseTab | string
 
 function BiotechPlugin({ role, onArtifact, unlockedTabIds, onShowAllTools }: PluginProps) {
   const [tab, setTab] = useState<BiotechTab>('canvas')
 
-  const tabs: { id: BiotechTab; label: string; sources?: string }[] = [
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('biotechsaathi')
+  const baseTabs: { id: BiotechTab; label: string; sources?: string }[] = [
     { id: 'canvas',    label: '✏️ Draw' },
     { id: 'rcsb',      label: '🔬 Molecules', sources: 'RCSB Protein Data Bank + UniProt + PubChem' },
     { id: 'pubmed',    label: '📄 Papers',    sources: 'PubMed + ScienceDirect + Scopus' },
     { id: 'ncbi_gene', label: 'Genes',        sources: 'NCBI Gene' },
     { id: 'ensembl',   label: 'Genome',       sources: 'Ensembl' },
   ]
+  const tabs: { id: BiotechTab; label: string; sources?: string }[] = [
+    ...baseTabs,
+    ...toolTabs.map((t) => ({ id: t.id as BiotechTab, label: t.label, sources: t.sources })),
+  ]
+  const toolNode = renderToolTab(tab)
 
   // Phase I-2 / Classroom #5 — progressive tab reveal.
   const visibleTabs = unlockedTabIds === undefined
@@ -221,6 +229,7 @@ function BiotechPlugin({ role, onArtifact, unlockedTabIds, onShowAllTools }: Plu
         {tab === 'pubmed'    && <PapersPanel    onArtifact={onArtifact} />}
         {tab === 'ensembl'   && <EnsemblPanel />}
         {tab === 'ncbi_gene' && <NcbiGenePanel />}
+        {toolNode}
       </div>
     </div>
   )

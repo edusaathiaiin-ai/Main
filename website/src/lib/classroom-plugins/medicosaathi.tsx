@@ -8,6 +8,7 @@ import { MoleculesPanel } from '@/components/classroom/MoleculesPanel'
 import { PapersPanel } from '@/components/classroom/PapersPanel'
 import { WolframPanel } from '@/components/classroom/WolframPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
+import { getToolTabsFor } from './useToolChipTabs'
 
 // IDs match the historical labels (e.g. 'Canvas', 'Anatomy 3D') so the
 // existing currentTab === '...' switches in the component below keep
@@ -27,9 +28,10 @@ const TABS: ReadonlyArray<{ id: string; label: string; sources?: string }> = [
   { id: 'Drug Reference',  label: '💊 Drug Reference',    sources: 'openFDA' },
   { id: 'Neuro Atlas',     label: 'Neuro Atlas',          sources: 'OpenAnatomy' },
 ] as const
-type Tab =
+type BaseTab =
   | 'Canvas' | 'Anatomy 3D' | 'Neuro Atlas' | 'Proteins' | 'Wolfram'
   | 'PubMed' | 'Drug Reference' | 'Clinical Images'
+type Tab = BaseTab | string
 
 // Zygote Body — free 3D anatomy viewer (no auth required, allows embedding)
 const ANATOMY_VIEWS = [
@@ -66,10 +68,16 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact, unlockedTabIds
   // uses CSS display:none to switch tabs (not conditional rendering),
   // so locked tabs need to be filtered OUT of the tab bar render but
   // can stay in the body — they're hidden by the per-tab display rule.
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('medicosaathi')
+  const allTabs = [
+    ...TABS,
+    ...toolTabs.map((t) => ({ id: t.id, label: t.label, sources: t.sources })),
+  ]
+  const toolNode = renderToolTab(currentTab)
   const visibleTabs = unlockedTabIds === undefined
-    ? TABS
-    : TABS.filter((t, i) => i === 0 || unlockedTabIds.includes(t.id))
-  const hasLockedTabs = visibleTabs.length < TABS.length
+    ? allTabs
+    : allTabs.filter((t, i) => i === 0 || unlockedTabIds.includes(t.id))
+  const hasLockedTabs = visibleTabs.length < allTabs.length
 
   async function searchDrug() {
     if (!drugQuery.trim()) return
@@ -100,7 +108,7 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact, unlockedTabIds
         {hasLockedTabs && onShowAllTools && (
           <button
             type="button"
-            onClick={() => onShowAllTools(TABS.map((t) => t.id))}
+            onClick={() => onShowAllTools(allTabs.map((t) => t.id))}
             style={{
               marginLeft: 'auto',
               padding: '4px 8px', borderRadius: '6px', fontSize: '11px',
@@ -231,6 +239,7 @@ function MedicoPlugin({ role, activeTab, onTabChange, onArtifact, unlockedTabIds
             </a>
           ))}
         </div>
+        {toolNode && <div style={{ height: '100%' }}>{toolNode}</div>}
       </div>
     </div>
   )

@@ -22,8 +22,10 @@ import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { MoleculesPanel } from '@/components/classroom/MoleculesPanel'
 import { PapersPanel }    from '@/components/classroom/PapersPanel'
+import { getToolTabsFor } from './useToolChipTabs'
 
-type BioTab = 'canvas' | 'rcsb' | 'pubmed'
+type BioBaseTab = 'canvas' | 'rcsb' | 'pubmed'
+type BioTab = BioBaseTab | string
 
 function BioPlugin({ role, onArtifact, activeTab, onTabChange, unlockedTabIds, onShowAllTools }: PluginProps) {
   const currentTab = (activeTab || 'canvas') as BioTab
@@ -35,11 +37,17 @@ function BioPlugin({ role, onArtifact, activeTab, onTabChange, unlockedTabIds, o
   // attribution per tab drives the bottom-left badge via the classroom
   // page; the auto-derived plain-English second line lives in
   // SourceBadge.SOURCE_DESCRIPTIONS.
-  const tabs: { id: BioTab; label: string; sources?: string }[] = [
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('biosaathi')
+  const baseTabs: { id: BioTab; label: string; sources?: string }[] = [
     { id: 'canvas', label: '✏️ Draw' },
     { id: 'rcsb',   label: '🔬 Molecules', sources: 'RCSB Protein Data Bank + UniProt + PubChem' },
     { id: 'pubmed', label: '📄 Papers',    sources: 'PubMed + ScienceDirect + Scopus' },
   ]
+  const tabs: { id: BioTab; label: string; sources?: string }[] = [
+    ...baseTabs,
+    ...toolTabs.map((t) => ({ id: t.id as BioTab, label: t.label, sources: t.sources })),
+  ]
+  const toolNode = renderToolTab(currentTab)
 
   // Phase I-2 / Classroom #5 — progressive tab reveal. Always show the
   // first tab (Draw) regardless of unlock state; reveal others as they
@@ -87,6 +95,7 @@ function BioPlugin({ role, onArtifact, activeTab, onTabChange, unlockedTabIds, o
         {currentTab === 'canvas' && <CollaborativeCanvas role={role} />}
         {currentTab === 'rcsb'   && <MoleculesPanel onArtifact={onArtifact} />}
         {currentTab === 'pubmed' && <PapersPanel    onArtifact={onArtifact} />}
+        {toolNode}
       </div>
     </div>
   )

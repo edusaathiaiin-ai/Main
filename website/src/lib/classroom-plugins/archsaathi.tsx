@@ -4,9 +4,11 @@ import { useState } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
+import { getToolTabsFor } from './useToolChipTabs'
 
-const TABS = ['Canvas', 'Sketchfab 3D', 'Maps', 'Spline / Media'] as const
-type Tab = typeof TABS[number]
+const BASE_TABS = ['Canvas', 'Sketchfab 3D', 'Maps', 'Spline / Media'] as const
+type BaseTab = typeof BASE_TABS[number]
+type Tab = BaseTab | string
 
 // Verified Sketchfab model IDs — real, downloadable, top-liked
 const ARCH_MODELS = [
@@ -46,6 +48,13 @@ function ArchPlugin({ role }: PluginProps) {
   const [embedUrl, setEmbedUrl] = useState('')
   const [mapReady, setMapReady] = useState(false)
 
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('archsaathi')
+  const allTabs: { id: Tab; label: string }[] = [
+    ...BASE_TABS.map((t) => ({ id: t as Tab, label: t })),
+    ...toolTabs.map((t) => ({ id: t.id as Tab, label: t.label })),
+  ]
+  const toolNode = renderToolTab(tab)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Tab bar */}
@@ -54,20 +63,20 @@ function ArchPlugin({ role }: PluginProps) {
         borderBottom: '1px solid var(--border-subtle)',
         background: 'var(--bg-elevated)',
       }}>
-        {TABS.map((t) => (
+        {allTabs.map((t) => (
           <button
-            key={t}
-            onClick={() => { setTab(t); if (t === 'Maps') setMapReady(true) }}
+            key={t.id}
+            onClick={() => { setTab(t.id); if (t.id === 'Maps') setMapReady(true) }}
             style={{
               padding: '6px 14px', borderRadius: '8px',
-              fontSize: '12px', fontWeight: tab === t ? 700 : 500,
-              background: tab === t ? 'var(--saathi-primary, #6B4A00)' : 'transparent',
-              color: tab === t ? '#fff' : 'var(--text-secondary)',
-              border: tab === t ? 'none' : '1px solid var(--border-subtle)',
+              fontSize: '12px', fontWeight: tab === t.id ? 700 : 500,
+              background: tab === t.id ? 'var(--saathi-primary, #6B4A00)' : 'transparent',
+              color: tab === t.id ? '#fff' : 'var(--text-secondary)',
+              border: tab === t.id ? 'none' : '1px solid var(--border-subtle)',
               cursor: 'pointer',
             }}
           >
-            {t}
+            {t.label}
           </button>
         ))}
       </div>
@@ -208,6 +217,7 @@ function ArchPlugin({ role }: PluginProps) {
             )}
           </div>
         )}
+        {toolNode && <div style={{ height: '100%' }}>{toolNode}</div>}
       </div>
     </div>
   )

@@ -10,6 +10,7 @@ import { useRoom } from '@/components/classroom/liveblocks.config'
 import { LiveblocksYjsProvider } from '@liveblocks/yjs'
 import * as Y from 'yjs'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
+import { getToolTabsFor } from './useToolChipTabs'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  Collaborative Monaco Editor with Liveblocks Yjs sync                      */
@@ -222,15 +223,22 @@ function CodeEditorPanel({ role }: { role: 'faculty' | 'student' }) {
 /*  Coding Plugin Component                                                   */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-type CodingTab = 'canvas' | 'editor'
+type CodingBaseTab = 'canvas' | 'editor'
+type CodingTab = CodingBaseTab | string
 
 function CodingPlugin({ role, unlockedTabIds, onShowAllTools }: PluginProps) {
   const [tab, setTab] = useState<CodingTab>('editor') // Default to editor for CS
 
-  const tabs: { id: CodingTab; label: string; sources?: string }[] = [
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('compsaathi')
+  const baseTabs: { id: CodingTab; label: string; sources?: string }[] = [
     { id: 'editor', label: '💻 Code',     sources: 'Monaco Editor + Piston Runtime' },
     { id: 'canvas', label: 'Diagrams' },
   ]
+  const tabs: { id: CodingTab; label: string; sources?: string }[] = [
+    ...baseTabs,
+    ...toolTabs.map((t) => ({ id: t.id as CodingTab, label: t.label, sources: t.sources })),
+  ]
+  const toolNode = renderToolTab(tab)
 
   // Phase I-2 / Classroom #5 — progressive tab reveal.
   const visibleTabs = unlockedTabIds === undefined
@@ -265,6 +273,7 @@ function CodingPlugin({ role, unlockedTabIds, onShowAllTools }: PluginProps) {
       <div className="relative flex-1">
         {tab === 'editor' && <CodeEditorPanel role={role} />}
         {tab === 'canvas' && <CollaborativeCanvas role={role} />}
+        {toolNode}
       </div>
     </div>
   )
