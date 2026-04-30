@@ -9,37 +9,62 @@ let _mermaidInit = false
 
 function HeroMermaid({ chart }: { chart: string }) {
   const [svg, setSvg] = useState('')
+  const [errored, setErrored] = useState(false)
   const id = useRef(`hero-m-${Math.random().toString(36).slice(2)}`)
 
   useEffect(() => {
     let dead = false
     ;(async () => {
-      const m = (await import('mermaid')).default
-      if (!_mermaidInit) {
-        m.initialize({
-          startOnLoad: false,
-          theme: 'dark',
-          themeVariables: {
-            primaryColor: '#0B1F3A',
-            primaryTextColor: '#fff',
-            primaryBorderColor: '#6366F1',
-            lineColor: '#6366F1',
-            background: 'var(--bg-base)',
-          },
-        })
-        _mermaidInit = true
-      }
       try {
+        const m = (await import('mermaid')).default
+        if (!_mermaidInit) {
+          m.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            themeVariables: {
+              // Concrete hex values only — mermaid resolves themeVariables
+              // at SVG generation time and CSS var() strings break the
+              // pipeline silently (the spinner gets stuck forever).
+              primaryColor:       '#0B1F3A',
+              primaryTextColor:   '#ffffff',
+              primaryBorderColor: '#6366F1',
+              lineColor:          '#6366F1',
+              background:         '#060F1D',
+            },
+          })
+          _mermaidInit = true
+        }
         const { svg: s } = await m.render(id.current, chart)
         if (!dead) setSvg(s)
-      } catch {
-        /* ignore */
+      } catch (err) {
+        if (!dead) {
+          console.error('[HeroMermaid] render failed:', err)
+          setErrored(true)
+        }
       }
     })()
     return () => {
       dead = true
     }
   }, [chart])
+
+  if (errored) {
+    return (
+      <div
+        style={{
+          height: '120px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 11,
+          color: 'rgba(255,255,255,0.4)',
+          fontStyle: 'italic',
+        }}
+      >
+        Diagram preview unavailable
+      </div>
+    )
+  }
 
   if (!svg)
     return (
