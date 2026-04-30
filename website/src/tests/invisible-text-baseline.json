@@ -1099,7 +1099,7 @@
   },
   {
     "file": "components/chat/ChatWindow.tsx",
-    "line": 1430,
+    "line": 1435,
     "label": "hex white used as a color (#fff/#FFF/#FFFFFF/#ffffff)",
     "snippet": "color:       '#ffffff',"
   },

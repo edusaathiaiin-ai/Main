@@ -23,6 +23,7 @@ import { ChatWatermark } from './ChatWatermark'
 import { SaathiHeader } from './SaathiHeader'
 import { MessageBubble } from './MessageBubble'
 import { ChatToolsSidebar } from './ChatToolsSidebar'
+import { ExportModal } from './ExportModal'
 import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
 import { YesterdaySummary } from './YesterdaySummary'
@@ -473,6 +474,10 @@ export function ChatWindow() {
   // gate); state is per-component so users can toggle without losing
   // chat context.
   const [toolsOpen, setToolsOpen] = useState(false)
+
+  // Phase 1.B — chat-conversation export modal. Single state hook;
+  // ExportModal handles its own three-action UI.
+  const [exportOpen, setExportOpen] = useState(false)
   const isFacultyView = profile?.role === 'faculty' && viewAs === 'faculty'
   const activeBotList = isFacultyView ? FACULTY_BOTS : BOTS
   const activeBot = activeBotList.find((b) => b.slot === activeBotSlot) ?? activeBotList[0]
@@ -1448,6 +1453,66 @@ export function ChatWindow() {
           <span>Tools</span>
         </button>
       )}
+
+      {/* ── Export trigger — small icon button above the Tools pill.
+          Hidden if there are no real messages to export. Renders to the
+          right of the Tools button so the pair reads as student-action
+          affordances together. */}
+      {!toolsOpen && messages.length > 0 && (
+        <button
+          onClick={() => setExportOpen(true)}
+          aria-label="Export this chat"
+          title="Export this chat"
+          style={{
+            position:    'fixed',
+            bottom:      152,
+            right:       16,
+            zIndex:      40,
+            display:     'flex',
+            alignItems:  'center',
+            justifyContent: 'center',
+            width:       40,
+            height:      40,
+            borderRadius: 999,
+            background:  'var(--bg-surface)',
+            color:       'var(--text-secondary)',
+            border:      `1px solid ${activeSaathi.primary}40`,
+            cursor:      'pointer',
+            fontSize:    16,
+            boxShadow:   '0 4px 12px rgba(0,0,0,0.15)',
+            transition:  'transform 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)'
+            e.currentTarget.style.borderColor = activeSaathi.primary
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.borderColor = `${activeSaathi.primary}40`
+          }}
+        >
+          ⤓
+        </button>
+      )}
+
+      {/* Export modal */}
+      <ExportModal
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        saathiName={activeSaathi.name}
+        saathiSlug={saathiId}
+        saathiColor={activeSaathi.primary}
+        studentName={profile.full_name ?? 'Student'}
+        studentEmail={profile.email ?? null}
+        messages={messages.map((m) => ({
+          role:       m.role === 'user' ? 'user' : 'assistant',
+          content:    m.content,
+          // ChatMessage uses camelCase `createdAt`; ExportableMessage
+          // uses snake_case `created_at` to match server payload shape.
+          created_at: (m as unknown as { createdAt?: string }).createdAt,
+        }))}
+      />
+
 
       {/* Faculty-only solo research basket — xl+ screens only */}
       {isFacultyView && <FacultyToolDock saathiSlug={saathiId} />}
