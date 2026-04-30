@@ -22,6 +22,7 @@ import { trackChatSent, trackMultipaneActivated, trackColumnAdded, trackColumnRe
 import { ChatWatermark } from './ChatWatermark'
 import { SaathiHeader } from './SaathiHeader'
 import { MessageBubble } from './MessageBubble'
+import { ChatToolsSidebar } from './ChatToolsSidebar'
 import { InputArea } from './InputArea'
 import { EmptyState } from './EmptyState'
 import { YesterdaySummary } from './YesterdaySummary'
@@ -466,6 +467,12 @@ export function ChatWindow() {
   // runtime — render exits before any hook reads them in the null state.
   const saathiId = resolvedSlug ?? ''
   const activeSaathi = (resolvedSaathi ?? SAATHIS[0]) as Saathi
+
+  // Tools sidebar — students get the same 13 tools faculty have in
+  // classrooms, alongside their solo Saathi chat. Free for all (no
+  // gate); state is per-component so users can toggle without losing
+  // chat context.
+  const [toolsOpen, setToolsOpen] = useState(false)
   const isFacultyView = profile?.role === 'faculty' && viewAs === 'faculty'
   const activeBotList = isFacultyView ? FACULTY_BOTS : BOTS
   const activeBot = activeBotList.find((b) => b.slot === activeBotSlot) ?? activeBotList[0]
@@ -1362,6 +1369,85 @@ export function ChatWindow() {
         </>
         )}
       </main>
+
+      {/* ── Tools sidebar (desktop ≥ md): right pane at ~50% width when
+          open. flex-1 on this element + flex-1 on <main> gives the 50/50
+          split. Hidden on mobile — mobile uses the overlay below. */}
+      {toolsOpen && (
+        <div
+          className="hidden md:flex"
+          style={{ flex: '1 1 50%', minWidth: 0, height: '100%' }}
+        >
+          <ChatToolsSidebar
+            saathiSlug={saathiId}
+            saathiName={activeSaathi.name}
+            saathiColor={activeSaathi.primary}
+            onClose={() => setToolsOpen(false)}
+          />
+        </div>
+      )}
+
+      {/* ── Tools overlay (mobile < md): full-screen takeover so chat +
+          tool aren't both squeezed into 50% of a phone width. X dismisses. */}
+      {toolsOpen && (
+        <div
+          className="md:hidden"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 60,
+            background: 'var(--bg-base)',
+          }}
+        >
+          <ChatToolsSidebar
+            saathiSlug={saathiId}
+            saathiName={activeSaathi.name}
+            saathiColor={activeSaathi.primary}
+            onClose={() => setToolsOpen(false)}
+          />
+        </div>
+      )}
+
+      {/* ── Tools toggle (only when sidebar is closed). Fixed bottom-right
+          on desktop + mobile, sized to be discoverable. The "✨ Tools"
+          label is the affordance the user explicitly asked for so students
+          notice the feature exists. */}
+      {!toolsOpen && (
+        <button
+          onClick={() => setToolsOpen(true)}
+          aria-label="Open tools"
+          style={{
+            position:    'fixed',
+            bottom:      96,
+            right:       16,
+            zIndex:      40,
+            display:     'flex',
+            alignItems:  'center',
+            gap:         8,
+            padding:     '10px 16px',
+            borderRadius: 999,
+            background:  activeSaathi.primary,
+            color:       '#ffffff',
+            border:      'none',
+            cursor:      'pointer',
+            fontSize:    13,
+            fontWeight:  600,
+            boxShadow:   `0 8px 24px ${activeSaathi.primary}44`,
+            transition:  'transform 0.15s ease, box-shadow 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)'
+            e.currentTarget.style.boxShadow = `0 12px 32px ${activeSaathi.primary}55`
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = `0 8px 24px ${activeSaathi.primary}44`
+          }}
+        >
+          <span style={{ fontSize: 16 }}>🛠️</span>
+          <span>Tools</span>
+        </button>
+      )}
 
       {/* Faculty-only solo research basket — xl+ screens only */}
       {isFacultyView && <FacultyToolDock saathiSlug={saathiId} />}
