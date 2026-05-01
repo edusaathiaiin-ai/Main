@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { TourManager } from '@/components/tour/TourManager'
 import { ThemeBridge } from '@/components/layout/ThemeBridge'
+import { RoleIntentBanner } from '@/components/layout/RoleIntentBanner'
 
 // Force all protected routes to be server-rendered on demand (never statically collected)
 export const dynamic = 'force-dynamic'
@@ -38,6 +39,7 @@ export default async function AppLayout({
   return (
     <>
       <ThemeBridge />
+      <RoleIntentBanner />
       {children}
       <TourManager />
     </>

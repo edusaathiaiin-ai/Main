@@ -133,6 +133,10 @@ export default function InstitutionRegisterPage() {
           data?.error === 'valid_principal_email_required' ? 'Please enter a valid email address.' :
           data?.error === 'name_required'                  ? 'Institution name is required.' :
           data?.error === 'city_required'                  ? 'City is required.' :
+          data?.error === 'duplicate_registration'         ?
+            `We already have a registration on file for this email${data.institution ? ` (${data.institution})` : ''}. ` +
+            `Site Admin will follow up on the original — please reply to your earlier confirmation email, ` +
+            `or write to admin@edusaathiai.in if you need to update details.` :
           data?.error === 'slug_generation_failed'         ? 'Couldn\'t generate a URL for your institution — please try a slightly different spelling.' :
           data?.error === 'insert_failed'                  ? 'We couldn\'t save your registration. Try again in a moment.' :
           'Something went wrong. Try again, or email admin@edusaathiai.in.'

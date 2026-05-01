@@ -204,6 +204,22 @@ function CallbackInner() {
           resolvedSession.access_token,
         )
 
+        // ── Role-intent mismatch (returning user, asked to register as a
+        // different role than their existing profile). The intent silently
+        // dropped before this fix — RoleIntentBanner picks this up on the
+        // destination page and surfaces it. Skip if wasCreated (new profile
+        // already matches the requested role) or if no roleParam was set.
+        if (!wasCreated && roleParam && roleParam !== role) {
+          try {
+            sessionStorage.setItem(
+              'edu.role-intent.dropped',
+              JSON.stringify({ requested: roleParam, current: role }),
+            )
+          } catch {
+            // sessionStorage can throw in private mode — best-effort only.
+          }
+        }
+
         // ── Analytics: signup_completed fires only for genuinely new users ──
         if (wasCreated) {
           const method = resolvedSession.user.app_metadata?.provider === 'google'

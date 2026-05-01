@@ -93,6 +93,34 @@ export async function POST(req: NextRequest) {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 
+  // ── Duplicate check — block if this principal_email is already registered.
+  // Without this, a forgetful principal who refills the form gets duplicate
+  // pending rows + duplicate confirmation emails, and Site Admin has to
+  // pick whichever one to action. Single source-of-truth: one row per email.
+  // (We don't dedupe by institution name — same name can legitimately come
+  // from different campuses with different principals.) Status='rejected'
+  // is the only state that allows a fresh registration; everything else
+  // (pending / demo / trial / active) means the original is still in play.
+  const { data: existing } = await admin
+    .from('education_institutions')
+    .select('id, name, status, created_at')
+    .eq('principal_email', principalEmail)
+    .neq('status', 'rejected')
+    .limit(1)
+    .maybeSingle()
+
+  if (existing) {
+    return NextResponse.json(
+      {
+        error:        'duplicate_registration',
+        institution:  existing.name,
+        status:       existing.status,
+        registeredAt: existing.created_at,
+      },
+      { status: 409 },
+    )
+  }
+
   // ── Generate unique slug + insert ──────────────────────────────────────────
   let slug: string
   try {
