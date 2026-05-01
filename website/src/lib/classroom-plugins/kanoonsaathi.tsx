@@ -6,6 +6,7 @@ import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
 import { useAutoQueryHandler } from './useAutoQueryHandler'
 import { ToolContainer } from '@/components/classroom/ToolContainer'
+import { getToolTabsFor } from './useToolChipTabs'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  BNS Cross-Reference Table (IPC → BNS 2023)                               */
@@ -295,17 +296,24 @@ function PdfPanel() {
 /*  Law Plugin Component                                                      */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-type LawTab = 'canvas' | 'kanoon' | 'bns' | 'pdf'
+type LawBaseTab = 'canvas' | 'kanoon' | 'bns' | 'pdf'
+type LawTab = LawBaseTab | string
 
 function LawPlugin({ role, unlockedTabIds, onShowAllTools }: PluginProps) {
   const [tab, setTab] = useState<LawTab>('canvas')
 
-  const tabs: { id: LawTab; label: string; sources?: string }[] = [
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('kanoonsaathi')
+  const baseTabs: { id: LawTab; label: string; sources?: string }[] = [
     { id: 'canvas', label: '✏️ Draw' },
     { id: 'kanoon', label: '⚖️ Judgments', sources: 'Indian Kanoon' },
     { id: 'bns',    label: 'IPC → BNS',    sources: 'BNS 2023' },
     { id: 'pdf',    label: 'PDF Viewer' },
   ]
+  const tabs: { id: LawTab; label: string; sources?: string }[] = [
+    ...baseTabs,
+    ...toolTabs.map((t) => ({ id: t.id as LawTab, label: t.label, sources: t.sources })),
+  ]
+  const toolNode = renderToolTab(tab)
 
   // Phase I-2 / Classroom #5 — progressive tab reveal.
   const visibleTabs = unlockedTabIds === undefined
@@ -342,6 +350,7 @@ function LawPlugin({ role, unlockedTabIds, onShowAllTools }: PluginProps) {
         {tab === 'kanoon' && <IndianKanoonPanel />}
         {tab === 'bns' && <BnsPanel />}
         {tab === 'pdf' && <PdfPanel />}
+        {toolNode}
       </div>
     </div>
   )

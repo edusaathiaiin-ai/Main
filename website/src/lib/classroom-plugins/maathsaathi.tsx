@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
+import { getToolTabsFor } from './useToolChipTabs'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  Wolfram Alpha query panel                                                 */
@@ -153,17 +154,24 @@ function GeoGebraPanel() {
 /*  Maths Plugin Component                                                    */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-type MathTab = 'canvas' | 'geogebra' | 'wolfram' | 'sagemath'
+type MathBaseTab = 'canvas' | 'geogebra' | 'wolfram' | 'sagemath'
+type MathTab = MathBaseTab | string
 
 function MathPlugin({ role, unlockedTabIds, onShowAllTools }: PluginProps) {
   const [tab, setTab] = useState<MathTab>('canvas')
 
-  const tabs: { id: MathTab; label: string; sources?: string }[] = [
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('maathsaathi')
+  const baseTabs: { id: MathTab; label: string; sources?: string }[] = [
     { id: 'canvas',   label: '✏️ Draw' },
     { id: 'wolfram',  label: '🔢 Calculate', sources: 'Wolfram Alpha' },
     { id: 'geogebra', label: '📐 Geometry',  sources: 'GeoGebra' },
     { id: 'sagemath', label: '∑ SageMath',   sources: 'SageMath' },
   ]
+  const tabs: { id: MathTab; label: string; sources?: string }[] = [
+    ...baseTabs,
+    ...toolTabs.map((t) => ({ id: t.id as MathTab, label: t.label, sources: t.sources })),
+  ]
+  const toolNode = renderToolTab(tab)
 
   // Phase I-2 / Classroom #5 — progressive tab reveal.
   const visibleTabs = unlockedTabIds === undefined
@@ -212,6 +220,7 @@ function MathPlugin({ role, unlockedTabIds, onShowAllTools }: PluginProps) {
             />
           </FullscreenPanel>
         )}
+        {toolNode}
       </div>
     </div>
   )

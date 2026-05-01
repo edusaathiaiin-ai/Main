@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react'
 import type { SaathiPlugin, PluginProps } from './types'
 import { CollaborativeCanvas } from '@/components/classroom/CollaborativeCanvas'
 import { FullscreenPanel } from '@/components/classroom/FullscreenPanel'
+import { getToolTabsFor } from './useToolChipTabs'
 
-const TABS = ['Canvas', 'GeoGebra', 'Code Editor'] as const
-type Tab = typeof TABS[number]
+const BASE_TABS = ['Canvas', 'GeoGebra', 'Code Editor'] as const
+type BaseTab = typeof BASE_TABS[number]
+type Tab = BaseTab | string
 
 function StatsPlugin({ role, activeTab, onTabChange }: PluginProps) {
   const currentTab = (activeTab || 'Canvas') as Tab
@@ -16,6 +18,13 @@ function StatsPlugin({ role, activeTab, onTabChange }: PluginProps) {
   const [running, setRunning] = useState(false)
   const [lang, setLang] = useState<'python' | 'r'>('python')
   useEffect(() => { if (!activeTab) onTabChange?.('Canvas') }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const { tabs: toolTabs, render: renderToolTab } = getToolTabsFor('statssaathi')
+  const allTabs: { id: Tab; label: string }[] = [
+    ...BASE_TABS.map((t) => ({ id: t as Tab, label: t })),
+    ...toolTabs.map((t) => ({ id: t.id as Tab, label: t.label })),
+  ]
+  const toolNode = renderToolTab(currentTab)
 
   const runCode = async () => {
     setRunning(true)
@@ -35,7 +44,7 @@ function StatsPlugin({ role, activeTab, onTabChange }: PluginProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', gap: '2px', padding: '8px 12px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', flexWrap: 'wrap' }}>
-        {TABS.map((t) => (<button key={t} onClick={() => setTab(t)} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: currentTab === t ? 700 : 500, background: currentTab === t ? 'var(--saathi-primary)' : 'transparent', color: currentTab === t ? '#fff' : 'var(--text-secondary)', border: currentTab === t ? 'none' : '1px solid var(--border-subtle)', cursor: 'pointer' }}>{t}</button>))}
+        {allTabs.map((t) => (<button key={t.id} onClick={() => setTab(t.id)} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: currentTab === t.id ? 700 : 500, background: currentTab === t.id ? 'var(--saathi-primary)' : 'transparent', color: currentTab === t.id ? '#fff' : 'var(--text-secondary)', border: currentTab === t.id ? 'none' : '1px solid var(--border-subtle)', cursor: 'pointer' }}>{t.label}</button>))}
       </div>
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <div style={{ display: currentTab === 'Canvas' ? 'block' : 'none', height: '100%' }}><CollaborativeCanvas role={role} /></div>
@@ -57,6 +66,11 @@ function StatsPlugin({ role, activeTab, onTabChange }: PluginProps) {
             <pre style={{ padding: '12px', fontFamily: 'var(--font-mono)', fontSize: '12px', background: 'var(--bg-elevated)', color: 'var(--text-secondary)', margin: 0, minHeight: '80px', maxHeight: '200px', overflow: 'auto' }}>{output || 'Output will appear here...'}</pre>
           </div>
         </div>
+        {toolNode && (
+          <div style={{ height: '100%', overflow: 'hidden' }}>
+            {toolNode}
+          </div>
+        )}
       </div>
     </div>
   )

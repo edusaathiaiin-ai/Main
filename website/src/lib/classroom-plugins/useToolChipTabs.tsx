@@ -41,6 +41,11 @@ import { getSimScaleChipsFor } from '@/lib/classroom-data/simScale'
 import { getJscadChipsFor } from '@/lib/classroom-data/jscadCAD'
 import { getDesmosChipsFor } from '@/lib/classroom-data/desmos'
 import { getCompilerExplorerChipsFor } from '@/lib/classroom-data/compilerExplorer'
+import { getWikipediaChipsFor } from '@/lib/classroom-data/wikipedia'
+import { getInternetArchiveChipsFor } from '@/lib/classroom-data/internetArchive'
+import { getFredChipsFor } from '@/lib/classroom-data/fredData'
+import { getGoogleTrendsChipsFor } from '@/lib/classroom-data/googleTrends'
+import { getIndianCivicsChipsFor } from '@/lib/classroom-data/indianCivics'
 import { getScenariosFor } from '@/lib/classroom-data/canSim'
 import { getDesktopResourcesFor } from '@/lib/classroom-data/desktopResources'
 
@@ -62,6 +67,11 @@ export type ToolTabId =
   | 'tool_jscad'
   | 'tool_desmos'
   | 'tool_godbolt'
+  | 'tool_wikipedia'
+  | 'tool_archive'
+  | 'tool_fred'
+  | 'tool_googletrends'
+  | 'tool_indiacivics'
   | 'tool_scenarios'
   | 'tool_resources'
 
@@ -213,6 +223,51 @@ const SPECS: Spec[] = [
     build: (slug) => {
       const chips = getCompilerExplorerChipsFor(slug)
       return chips.length === 0 ? null : <ToolChipPanel label="Compiler Explorer" chips={chips} />
+    },
+  },
+  {
+    id: 'tool_wikipedia',
+    label: '📖 Wikipedia',
+    sources: 'Wikipedia (Wikimedia Foundation)',
+    build: (slug) => {
+      const chips = getWikipediaChipsFor(slug)
+      return chips.length === 0 ? null : <ToolChipPanel label="Wikipedia" chips={chips} />
+    },
+  },
+  {
+    id: 'tool_archive',
+    label: '📚 Internet Archive',
+    sources: 'Internet Archive (archive.org)',
+    build: (slug) => {
+      const chips = getInternetArchiveChipsFor(slug)
+      return chips.length === 0 ? null : <ToolChipPanel label="Internet Archive" chips={chips} />
+    },
+  },
+  {
+    id: 'tool_fred',
+    label: '📈 FRED',
+    sources: 'FRED — St. Louis Fed economic data',
+    build: (slug) => {
+      const chips = getFredChipsFor(slug)
+      return chips.length === 0 ? null : <ToolChipPanel label="FRED" chips={chips} />
+    },
+  },
+  {
+    id: 'tool_googletrends',
+    label: '🔍 Google Trends',
+    sources: 'Google Trends',
+    build: (slug) => {
+      const chips = getGoogleTrendsChipsFor(slug)
+      return chips.length === 0 ? null : <ToolChipPanel label="Google Trends" chips={chips} />
+    },
+  },
+  {
+    id: 'tool_indiacivics',
+    label: '🇮🇳 India Code & Civics',
+    sources: 'India Code · PRS India · data.gov.in · MOSPI',
+    build: (slug) => {
+      const chips = getIndianCivicsChipsFor(slug)
+      return chips.length === 0 ? null : <ToolChipPanel label="Indian Civics & Statutes" chips={chips} />
     },
   },
   {
