@@ -112,7 +112,7 @@ function SaathiCard({
       {/* Name */}
       <div
         style={{
-          fontSize: '14px',
+          fontSize: '16px',
           fontWeight: 600,
           color: isActive ? '#fff' : 'rgba(255,255,255,0.85)',
           marginBottom: '4px',
@@ -131,9 +131,9 @@ function SaathiCard({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
             style={{
-              fontSize: '11px',
-              color: 'rgba(255,255,255,0.4)',
-              lineHeight: 1.5,
+              fontSize: '12.5px',
+              color: 'rgba(255,255,255,0.55)',
+              lineHeight: 1.55,
               overflow: 'hidden',
             }}
           >
@@ -178,8 +178,8 @@ function SaathiCard({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05, duration: 0.2 }}
               style={{
-                fontSize: '12px',
-                color: 'rgba(255,255,255,0.65)',
+                fontSize: '13.5px',
+                color: 'rgba(255,255,255,0.7)',
                 lineHeight: 1.65,
                 marginTop: '10px',
                 marginBottom: '0',
