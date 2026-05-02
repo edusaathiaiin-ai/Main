@@ -96,7 +96,7 @@ function SlotCard({
         <div>
           <p style={{
             fontSize: '14px', fontWeight: 700, color: selected ? '#fff' : 'var(--text-secondary)',
-            margin: '0 0 2px', fontFamily: 'DM Sans, sans-serif',
+            margin: '0 0 2px', fontFamily: 'var(--font-body)',
           }}>
             {slot.label}
           </p>
@@ -276,7 +276,7 @@ export default function ConfirmLectureSlotPage({
       <main style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#060F1D 0%,#0B1F3A 60%,#060F1D 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', maxWidth: '400px', padding: '40px' }}>
           <p style={{ fontSize: '40px', marginBottom: '12px' }}>⏳</p>
-          <h2 style={{ fontSize: '20px', color: '#fff', fontFamily: 'Playfair Display, serif', margin: '0 0 10px' }}>
+          <h2 style={{ fontSize: '20px', color: '#fff', fontFamily: 'var(--font-display)', margin: '0 0 10px' }}>
             Waiting for faculty response
           </h2>
           <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', lineHeight: 1.6 }}>
@@ -299,7 +299,7 @@ export default function ConfirmLectureSlotPage({
       <main style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#060F1D 0%,#0B1F3A 60%,#060F1D 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', maxWidth: '400px', padding: '40px' }}>
           <p style={{ fontSize: '40px', marginBottom: '12px' }}>🙏</p>
-          <h2 style={{ fontSize: '20px', color: '#fff', fontFamily: 'Playfair Display, serif', margin: '0 0 10px' }}>
+          <h2 style={{ fontSize: '20px', color: '#fff', fontFamily: 'var(--font-display)', margin: '0 0 10px' }}>
             Request declined
           </h2>
           <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', lineHeight: 1.6 }}>
@@ -342,7 +342,7 @@ export default function ConfirmLectureSlotPage({
           </motion.div>
 
           <h1 style={{
-            fontFamily: 'Playfair Display, serif', fontSize: 'clamp(22px,5vw,32px)',
+            fontFamily: 'var(--font-display)', fontSize: 'clamp(22px,5vw,32px)',
             fontWeight: 800, color: '#fff', margin: '0 0 10px',
           }}>
             Session confirmed!
@@ -419,7 +419,7 @@ export default function ConfirmLectureSlotPage({
         borderBottom: '0.5px solid var(--bg-elevated)',
       }}>
         <span style={{
-          fontFamily: 'Playfair Display, serif', fontSize: '20px',
+          fontFamily: 'var(--font-display)', fontSize: '20px',
           fontWeight: 700, color: GOLD,
         }}>
           EdUsaathiAI
@@ -445,7 +445,7 @@ export default function ConfirmLectureSlotPage({
             Faculty Proposal
           </div>
           <h1 style={{
-            fontFamily: 'Playfair Display, serif',
+            fontFamily: 'var(--font-display)',
             fontSize: 'clamp(22px,4vw,32px)',
             fontWeight: 800, color: '#fff', margin: '0 0 6px',
           }}>
@@ -589,7 +589,7 @@ export default function ConfirmLectureSlotPage({
             color: selectedSlot && !confirming ? NAVY : 'var(--text-ghost)',
             fontSize: '15px', fontWeight: 700,
             cursor: selectedSlot && !confirming ? 'pointer' : 'not-allowed',
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'var(--font-body)',
             transition: 'all 0.18s',
           }}
         >

@@ -269,7 +269,7 @@ function PostProjectForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div className="space-y-5">
-      <h2 className="font-playfair text-xl font-bold text-[var(--text-primary)]">
+      <h2 className="font-display text-xl font-bold text-[var(--text-primary)]">
         Post a Research Project
       </h2>
 
@@ -563,7 +563,7 @@ function ApplicantsPanel({
 
   return (
     <div className="space-y-3">
-      <h3 className="font-playfair text-lg font-bold text-[var(--text-primary)]">
+      <h3 className="font-display text-lg font-bold text-[var(--text-primary)]">
         {project.title}
       </h3>
       <p className="mb-4 text-xs" style={{ color: 'var(--text-tertiary)' }}>
@@ -816,7 +816,7 @@ export default function FacultyResearchPage() {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="font-playfair text-2xl font-bold text-[var(--text-primary)]">
+            <h1 className="font-display text-2xl font-bold text-[var(--text-primary)]">
               Research Interns 🔬
             </h1>
             <p
@@ -859,7 +859,7 @@ export default function FacultyResearchPage() {
                 }}
               >
                 <p
-                  className="font-playfair text-2xl font-bold"
+                  className="font-display text-2xl font-bold"
                   style={{ color }}
                 >
                   {value}
@@ -970,7 +970,7 @@ export default function FacultyResearchPage() {
                   }}
                 >
                   <p className="mb-4 text-4xl">🔬</p>
-                  <p className="font-playfair mb-2 text-xl text-[var(--text-primary)]">
+                  <p className="font-display mb-2 text-xl text-[var(--text-primary)]">
                     No research projects yet
                   </p>
                   <p
@@ -1022,7 +1022,7 @@ export default function FacultyResearchPage() {
                               )}
                               <ProjectStatusBadge status={project.status} />
                             </div>
-                            <h3 className="font-playfair text-base font-bold text-[var(--text-primary)]">
+                            <h3 className="font-display text-base font-bold text-[var(--text-primary)]">
                               {project.title}
                             </h3>
                           </div>

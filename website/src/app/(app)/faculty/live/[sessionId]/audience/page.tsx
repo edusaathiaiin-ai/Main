@@ -371,7 +371,7 @@ export default function AudienceIntelligencePage() {
       >
         <Link
           href="/faculty/live"
-          className="font-playfair text-xl font-bold"
+          className="font-display text-xl font-bold"
           style={{ color: '#C9993A', textDecoration: 'none' }}
         >
           EdUsaathiAI
@@ -394,7 +394,7 @@ export default function AudienceIntelligencePage() {
           >
             {saathi?.emoji} {saathi?.name}
           </p>
-          <h1 className="font-playfair text-2xl font-bold text-[var(--text-primary)]">
+          <h1 className="font-display text-2xl font-bold text-[var(--text-primary)]">
             {sessionTitle}
           </h1>
         </div>

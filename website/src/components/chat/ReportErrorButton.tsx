@@ -206,7 +206,7 @@ export function ReportErrorButton({
                   <p style={{
                     fontSize: '15px', fontWeight: 700,
                     color: textC, margin: '0 0 3px',
-                    fontFamily: 'Playfair Display, serif',
+                    fontFamily: 'var(--font-display)',
                   }}>
                     Report a factual error
                   </p>
@@ -386,7 +386,7 @@ export function ReportErrorButton({
                         wrongClaim.trim() && correctClaim.trim() &&
                         state !== 'submitting'
                           ? 'pointer' : 'not-allowed',
-                      fontFamily: 'DM Sans, sans-serif',
+                      fontFamily: 'var(--font-body)',
                       transition: 'all 0.2s',
                     }}
                   >

@@ -191,12 +191,12 @@ export default function PrivacyPage() {
           <div className="mt-4 mb-6 overflow-x-auto">
             <table className="w-full text-left text-sm md:text-base">
               <thead>
-                <tr className="border-b border-white/20">
-                  <th className="py-3 font-semibold text-white">Data</th>
-                  <th className="py-3 font-semibold text-white">Purpose</th>
+                <tr className="border-b border-black/20">
+                  <th className="py-3 font-semibold text-black">Data</th>
+                  <th className="py-3 font-semibold text-black">Purpose</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/10">
+              <tbody className="divide-y divide-black/10">
                 <tr>
                   <td className="py-3 pr-4">Account info</td>
                   <td className="py-3">
@@ -350,13 +350,13 @@ export default function PrivacyPage() {
           <div className="mt-4 mb-6 overflow-x-auto">
             <table className="w-full text-left text-sm md:text-base">
               <thead>
-                <tr className="border-b border-white/20">
-                  <th className="py-3 font-semibold text-white">Service</th>
-                  <th className="py-3 font-semibold text-white">Purpose</th>
-                  <th className="py-3 font-semibold text-white">Data Shared</th>
+                <tr className="border-b border-black/20">
+                  <th className="py-3 font-semibold text-black">Service</th>
+                  <th className="py-3 font-semibold text-black">Purpose</th>
+                  <th className="py-3 font-semibold text-black">Data Shared</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/10">
+              <tbody className="divide-y divide-black/10">
                 <tr>
                   <td className="py-3 pr-4">Razorpay</td>
                   <td className="py-3 pr-4">Payments</td>

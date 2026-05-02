@@ -25,7 +25,7 @@ export default function ForcedLogoutScreen() {
         {/* Title */}
         <h1
           className="text-3xl font-bold tracking-tight"
-          style={{ fontFamily: 'var(--font-playfair)', color: '#FAF7F2' }}
+          style={{ fontFamily: 'var(--font-display)', color: '#FAF7F2' }}
         >
           Session ended
         </h1>
@@ -35,7 +35,7 @@ export default function ForcedLogoutScreen() {
           className="text-base leading-relaxed"
           style={{
             color: 'rgba(250, 247, 242, 0.65)',
-            fontFamily: 'var(--font-dm-sans)',
+            fontFamily: 'var(--font-body)',
           }}
         >
           Your account was accessed from another device and this session was
@@ -47,7 +47,7 @@ export default function ForcedLogoutScreen() {
           className="text-sm leading-relaxed"
           style={{
             color: 'rgba(250, 247, 242, 0.40)',
-            fontFamily: 'var(--font-dm-sans)',
+            fontFamily: 'var(--font-body)',
           }}
         >
           If this wasn&apos;t you — change your login email.
@@ -62,7 +62,7 @@ export default function ForcedLogoutScreen() {
           style={{
             backgroundColor: '#C9993A',
             color: '#060F1D',
-            fontFamily: 'var(--font-dm-sans)',
+            fontFamily: 'var(--font-body)',
             letterSpacing: '0.02em',
           }}
         >

@@ -427,7 +427,7 @@ export default function CreateLiveSessionPage() {
       >
         <Link
           href="/faculty/live"
-          className="font-playfair text-xl font-bold"
+          className="font-display text-xl font-bold"
           style={{ color: '#C9993A', textDecoration: 'none' }}
         >
           EdUsaathiAI
@@ -449,7 +449,7 @@ export default function CreateLiveSessionPage() {
             className="py-12 text-center"
           >
             <p className="mb-4 text-5xl">{'\u{1F389}'}</p>
-            <h2 className="font-playfair mb-3 text-3xl font-bold text-[var(--text-primary)]">
+            <h2 className="font-display mb-3 text-3xl font-bold text-[var(--text-primary)]">
               Published!
             </h2>
             <p
@@ -525,7 +525,7 @@ export default function CreateLiveSessionPage() {
           </motion.div>
         ) : (
           <>
-            <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
+            <h1 className="font-display mb-2 text-3xl font-bold text-[var(--text-primary)]">
               Create Live Session
             </h1>
 

@@ -86,7 +86,7 @@ function FoundingModal({
         }}
       >
         <div className="mb-4 text-center text-4xl">✦</div>
-        <h3 className="font-playfair mb-2 text-center text-2xl font-bold text-white">
+        <h3 className="font-display mb-2 text-center text-2xl font-bold text-white">
           You&apos;re early — beautifully so
         </h3>
         <p
@@ -499,7 +499,7 @@ export default function PricingPage() {
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="font-playfair mb-4 text-5xl font-bold text-white md:text-6xl"
+              className="font-display mb-4 text-5xl font-bold text-white md:text-6xl"
             >
               Your Saathi. Your price.
             </motion.h1>
@@ -585,7 +585,7 @@ export default function PricingPage() {
               >
                 Why not ChatGPT?
               </p>
-              <h2 className="font-playfair text-3xl font-bold text-white md:text-4xl">
+              <h2 className="font-display text-3xl font-bold text-white md:text-4xl">
                 8× cheaper. Built for you.
               </h2>
             </div>
@@ -729,7 +729,7 @@ export default function PricingPage() {
             >
               Ready to begin?
             </p>
-            <h2 className="font-playfair mb-4 text-4xl font-bold text-white md:text-5xl">
+            <h2 className="font-display mb-4 text-4xl font-bold text-white md:text-5xl">
               Your Saathi is waiting.
             </h2>
             <p

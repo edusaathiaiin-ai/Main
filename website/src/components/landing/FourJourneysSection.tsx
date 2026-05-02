@@ -310,7 +310,7 @@ export function FourJourneysSection() {
         </p>
         <h2
           style={{
-            fontFamily: "'Playfair Display', serif",
+            fontFamily: 'var(--font-display)',
             fontSize: 'clamp(36px, 4vw, 56px)',
             fontWeight: '700',
             lineHeight: 1.1,
@@ -355,7 +355,7 @@ export function FourJourneysSection() {
                 cursor: 'pointer',
                 fontSize: '13px',
                 fontWeight: isActive ? '600' : '400',
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: 'var(--font-body)',
                 background: isActive ? '#ffffff' : 'transparent',
                 color: isActive ? '#0B1F3A' : 'rgba(255,255,255,0.45)',
                 transition: 'all 0.2s ease',
@@ -400,7 +400,7 @@ export function FourJourneysSection() {
         >
           <h3
             style={{
-              fontFamily: "'Playfair Display', serif",
+              fontFamily: 'var(--font-display)',
               fontSize: 'clamp(24px, 3vw, 36px)',
               fontWeight: '700',
               margin: '0 0 12px',
@@ -479,7 +479,7 @@ export function FourJourneysSection() {
                 gap: '8px',
                 background: content.ctaColor,
                 color: content.ctaTextColor ?? '#0B1F3A',
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: 'var(--font-body)',
                 fontSize: '15px',
                 fontWeight: '600',
                 padding: '14px 32px',

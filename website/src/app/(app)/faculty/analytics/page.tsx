@@ -165,7 +165,7 @@ export default function FacultyAnalyticsPage() {
       >
         <Link
           href="/faculty"
-          className="font-playfair text-xl font-bold"
+          className="font-display text-xl font-bold"
           style={{ color: '#C9993A', textDecoration: 'none' }}
         >
           EdUsaathiAI
@@ -181,7 +181,7 @@ export default function FacultyAnalyticsPage() {
 
       <div className="mx-auto max-w-4xl px-6 py-8">
         {/* Header */}
-        <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
+        <h1 className="font-display mb-2 text-3xl font-bold text-[var(--text-primary)]">
           Your Impact
         </h1>
         <p className="mb-8 text-sm" style={{ color: 'var(--text-tertiary)' }}>
@@ -230,7 +230,7 @@ export default function FacultyAnalyticsPage() {
         {/* Where students struggle most */}
         {struggles.length > 0 && (
           <section className="mb-10">
-            <h2 className="font-playfair mb-1 text-xl font-bold text-[var(--text-primary)]">
+            <h2 className="font-display mb-1 text-xl font-bold text-[var(--text-primary)]">
               Where students struggle most
             </h2>
             <p
@@ -273,7 +273,7 @@ export default function FacultyAnalyticsPage() {
 
         {/* What students are asking */}
         <section className="mb-10">
-          <h2 className="font-playfair mb-1 text-xl font-bold text-[var(--text-primary)]">
+          <h2 className="font-display mb-1 text-xl font-bold text-[var(--text-primary)]">
             What students are asking
           </h2>
           <p
@@ -334,7 +334,7 @@ export default function FacultyAnalyticsPage() {
 
         {/* Your top answers */}
         <section className="mb-10">
-          <h2 className="font-playfair mb-4 text-xl font-bold text-[var(--text-primary)]">
+          <h2 className="font-display mb-4 text-xl font-bold text-[var(--text-primary)]">
             Your recent answers
           </h2>
           {topAnswers.length === 0 ? (
@@ -396,7 +396,7 @@ export default function FacultyAnalyticsPage() {
           className="py-6 text-center"
           style={{ color: 'var(--text-ghost)' }}
         >
-          <p className="font-playfair text-sm italic">
+          <p className="font-display text-sm italic">
             &ldquo;Your answers reach students across India. Every explanation
             shapes a future.&rdquo;
           </p>

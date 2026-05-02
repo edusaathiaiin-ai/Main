@@ -35,7 +35,7 @@ export function MoleculeViewer({ name }: { name: string }) {
       style={{
         margin: '12px 0',
         padding: '16px',
-        background: 'rgba(255,255,255,0.03)',
+        background: 'var(--bg-elevated)',
         borderRadius: '12px',
         border: '0.5px solid rgba(201,153,58,0.2)',
         display: 'inline-block',
@@ -50,7 +50,7 @@ export function MoleculeViewer({ name }: { name: string }) {
           margin: '0 0 10px',
           textTransform: 'uppercase',
           letterSpacing: '0.5px',
-          fontFamily: 'var(--font-dm-sans)',
+          fontFamily: 'var(--font-body)',
         }}
       >
         🧪 {name}
@@ -98,9 +98,9 @@ export function MoleculeViewer({ name }: { name: string }) {
         <p
           style={{
             fontSize: '12px',
-            color: 'rgba(255,255,255,0.65)',
+            color: 'var(--text-secondary)',
             margin: 0,
-            fontFamily: 'var(--font-dm-sans)',
+            fontFamily: 'var(--font-body)',
           }}
         >
           Structure not found for &quot;{name}&quot;
@@ -110,9 +110,9 @@ export function MoleculeViewer({ name }: { name: string }) {
       <p
         style={{
           fontSize: '10px',
-          color: 'rgba(255,255,255,0.65)',
+          color: 'var(--text-secondary)',
           margin: '8px 0 0',
-          fontFamily: 'var(--font-dm-sans)',
+          fontFamily: 'var(--font-body)',
         }}
       >
         Source: PubChem (NIH)

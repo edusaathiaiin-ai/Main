@@ -253,7 +253,7 @@ export function PostQuestionModal({
 
                 <h3
                   style={{
-                    fontFamily: 'var(--font-playfair)',
+                    fontFamily: 'var(--font-display)',
                     fontSize: '22px',
                     fontWeight: '700',
                     color: '#fff',
@@ -354,7 +354,7 @@ export function PostQuestionModal({
                   ✕
                 </button>
 
-                <h2 className="font-playfair mb-1 text-2xl font-bold text-white">
+                <h2 className="font-display mb-1 text-2xl font-bold text-white">
                   Ask {saathiName}
                 </h2>
                 <p
@@ -398,7 +398,7 @@ export function PostQuestionModal({
                     style={{
                       background: 'var(--bg-elevated)',
                       border: '0.5px solid var(--border-medium)',
-                      fontFamily: 'var(--font-dm-sans)',
+                      fontFamily: 'var(--font-body)',
                     }}
                     onFocus={(e) =>
                       (e.currentTarget.style.borderColor = `${primaryColor}80`)

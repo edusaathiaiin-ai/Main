@@ -238,7 +238,7 @@ export function GoldenRatioTool({
               style={{
                 margin: '0 0 4px',
                 fontSize: '20px',
-                fontFamily: 'Playfair Display',
+                fontFamily: 'var(--font-display)',
                 color: result.color,
                 fontWeight: '700',
               }}

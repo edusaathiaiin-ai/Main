@@ -62,7 +62,7 @@ export default function PassionMeter({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="font-playfair text-2xl font-bold"
+            className="font-display text-2xl font-bold"
             style={{ color: '#C9993A' }}
           >
             {clampedValue}

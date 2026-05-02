@@ -206,7 +206,7 @@ function RichFeatureBanner({
             fontWeight: 600,
             color: '#C9993A',
             margin: '0 0 4px',
-            fontFamily: 'var(--font-dm-sans)',
+            fontFamily: 'var(--font-body)',
           }}
         >
           This Saathi has rich features
@@ -218,7 +218,7 @@ function RichFeatureBanner({
               fontSize: '12px',
               color: 'var(--text-secondary)',
               margin: '2px 0',
-              fontFamily: 'var(--font-dm-sans)',
+              fontFamily: 'var(--font-body)',
             }}
           >
             {f}
@@ -230,7 +230,7 @@ function RichFeatureBanner({
             color: 'var(--text-tertiary)',
             margin: '6px 0 0',
             fontStyle: 'italic',
-            fontFamily: 'var(--font-dm-sans)',
+            fontFamily: 'var(--font-body)',
           }}
         >
           {features.example}
@@ -1657,7 +1657,7 @@ export function ChatWindow() {
               {flameTransition.emoji}
             </div>
             <p
-              className="font-playfair"
+              className="font-display"
               style={{
                 fontSize: '15px',
                 fontWeight: 700,
@@ -1708,7 +1708,7 @@ export function ChatWindow() {
             >
               <div style={{ fontSize: '64px', marginBottom: '24px' }}>✦</div>
               <h2
-                className="font-playfair"
+                className="font-display"
                 style={{
                   fontSize: '28px',
                   fontWeight: 700,

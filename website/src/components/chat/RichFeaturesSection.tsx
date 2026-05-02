@@ -446,7 +446,7 @@ export function RichFeaturesSection() {
           </div>
           <h2
             style={{
-              fontFamily: "'Playfair Display', serif",
+              fontFamily: 'var(--font-display)',
               fontSize: 'clamp(32px, 4vw, 52px)',
               fontWeight: 900,
               color: '#fff',
@@ -543,7 +543,7 @@ export function RichFeaturesSection() {
               gap: '8px',
               background: '#C9993A',
               color: '#060F1D',
-              fontFamily: "'DM Sans', sans-serif",
+              fontFamily: 'var(--font-body)',
               fontSize: '15px',
               fontWeight: 600,
               padding: '14px 32px',

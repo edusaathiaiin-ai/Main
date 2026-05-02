@@ -63,7 +63,7 @@ export default function SoulTab({ soul, onEditProfile }: SoulTabProps) {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h3 className="font-playfair mb-1 text-2xl font-bold">
+        <h3 className="font-display mb-1 text-2xl font-bold">
           What your Saathi knows
         </h3>
         <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>

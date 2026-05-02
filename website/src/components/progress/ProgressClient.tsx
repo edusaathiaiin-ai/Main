@@ -42,7 +42,7 @@ export function ProgressClient({ saathiId }: ProgressClientProps) {
       style={{
         minHeight: '100vh',
         background: 'var(--bg-base)',
-        color: '#fff',
+        color: 'var(--text-primary)',
       }}
     >
       <ProgressDashboard

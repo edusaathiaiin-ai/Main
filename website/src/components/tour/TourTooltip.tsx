@@ -269,7 +269,7 @@ export function TourTooltip({
               style={{
                 fontSize: '13px',
                 fontWeight: 700,
-                color: '#FFFFFF',
+                color: 'var(--text-primary)',
                 margin: '0 0 6px',
                 paddingRight: '20px',
                 lineHeight: 1.3,

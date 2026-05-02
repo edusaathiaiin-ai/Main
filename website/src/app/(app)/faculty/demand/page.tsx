@@ -439,7 +439,7 @@ export default function FacultyDemandPage() {
         </Link>
         <h1
           style={{
-            fontFamily: 'var(--font-playfair)',
+            fontFamily: 'var(--font-display)',
             fontSize: '28px',
             fontWeight: '700',
             color: 'var(--text-primary)',

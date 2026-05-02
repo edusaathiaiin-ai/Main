@@ -264,11 +264,11 @@ export function SmartEducationInput({
           rows={2}
           disabled={confirmed}
           placeholder={`e.g. "${EXAMPLES[exampleIdx]}"`}
-          className="w-full resize-none rounded-xl px-4 py-3.5 text-sm text-white transition-all outline-none"
+          className="w-full resize-none rounded-xl px-4 py-3.5 text-sm text-[var(--text-primary)] transition-all outline-none"
           style={{
             background: 'var(--bg-elevated)',
             border: `0.5px solid ${result ? (result.confidence >= 85 ? 'rgba(34,197,94,0.4)' : result.confidence >= 60 ? `${primaryColor}66` : 'rgba(239,68,68,0.35)') : 'var(--border-medium)'}`,
-            fontFamily: 'var(--font-dm-sans)',
+            fontFamily: 'var(--font-body)',
             opacity: confirmed ? 0.6 : 1,
           }}
           onFocus={(e) =>
@@ -329,7 +329,7 @@ export function SmartEducationInput({
                 >
                   ✓ We understood:
                 </p>
-                <p className="mb-0.5 text-sm font-medium text-white">
+                <p className="mb-0.5 text-sm font-medium text-[var(--text-primary)]">
                   {result.parsed.year
                     ? `${result.parsed.year}${['st', 'nd', 'rd', 'th'][Math.min(result.parsed.year - 1, 3)]} Year `
                     : ''}
@@ -411,7 +411,7 @@ export function SmartEducationInput({
                       border: `0.5px solid ${primaryColor}33`,
                     }}
                   >
-                    <p className="text-sm font-medium text-white">
+                    <p className="text-sm font-medium text-[var(--text-primary)]">
                       {result.college.name}
                     </p>
                     <p
@@ -450,8 +450,8 @@ export function SmartEducationInput({
                       border: '0.5px solid var(--bg-elevated)',
                     }}
                   >
-                    <p className="text-xs text-white/70">{alt.name}</p>
-                    <p className="text-[10px] text-white/35">
+                    <p className="text-xs text-[var(--text-secondary)]">{alt.name}</p>
+                    <p className="text-[10px] text-[var(--text-ghost)]">
                       {alt.city}, {alt.state}
                     </p>
                   </button>
@@ -514,10 +514,10 @@ export function SmartEducationInput({
                         border: '0.5px solid var(--border-medium)',
                       }}
                     >
-                      <p className="text-xs font-medium text-white">
+                      <p className="text-xs font-medium text-[var(--text-primary)]">
                         {c!.name}
                       </p>
-                      <p className="text-[10px] text-white/35">
+                      <p className="text-[10px] text-[var(--text-ghost)]">
                         {c!.city}, {c!.state}
                       </p>
                     </button>
@@ -601,9 +601,9 @@ export function SmartEducationInput({
               border: '0.5px solid rgba(79,70,229,0.25)',
             }}
           >
-            <p className="mb-2 text-xs text-white/70">
+            <p className="mb-2 text-xs text-[var(--text-secondary)]">
               💡 Based on your course,{' '}
-              <span className="font-semibold text-white capitalize">
+              <span className="font-semibold text-[var(--text-primary)] capitalize">
                 {result.saathi_suggestion}
               </span>{' '}
               might be a better match for you.

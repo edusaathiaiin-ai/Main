@@ -142,7 +142,7 @@ export default function CollegeAutocomplete({
                 (e.currentTarget.style.background = 'transparent')
               }
             >
-              <p className="truncate text-sm font-semibold text-white">
+              <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
                 {college.name}
               </p>
               <p

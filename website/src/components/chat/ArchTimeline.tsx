@@ -319,7 +319,7 @@ export function ArchTimeline({
                   <p
                     style={{
                       margin: 0,
-                      fontFamily: 'Playfair Display',
+                      fontFamily: 'var(--font-display)',
                       fontSize: '16px',
                       color: '#fff',
                       fontWeight: '700',

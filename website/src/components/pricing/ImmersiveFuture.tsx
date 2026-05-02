@@ -134,7 +134,7 @@ export function ImmersiveFuture() {
         >
           The future of learning
         </p>
-        <h2 className="font-playfair mb-5 text-4xl font-bold text-white md:text-5xl">
+        <h2 className="font-display mb-5 text-4xl font-bold text-white md:text-5xl">
           There is a world of difference
           <br />
           <span style={{ color: '#C9993A' }}>between reading and living it.</span>
@@ -263,7 +263,7 @@ export function ImmersiveFuture() {
           >
             The roadmap
           </p>
-          <h3 className="font-playfair text-2xl font-bold text-white md:text-3xl">
+          <h3 className="font-display text-2xl font-bold text-white md:text-3xl">
             Every conversation today is a step
             <br />
             toward the classroom of tomorrow.

@@ -340,7 +340,7 @@ function CallbackInner() {
             style={{ borderTopColor: '#C9993A' }}
           />
           <div className="text-center">
-            <p className="font-playfair mb-1 text-xl font-semibold text-white">
+            <p className="font-display mb-1 text-xl font-semibold text-white">
               Verifying your identity...
             </p>
             <p className="text-sm text-white/40">
@@ -368,8 +368,8 @@ export default function AuthCallbackPage() {
           style={{ background: 'var(--bg-base)' }}
         >
           <div
-            className="h-12 w-12 animate-spin rounded-full border-2 border-white/10"
-            style={{ borderTopColor: '#C9993A' }}
+            className="h-12 w-12 animate-spin rounded-full border-2"
+            style={{ borderColor: 'var(--border-medium)', borderTopColor: '#B8860B' }}
           />
         </main>
       }

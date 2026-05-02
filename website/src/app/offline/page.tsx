@@ -10,7 +10,7 @@ export default function OfflinePage() {
     >
       <div className="mb-6 text-5xl">✦</div>
       <h1
-        className="font-playfair mb-3 text-3xl font-bold"
+        className="font-display mb-3 text-3xl font-bold"
         style={{ color: '#C9993A' }}
       >
         You&apos;re offline

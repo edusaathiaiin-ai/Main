@@ -117,7 +117,7 @@ function MeetingLinkEditor({
             flex: 1, background: 'var(--bg-elevated)',
             border: error ? '1px solid rgba(239,68,68,0.5)' : '0.5px solid var(--border-subtle)',
             color: 'var(--text-primary)', borderRadius: '8px', padding: '8px 12px',
-            fontSize: '13px', outline: 'none', fontFamily: 'DM Mono, monospace',
+            fontSize: '13px', outline: 'none', fontFamily: 'var(--font-mono)',
           }}
         />
         <button
@@ -247,7 +247,7 @@ function CancelSessionTrigger({
               boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
             }}
           >
-            <h3 className="font-playfair" style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+            <h3 className="font-display" style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
               Cancel this session?
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginBottom: '18px' }}>
@@ -465,7 +465,7 @@ export default function FacultyLiveDashboard() {
       >
         <Link
           href="/faculty"
-          className="font-playfair text-xl font-bold"
+          className="font-display text-xl font-bold"
           style={{ color: '#C9993A', textDecoration: 'none' }}
         >
           EdUsaathiAI
@@ -498,7 +498,7 @@ export default function FacultyLiveDashboard() {
       </nav>
 
       <div className="mx-auto max-w-4xl px-6 py-8">
-        <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
+        <h1 className="font-display mb-2 text-3xl font-bold text-[var(--text-primary)]">
           Live Sessions
         </h1>
         <p className="mb-6 text-sm" style={{ color: 'var(--text-tertiary)' }}>

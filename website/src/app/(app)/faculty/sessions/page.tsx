@@ -216,7 +216,7 @@ export default function FacultySessionsPage() {
       >
         <Link
           href="/faculty"
-          className="font-playfair text-xl font-bold"
+          className="font-display text-xl font-bold"
           style={{ color: '#C9993A', textDecoration: 'none' }}
         >
           EdUsaathiAI
@@ -231,7 +231,7 @@ export default function FacultySessionsPage() {
       </nav>
 
       <div className="mx-auto max-w-4xl px-6 py-8">
-        <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
+        <h1 className="font-display mb-2 text-3xl font-bold text-[var(--text-primary)]">
           My Sessions
         </h1>
         <p className="mb-6 text-sm" style={{ color: 'var(--text-tertiary)' }}>

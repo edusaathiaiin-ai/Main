@@ -203,7 +203,7 @@ export default function PricingCard({
       <div className="mb-5">
         <div className="mb-1 flex items-center gap-2">
           <span className="text-2xl">{plan.emoji}</span>
-          <h3 className="font-playfair text-lg font-bold text-white">
+          <h3 className="font-display text-lg font-bold text-white">
             {plan.name}
           </h3>
         </div>
@@ -228,7 +228,7 @@ export default function PricingCard({
             key={displayPrice}
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-playfair text-4xl font-bold text-white"
+            className="font-display text-4xl font-bold text-white"
           >
             {displayPrice}
           </motion.span>

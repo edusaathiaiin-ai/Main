@@ -136,7 +136,7 @@ export function VoiceInput({
           fontSize: '11px',
           cursor: 'pointer',
           outline: 'none',
-          fontFamily: 'var(--font-dm-sans)',
+          fontFamily: 'var(--font-body)',
         }}
       >
         {LANGUAGES.map((l) => (

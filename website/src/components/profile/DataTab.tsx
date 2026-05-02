@@ -57,7 +57,7 @@ export default function DataTab({ userId, onEditProfile }: DataTabProps) {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h3 className="font-playfair mb-1 text-2xl font-bold">
+        <h3 className="font-display mb-1 text-2xl font-bold">
           Your data. Your rights.
         </h3>
         <p

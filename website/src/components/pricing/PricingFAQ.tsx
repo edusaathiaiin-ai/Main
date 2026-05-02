@@ -48,7 +48,7 @@ export default function PricingFAQ() {
         >
           FAQ
         </p>
-        <h2 className="font-playfair text-3xl font-bold text-white md:text-4xl">
+        <h2 className="font-display text-3xl font-bold text-white md:text-4xl">
           Questions answered
         </h2>
       </motion.div>

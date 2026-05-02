@@ -91,7 +91,7 @@ function WelcomeOverlay({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.35 }}
           style={{
-            fontFamily: 'var(--font-playfair, "Playfair Display", serif)',
+            fontFamily: 'var(--font-display)',
             fontSize: '14px',
             fontWeight: 600,
             letterSpacing: '2px',
@@ -109,8 +109,8 @@ function WelcomeOverlay({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, duration: 0.4 }}
           style={{
-            background: 'var(--bg-elevated)',
-            border: '0.5px solid var(--border-medium)',
+            background: 'rgba(255,255,255,0.04)',
+            border: '0.5px solid rgba(255,255,255,0.10)',
             borderRadius: '20px',
             padding: '32px',
             marginBottom: '32px',
@@ -119,7 +119,7 @@ function WelcomeOverlay({
         >
           <p
             style={{
-              fontFamily: 'var(--font-playfair, "Playfair Display", serif)',
+              fontFamily: 'var(--font-display)',
               fontSize: '22px',
               fontWeight: 700,
               color: '#fff',
@@ -132,7 +132,7 @@ function WelcomeOverlay({
           <p
             style={{
               fontSize: '15px',
-              color: 'var(--text-secondary)',
+              color: 'rgba(255,255,255,0.75)',
               lineHeight: 1.75,
               marginBottom: '14px',
             }}
@@ -146,7 +146,7 @@ function WelcomeOverlay({
           <p
             style={{
               fontSize: '15px',
-              color: 'var(--text-secondary)',
+              color: 'rgba(255,255,255,0.75)',
               lineHeight: 1.75,
               marginBottom: '14px',
             }}
@@ -158,7 +158,7 @@ function WelcomeOverlay({
           <p
             style={{
               fontSize: '15px',
-              color: 'var(--text-secondary)',
+              color: 'rgba(255,255,255,0.75)',
               lineHeight: 1.75,
               marginBottom: '14px',
             }}
@@ -169,10 +169,10 @@ function WelcomeOverlay({
           </p>
           <p
             style={{
-              fontFamily: 'var(--font-playfair, "Playfair Display", serif)',
+              fontFamily: 'var(--font-display)',
               fontSize: '16px',
               fontStyle: 'italic',
-              color: 'var(--text-primary)',
+              color: '#fff',
               lineHeight: 1.6,
             }}
           >
@@ -226,17 +226,17 @@ function WelcomeOverlay({
             href="/profile"
             style={{
               fontSize: '13px',
-              color: 'var(--text-tertiary)',
+              color: 'rgba(255,255,255,0.5)',
               textDecoration: 'none',
               transition: 'color 0.2s',
             }}
             onMouseEnter={(e) => {
               ;(e.currentTarget as HTMLAnchorElement).style.color =
-                'var(--text-secondary)'
+                'rgba(255,255,255,0.75)'
             }}
             onMouseLeave={(e) => {
               ;(e.currentTarget as HTMLAnchorElement).style.color =
-                'var(--text-tertiary)'
+                'rgba(255,255,255,0.5)'
             }}
           >
             Tell me more about you first

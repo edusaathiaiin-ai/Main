@@ -93,7 +93,7 @@ export default function ComparisonTable() {
         >
           Compare
         </p>
-        <h2 className="font-playfair text-3xl font-bold text-white md:text-4xl">
+        <h2 className="font-display text-3xl font-bold text-white md:text-4xl">
           Everything side by side
         </h2>
       </div>

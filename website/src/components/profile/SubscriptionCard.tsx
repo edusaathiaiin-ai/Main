@@ -64,7 +64,7 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
             Current plan
           </p>
           <div className="flex items-center gap-2">
-            <span className="font-playfair text-2xl font-bold">
+            <span className="font-display text-2xl font-bold">
               {plan.name}
             </span>
             <span
@@ -81,7 +81,7 @@ export default function SubscriptionCard({ profile }: SubscriptionCardProps) {
         </div>
         <div className="text-right">
           <p
-            className="font-playfair text-xl font-bold"
+            className="font-display text-xl font-bold"
             style={{ color: planColor }}
           >
             {isFree ? 'Free' : `₹${plan.introPrice ?? plan.priceMonthly}/mo`}

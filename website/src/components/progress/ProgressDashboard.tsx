@@ -96,7 +96,7 @@ function StatCard({
           fontWeight: '700',
           color,
           margin: 0,
-          fontFamily: 'var(--font-playfair)',
+          fontFamily: 'var(--font-display)',
         }}
       >
         {value}
@@ -304,8 +304,8 @@ export function ProgressDashboard({
         <h1
           style={{
             fontSize: '28px',
-            fontFamily: 'var(--font-playfair)',
-            color: '#fff',
+            fontFamily: 'var(--font-display)',
+            color: 'var(--text-primary)',
             margin: 0,
           }}
         >
@@ -560,7 +560,7 @@ export function ProgressDashboard({
                 style={{
                   fontSize: '16px',
                   fontWeight: '700',
-                  color: '#fff',
+                  color: 'var(--text-primary)',
                   margin: 0,
                 }}
               >

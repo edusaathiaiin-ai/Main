@@ -169,7 +169,7 @@ function FlipCard({
           <p
             style={{
               fontSize: '15px',
-              color: '#fff',
+              color: 'var(--text-primary)',
               lineHeight: 1.6,
               flex: 1,
               margin: 0,
@@ -358,7 +358,7 @@ export function FlashcardsClient({ saathiId }: Props) {
       style={{
         minHeight: '100vh',
         background: 'var(--bg-base)',
-        color: '#fff',
+        color: 'var(--text-primary)',
         paddingBottom: '80px',
       }}
     >
@@ -397,8 +397,8 @@ export function FlashcardsClient({ saathiId }: Props) {
               <h1
                 style={{
                   fontSize: '22px',
-                  fontFamily: 'var(--font-playfair)',
-                  color: '#fff',
+                  fontFamily: 'var(--font-display)',
+                  color: 'var(--text-primary)',
                   margin: 0,
                 }}
               >

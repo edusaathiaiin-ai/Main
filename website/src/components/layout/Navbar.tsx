@@ -38,12 +38,12 @@ export function Navbar({ title, showBack }: Props) {
           ← Chat
         </Link>
       ) : (
-        <span className="font-playfair text-base font-bold text-white">
+        <span className="font-display text-base font-bold text-white">
           EdU<span style={{ color: '#C9993A' }}>saathi</span>AI
         </span>
       )}
       {displayTitle && (
-        <span className="font-playfair text-base font-semibold text-white">
+        <span className="font-display text-base font-semibold text-white">
           {displayTitle}
         </span>
       )}

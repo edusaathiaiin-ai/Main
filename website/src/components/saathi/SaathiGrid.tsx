@@ -204,7 +204,7 @@ function SaathiCard({
                   color: saathi.accent,
                   fontSize: '13px',
                   fontWeight: 600,
-                  fontFamily: 'var(--font-playfair, "Playfair Display", serif)',
+                  fontFamily: 'var(--font-display)',
                   fontStyle: 'italic',
                   textDecoration: 'none',
                   marginTop: '14px',

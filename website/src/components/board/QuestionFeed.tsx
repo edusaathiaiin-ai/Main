@@ -353,7 +353,7 @@ export function QuestionFeed() {
             <div className="mb-5 flex items-center justify-between">
               <div>
                 <h1
-                  className="font-playfair mb-1 text-2xl font-bold"
+                  className="font-display mb-1 text-2xl font-bold"
                   style={{ color: 'var(--text-primary)' }}
                 >
                   {activeSaathi.name} Community
@@ -655,7 +655,7 @@ export function QuestionFeed() {
                 {filter === 'mine' ? (
                   <>
                     <p
-                      className="font-playfair mb-4 text-lg"
+                      className="font-display mb-4 text-lg"
                       style={{ color: 'var(--text-secondary)' }}
                     >
                       You haven&apos;t asked any questions yet.
@@ -673,7 +673,7 @@ export function QuestionFeed() {
                 ) : filter === 'all' ? (
                   <>
                     <p
-                      className="font-playfair mb-4 text-lg"
+                      className="font-display mb-4 text-lg"
                       style={{ color: 'var(--text-secondary)' }}
                     >
                       Be the first to ask a question in {activeSaathi.name}!
@@ -691,7 +691,7 @@ export function QuestionFeed() {
                 ) : (
                   <>
                     <p
-                      className="font-playfair mb-2 text-lg"
+                      className="font-display mb-2 text-lg"
                       style={{ color: 'var(--text-secondary)' }}
                     >
                       No questions match this filter

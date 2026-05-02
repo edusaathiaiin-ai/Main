@@ -80,7 +80,7 @@ export function DeleteAccountSection() {
         fontWeight: 700,
         color:      'var(--text-primary)',
         margin:     '0 0 6px',
-        fontFamily: 'Playfair Display, serif',
+        fontFamily: 'var(--font-display)',
       }}>
         Delete Account
       </h3>
@@ -112,7 +112,7 @@ export function DeleteAccountSection() {
               fontSize:     '13px',
               fontWeight:   600,
               cursor:       'pointer',
-              fontFamily:   'DM Sans, sans-serif',
+              fontFamily:   'var(--font-body)',
             }}
           >
             Delete my account &rarr;
@@ -180,7 +180,7 @@ export function DeleteAccountSection() {
                   resize:       'none',
                   outline:      'none',
                   boxSizing:    'border-box',
-                  fontFamily:   'DM Sans, sans-serif',
+                  fontFamily:   'var(--font-body)',
                 }}
               />
             </div>
@@ -206,7 +206,7 @@ export function DeleteAccountSection() {
                   fontSize:     '14px',
                   outline:      'none',
                   boxSizing:    'border-box',
-                  fontFamily:   'DM Sans, sans-serif',
+                  fontFamily:   'var(--font-body)',
                 }}
               />
             </div>
@@ -232,7 +232,7 @@ export function DeleteAccountSection() {
                   color:      'var(--text-tertiary)',
                   fontSize:   '13px',
                   cursor:     'pointer',
-                  fontFamily: 'DM Sans, sans-serif',
+                  fontFamily: 'var(--font-body)',
                 }}
               >
                 Cancel
@@ -250,7 +250,7 @@ export function DeleteAccountSection() {
                   fontWeight:   700,
                   border:       'none',
                   cursor:       isConfirmed ? 'pointer' : 'not-allowed',
-                  fontFamily:   'DM Sans, sans-serif',
+                  fontFamily:   'var(--font-body)',
                   transition:   'all 0.2s',
                 }}
               >
@@ -300,7 +300,7 @@ export function DeleteAccountSection() {
                   background: 'var(--bg-elevated)',
                   border: '0.5px solid var(--border-medium)',
                   color: 'var(--text-tertiary)', fontSize: '13px',
-                  cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                  cursor: 'pointer', fontFamily: 'var(--font-body)',
                 }}
               >
                 Cancel — keep my account
@@ -312,7 +312,7 @@ export function DeleteAccountSection() {
                   background: RED, color: '#fff',
                   fontSize: '13px', fontWeight: 700,
                   border: 'none', cursor: 'pointer',
-                  fontFamily: 'DM Sans, sans-serif',
+                  fontFamily: 'var(--font-body)',
                 }}
               >
                 Yes, delete everything &rarr;

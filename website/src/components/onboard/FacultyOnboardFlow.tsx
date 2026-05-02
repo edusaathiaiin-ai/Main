@@ -132,7 +132,7 @@ const inp = {
   fontSize:     '16px',
   width:        '100%',
   outline:      'none',
-  fontFamily:   'DM Sans, sans-serif',
+  fontFamily:   'var(--font-body)',
 } as const
 
 const CITIES = [
@@ -237,7 +237,7 @@ function EmploymentStep({
         style={{ marginBottom: '40px' }}
       >
         <h1 style={{
-          fontFamily: 'Playfair Display, serif',
+          fontFamily: 'var(--font-display)',
           fontSize: 'clamp(32px, 5vw, 48px)',
           fontWeight: 900, color: '#fff',
           lineHeight: 1.1, margin: '0 0 12px',
@@ -275,7 +275,7 @@ function EmploymentStep({
                   fontSize: '15px', fontWeight: 700,
                   color: active ? '#fff' : 'rgba(255,255,255,0.7)',
                   margin: '0 0 3px',
-                  fontFamily: 'Playfair Display, serif',
+                  fontFamily: 'var(--font-display)',
                 }}>
                   {opt.title}
                 </p>
@@ -311,7 +311,7 @@ function EmploymentStep({
             border: '0.5px solid rgba(201,153,58,0.25)',
           }}
         >
-          <p style={{ fontSize: '14px', fontFamily: 'Playfair Display, serif', fontWeight: 700, color: '#C9993A', margin: '0 0 10px' }}>
+          <p style={{ fontSize: '14px', fontFamily: 'var(--font-display)', fontWeight: 700, color: '#C9993A', margin: '0 0 10px' }}>
             Your role is not to explain the subject.
           </p>
           <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.75)', margin: '0 0 10px', lineHeight: 1.7 }}>
@@ -335,7 +335,7 @@ function EmploymentStep({
           background: GOLD, color: NAVY,
           fontSize: '15px', fontWeight: 700,
           border: 'none', cursor: 'pointer',
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'var(--font-body)',
         }}
       >
         Continue as{' '}
@@ -433,7 +433,7 @@ function ProfileStep({
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
         style={{ marginBottom: '28px' }}>
         <h2 style={{
-          fontFamily: 'Playfair Display, serif', fontSize: 'clamp(28px, 4vw, 40px)',
+          fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 4vw, 40px)',
           fontWeight: 800, color: '#fff', margin: '0 0 8px',
         }}>
           Your professional profile
@@ -810,7 +810,7 @@ function ProfileStep({
               padding: '14px 20px', borderRadius: '12px',
               background: 'rgba(255,255,255,0.04)', border: BORDER,
               color: 'rgba(255,255,255,0.4)', fontSize: '14px',
-              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+              cursor: 'pointer', fontFamily: 'var(--font-body)',
             }}>
             ← Back
           </button>
@@ -819,7 +819,7 @@ function ProfileStep({
               flex: 1, padding: '14px', borderRadius: '12px',
               background: GOLD, color: NAVY,
               fontSize: '15px', fontWeight: 700,
-              border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+              border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)',
             }}>
             Continue to Saathi selection →
           </motion.button>
@@ -856,7 +856,7 @@ function AffiliationsStep({
         style={{ marginBottom: '28px' }}
       >
         <h2 style={{
-          fontFamily: 'Playfair Display, serif',
+          fontFamily: 'var(--font-display)',
           fontSize: 'clamp(28px, 4vw, 40px)',
           fontWeight: 800, color: '#fff', margin: '0 0 8px',
         }}>
@@ -958,7 +958,7 @@ function AffiliationsStep({
               background: 'rgba(255,255,255,0.03)',
               border: '0.5px dashed rgba(255,255,255,0.15)',
               color: 'rgba(255,255,255,0.4)', fontSize: '14px',
-              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+              cursor: 'pointer', fontFamily: 'var(--font-body)',
               width: '100%', justifyContent: 'center',
             }}
           >
@@ -977,7 +977,7 @@ function AffiliationsStep({
             padding: '14px 20px', borderRadius: '12px',
             background: 'rgba(255,255,255,0.04)', border: BORDER,
             color: 'rgba(255,255,255,0.4)', fontSize: '14px',
-            cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+            cursor: 'pointer', fontFamily: 'var(--font-body)',
           }}>
           ← Back
         </button>
@@ -986,7 +986,7 @@ function AffiliationsStep({
             flex: 1, padding: '14px', borderRadius: '12px',
             background: GOLD, color: NAVY,
             fontSize: '15px', fontWeight: 700,
-            border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+            border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)',
           }}>
           {form.affiliations.some(a => a.org.trim()) ? 'Continue →' : 'Skip for now →'}
         </motion.button>
@@ -1034,7 +1034,7 @@ function SaathiStep({
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
         style={{ marginBottom: '24px' }}>
         <h2 style={{
-          fontFamily: 'Playfair Display, serif',
+          fontFamily: 'var(--font-display)',
           fontSize: 'clamp(26px, 4vw, 38px)',
           fontWeight: 800, color: '#fff', margin: '0 0 8px',
         }}>
@@ -1159,7 +1159,7 @@ function SaathiStep({
               <p style={{
                 fontSize: '12px', fontWeight: 700, color: '#fff',
                 margin: '0 0 2px', lineHeight: 1.2,
-                fontFamily: 'Playfair Display, serif',
+                fontFamily: 'var(--font-display)',
               }}>
                 {s.name}
               </p>
@@ -1184,7 +1184,7 @@ function SaathiStep({
             padding: '14px 20px', borderRadius: '12px',
             background: 'rgba(255,255,255,0.04)', border: BORDER,
             color: 'rgba(255,255,255,0.4)', fontSize: '14px',
-            cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+            cursor: 'pointer', fontFamily: 'var(--font-body)',
           }}>
           ← Back
         </button>
@@ -1198,7 +1198,7 @@ function SaathiStep({
             fontSize: '15px', fontWeight: 700,
             border: 'none',
             cursor: form.primarySaathiSlug ? 'pointer' : 'not-allowed',
-            fontFamily: 'DM Sans, sans-serif', transition: 'all 0.2s',
+            fontFamily: 'var(--font-body)', transition: 'all 0.2s',
           }}>
           {form.primarySaathiSlug ? 'Continue →' : 'Select at least one Saathi'}
         </motion.button>
@@ -1238,7 +1238,7 @@ function InvitationStep({ onNext, onBack }: { onNext: () => void; onBack: () => 
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
         style={{ marginBottom: '28px' }}>
         <h2 style={{
-          fontFamily: 'Playfair Display, serif',
+          fontFamily: 'var(--font-display)',
           fontSize: 'clamp(26px, 4vw, 38px)',
           fontWeight: 800, color: '#fff', margin: '0 0 8px',
         }}>
@@ -1318,7 +1318,7 @@ function InvitationStep({ onNext, onBack }: { onNext: () => void; onBack: () => 
             padding: '14px 20px', borderRadius: '12px',
             background: 'rgba(255,255,255,0.04)', border: BORDER,
             color: 'rgba(255,255,255,0.4)', fontSize: '14px',
-            cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+            cursor: 'pointer', fontFamily: 'var(--font-body)',
           }}>
           ← Back
         </button>
@@ -1326,7 +1326,7 @@ function InvitationStep({ onNext, onBack }: { onNext: () => void; onBack: () => 
           style={{
             flex: 1, padding: '14px', borderRadius: '12px',
             background: GOLD, color: NAVY, fontSize: '15px', fontWeight: 700,
-            border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+            border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)',
           }}>
           I want to teach on EdUsaathiAI →
         </motion.button>
@@ -1402,7 +1402,7 @@ function AgreementStep({
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
         style={{ marginBottom: '28px' }}>
         <h2 style={{
-          fontFamily: 'Playfair Display, serif',
+          fontFamily: 'var(--font-display)',
           fontSize: 'clamp(26px, 4vw, 38px)',
           fontWeight: 800, color: '#fff', margin: '0 0 8px',
         }}>
@@ -1485,7 +1485,7 @@ function AgreementStep({
             padding: '14px 20px', borderRadius: '12px',
             background: 'rgba(255,255,255,0.04)', border: BORDER,
             color: 'rgba(255,255,255,0.4)', fontSize: '14px',
-            cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+            cursor: 'pointer', fontFamily: 'var(--font-body)',
           }}>
           ← Back
         </button>
@@ -1500,7 +1500,7 @@ function AgreementStep({
             fontSize: '15px', fontWeight: 700,
             border: 'none',
             cursor: allChecked && !saving ? 'pointer' : 'not-allowed',
-            fontFamily: 'DM Sans, sans-serif', transition: 'all 0.2s',
+            fontFamily: 'var(--font-body)', transition: 'all 0.2s',
           }}>
           {saving ? (
             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
@@ -1761,7 +1761,7 @@ export function FacultyOnboardFlow({ profile, onComplete }: Props) {
         position: 'relative', zIndex: 10,
       }}>
         <span style={{
-          fontFamily: 'Playfair Display, serif',
+          fontFamily: 'var(--font-display)',
           fontSize: '20px', fontWeight: 700, color: GOLD,
         }}>
           EdUsaathiAI

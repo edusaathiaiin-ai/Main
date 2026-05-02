@@ -334,7 +334,7 @@ export function DailyChallengeWidget({
                   color: '#fff',
                   lineHeight: 1.65,
                   marginBottom: '20px',
-                  fontFamily: 'var(--font-dm-sans)',
+                  fontFamily: 'var(--font-body)',
                 }}
               >
                 {challenge.question}

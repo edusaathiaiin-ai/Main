@@ -167,7 +167,7 @@ export default function FacultyEarningsPage() {
   return (
     <main className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       <nav className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--bg-elevated)' }}>
-        <Link href="/faculty" className="font-playfair text-xl font-bold" style={{ color: '#C9993A', textDecoration: 'none' }}>
+        <Link href="/faculty" className="font-display text-xl font-bold" style={{ color: '#C9993A', textDecoration: 'none' }}>
           EdUsaathiAI
         </Link>
         <Link href="/faculty/live" className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>
@@ -176,7 +176,7 @@ export default function FacultyEarningsPage() {
       </nav>
 
       <div className="mx-auto max-w-4xl px-6 py-8">
-        <h1 className="font-playfair mb-2 text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+        <h1 className="font-display mb-2 text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
           Earnings & Payouts
         </h1>
         <p className="mb-8 text-sm" style={{ color: 'var(--text-tertiary)' }}>
@@ -244,7 +244,7 @@ export default function FacultyEarningsPage() {
             )}
 
             {/* Completed sessions */}
-            <h2 className="font-playfair mb-3 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            <h2 className="font-display mb-3 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
               Completed sessions
             </h2>
             {sessions.length === 0 && (
@@ -310,7 +310,7 @@ export default function FacultyEarningsPage() {
             </div>
 
             {/* Past payouts */}
-            <h2 className="font-playfair mb-3 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            <h2 className="font-display mb-3 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
               Past payouts
             </h2>
             {payouts.length === 0 && (

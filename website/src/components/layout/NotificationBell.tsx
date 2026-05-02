@@ -217,7 +217,7 @@ export function NotificationBell() {
                 style={{
                   fontSize: '13px',
                   fontWeight: '600',
-                  color: '#fff',
+                  color: 'var(--text-primary)',
                   margin: 0,
                 }}
               >

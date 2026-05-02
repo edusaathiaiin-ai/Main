@@ -328,7 +328,7 @@ export function NewsFeed() {
           <div className="mb-6 flex items-start justify-between">
             <div>
               <h1
-                className="font-playfair mb-1 text-3xl font-bold"
+                className="font-display mb-1 text-3xl font-bold"
                 style={{ color: 'var(--text-primary)' }}
               >
                 Today in {activeSaathi.name}
@@ -421,7 +421,7 @@ export function NewsFeed() {
                 <div className="flex flex-col items-center py-16 text-center">
                   <span className="mb-3 text-4xl">📅</span>
                   <p
-                    className="font-playfair mb-2 text-lg"
+                    className="font-display mb-2 text-lg"
                     style={{ color: 'var(--text-tertiary)' }}
                   >
                     No upcoming exams for {activeSaathi.name}
@@ -458,7 +458,7 @@ export function NewsFeed() {
                 <div className="flex flex-col items-center py-16 text-center">
                   <span className="mb-3 text-4xl">📢</span>
                   <p
-                    className="font-playfair text-lg"
+                    className="font-display text-lg"
                     style={{ color: 'var(--text-tertiary)' }}
                   >
                     No announcements right now.
@@ -486,7 +486,7 @@ export function NewsFeed() {
                   <div className="flex flex-col items-center py-20 text-center">
                     <span className="mb-4 text-5xl">📰</span>
                     <p
-                      className="font-playfair mb-2 text-xl"
+                      className="font-display mb-2 text-xl"
                       style={{ color: 'var(--text-secondary)' }}
                     >
                       Today&apos;s news is being gathered.

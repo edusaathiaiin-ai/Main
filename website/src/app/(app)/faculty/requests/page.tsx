@@ -87,7 +87,7 @@ function Stat({ label, value, color }: { label: string; value: number | string; 
       background: 'var(--bg-elevated)',
       border: '0.5px solid var(--border-subtle)',
     }}>
-      <p style={{ fontSize: '22px', fontWeight: 800, color: color ?? '#fff', margin: '0 0 3px' }}>
+      <p style={{ fontSize: '22px', fontWeight: 800, color: color ?? 'var(--text-primary)', margin: '0 0 3px' }}>
         {value}
       </p>
       <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: 0 }}>{label}</p>
@@ -279,7 +279,7 @@ function ProposePanel({
             <button onClick={addSlot}
               style={{ marginTop: '6px', background: 'none', border: 'none',
                 color: 'rgba(201,153,58,0.7)', fontSize: '13px', cursor: 'pointer',
-                padding: '4px 0', fontFamily: 'DM Sans, sans-serif' }}>
+                padding: '4px 0', fontFamily: 'var(--font-body)' }}>
               + Add another time option
             </button>
           )}
@@ -306,7 +306,7 @@ function ProposePanel({
               border: '0.5px solid var(--border-subtle)',
               color: 'var(--text-primary)', fontSize: '13px', outline: 'none',
               resize: 'none', boxSizing: 'border-box',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'var(--font-body)',
             }}
           />
           <p style={{ fontSize: '9px', color: 'var(--text-ghost)', marginTop: '3px' }}>
@@ -326,7 +326,7 @@ function ProposePanel({
               fontSize: '13px', fontWeight: 700,
               border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
               opacity: saving ? 0.6 : 1,
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'var(--font-body)',
             }}>
             {saving ? 'Sending proposal…' : 'Send proposal to student →'}
           </button>
@@ -335,7 +335,7 @@ function ProposePanel({
               background: 'none', border: 'none',
               color: 'var(--text-ghost)',
               fontSize: '13px', cursor: 'pointer',
-              fontFamily: 'DM Sans, sans-serif' }}>
+              fontFamily: 'var(--font-body)' }}>
             Cancel
           </button>
         </div>
@@ -386,7 +386,7 @@ function DeclinePanel({
                 border: reason === r ? '0.5px solid rgba(239,68,68,0.35)' : '0.5px solid var(--bg-elevated)',
                 color: reason === r ? '#FCA5A5' : 'var(--text-tertiary)',
                 fontSize: '13px', cursor: 'pointer',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'var(--font-body)',
               }}>
               {r}
             </button>
@@ -403,7 +403,7 @@ function DeclinePanel({
               background: 'var(--bg-elevated)',
               border: '0.5px solid var(--border-subtle)',
               color: 'var(--text-primary)', fontSize: '13px', outline: 'none', resize: 'none',
-              boxSizing: 'border-box', fontFamily: 'DM Sans, sans-serif',
+              boxSizing: 'border-box', fontFamily: 'var(--font-body)',
             }}
           />
         )}
@@ -419,14 +419,14 @@ function DeclinePanel({
               color: finalReason ? '#fff' : 'var(--text-ghost)',
               fontSize: '13px', fontWeight: 600, border: 'none',
               cursor: finalReason && !saving ? 'pointer' : 'not-allowed',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'var(--font-body)',
             }}>
             {saving ? 'Sending…' : 'Decline politely'}
           </button>
           <button onClick={onCancel}
             style={{ background: 'none', border: 'none',
               color: 'var(--text-ghost)', fontSize: '13px',
-              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+              cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
             Cancel
           </button>
         </div>
@@ -645,7 +645,7 @@ export default function FacultyRequestsPage() {
         borderBottom: '0.5px solid var(--bg-elevated)',
       }}>
         <Link href="/faculty" style={{
-          fontFamily: 'Playfair Display, serif', fontSize: '20px',
+          fontFamily: 'var(--font-display)', fontSize: '20px',
           fontWeight: 700, color: GOLD, textDecoration: 'none',
         }}>
           EdUsaathiAI
@@ -661,7 +661,7 @@ export default function FacultyRequestsPage() {
 
         {/* Header */}
         <h1 style={{
-          fontFamily: 'Playfair Display, serif', fontSize: 'clamp(24px,4vw,36px)',
+          fontFamily: 'var(--font-display)', fontSize: 'clamp(24px,4vw,36px)',
           fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px',
         }}>
           Lecture Requests
@@ -718,7 +718,7 @@ export default function FacultyRequestsPage() {
                 color: tab === t.id ? NAVY : 'var(--text-tertiary)',
                 fontSize: '13px', fontWeight: tab === t.id ? 700 : 400,
                 border: 'none', cursor: 'pointer',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'var(--font-body)',
                 transition: 'all 0.18s',
               }}>
               {t.label} ({t.count})
@@ -758,7 +758,7 @@ export default function FacultyRequestsPage() {
                   alignItems: 'flex-start', marginBottom: '6px' }}>
                   <h3 style={{
                     fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0,
-                    fontFamily: 'Playfair Display, serif',
+                    fontFamily: 'var(--font-display)',
                   }}>
                     {r.subject}
                   </h3>
@@ -939,7 +939,7 @@ export default function FacultyRequestsPage() {
                               background: 'rgba(74,222,128,0.12)',
                               border: '0.5px solid rgba(74,222,128,0.3)',
                               color: GREEN, fontSize: '13px', fontWeight: 700,
-                              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                              cursor: 'pointer', fontFamily: 'var(--font-body)',
                             }}>
                             Accept — propose time &amp; fee →
                           </button>
@@ -949,7 +949,7 @@ export default function FacultyRequestsPage() {
                               background: 'rgba(201,153,58,0.1)',
                               border: '0.5px solid rgba(201,153,58,0.25)',
                               color: GOLD, fontSize: '13px', fontWeight: 600,
-                              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                              cursor: 'pointer', fontFamily: 'var(--font-body)',
                             }}>
                             Reply only
                           </button>
@@ -959,7 +959,7 @@ export default function FacultyRequestsPage() {
                               background: 'var(--bg-elevated)',
                               border: '0.5px solid var(--border-subtle)',
                               color: 'var(--text-ghost)', fontSize: '13px',
-                              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                              cursor: 'pointer', fontFamily: 'var(--font-body)',
                             }}>
                             Decline
                           </button>
@@ -994,7 +994,7 @@ export default function FacultyRequestsPage() {
                                 border: '1px solid var(--border-subtle)',
                                 color: 'var(--text-primary)', fontSize: '13px', outline: 'none',
                                 resize: 'none', boxSizing: 'border-box',
-                                fontFamily: 'DM Sans, sans-serif', marginBottom: '8px',
+                                fontFamily: 'var(--font-body)', marginBottom: '8px',
                               }}
                             />
                             <div style={{ display: 'flex', gap: '8px' }}>
@@ -1005,14 +1005,14 @@ export default function FacultyRequestsPage() {
                                   background: GOLD, color: NAVY,
                                   fontSize: '13px', fontWeight: 700, border: 'none',
                                   cursor: 'pointer', opacity: saving === r.id ? 0.6 : 1,
-                                  fontFamily: 'DM Sans, sans-serif',
+                                  fontFamily: 'var(--font-body)',
                                 }}>
                                 {saving === r.id ? 'Sending…' : 'Send reply'}
                               </button>
                               <button onClick={() => setMode(r.id, null)}
                                 style={{ background: 'none', border: 'none',
                                   color: 'var(--text-ghost)', fontSize: '13px',
-                                  cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+                                  cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
                                 Cancel
                               </button>
                             </div>

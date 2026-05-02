@@ -114,10 +114,10 @@ export function QuestionCard({
       transition={{ duration: 0.15 }}
       className="relative mb-3 rounded-2xl p-5 transition-all duration-200"
       style={{
-        background: isLegalTheme ? '#FFFFFF' : '#0A1929',
+        background: isLegalTheme ? '#FFFFFF' : 'var(--bg-surface)',
         border: isLegalTheme
           ? `1px solid ${hovered ? '#BBBBBB' : '#E0E0E0'}`
-          : `0.5px solid ${hovered ? 'var(--border-medium)' : 'var(--bg-elevated)'}`,
+          : `0.5px solid ${hovered ? 'var(--border-medium)' : 'var(--border-subtle)'}`,
       }}
     >
       {/* Author row */}
@@ -137,7 +137,7 @@ export function QuestionCard({
             <div className="flex flex-wrap items-center gap-1.5">
               <span
                 className="text-xs font-semibold"
-                style={{ color: isLegalTheme ? '#1A1A1A' : '#ffffff' }}
+                style={{ color: isLegalTheme ? '#1A1A1A' : 'var(--text-primary)' }}
               >
                 {question.is_anonymous
                   ? 'Anonymous Student'
@@ -214,8 +214,8 @@ export function QuestionCard({
 
       {/* Question title */}
       <h3
-        className="font-playfair mb-3 text-[17px] leading-snug font-medium"
-        style={{ color: isLegalTheme ? '#1A1A1A' : '#ffffff' }}
+        className="font-display mb-3 text-[17px] leading-snug font-medium"
+        style={{ color: isLegalTheme ? '#1A1A1A' : 'var(--text-primary)' }}
       >
         {question.title}
       </h3>

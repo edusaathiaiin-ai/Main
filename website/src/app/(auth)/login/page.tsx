@@ -161,7 +161,7 @@ function LoginForm() {
           className="inline-block"
         >
           <h1
-            className="font-playfair text-4xl font-bold tracking-tight text-white"
+            className="font-display text-4xl font-bold tracking-tight text-white"
             style={{ letterSpacing: '-0.5px' }}
           >
             EdU<span style={{ color: '#C9993A' }}>saathi</span>AI
@@ -219,7 +219,7 @@ function LoginForm() {
               className="py-4 text-center"
             >
               <div className="mb-3 text-3xl">✉️</div>
-              <p className="font-playfair mb-1 text-xl font-semibold text-white">
+              <p className="font-display mb-1 text-xl font-semibold text-white">
                 Magic link sent to
               </p>
               <p
@@ -602,7 +602,7 @@ export default function LoginPage() {
         fallback={
           <div className="w-full max-w-sm">
             <div className="mb-10 text-center">
-              <h1 className="font-playfair text-4xl font-bold text-white">
+              <h1 className="font-display text-4xl font-bold text-white">
                 EdU<span style={{ color: '#C9993A' }}>saathi</span>AI
               </h1>
             </div>

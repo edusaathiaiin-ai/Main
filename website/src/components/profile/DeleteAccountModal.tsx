@@ -64,7 +64,7 @@ export default function DeleteAccountModal({
         {done ? (
           <div className="py-4 text-center">
             <div className="mb-4 text-4xl">📬</div>
-            <h3 className="font-playfair mb-2 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            <h3 className="font-display mb-2 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
               Deletion request received
             </h3>
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>

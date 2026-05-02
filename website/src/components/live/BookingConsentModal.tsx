@@ -130,7 +130,7 @@ export function BookingConsentModal({
           >
             <h2
               id="booking-consent-title"
-              className="font-playfair mb-1 text-2xl font-bold"
+              className="font-display mb-1 text-2xl font-bold"
               style={{ color: '#fff' }}
             >
               Before you book

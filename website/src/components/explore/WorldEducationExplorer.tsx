@@ -225,7 +225,7 @@ function WorldEducationExplorerPanel({ onClose }: { onClose: () => void }) {
                 </p>
               </div>
               <h2 style={{
-                fontFamily: 'Playfair Display, serif', fontSize: '22px',
+                fontFamily: 'var(--font-display)', fontSize: '22px',
                 fontWeight: 800, color: '#FFFFFF', margin: '0 0 6px', lineHeight: 1.2,
               }}>
                 Thinking about studying abroad?
@@ -301,7 +301,7 @@ function WorldEducationExplorerPanel({ onClose }: { onClose: () => void }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ fontSize: '22px', lineHeight: 1 }}>{d.flag}</span>
                   <div>
-                    <p style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 2px', fontFamily: 'Playfair Display, serif' }}>
+                    <p style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 2px', fontFamily: 'var(--font-display)' }}>
                       {d.label}
                       {'featured' in d && d.featured && (
                         <span style={{

@@ -241,7 +241,7 @@ export function ExploreClient({ saathiId }: Props) {
 
             <h1
               style={{
-                fontFamily: 'var(--font-playfair), Playfair Display, serif',
+                fontFamily: 'var(--font-display)',
                 fontSize: 'clamp(26px, 4vw, 40px)',
                 fontWeight: '900',
                 color: '#fff',

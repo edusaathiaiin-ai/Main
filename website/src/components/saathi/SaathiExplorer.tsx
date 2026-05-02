@@ -413,7 +413,7 @@ function SaathiCard({
         <p style={{
           fontSize: '13px', fontWeight: 700, margin: '0 0 3px',
           color: hovered ? '#FFFFFF' : 'rgba(255,255,255,0.88)',
-          fontFamily: 'var(--font-playfair), "Playfair Display", serif',
+          fontFamily: 'var(--font-display)',
           lineHeight: 1.25, transition: 'color 0.2s',
         }}>
           {saathi.name}
@@ -567,7 +567,7 @@ export function SaathiExplorer() {
                 color: active ? g.color : 'rgba(255,255,255,0.45)',
                 fontSize: '13px', fontWeight: active ? 600 : 400,
                 cursor: 'pointer', transition: 'all 0.18s',
-                fontFamily: 'var(--font-dm-sans), "DM Sans", sans-serif',
+                fontFamily: 'var(--font-body)',
               }}
             >
               <span>{g.emoji}</span>
@@ -657,7 +657,7 @@ export function SaathiExplorer() {
       }}>
         <div>
           <p style={{
-            fontFamily: 'var(--font-playfair), "Playfair Display", serif',
+            fontFamily: 'var(--font-display)',
             fontSize: '18px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 4px',
           }}>
             Your Saathi is in this grid.

@@ -92,7 +92,7 @@ export function NewsCard({ item, primaryColor, index }: Props) {
       <h3
         className="line-clamp-3 text-sm leading-snug font-semibold"
         style={{
-          fontFamily: 'var(--font-dm-sans)',
+          fontFamily: 'var(--font-body)',
           color: 'var(--text-primary)',
         }}
       >

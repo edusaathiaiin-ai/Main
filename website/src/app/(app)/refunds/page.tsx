@@ -82,7 +82,7 @@ export default function StudentRefundsPage() {
         className="flex items-center justify-between border-b px-6 py-4"
         style={{ borderColor: 'var(--bg-elevated)' }}
       >
-        <Link href="/" className="font-playfair text-xl font-bold" style={{ color: '#C9993A', textDecoration: 'none' }}>
+        <Link href="/" className="font-display text-xl font-bold" style={{ color: '#C9993A', textDecoration: 'none' }}>
           EdUsaathiAI
         </Link>
         <Link href="/profile" className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>
@@ -91,7 +91,7 @@ export default function StudentRefundsPage() {
       </nav>
 
       <div className="mx-auto max-w-2xl px-6 py-8">
-        <h1 className="font-playfair mb-2 text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+        <h1 className="font-display mb-2 text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
           Refunds
         </h1>
         <p className="mb-8 text-sm" style={{ color: 'var(--text-tertiary)' }}>

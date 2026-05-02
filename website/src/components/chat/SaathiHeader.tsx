@@ -282,7 +282,7 @@ export function SaathiHeader({
                 whiteSpace:   'nowrap',
                 transition:   'all 0.18s',
                 flexShrink:   0,
-                fontFamily:   'DM Sans, sans-serif',
+                fontFamily:   'var(--font-body)',
               }}
             >
               <span style={{ fontSize: '13px', opacity: unlocked ? 1 : 0.4 }}>
@@ -319,7 +319,7 @@ export function SaathiHeader({
                 cursor:       'pointer',
                 whiteSpace:   'nowrap',
                 transition:   'all 0.18s',
-                fontFamily:   'DM Sans, sans-serif',
+                fontFamily:   'var(--font-body)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = '#16A34A'

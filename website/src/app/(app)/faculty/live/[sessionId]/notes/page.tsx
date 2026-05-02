@@ -92,7 +92,7 @@ export default function FacultyNotesPage() {
         className="flex items-center justify-between border-b px-6 py-4"
         style={{ borderColor: 'var(--bg-elevated)' }}
       >
-        <Link href="/faculty/live" className="font-playfair text-xl font-bold" style={{ color: '#C9993A', textDecoration: 'none' }}>
+        <Link href="/faculty/live" className="font-display text-xl font-bold" style={{ color: '#C9993A', textDecoration: 'none' }}>
           EdUsaathiAI
         </Link>
         <Link href="/faculty/live" className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>
@@ -101,7 +101,7 @@ export default function FacultyNotesPage() {
       </nav>
 
       <div className="mx-auto max-w-3xl px-6 py-8">
-        <h1 className="font-playfair mb-2 text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+        <h1 className="font-display mb-2 text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
           Share session notes
         </h1>
         <p className="mb-8 text-sm" style={{ color: 'var(--text-tertiary)' }}>

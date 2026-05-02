@@ -66,7 +66,7 @@ export function SuspensionScreen({
 
       {/* Title */}
       <h2
-        className="font-playfair mb-3 text-[28px] font-bold"
+        className="font-display mb-3 text-[28px] font-bold"
         style={{ color: '#F87171' }}
       >
         {isBanned
@@ -144,7 +144,7 @@ export function SuspensionScreen({
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-2 py-1 text-xs transition-colors hover:text-white"
+              className="flex items-center gap-2 py-1 text-xs transition-colors hover:text-[var(--text-primary)]"
               style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
             >
               <span>{item.icon}</span>
