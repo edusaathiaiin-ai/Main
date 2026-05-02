@@ -431,7 +431,7 @@ export default function LiveSessionDetailPage() {
       >
         <div className="text-center">
           <p className="mb-4 text-5xl">{'\u{1F4FA}'}</p>
-          <h2 className="font-playfair mb-2 text-2xl text-white">
+          <h2 className="font-playfair mb-2 text-2xl text-[var(--text-primary)]">
             Session not found
           </h2>
           <Link href="/live" style={{ color: '#C9993A' }}>
@@ -558,7 +558,7 @@ export default function LiveSessionDetailPage() {
                 </span>
               </div>
 
-              <h1 className="font-playfair mb-3 text-3xl font-bold text-white">
+              <h1 className="font-playfair mb-3 text-3xl font-bold text-[var(--text-primary)]">
                 {session.title}
               </h1>
 
@@ -575,7 +575,7 @@ export default function LiveSessionDetailPage() {
                     {saathi?.emoji ?? '\u{1F393}'}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">
                       {faculty.full_name}
                       {faculty.verification_status === 'verified' && (
                         <span
@@ -610,7 +610,7 @@ export default function LiveSessionDetailPage() {
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">🔗</span>
-                      <p className="text-sm font-bold text-white">Your meeting link</p>
+                      <p className="text-sm font-bold text-[var(--text-primary)]">Your meeting link</p>
                     </div>
                     {countdown && (
                       <div
@@ -706,7 +706,7 @@ export default function LiveSessionDetailPage() {
                   border: '0.5px solid var(--bg-elevated)',
                 }}
               >
-                <h3 className="mb-2 text-sm font-semibold text-white">
+                <h3 className="mb-2 text-sm font-semibold text-[var(--text-primary)]">
                   About this session
                 </h3>
                 <p
@@ -778,7 +778,7 @@ export default function LiveSessionDetailPage() {
               {/* Lecture schedule */}
               {lectures.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="mb-3 text-sm font-semibold text-white">
+                  <h3 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
                     Schedule
                   </h3>
                   <div className="space-y-2">
@@ -798,7 +798,7 @@ export default function LiveSessionDetailPage() {
                           {l.lecture_number}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-white">
+                          <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
                             {l.title}
                           </p>
                           <p
@@ -879,7 +879,7 @@ export default function LiveSessionDetailPage() {
                 }}
               >
                 <p className="mb-3 text-4xl">{statusMeta.empty.emoji}</p>
-                <h3 className="font-playfair mb-2 text-xl font-bold text-white">
+                <h3 className="font-playfair mb-2 text-xl font-bold text-[var(--text-primary)]">
                   {statusMeta.empty.title}
                 </h3>
                 <p
@@ -911,7 +911,7 @@ export default function LiveSessionDetailPage() {
                 }}
               >
                 <p className="mb-3 text-4xl">{'\u{1F389}'}</p>
-                <h3 className="font-playfair mb-2 text-xl font-bold text-white">
+                <h3 className="font-playfair mb-2 text-xl font-bold text-[var(--text-primary)]">
                   Seat booked!
                 </h3>
                 <p
@@ -1033,7 +1033,7 @@ export default function LiveSessionDetailPage() {
                           >
                             Full Series ({lectures.length} lectures)
                           </span>
-                          <span className="text-xs font-bold text-white">
+                          <span className="text-xs font-bold text-[var(--text-primary)]">
                             {formatFee(session.bundle_price_paise)}
                           </span>
                         </div>
@@ -1102,7 +1102,7 @@ export default function LiveSessionDetailPage() {
                             className="accent-[#C9993A]"
                           />
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs text-white">
+                            <p className="truncate text-xs text-[var(--text-primary)]">
                               {l.title}
                             </p>
                             <p
@@ -1115,7 +1115,7 @@ export default function LiveSessionDetailPage() {
                               )}
                             </p>
                           </div>
-                          <span className="text-xs font-bold text-white">
+                          <span className="text-xs font-bold text-[var(--text-primary)]">
                             {formatFee(session.price_per_seat_paise)}
                           </span>
                         </label>
