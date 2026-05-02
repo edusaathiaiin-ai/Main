@@ -100,10 +100,6 @@ export default async function RootPage() {
         .hero-stats{display:flex;align-items:center;justify-content:center;gap:48px;margin-top:40px;animation:fadeUp 0.8s ease 0.6s both}
         .stat{text-align:center}.stat-num{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--gold);line-height:1;margin-bottom:4px}.stat-label{font-size:12px;color:var(--gray);font-weight:400;letter-spacing:0.5px}
         .stat-divider{width:1px;height:40px;background:rgba(255,255,255,0.1)}
-        .founding-banner{background:linear-gradient(135deg,rgba(201,153,58,0.15),rgba(201,153,58,0.05));border-top:0.5px solid rgba(201,153,58,0.3);border-bottom:0.5px solid rgba(201,153,58,0.3);padding:20px 48px;display:flex;align-items:center;justify-content:center;gap:16px;text-align:center}
-        .founding-badge{background:var(--gold);color:var(--navy-deep);font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;letter-spacing:1px;text-transform:uppercase;flex-shrink:0}
-        .founding-text{font-size:14px;color:rgba(255,255,255,0.8)}.founding-text strong{color:var(--gold);font-weight:600}
-        .founding-cta{color:var(--gold);font-size:13px;font-weight:600;text-decoration:none;border-bottom:0.5px solid rgba(201,153,58,0.5);padding-bottom:1px;flex-shrink:0}
         .land-section{padding:100px 48px;max-width:1200px;margin:0 auto}
         .section-eyebrow{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:10px}
         .section-eyebrow::before{content:'';display:block;width:24px;height:1px;background:var(--gold)}
@@ -147,7 +143,6 @@ export default async function RootPage() {
           .steps-grid{grid-template-columns:1fr}
           .comparison-grid{grid-template-columns:1fr}
           .hero-stats{gap:24px}.stat-divider{display:none}
-          .founding-banner{padding:16px 20px;flex-direction:column;gap:8px}
           .land-footer{padding:32px 20px;flex-direction:column}
           .saathis-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
         }
@@ -454,30 +449,6 @@ export default async function RootPage() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* ── Founding Banner ────────────────────────────────────────────── */}
-      <div className="founding-banner">
-        <span className="founding-badge">Founding Student</span>
-        <span className="founding-text">
-          First 500 students get{' '}
-          <strong>60 days full access — completely free.</strong> No card. No
-          catch. Just your Saathi.
-        </span>
-        <Link href="/login?role=student" className="founding-cta">
-          Claim your spot →
-        </Link>
-        <Link
-          href="/login"
-          style={{
-            fontSize: '13px',
-            color: 'rgba(255,255,255,0.4)',
-            marginLeft: '8px',
-          }}
-        >
-          Already a Founding Student?{' '}
-          <span style={{ color: '#C9993A' }}>Sign in →</span>
-        </Link>
       </div>
 
       {/* ── How it works ───────────────────────────────────────────────── */}

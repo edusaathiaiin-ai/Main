@@ -45,7 +45,7 @@ export function CookieBanner() {
           <div className="mx-auto flex max-w-4xl flex-col items-center justify-between gap-4 md:flex-row">
             <p
               className="m-0 flex-1 text-sm font-medium"
-              style={{ color: '#FAF7F2', fontFamily: 'var(--font-dm-sans)' }}
+              style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-body)' }}
             >
               EdUsaathiAI uses essential cookies for authentication only. No
               tracking. No ads.
@@ -54,7 +54,7 @@ export function CookieBanner() {
               <Link
                 href="/privacy"
                 className="text-sm whitespace-nowrap underline underline-offset-4 transition-opacity hover:opacity-80"
-                style={{ color: '#FAF7F2', fontFamily: 'var(--font-dm-sans)' }}
+                style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}
               >
                 Privacy Policy
               </Link>
@@ -64,7 +64,7 @@ export function CookieBanner() {
                 style={{
                   background: '#C9993A',
                   color: '#060F1D',
-                  fontFamily: 'var(--font-dm-sans)',
+                  fontFamily: 'var(--font-body)',
                 }}
               >
                 Accept
