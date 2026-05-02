@@ -265,7 +265,9 @@ export default function ProfileTab({
           })()
         : null
 
-      await supabase
+      // .select() forces Supabase to return the affected rows so we can
+      // distinguish "saved" from "RLS silently filtered the update."
+      const { data: updatedRows, error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: fullName.trim().slice(0, 100) || null,
@@ -277,8 +279,23 @@ export default function ProfileTab({
           exam_target_date: examPickerValue.examId
             ? inferExamDate(examPickerValue.examId)
             : null,
+          profile_completeness_pct: completeness,
         })
         .eq('id', profile.id)
+        .select('id')
+
+      if (profileError) {
+        console.error('[ProfileTab] profiles update failed', profileError)
+        setToast(`⚠️ Couldn't save profile: ${profileError.message}`)
+        setTimeout(() => setToast(null), 7000)
+        return
+      }
+      if (!updatedRows?.length) {
+        console.error('[ProfileTab] profiles update returned 0 rows (RLS?)')
+        setToast('⚠️ Save was rejected. Please refresh and try again.')
+        setTimeout(() => setToast(null), 7000)
+        return
+      }
 
       if (examPickerValue.examId && profile.primary_saathi_id) {
         const saathiSlug = toSlug(profile.primary_saathi_id)
@@ -293,7 +310,7 @@ export default function ProfileTab({
       }
 
       if (profile.primary_saathi_id) {
-        await supabase.from('student_soul').upsert(
+        const { error: soulError } = await supabase.from('student_soul').upsert(
           {
             user_id: profile.id,
             vertical_id: profile.primary_saathi_id,
@@ -307,6 +324,14 @@ export default function ProfileTab({
           },
           { onConflict: 'user_id,vertical_id' }
         )
+        if (soulError) {
+          console.error('[ProfileTab] student_soul upsert failed', soulError)
+          setToast(
+            `⚠️ Profile saved but soul update failed: ${soulError.message}`
+          )
+          setTimeout(() => setToast(null), 7000)
+          return
+        }
       }
 
       setToast(
@@ -314,8 +339,10 @@ export default function ProfileTab({
       )
       setTimeout(() => setToast(null), 5000)
       onSaved()
-    } catch {
+    } catch (e) {
+      console.error('[ProfileTab] save threw', e)
       setToast('⚠️ Failed to save. Please try again.')
+      setTimeout(() => setToast(null), 7000)
     } finally {
       setSaving(false)
     }
@@ -341,17 +368,27 @@ export default function ProfileTab({
 
   return (
     <div className="space-y-8">
-      {/* Toast */}
+      {/* Toast — fixed at viewport bottom so it's visible regardless of
+          where the user is on the form (the Save button sits well below
+          the fold on most viewports). Styled per success / error prefix. */}
       {toast && (
         <motion.div
-          initial={{ opacity: 0, y: -8 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className="rounded-xl px-4 py-3 text-sm"
+          exit={{ opacity: 0, y: 12 }}
+          className="rounded-xl px-5 py-3 text-sm font-semibold shadow-2xl"
           style={{
-            background: 'rgba(74,222,128,0.1)',
-            border: '1px solid rgba(74,222,128,0.25)',
-            color: '#4ADE80',
+            position: 'fixed',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 100,
+            maxWidth: 'calc(100% - 32px)',
+            background: '#FFFFFF',
+            border: toast.startsWith('⚠️')
+              ? '1px solid rgba(239,68,68,0.45)'
+              : '1px solid rgba(74,222,128,0.45)',
+            color: toast.startsWith('⚠️') ? '#B91C1C' : '#15803D',
           }}
         >
           {toast}
