@@ -254,7 +254,7 @@ export default function FacultyFinderPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, subject, institution..."
-              className="w-full rounded-[14px] py-3.5 pr-4 pl-12 text-sm text-white outline-none"
+              className="w-full rounded-[14px] py-3.5 pr-4 pl-12 text-sm text-[var(--text-primary)] outline-none"
               style={{
                 background: 'var(--bg-elevated)',
                 border: '0.5px solid var(--border-medium)',
@@ -384,7 +384,7 @@ export default function FacultyFinderPage() {
               >
                 {'\u2726'} Emeritus Faculty
               </p>
-              <h2 className="font-playfair mb-1 text-xl font-bold text-white">
+              <h2 className="font-playfair mb-1 text-xl font-bold text-[var(--text-primary)]">
                 India&apos;s greatest professors never really retired.
               </h2>
               <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
@@ -420,7 +420,7 @@ export default function FacultyFinderPage() {
                         {saathi?.emoji ?? '\u{1F393}'}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-white">
+                        <p className="text-sm font-bold text-[var(--text-primary)]">
                           {f.full_name}
                         </p>
                         <p
@@ -493,7 +493,7 @@ export default function FacultyFinderPage() {
         ) : filtered.length === 0 ? (
           <div className="py-20 text-center">
             <p className="mb-4 text-5xl">&#x1F50D;</p>
-            <h3 className="font-playfair mb-2 text-2xl text-white">
+            <h3 className="font-playfair mb-2 text-2xl text-[var(--text-primary)]">
               No faculty found
             </h3>
             <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
@@ -566,7 +566,7 @@ export default function FacultyFinderPage() {
                             {saathi?.emoji ?? '\u{1F393}'}
                           </div>
                           <div>
-                            <p className="text-[15px] leading-tight font-bold text-white">
+                            <p className="text-[15px] leading-tight font-bold text-[var(--text-primary)]">
                               {f.full_name}
                             </p>
                             <p
@@ -768,7 +768,7 @@ export default function FacultyFinderPage() {
                             >
                               From
                             </p>
-                            <p className="text-lg font-bold text-white">
+                            <p className="text-lg font-bold text-[var(--text-primary)]">
                               {formatFee(minFee)}
                               <span
                                 className="text-[10px] font-normal"

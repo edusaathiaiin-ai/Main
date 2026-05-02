@@ -219,7 +219,7 @@ function CompanyApplyModal({
       >
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <h3 className="font-playfair text-lg font-bold text-white">
+            <h3 className="font-playfair text-lg font-bold text-[var(--text-primary)]">
               {posting.title}
             </h3>
             <p
@@ -410,7 +410,7 @@ function ResearchApplyModal({
       >
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <h3 className="font-playfair text-lg font-bold text-white">
+            <h3 className="font-playfair text-lg font-bold text-[var(--text-primary)]">
               {posting.project_title ?? posting.title}
             </h3>
             <p
@@ -636,7 +636,7 @@ function CompanyCard({
         )}
         <div className="min-w-0 flex-1">
           <div className="mb-0.5 flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold text-white">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">
               {posting.title}
             </h3>
             {applied && <ApplicationStatusBadge status={applied.status} />}
@@ -799,7 +799,7 @@ function ResearchCard({
             )}
             {applied && <ApplicationStatusBadge status={applied.status} />}
           </div>
-          <h3 className="font-playfair text-base font-bold text-white">
+          <h3 className="font-playfair text-base font-bold text-[var(--text-primary)]">
             {posting.project_title ?? posting.title}
           </h3>
           <p
@@ -1099,12 +1099,12 @@ export default function InternshipsPage() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: 'var(--bg-base)', color: '#fff' }}
+      style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
     >
       <div className="mx-auto max-w-3xl px-4 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="font-playfair mb-1 text-3xl font-bold text-white">
+          <h1 className="font-playfair mb-1 text-3xl font-bold text-[var(--text-primary)]">
             Internships & Research 🎯
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
@@ -1277,7 +1277,7 @@ export default function InternshipsPage() {
               }}
             >
               <p className="mb-4 text-4xl">🏢</p>
-              <p className="font-playfair mb-2 text-xl text-white">
+              <p className="font-playfair mb-2 text-xl text-[var(--text-primary)]">
                 No company internships yet
               </p>
               <p
@@ -1303,7 +1303,7 @@ export default function InternshipsPage() {
             }}
           >
             <p className="mb-4 text-4xl">🔬</p>
-            <p className="font-playfair mb-2 text-xl text-white">
+            <p className="font-playfair mb-2 text-xl text-[var(--text-primary)]">
               No research positions yet
             </p>
             <p className="text-sm" style={{ color: 'var(--text-ghost)' }}>
@@ -1321,7 +1321,7 @@ export default function InternshipsPage() {
         {/* ── My Applications ─────────────────────────────────────────────── */}
         {myApplications.length > 0 && (
           <div className="mt-12">
-            <h2 className="font-playfair mb-4 text-xl font-bold text-white">
+            <h2 className="font-playfair mb-4 text-xl font-bold text-[var(--text-primary)]">
               My Applications
             </h2>
             <div className="space-y-3">
@@ -1338,7 +1338,7 @@ export default function InternshipsPage() {
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-white">
+                        <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
                           {p?.project_title ?? p?.title ?? 'Position'}
                         </p>
                         <p

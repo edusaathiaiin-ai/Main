@@ -208,7 +208,7 @@ export default function PublicRequestsPage() {
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
             <p className="mb-3 text-4xl">{'\u{2709}'}</p>
-            <p className="font-playfair mb-1 text-xl text-white/30">
+            <p className="font-playfair mb-1 text-xl text-[var(--text-tertiary)]">
               No requests yet
             </p>
             <p
@@ -252,7 +252,7 @@ export default function PublicRequestsPage() {
                 >
                   <div className="mb-2 flex items-start justify-between">
                     <div className="min-w-0 flex-1">
-                      <h3 className="mb-1 text-sm font-bold text-white">
+                      <h3 className="mb-1 text-sm font-bold text-[var(--text-primary)]">
                         {r.subject}
                       </h3>
                       <p

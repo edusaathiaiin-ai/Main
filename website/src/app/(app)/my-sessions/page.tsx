@@ -242,7 +242,7 @@ export default function MySessionsPage() {
       </nav>
 
       <div className="mx-auto max-w-3xl px-6 py-8">
-        <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
+        <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
           My Sessions
         </h1>
         <p className="mb-6 text-sm" style={{ color: 'var(--text-tertiary)' }}>
@@ -324,7 +324,7 @@ export default function MySessionsPage() {
                 >
                   <div className="mb-2 flex items-start justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-white">
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">
                         {fac?.full_name ?? 'Faculty'}
                       </p>
                       <p
@@ -355,7 +355,7 @@ export default function MySessionsPage() {
                     </span>
                   </div>
 
-                  <p className="mb-2 text-xs text-white/60">{s.topic}</p>
+                  <p className="mb-2 text-xs text-[var(--text-secondary)]">{s.topic}</p>
 
                   {s.confirmed_slot && (
                     <p className="mb-2 text-xs" style={{ color: '#4ADE80' }}>
@@ -436,7 +436,7 @@ export default function MySessionsPage() {
                     >
                       {new Date(s.created_at).toLocaleDateString('en-IN')}
                     </span>
-                    <span className="text-sm font-bold text-white">
+                    <span className="text-sm font-bold text-[var(--text-primary)]">
                       {'\u20B9'}
                       {(s.fee_paise / 100).toLocaleString('en-IN')}
                     </span>

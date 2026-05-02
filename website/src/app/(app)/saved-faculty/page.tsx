@@ -174,7 +174,7 @@ export default function SavedFacultyPage() {
         ) : saved.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <p className="mb-4 text-5xl">🔖</p>
-            <h2 className="font-playfair mb-2 text-2xl text-white">
+            <h2 className="font-playfair mb-2 text-2xl text-[var(--text-primary)]">
               No saved faculty yet
             </h2>
             <p
@@ -242,7 +242,7 @@ export default function SavedFacultyPage() {
                         {saathi?.emoji ?? '🎓'}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[15px] leading-tight font-bold text-white">
+                        <p className="truncate text-[15px] leading-tight font-bold text-[var(--text-primary)]">
                           {f.full_name}
                         </p>
                         <p
@@ -370,7 +370,7 @@ export default function SavedFacultyPage() {
                           >
                             From
                           </p>
-                          <p className="text-base font-bold text-white">
+                          <p className="text-base font-bold text-[var(--text-primary)]">
                             {formatFee(minFee)}
                           </p>
                         </>

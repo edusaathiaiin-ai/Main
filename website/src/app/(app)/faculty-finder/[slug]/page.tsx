@@ -359,7 +359,7 @@ export default function FacultyProfilePage() {
       >
         <div className="text-center">
           <p className="mb-4 text-5xl">{'\u{1F50D}'}</p>
-          <h2 className="font-playfair mb-2 text-2xl text-white">
+          <h2 className="font-playfair mb-2 text-2xl text-[var(--text-primary)]">
             Faculty not found
           </h2>
           <Link href="/faculty-finder" style={{ color: '#C9993A' }}>
@@ -444,7 +444,7 @@ export default function FacultyProfilePage() {
                   {saathi?.emoji ?? '\u{1F393}'}
                 </div>
                 <div>
-                  <h1 className="font-playfair mb-1 text-2xl font-bold text-white">
+                  <h1 className="font-playfair mb-1 text-2xl font-bold text-[var(--text-primary)]">
                     {faculty.full_name}
                     {isEmeritus ? ' ✦ Emeritus' : ''}
                   </h1>
@@ -553,7 +553,7 @@ export default function FacultyProfilePage() {
                   border: '0.5px solid var(--bg-elevated)',
                 }}
               >
-                <h3 className="mb-2 text-sm font-semibold text-white">
+                <h3 className="mb-2 text-sm font-semibold text-[var(--text-primary)]">
                   {'\u{1F52C}'} Research Areas
                 </h3>
                 <p
@@ -603,7 +603,7 @@ export default function FacultyProfilePage() {
                               : '\u{1F3C5}'}
                         </span>
                         <div>
-                          <p className="text-[13px] font-semibold text-white">
+                          <p className="text-[13px] font-semibold text-[var(--text-primary)]">
                             {a.org}
                           </p>
                           <p
@@ -631,7 +631,7 @@ export default function FacultyProfilePage() {
             {/* Board answers */}
             {answers.length > 0 && (
               <div className="mb-6">
-                <h3 className="mb-3 text-sm font-semibold text-white">
+                <h3 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
                   Expertise in action
                 </h3>
                 <div className="space-y-3">
@@ -644,7 +644,7 @@ export default function FacultyProfilePage() {
                         border: '0.5px solid var(--bg-elevated)',
                       }}
                     >
-                      <p className="line-clamp-3 text-xs text-white/60">
+                      <p className="line-clamp-3 text-xs text-[var(--text-secondary)]">
                         {a.body}
                       </p>
                       <div className="mt-2 flex items-center gap-2">
@@ -674,7 +674,7 @@ export default function FacultyProfilePage() {
 
             {/* Reviews */}
             <div className="mb-6">
-              <h3 className="mb-3 text-sm font-semibold text-white">
+              <h3 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
                 What students say
               </h3>
               {reviews.length === 0 ? (
@@ -699,7 +699,7 @@ export default function FacultyProfilePage() {
                         {'⭐'.repeat(r.student_rating)}
                       </p>
                       {r.student_review && (
-                        <p className="mb-1 text-xs text-white/60">
+                        <p className="mb-1 text-xs text-[var(--text-secondary)]">
                           {r.student_review}
                         </p>
                       )}
@@ -724,7 +724,7 @@ export default function FacultyProfilePage() {
                 className="flex-1 rounded-xl p-4"
                 style={{ background: 'var(--bg-elevated)' }}
               >
-                <p className="text-lg font-bold text-white">
+                <p className="text-lg font-bold text-[var(--text-primary)]">
                   {fp.response_rate}%
                 </p>
                 <p
@@ -738,7 +738,7 @@ export default function FacultyProfilePage() {
                 className="flex-1 rounded-xl p-4"
                 style={{ background: 'var(--bg-elevated)' }}
               >
-                <p className="text-lg font-bold text-white">
+                <p className="text-lg font-bold text-[var(--text-primary)]">
                   {fp.avg_response_hours}h
                 </p>
                 <p
@@ -764,7 +764,7 @@ export default function FacultyProfilePage() {
                 }}
               >
                 <p className="mb-3 text-4xl">{'\u{1F389}'}</p>
-                <h3 className="font-playfair mb-2 text-xl font-bold text-white">
+                <h3 className="font-playfair mb-2 text-xl font-bold text-[var(--text-primary)]">
                   Request sent!
                 </h3>
                 <p
@@ -798,7 +798,7 @@ export default function FacultyProfilePage() {
                   className="p-5"
                   style={{ borderBottom: '0.5px solid var(--bg-elevated)' }}
                 >
-                  <h3 className="mb-3 text-sm font-semibold text-white">
+                  <h3 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
                     Book a session
                   </h3>
 
@@ -832,7 +832,7 @@ export default function FacultyProfilePage() {
                             >
                               {st.emoji} {st.label}
                             </span>
-                            <span className="text-xs font-bold text-white">
+                            <span className="text-xs font-bold text-[var(--text-primary)]">
                               {formatFee(fee)}
                             </span>
                           </div>
@@ -867,7 +867,7 @@ export default function FacultyProfilePage() {
                     onChange={(e) => setTopic(e.target.value.slice(0, 500))}
                     placeholder="Explain your topic or question..."
                     rows={3}
-                    className="mb-3 w-full resize-none rounded-xl px-4 py-3 text-xs text-white outline-none"
+                    className="mb-3 w-full resize-none rounded-xl px-4 py-3 text-xs text-[var(--text-primary)] outline-none"
                     style={{
                       background: 'var(--bg-elevated)',
                       border: '1px solid var(--border-medium)',
@@ -880,7 +880,7 @@ export default function FacultyProfilePage() {
                     onChange={(e) => setMessage(e.target.value.slice(0, 1000))}
                     placeholder="Additional context (optional)"
                     rows={2}
-                    className="mb-3 w-full resize-none rounded-xl px-4 py-3 text-xs text-white outline-none"
+                    className="mb-3 w-full resize-none rounded-xl px-4 py-3 text-xs text-[var(--text-primary)] outline-none"
                     style={{
                       background: 'var(--bg-elevated)',
                       border: '1px solid var(--border-medium)',
@@ -905,11 +905,11 @@ export default function FacultyProfilePage() {
                           n[i] = e.target.value
                           setSlots(n)
                         }}
-                        className="w-full rounded-lg px-3 py-2 text-xs text-white outline-none"
+                        className="w-full rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] outline-none"
                         style={{
                           background: 'var(--bg-elevated)',
                           border: '1px solid var(--border-medium)',
-                          colorScheme: 'dark',
+                          colorScheme: 'light',
                         }}
                       />
                     ))}
@@ -1022,7 +1022,7 @@ export default function FacultyProfilePage() {
         {/* Public requests section */}
         {publicRequests.length > 0 && (
           <section className="mx-auto mt-8 max-w-5xl px-6 pb-8">
-            <h2 className="mb-4 text-sm font-semibold text-white">
+            <h2 className="mb-4 text-sm font-semibold text-[var(--text-primary)]">
               {'\u{1F4AC}'} What students are requesting
             </h2>
             <div className="space-y-3">
@@ -1040,7 +1040,7 @@ export default function FacultyProfilePage() {
                       border: '0.5px solid var(--bg-elevated)',
                     }}
                   >
-                    <p className="mb-1 text-sm font-semibold text-white">
+                    <p className="mb-1 text-sm font-semibold text-[var(--text-primary)]">
                       {r.subject}
                     </p>
                     <p
@@ -1141,7 +1141,7 @@ export default function FacultyProfilePage() {
                   >
                     {'\u{1F393}'}
                   </motion.p>
-                  <h3 className="font-playfair mb-2 text-xl font-bold text-white">
+                  <h3 className="font-playfair mb-2 text-xl font-bold text-[var(--text-primary)]">
                     Request sent!
                   </h3>
                   <p
@@ -1166,7 +1166,7 @@ export default function FacultyProfilePage() {
                 </div>
               ) : (
                 <>
-                  <h3 className="font-playfair mb-1 text-lg font-bold text-white">
+                  <h3 className="font-playfair mb-1 text-lg font-bold text-[var(--text-primary)]">
                     Request a lecture from {faculty.full_name?.split(' ')[0]}
                   </h3>
                   <p
@@ -1191,7 +1191,7 @@ export default function FacultyProfilePage() {
                           setRequestSubject(e.target.value.slice(0, 100))
                         }
                         placeholder="e.g. Landmark judgements on Right to Privacy"
-                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                         style={{
                           background: 'var(--bg-elevated)',
                           border: '0.5px solid var(--border-medium)',
@@ -1219,7 +1219,7 @@ export default function FacultyProfilePage() {
                         }
                         placeholder="Sir/Ma'am, I would be grateful if you could cover this topic. Here's why it matters to me..."
                         rows={4}
-                        className="w-full resize-none rounded-xl px-4 py-3 text-xs text-white outline-none"
+                        className="w-full resize-none rounded-xl px-4 py-3 text-xs text-[var(--text-primary)] outline-none"
                         style={{
                           background: 'var(--bg-elevated)',
                           border: '0.5px solid var(--border-medium)',
@@ -1242,7 +1242,7 @@ export default function FacultyProfilePage() {
                           className="accent-[#C9993A]"
                         />
                         <div>
-                          <p className="text-[10px] font-semibold text-white">
+                          <p className="text-[10px] font-semibold text-[var(--text-primary)]">
                             Public
                           </p>
                           <p
@@ -1261,7 +1261,7 @@ export default function FacultyProfilePage() {
                           className="accent-[#C9993A]"
                         />
                         <div>
-                          <p className="text-[10px] font-semibold text-white">
+                          <p className="text-[10px] font-semibold text-[var(--text-primary)]">
                             Private
                           </p>
                           <p

@@ -186,7 +186,7 @@ function ApplyModal({
       >
         <div className="mb-5 flex items-start justify-between">
           <div>
-            <h3 className="font-playfair text-lg font-bold text-white">
+            <h3 className="font-playfair text-lg font-bold text-[var(--text-primary)]">
               {project.title}
             </h3>
             <p
@@ -385,7 +385,7 @@ function ProjectCard({
               </span>
             )}
           </div>
-          <h3 className="font-playfair text-base leading-snug font-bold text-white">
+          <h3 className="font-playfair text-base leading-snug font-bold text-[var(--text-primary)]">
             {project.title}
           </h3>
           <p
@@ -601,12 +601,12 @@ export default function ResearchPage() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: 'var(--bg-base)', color: '#fff' }}
+      style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
     >
       <div className="mx-auto max-w-3xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
+          <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
             Research Projects 🔬
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
@@ -729,7 +729,7 @@ export default function ResearchPage() {
             }}
           >
             <p className="mb-4 text-4xl">🔬</p>
-            <p className="font-playfair mb-2 text-xl text-white">
+            <p className="font-playfair mb-2 text-xl text-[var(--text-primary)]">
               No projects found
             </p>
             <p className="text-sm" style={{ color: 'var(--text-ghost)' }}>

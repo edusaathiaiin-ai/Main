@@ -637,7 +637,7 @@ export default function InstitutionPage() {
                 : 'Institution'}{' '}
               · {inst?.city ?? ''}
             </p>
-            <h1 className="font-playfair mb-2 text-3xl font-bold text-white">
+            <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
               {inst?.org_name ?? 'Your Organisation'}
             </h1>
             <StatusBadge status={inst?.verification_status ?? 'pending'} />
@@ -700,7 +700,7 @@ export default function InstitutionPage() {
                 border: '0.5px solid var(--bg-elevated)',
               }}
             >
-              <p className="font-playfair text-3xl font-bold text-white">
+              <p className="font-playfair text-3xl font-bold text-[var(--text-primary)]">
                 {value}
               </p>
               <p
@@ -716,15 +716,15 @@ export default function InstitutionPage() {
         {/* LISTINGS VIEW */}
         {view === 'listings' && (
           <div>
-            <h2 className="font-playfair mb-4 text-xl text-white">
+            <h2 className="font-playfair mb-4 text-xl text-[var(--text-primary)]">
               Active Listings
             </h2>
             {listings.length === 0 ? (
               <div className="py-20 text-center">
-                <p className="font-playfair mb-3 text-2xl text-white/30">
+                <p className="font-playfair mb-3 text-2xl text-[var(--text-tertiary)]">
                   No listings yet
                 </p>
-                <p className="mb-6 text-sm text-white/20">
+                <p className="mb-6 text-sm text-[var(--text-ghost)]">
                   Post your first internship to start matching students.
                 </p>
                 <button
@@ -749,7 +749,7 @@ export default function InstitutionPage() {
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="flex-1">
                         <div className="mb-1.5 flex items-center gap-2">
-                          <h3 className="font-semibold text-white">
+                          <h3 className="font-semibold text-[var(--text-primary)]">
                             {l.title}
                           </h3>
                           {l.required_saathi_slug && (
@@ -835,7 +835,7 @@ export default function InstitutionPage() {
               >
                 ← Back
               </button>
-              <h2 className="font-playfair text-xl text-white">
+              <h2 className="font-playfair text-xl text-[var(--text-primary)]">
                 Post Internship
               </h2>
             </div>
@@ -872,7 +872,7 @@ export default function InstitutionPage() {
                   value={form.title}
                   onChange={(e) => setF('title', e.target.value)}
                   placeholder="e.g. Research Intern — Fluid Mechanics"
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
@@ -894,7 +894,7 @@ export default function InstitutionPage() {
                   placeholder="What will the intern work on? What can they expect?"
                   rows={4}
                   maxLength={500}
-                  className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  className="w-full resize-none rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
@@ -1023,7 +1023,7 @@ export default function InstitutionPage() {
                   value={form.skills_needed_raw}
                   onChange={(e) => setF('skills_needed_raw', e.target.value)}
                   placeholder="e.g. Python, Research writing, Data analysis"
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
@@ -1046,7 +1046,7 @@ export default function InstitutionPage() {
                     value={form.stipend_amount}
                     onChange={(e) => setF('stipend_amount', e.target.value)}
                     placeholder="Leave blank = unpaid"
-                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                     style={{
                       background: 'var(--bg-elevated)',
                       border: '0.5px solid var(--border-medium)',
@@ -1067,7 +1067,7 @@ export default function InstitutionPage() {
                     onChange={(e) =>
                       setF('seats_available', parseInt(e.target.value) || 1)
                     }
-                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                     style={{
                       background: 'var(--bg-elevated)',
                       border: '0.5px solid var(--border-medium)',
@@ -1156,7 +1156,7 @@ export default function InstitutionPage() {
                   type="date"
                   value={form.deadline_date}
                   onChange={(e) => setF('deadline_date', e.target.value)}
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
@@ -1193,7 +1193,7 @@ export default function InstitutionPage() {
               >
                 ← Listings
               </button>
-              <h2 className="font-playfair text-xl text-white">Applicants</h2>
+              <h2 className="font-playfair text-xl text-[var(--text-primary)]">Applicants</h2>
               <span
                 className="text-sm"
                 style={{ color: 'var(--text-tertiary)' }}
@@ -1204,10 +1204,10 @@ export default function InstitutionPage() {
 
             {applicants.length === 0 ? (
               <div className="py-20 text-center">
-                <p className="font-playfair text-xl text-white/30">
+                <p className="font-playfair text-xl text-[var(--text-tertiary)]">
                   No applicants yet
                 </p>
-                <p className="mt-2 text-sm text-white/20">
+                <p className="mt-2 text-sm text-[var(--text-ghost)]">
                   Matching runs after you post. Check back shortly.
                 </p>
               </div>
@@ -1224,7 +1224,7 @@ export default function InstitutionPage() {
                   >
                     <div className="mb-3 flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-semibold text-white">
+                        <p className="font-semibold text-[var(--text-primary)]">
                           {a.student_name}
                         </p>
                         <p
@@ -1273,7 +1273,7 @@ export default function InstitutionPage() {
           <div>
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <h2 className="font-playfair text-xl text-white">
+                <h2 className="font-playfair text-xl text-[var(--text-primary)]">
                   Intern Finder
                 </h2>
                 <p
@@ -1304,10 +1304,10 @@ export default function InstitutionPage() {
                 }}
               >
                 <p className="mb-4 text-4xl">🎯</p>
-                <p className="font-playfair mb-3 text-xl text-white/40">
+                <p className="font-playfair mb-3 text-xl text-[var(--text-tertiary)]">
                   No postings yet
                 </p>
-                <p className="mb-6 text-sm text-white/20">
+                <p className="mb-6 text-sm text-[var(--text-ghost)]">
                   Post an internship and students will be soul-matched
                   instantly.
                 </p>
@@ -1376,7 +1376,7 @@ export default function InstitutionPage() {
                               {p.status}
                             </span>
                           </div>
-                          <h3 className="font-semibold text-white">
+                          <h3 className="font-semibold text-[var(--text-primary)]">
                             {p.title}
                           </h3>
                           <p
@@ -1425,7 +1425,7 @@ export default function InstitutionPage() {
               >
                 ← Back
               </button>
-              <h2 className="font-playfair text-xl text-white">
+              <h2 className="font-playfair text-xl text-[var(--text-primary)]">
                 Post New Internship
               </h2>
             </div>
@@ -1457,7 +1457,7 @@ export default function InstitutionPage() {
                   value={ifForm.company_name}
                   onChange={(e) => setIfF('company_name', e.target.value)}
                   placeholder={inst?.org_name ?? 'Your company name'}
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
@@ -1476,7 +1476,7 @@ export default function InstitutionPage() {
                   value={ifForm.title}
                   onChange={(e) => setIfF('title', e.target.value)}
                   placeholder="e.g. Data Science Intern"
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
@@ -1500,7 +1500,7 @@ export default function InstitutionPage() {
                       setIfF('description', e.target.value)
                   }}
                   placeholder="What is the internship about? What can they expect?"
-                  className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  className="w-full resize-none rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
@@ -1526,7 +1526,7 @@ export default function InstitutionPage() {
                   value={ifForm.responsibilities}
                   onChange={(e) => setIfF('responsibilities', e.target.value)}
                   placeholder="Daily tasks, projects, meetings..."
-                  className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  className="w-full resize-none rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
@@ -1546,7 +1546,7 @@ export default function InstitutionPage() {
                   value={ifForm.requirements}
                   onChange={(e) => setIfF('requirements', e.target.value)}
                   placeholder="Skills, experience, coursework required..."
-                  className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  className="w-full resize-none rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
@@ -1569,7 +1569,7 @@ export default function InstitutionPage() {
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
                     color: ifForm.vertical_id
-                      ? '#fff'
+                      ? 'var(--text-primary)'
                       : 'var(--text-ghost)',
                   }}
                 >
@@ -1657,7 +1657,7 @@ export default function InstitutionPage() {
                     setIfF('preferred_subjects_raw', e.target.value)
                   }
                   placeholder="e.g. Python, Machine Learning, Statistics"
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
@@ -1710,7 +1710,7 @@ export default function InstitutionPage() {
                     onChange={(e) =>
                       setIfF('total_seats', parseInt(e.target.value) || 1)
                     }
-                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                     style={{
                       background: 'var(--bg-elevated)',
                       border: '0.5px solid var(--border-medium)',
@@ -1755,7 +1755,7 @@ export default function InstitutionPage() {
                     value={ifForm.stipend_monthly}
                     onChange={(e) => setIfF('stipend_monthly', e.target.value)}
                     placeholder="Monthly stipend in ₹"
-                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                     style={{
                       background: 'var(--bg-elevated)',
                       border: '0.5px solid var(--border-medium)',
@@ -1806,7 +1806,7 @@ export default function InstitutionPage() {
                     value={ifForm.location}
                     onChange={(e) => setIfF('location', e.target.value)}
                     placeholder={inst?.city ?? 'City or Remote'}
-                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                     style={{
                       background: 'var(--bg-elevated)',
                       border: '0.5px solid var(--border-medium)',
@@ -1828,7 +1828,7 @@ export default function InstitutionPage() {
                   onChange={(e) =>
                     setIfF('application_deadline', e.target.value)
                   }
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  className="w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '0.5px solid var(--border-medium)',
@@ -1870,7 +1870,7 @@ export default function InstitutionPage() {
                             color:
                               ifForm.listing_plan === plan.id
                                 ? '#E5B86A'
-                                : '#fff',
+                                : 'var(--text-primary)',
                           }}
                         >
                           {plan.label}
@@ -1938,7 +1938,7 @@ export default function InstitutionPage() {
               >
                 ← Postings
               </button>
-              <h2 className="font-playfair text-xl text-white">
+              <h2 className="font-playfair text-xl text-[var(--text-primary)]">
                 {ifSelectedPosting.title}
               </h2>
               <span
@@ -1971,10 +1971,10 @@ export default function InstitutionPage() {
                   border: '0.5px solid var(--bg-elevated)',
                 }}
               >
-                <p className="font-playfair text-xl text-white/30">
+                <p className="font-playfair text-xl text-[var(--text-tertiary)]">
                   No applications yet
                 </p>
-                <p className="mt-2 text-sm text-white/20">
+                <p className="mt-2 text-sm text-[var(--text-ghost)]">
                   Students will appear here sorted by soul match score.
                 </p>
               </div>
@@ -1991,7 +1991,7 @@ export default function InstitutionPage() {
                   >
                     <div className="mb-3 flex items-start justify-between gap-3">
                       <div className="flex-1">
-                        <p className="font-semibold text-white">
+                        <p className="font-semibold text-[var(--text-primary)]">
                           {a.student_name}
                         </p>
                         <p
