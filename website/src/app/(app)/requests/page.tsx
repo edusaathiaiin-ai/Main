@@ -171,11 +171,11 @@ export default function PublicRequestsPage() {
             onChange={(e) => setFilterSaathi(e.target.value)}
             style={selectStyle}
           >
-            <option value="all" style={{ background: 'var(--bg-surface)' }}>
+            <option value="all" style={{ background: '#0B1F3A' }}>
               All Subjects
             </option>
             {SAATHIS.map((s) => (
-              <option key={s.id} value={s.id} style={{ background: 'var(--bg-surface)' }}>
+              <option key={s.id} value={s.id} style={{ background: '#0B1F3A' }}>
                 {s.emoji} {s.name}
               </option>
             ))}
@@ -185,10 +185,10 @@ export default function PublicRequestsPage() {
             onChange={(e) => setSortBy(e.target.value as 'votes' | 'newest')}
             style={selectStyle}
           >
-            <option value="votes" style={{ background: 'var(--bg-surface)' }}>
+            <option value="votes" style={{ background: '#0B1F3A' }}>
               Most Wanted
             </option>
-            <option value="newest" style={{ background: 'var(--bg-surface)' }}>
+            <option value="newest" style={{ background: '#0B1F3A' }}>
               Newest
             </option>
           </select>

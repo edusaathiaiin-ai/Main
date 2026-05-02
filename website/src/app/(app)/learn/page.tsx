@@ -619,7 +619,7 @@ function DeclareForm({
                 <option
                   key={s.id}
                   value={s.id}
-                  style={{ background: 'var(--bg-surface)' }}
+                  style={{ background: '#0B1F3A' }}
                 >
                   {s.emoji} {s.name}
                 </option>
@@ -1467,14 +1467,14 @@ export default function LearnPage() {
                   cursor: 'pointer',
                 }}
               >
-                <option value="all" style={{ background: 'var(--bg-surface)' }}>
+                <option value="all" style={{ background: '#0B1F3A' }}>
                   All subjects
                 </option>
                 {SAATHIS.map((s) => (
                   <option
                     key={s.id}
                     value={s.id}
-                    style={{ background: 'var(--bg-surface)' }}
+                    style={{ background: '#0B1F3A' }}
                   >
                     {s.emoji} {s.name}
                   </option>
@@ -1496,13 +1496,13 @@ export default function LearnPage() {
                   cursor: 'pointer',
                 }}
               >
-                <option value="all" style={{ background: 'var(--bg-surface)' }}>
+                <option value="all" style={{ background: '#0B1F3A' }}>
                   Any format
                 </option>
                 {(
                   ['lecture', 'series', 'workshop', 'onetoone'] as FormatPref[]
                 ).map((f) => (
-                  <option key={f} value={f} style={{ background: 'var(--bg-surface)' }}>
+                  <option key={f} value={f} style={{ background: '#0B1F3A' }}>
                     {FORMAT_LABEL[f]}
                   </option>
                 ))}
@@ -1523,12 +1523,12 @@ export default function LearnPage() {
                   cursor: 'pointer',
                 }}
               >
-                <option value="all" style={{ background: 'var(--bg-surface)' }}>
+                <option value="all" style={{ background: '#0B1F3A' }}>
                   Any depth
                 </option>
                 {(['beginner', 'intermediate', 'advanced'] as DepthPref[]).map(
                   (d) => (
-                    <option key={d} value={d} style={{ background: 'var(--bg-surface)' }}>
+                    <option key={d} value={d} style={{ background: '#0B1F3A' }}>
                       {DEPTH_LABEL[d]}
                     </option>
                   )
@@ -1548,13 +1548,13 @@ export default function LearnPage() {
                   cursor: 'pointer',
                 }}
               >
-                <option value="most_wanted" style={{ background: 'var(--bg-surface)' }}>
+                <option value="most_wanted" style={{ background: '#0B1F3A' }}>
                   Most wanted
                 </option>
-                <option value="newest" style={{ background: 'var(--bg-surface)' }}>
+                <option value="newest" style={{ background: '#0B1F3A' }}>
                   Newest
                 </option>
-                <option value="expiring" style={{ background: 'var(--bg-surface)' }}>
+                <option value="expiring" style={{ background: '#0B1F3A' }}>
                   Expiring soon
                 </option>
               </select>

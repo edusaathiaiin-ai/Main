@@ -945,14 +945,14 @@ export function ProfileStep({
               color: form.city ? '#fff' : 'rgba(255,255,255,0.35)',
             }}
           >
-            <option value="" disabled style={{ background: 'var(--bg-surface)' }}>
+            <option value="" disabled style={{ background: '#0B1F3A' }}>
               Select your city
             </option>
             {CITIES.map((c) => (
               <option
                 key={c}
                 value={c}
-                style={{ background: 'var(--bg-surface)', color: '#fff' }}
+                style={{ background: '#0B1F3A', color: '#fff' }}
               >
                 {c}
               </option>
@@ -2440,7 +2440,7 @@ function OnboardInner() {
                                 : 'rgba(255,255,255,0.35)',
                             }}
                           >
-                            <option value="" style={{ background: 'var(--bg-surface)' }}>
+                            <option value="" style={{ background: '#0B1F3A' }}>
                               Select designation
                             </option>
                             {[
@@ -2456,7 +2456,7 @@ function OnboardInner() {
                               <option
                                 key={d}
                                 value={d}
-                                style={{ background: 'var(--bg-surface)', color: '#fff' }}
+                                style={{ background: '#0B1F3A', color: '#fff' }}
                               >
                                 {d}
                               </option>
@@ -2484,7 +2484,7 @@ function OnboardInner() {
                                 : 'rgba(255,255,255,0.35)',
                             }}
                           >
-                            <option value="" style={{ background: 'var(--bg-surface)' }}>
+                            <option value="" style={{ background: '#0B1F3A' }}>
                               Select qualification
                             </option>
                             {[
@@ -2497,7 +2497,7 @@ function OnboardInner() {
                               <option
                                 key={q}
                                 value={q}
-                                style={{ background: 'var(--bg-surface)', color: '#fff' }}
+                                style={{ background: '#0B1F3A', color: '#fff' }}
                               >
                                 {q}
                               </option>
@@ -2801,7 +2801,7 @@ function OnboardInner() {
                           color: orgType ? '#fff' : 'rgba(255,255,255,0.35)',
                         }}
                       >
-                        <option value="" style={{ background: 'var(--bg-surface)' }}>
+                        <option value="" style={{ background: '#0B1F3A' }}>
                           Organisation type *
                         </option>
                         {[
@@ -2814,7 +2814,7 @@ function OnboardInner() {
                           <option
                             key={val}
                             value={val}
-                            style={{ background: 'var(--bg-surface)', color: '#fff' }}
+                            style={{ background: '#0B1F3A', color: '#fff' }}
                           >
                             {label}
                           </option>
