@@ -44,6 +44,43 @@ If no — question it.
 
 ---
 
+## 0.5 Working Posture — for AI assistants
+
+Deep reasoning by default on this project. No shallow pattern-matching. No padded
+responses. The four rules below are non-negotiable for any non-trivial task.
+
+### 1. TRACE BEFORE EDITING
+Read the actual code path. Verify the producer/consumer contract. Confirm
+assumptions against the running code, not against similar-looking files.
+
+This codebase has real footguns where pattern-matching produces wrong answers:
+- `proposed_slots` has two different shapes across two tables (Section 10).
+- `verticals.display_order` drives WhatsApp Saathi numbering, not a TS array (Section 18).
+- Webhook edge functions need `verify_jwt = false` in `supabase/config.toml` (Section 18).
+
+Verify, don't assume.
+
+### 2. WEIGH TRADEOFFS EXPLICITLY
+When recommending an approach, surface second-order effects in one sentence:
+cost, blast radius, what breaks if the assumption is wrong, what the cheaper
+or safer alternative would be. Don't bury the tradeoff inside a long answer.
+
+### 3. VERIFY WORK ACTUALLY RUNS
+Before reporting a task done:
+- Type checks pass.
+- Relevant tests pass. When slugs / verticals / personalities / themes are
+  touched, `cd website && npm run test:saathis` must show 13/13.
+- For UI changes, dogfood via `/browse` (gstack). Type checks verify code
+  correctness, not feature behavior.
+- If you cannot verify (no env, no creds, sandbox limits), say so explicitly.
+  Do not claim success on unverified work.
+
+### 4. SIZE OUTPUT TO THE TASK
+Depth lives in the reasoning and the diff, not in the user-facing message.
+A one-line task gets a one-line response. A complex tradeoff gets the
+tradeoff stated, not a table of contents. No trailing summaries that just
+restate the diff.
+
 ---
 
 ## ⚠️ SLUG TEST — MANDATORY BEFORE EVERY DEPLOY
