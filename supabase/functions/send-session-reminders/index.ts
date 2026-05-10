@@ -3,29 +3,36 @@
  *
  * Cron — runs every 30 minutes (scheduled in migration 131).
  *
- * Three passes per run:
- *   Pass 1 — 24h reminder: live_lectures where scheduled_at is
- *             between (now + 23h) and (now + 25h)
+ * Five passes per run:
+ *   Pass 1 — live_lectures 24h reminder: scheduled_at in (now + 23h, now + 25h)
  *             → T07 edusaathiai_session_reminder_24h → student (WA)
  *             → T12 edusaathiai_faculty_session_reminder → faculty (WA)
  *
- *   Pass 2 —  1h reminder: live_lectures where scheduled_at is
- *             between (now + 50min) and (now + 70min)
+ *   Pass 2 — live_lectures 1h reminder: scheduled_at in (now + 50min, now + 70min)
  *             → T08 edusaathiai_session_reminder_1h → student (WA, with meeting link)
  *
- *   Pass 3 — T-10min host nudge: live_lectures where scheduled_at is
- *             between (now + 5min) and (now + 15min)
- *             → email to faculty: "Open your Meet now so students can join"
- *             (email only — no Meta template required, immediate deliverability)
+ *   Pass 3 — live_lectures T-10min host nudge: scheduled_at in (now + 5min, now + 15min)
+ *             → email to faculty (no Meta template; immediate deliverability)
  *
- * Idempotency: uses reminder_sent_24h, reminder_sent_1h, host_reminder_sent
- * columns on live_lectures to avoid duplicates across cron firings.
+ *   Pass 4 — faculty_sessions 24h reminder (1:1 Faculty Finder bookings):
+ *             confirmed_slot in (now + 23h, now + 25h), status in (paid, confirmed)
+ *             → T07 → student, T12 → faculty
+ *             Reuses same templates as Pass 1 — parameter shape is compatible.
+ *
+ *   Pass 5 — faculty_sessions 1h reminder: confirmed_slot in (now + 50min, now + 70min)
+ *             → T08 → student (WA, with whereby room URL)
+ *             Faculty does NOT receive a 1h reminder for 1:1 — they already
+ *             got the 24h ping; an extra at T-1h is noise, not signal.
+ *
+ * Idempotency:
+ *   - live_lectures.{reminder_sent_24h, reminder_sent_1h, host_reminder_sent}
+ *   - faculty_sessions.{reminder_sent_24h, reminder_sent_1h}  (added in migration 150)
  *
  * Triggered by pg_cron — no JWT required.
  * Uses SUPABASE_CRON_SECRET for basic auth.
  */
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendWhatsAppTemplate, stripPhone, firstName, fmtDate, fmtTime } from '../_shared/whatsapp.ts';
 
 const SUPABASE_URL         = Deno.env.get('SUPABASE_URL') ?? '';
@@ -106,7 +113,7 @@ type ProfileRow = {
   email: string | null;
 };
 async function fetchProfiles(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient,
   ids: string[],
 ): Promise<Map<string, ProfileRow>> {
   const uniq = [...new Set(ids.filter(Boolean))];
@@ -417,10 +424,179 @@ Deno.serve(async (_req: Request) => {
     }
   }
 
-  console.log(`${LOG}: done — 24h sent=${sent24h}, 1h sent=${sent1h}, host sent=${sentHost}, errors=${errors}`);
+  // ── Pass 4: faculty_sessions 24h window (1:1 Faculty Finder bookings) ─────
+  // 1:1 sessions don't have multiple bookings — each row is exactly one
+  // student + one faculty, so the multi-booking fan-out from Pass 1 is
+  // not needed here.
+  let fs24hSent = 0;
+  const fs24hStart = new Date(now + 23 * 3_600_000).toISOString();
+  const fs24hEnd   = new Date(now + 25 * 3_600_000).toISOString();
+
+  const { data: fs24hRows, error: fs24hErr } = await admin
+    .from('faculty_sessions')
+    .select('id, faculty_id, student_id, topic, confirmed_slot')
+    .in('status', ['paid', 'confirmed'])
+    .eq('reminder_sent_24h', false)
+    .not('confirmed_slot', 'is', null)
+    .gte('confirmed_slot', fs24hStart)
+    .lte('confirmed_slot', fs24hEnd);
+
+  if (fs24hErr) {
+    console.error(`${LOG}: fs 24h query failed`, fs24hErr.message);
+    errorDetails.push('fs24h: ' + fs24hErr.message);
+    errors++;
+  }
+
+  const fsRows24h = (fs24hRows ?? []) as Array<{
+    id: string;
+    faculty_id: string;
+    student_id: string;
+    topic: string;
+    confirmed_slot: string;
+  }>;
+
+  const fsProfileIds24h: string[] = [];
+  for (const r of fsRows24h) fsProfileIds24h.push(r.faculty_id, r.student_id);
+  const fsProfiles24h = await fetchProfiles(admin, fsProfileIds24h);
+
+  for (const row of fsRows24h) {
+    try {
+      const facultyProfile = fsProfiles24h.get(row.faculty_id);
+      const studentProfile = fsProfiles24h.get(row.student_id);
+      const facultyName    = facultyProfile?.full_name ?? 'Faculty';
+      const studentName    = studentProfile?.full_name ?? 'Student';
+      const sessionIdShort = row.id.slice(0, 8);
+
+      const tasks: Promise<unknown>[] = [];
+
+      // T12 — faculty
+      if (facultyProfile?.wa_phone) {
+        tasks.push(
+          sendWhatsAppTemplate({
+            templateName: 'edusaathiai_faculty_session_reminder',
+            to: stripPhone(facultyProfile.wa_phone),
+            params: [
+              firstName(facultyName),
+              studentName,
+              row.topic,
+              fmtDate(row.confirmed_slot),
+              fmtTime(row.confirmed_slot),
+              sessionIdShort,
+            ],
+            logPrefix: LOG,
+          }),
+        );
+      }
+
+      // T07 — student
+      if (studentProfile?.wa_phone) {
+        tasks.push(
+          sendWhatsAppTemplate({
+            templateName: 'edusaathiai_session_reminder_24h',
+            to: stripPhone(studentProfile.wa_phone),
+            params: [
+              firstName(studentName),
+              row.topic,
+              fmtDate(row.confirmed_slot),
+              fmtTime(row.confirmed_slot),
+              facultyName,
+              sessionIdShort,
+            ],
+            logPrefix: LOG,
+          }),
+        );
+      }
+
+      await Promise.allSettled(tasks);
+
+      await admin
+        .from('faculty_sessions')
+        .update({ reminder_sent_24h: true })
+        .eq('id', row.id);
+
+      fs24hSent++;
+    } catch (err) {
+      console.error(`${LOG}: fs 24h reminder failed for session ${row.id}`, err instanceof Error ? err.message : err);
+      errorDetails.push('fs24h-loop: ' + (err instanceof Error ? err.message : String(err)));
+      errors++;
+    }
+  }
+
+  // ── Pass 5: faculty_sessions 1h window — student-only with join URL ───────
+  let fs1hSent = 0;
+  const fs1hStart = new Date(now + 50 * 60_000).toISOString();
+  const fs1hEnd   = new Date(now + 70 * 60_000).toISOString();
+
+  const { data: fs1hRows, error: fs1hErr } = await admin
+    .from('faculty_sessions')
+    .select('id, faculty_id, student_id, topic, confirmed_slot, meeting_link, whereby_room_url')
+    .in('status', ['paid', 'confirmed'])
+    .eq('reminder_sent_1h', false)
+    .not('confirmed_slot', 'is', null)
+    .gte('confirmed_slot', fs1hStart)
+    .lte('confirmed_slot', fs1hEnd);
+
+  if (fs1hErr) {
+    console.error(`${LOG}: fs 1h query failed`, fs1hErr.message);
+    errorDetails.push('fs1h: ' + fs1hErr.message);
+    errors++;
+  }
+
+  const fsRows1h = (fs1hRows ?? []) as Array<{
+    id: string;
+    faculty_id: string;
+    student_id: string;
+    topic: string;
+    confirmed_slot: string;
+    meeting_link: string | null;
+    whereby_room_url: string | null;
+  }>;
+
+  const fsProfileIds1h: string[] = [];
+  for (const r of fsRows1h) fsProfileIds1h.push(r.faculty_id, r.student_id);
+  const fsProfiles1h = await fetchProfiles(admin, fsProfileIds1h);
+
+  for (const row of fsRows1h) {
+    try {
+      const facultyProfile = fsProfiles1h.get(row.faculty_id);
+      const studentProfile = fsProfiles1h.get(row.student_id);
+      const facultyName = facultyProfile?.full_name ?? 'Faculty';
+      // Student joins via whereby_room_url; meeting_link is the legacy fallback.
+      const meetingUrl =
+        row.whereby_room_url ?? row.meeting_link ?? 'https://www.edusaathiai.in/sessions';
+
+      if (studentProfile?.wa_phone) {
+        await sendWhatsAppTemplate({
+          templateName: 'edusaathiai_session_reminder_1h',
+          to: stripPhone(studentProfile.wa_phone),
+          params: [
+            firstName(studentProfile.full_name ?? 'Student'),
+            row.topic,
+            fmtTime(row.confirmed_slot),
+            facultyName,
+            meetingUrl,
+          ],
+          logPrefix: LOG,
+        });
+      }
+
+      await admin
+        .from('faculty_sessions')
+        .update({ reminder_sent_1h: true })
+        .eq('id', row.id);
+
+      fs1hSent++;
+    } catch (err) {
+      console.error(`${LOG}: fs 1h reminder failed for session ${row.id}`, err instanceof Error ? err.message : err);
+      errorDetails.push('fs1h-loop: ' + (err instanceof Error ? err.message : String(err)));
+      errors++;
+    }
+  }
+
+  console.log(`${LOG}: done — 24h=${sent24h} 1h=${sent1h} host=${sentHost} fs24h=${fs24hSent} fs1h=${fs1hSent} errors=${errors}`);
 
   return new Response(
-    JSON.stringify({ ok: true, v: 'r4', sent24h, sent1h, sentHost, errors, errorDetails }),
+    JSON.stringify({ ok: true, v: 'r5', sent24h, sent1h, sentHost, fs24hSent, fs1hSent, errors, errorDetails }),
     { status: 200, headers: { 'Content-Type': 'application/json' } },
   );
 });

@@ -460,7 +460,20 @@ intern_listings     — institution postings
 intern_interests    — mutual matching engine
 dpdp_requests       — data deletion + export requests
 consent_log         — consent audit trail
+placement_intent    — short-lived (≤30d) placement context per student × Saathi (mig 151)
 ```
+
+### Placement Prep — schema reference (added May 2026)
+
+- `placement_intent` — student-owned RLS, faculty have NO direct read access. Matching engine runs as service_role and surfaces matched intents to faculty UI. `share_with_faculty` defaults FALSE (DPDP opt-in). `expires_at` is set by app code on insert: `expected_interview_date + 7d`, or `now() + 30d` if no date given.
+- `faculty_profiles.mentor_capabilities[]` — enum-tagged: `mock_technical`, `mock_hr`, `mock_case`, `cv_review`, `aptitude_prep`, `gd_prep`. CHECK constraint enforces. To add a new tag: drop + recreate `faculty_mentor_capabilities_allowed` constraint; never bypass with raw inserts.
+- `faculty_profiles.mentor_role_focus[]` — enum-tagged: `swe`, `data`, `pm`, `qa`, `banking`, `consulting`, `sales`, `design`. Same CHECK pattern.
+- `faculty_profiles.available_for_mentoring` — opt-in flag. Matching engine partial index keys off this.
+- `faculty_profiles.mentor_hourly_rate_paise` — override for mock interview pricing only. NULL means use existing `session_fee_*` defaults.
+- `verticals.placement_season_active` — admin toggle per Saathi. Auto-derivation from intent density is Phase 2.
+- `faculty_sessions.placement_intent_id` — FK with `ON DELETE SET NULL` (preserves session record if intent expires/is deleted).
+- `faculty_sessions.surge_multiplier` — `NUMERIC(3,2)`, baseline 1.0, capped at 3.0. Stored on the row at booking time for audit. 1.5 applies when booked within 7d of `expected_interview_date`.
+- New `mock_interview` value for `faculty_sessions.session_type` — application-layer enum gate (no DB CHECK on `session_type` exists today; adding one would require auditing existing rows).
 
 ### ⚠️ Schema quirk: `proposed_slots` has TWO shapes
 
@@ -965,30 +978,37 @@ Dashboards are created in PostHog UI after data starts flowing — not in code.
 Surfaced but intentionally deferred. When the triggering event happens,
 revisit these. Listing here keeps them from becoming forgotten bugs.
 
-### 1:1 session reminders — not wired
+### 1:1 session reminders — wired (closed May 2026)
 
-`send-session-reminders` (edge function) covers `live_lectures` (group
-broadcasts). `faculty_sessions` (1:1 direct bookings via Faculty Finder)
-have **no reminders today** — students and faculty will not receive T07,
-T08, or T12 for 1:1 sessions.
+`send-session-reminders` covers both `live_lectures` (group, Passes 1–3)
+and `faculty_sessions` (1:1, Passes 4–5). Idempotency columns
+`reminder_sent_24h` / `reminder_sent_1h` were added on `faculty_sessions`
+in migration 150. Templates reused as-is (parameter shapes are
+compatible): T07 → student 24h, T12 → faculty 24h, T08 → student 1h with
+join URL. Faculty does not receive a 1h ping for 1:1 — the 24h is enough,
+extra at T-1h is noise. Closed as part of the Placement Prep / Mock
+Interview build (mock interviews without these reminders would be
+brand-damaging UX).
 
-When the first paid 1:1 session lands, add:
+### Placement Prep — Phase 1 shipped May 2026, Phase 2 deferred
 
-```sql
-ALTER TABLE faculty_sessions
-  ADD COLUMN reminder_sent_24h BOOLEAN DEFAULT false,
-  ADD COLUMN reminder_sent_1h  BOOLEAN DEFAULT false;
-```
+**Phase 1 (live):**
+- Schema: `placement_intent` table + faculty mentor columns + `verticals.placement_season_active` + `faculty_sessions.placement_intent_id` / `surge_multiplier` (migration 151).
+- Student intent capture: sidebar CTA "Are you preparing for an interview?" → 4-question modal → DPDP-consented `placement_intent` row.
+- Bot 2 (Exam Prep) seeds the system prompt with the most recent active intent for the student's current Saathi. Includes a within-7-days urgency line.
+- Faculty opt-in: `/faculty/mentor-settings` (multi-select capabilities, role focus, optional hourly rate, availability toggle). Direct write via existing `faculty_own` RLS policy on `faculty_profiles`.
+- Faculty Finder: "Mocks: Technical · HR" badge on cards when `available_for_mentoring=true && mentor_capabilities.length > 0`. New "🎯 Mock Interview" filter option in the session-type dropdown.
+- 1:1 reminders for `faculty_sessions` (Phase 1 prerequisite, see above).
 
-Then extend `send-session-reminders/index.ts` with two more passes (24h
-and 1h windows against `faculty_sessions.confirmed_slot`), reusing the
-same templates already approved:
-- T07 `edusaathiai_session_reminder_24h` → student
-- T08 `edusaathiai_session_reminder_1h` → student
-- T12 `edusaathiai_faculty_session_reminder` → faculty
-
-Estimated build: ~1 hour. Deferred April 2026 because zero
-`faculty_sessions` rows exist — fixing empty data is premature.
+**Phase 2 (parked, build when there's signal):**
+- `faculty_offers` table + system-mediated outreach UI. Faculty browses anonymised matched students, composes offer, student accepts/declines from their inbox. Never raw DMs — locks down harassment vector.
+- Rule-based matching engine. Inputs: active `placement_intent`. Outputs: top-3 faculty by Saathi/capability/availability/rating score. No ML at v1.
+- Weekly faculty digest (Mon 9am IST) via Resend + WhatsApp T22 (template needs Meta filing). Concrete payload: "Priya, SWE, Infosys, May 18 (3 days away)".
+- Student season nudge — once per season per Saathi (admin-toggled `placement_season_active` flag), in-chat banner + push, dismissible.
+- Surge pricing logic: when `placement_intent.expected_interview_date` is within 7 days, `faculty_sessions.surge_multiplier = 1.5` at booking time. Student-side 50% point discount in same window.
+- New `mock_interview` value for `faculty_sessions.session_type` + booking flow surface that picks `mentor_hourly_rate_paise`. v1 students book via existing doubt/research/deepdive types and mention "mock interview" in the message.
+- WhatsApp templates to file: T22 student season nudge, T23 faculty weekly digest, T24 student receives mentor offer. (T19/T20/T21 already taken — T19 is `edusaathiai_session_notes` from Classroom share-notes.)
+- Post-session rating loop + refund flow specifically for mock sessions, with admin review trigger when faculty average drops below 3.5.
 
 ---
 

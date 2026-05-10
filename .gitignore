@@ -20,3 +20,5 @@ rzp-key*
 *.pfx
 .stage-chat-deploy/
 .tools/
+.gstack/
+deno.lock

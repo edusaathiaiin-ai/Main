@@ -70,6 +70,7 @@ export function FacultySidebar({
 
   const PROFILE_ITEMS: NavItem[] = [
     { id: 'profile', icon: '👤', label: 'Profile', href: '/profile' },
+    { id: 'mentor-settings', icon: '🎯', label: 'Mentor Settings', href: '/faculty/mentor-settings' },
     { id: 'nominate', icon: '👨‍🏫', label: 'Suggest a Colleague', href: '/faculty/nominations' },
   ]
 

@@ -43,6 +43,28 @@ type FacultyProfile = {
   retirement_year: number | null
   affiliations: { org: string; role: string; year: string }[]
   highest_qualification: string | null
+  // Mentor / mock-interview opt-in (migration 151).
+  // Empty array + false flag = faculty is not surfaced as mock-ready.
+  mentor_capabilities: string[]
+  mentor_role_focus: string[]
+  available_for_mentoring: boolean
+  mentor_hourly_rate_paise: number | null
+}
+
+// Map of capability tag -> short label rendered on the card badge.
+const MENTOR_CAP_LABEL: Record<string, string> = {
+  mock_technical: 'Technical',
+  mock_hr: 'HR',
+  mock_case: 'Case',
+  cv_review: 'CV',
+  aptitude_prep: 'Aptitude',
+  gd_prep: 'GD',
+}
+
+function isMockReady(fp: FacultyProfile): boolean {
+  return fp.available_for_mentoring === true
+    && Array.isArray(fp.mentor_capabilities)
+    && fp.mentor_capabilities.length > 0
 }
 
 type FacultyListing = FacultyRow & { faculty_profiles: FacultyProfile | null }
@@ -92,7 +114,8 @@ export default function FacultyFinderPage() {
         total_sessions_completed, average_rating, total_reviews,
         open_to_research, availability_note, faculty_slug, years_experience, response_rate,
         is_emeritus, employment_status, former_institution, retirement_year,
-        affiliations, highest_qualification
+        affiliations, highest_qualification,
+        mentor_capabilities, mentor_role_focus, available_for_mentoring, mentor_hourly_rate_paise
       )`
       )
       .eq('role', 'faculty')
@@ -132,6 +155,7 @@ export default function FacultyFinderPage() {
         return false
       if (filterSession === 'deepdive' && !fp.offers_deepdive_session)
         return false
+      if (filterSession === 'mock' && !isMockReady(fp)) return false
       if (filterTab === 'verified' && fp.verification_status !== 'verified')
         return false
       if (filterTab === 'emeritus' && !fp.is_emeritus) return false
@@ -341,6 +365,9 @@ export default function FacultyFinderPage() {
             </option>
             <option value="deepdive" style={{ background: 'var(--bg-surface)' }}>
               Topic Deep Dive
+            </option>
+            <option value="mock" style={{ background: 'var(--bg-surface)' }}>
+              🎯 Mock Interview
             </option>
           </select>
           <select
@@ -746,6 +773,20 @@ export default function FacultyFinderPage() {
                             }}
                           >
                             Deep Dive
+                          </span>
+                        )}
+                        {isMockReady(fp) && (
+                          <span
+                            className="rounded-lg px-2 py-0.5 text-[10px] font-bold"
+                            style={{
+                              background: 'rgba(220,38,38,0.10)',
+                              color: '#DC2626',
+                              border: '0.5px solid rgba(220,38,38,0.3)',
+                            }}
+                            title={`Mock-ready · ${fp.mentor_capabilities.map((c) => MENTOR_CAP_LABEL[c] ?? c).join(', ')}`}
+                          >
+                            🎯 Mocks: {fp.mentor_capabilities.slice(0, 3).map((c) => MENTOR_CAP_LABEL[c] ?? c).join(' · ')}
+                            {fp.mentor_capabilities.length > 3 ? ` +${fp.mentor_capabilities.length - 3}` : ''}
                           </span>
                         )}
                       </div>

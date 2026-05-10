@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import { getPlanTier } from '@/constants/plans'
 import { createClient } from '@/lib/supabase/client'
 import { ExploreBeyond } from '@/components/chat/ExploreBeyond'
+import { PlacementIntentModal } from '@/components/placement/PlacementIntentModal'
 import type { Saathi, Profile, QuotaState } from '@/types'
 
 type Props = {
@@ -39,6 +40,7 @@ const SIDEBAR_CTA_META: Record<string, { desc: string; color?: string }> = {
   'request-lecture':       { desc: 'Ask your favourite faculty to teach a specific topic.', color: 'var(--saathi-primary)' },
   'whatsapp-saathi':       { desc: 'Study via WhatsApp. Save this number, message your Saathi anytime.', color: '#16A34A' },
   'world-education':       { desc: 'Official study-abroad portals — USA, UK, Canada, Germany, Australia.', color: 'var(--saathi-primary)' },
+  'placement-prep':        { desc: "Tell your Saathi about your interview. We'll tune Exam Prep — and surface a mentor if you want one.", color: '#DC2626' },
 }
 
 // ─── ExpandableSidebarItem ────────────────────────────────────────────────────
@@ -230,6 +232,7 @@ export function Sidebar({
 }: Props) {
   const pathname = usePathname()
   const [exploreOpen, setExploreOpen] = useState(false)
+  const [placementOpen, setPlacementOpen] = useState(false)
 
   return (
     <aside
@@ -365,6 +368,13 @@ export function Sidebar({
           accentColor="var(--saathi-primary)"
         />
         <ExpandableSidebarItem
+          id="placement-prep"
+          icon="🎯"
+          label="Are you preparing for an interview?"
+          onClick={() => setPlacementOpen(true)}
+          accentColor="#DC2626"
+        />
+        <ExpandableSidebarItem
           id="profile"
           icon="👤"
           label="Profile"
@@ -434,6 +444,12 @@ export function Sidebar({
         </button>
       </div>
 
+      <PlacementIntentModal
+        open={placementOpen}
+        onClose={() => setPlacementOpen(false)}
+        saathiSlug={activeSaathi.id}
+        saathiName={activeSaathi.name}
+      />
     </aside>
   )
 }

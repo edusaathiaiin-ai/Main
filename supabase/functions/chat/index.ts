@@ -2450,6 +2450,61 @@ ${fs.session_nature === 'story'
       systemPrompt += '\n\n' + sessionNatureContext;
     }
 
+    // ── Placement context injection (Bot 2 / Exam Prep only) ───────────────────
+    // When a student has filed a placement_intent in this Saathi that hasn't
+    // expired, seed Bot 2 with their interview specifics. Lets Exam Prep
+    // calibrate to "tech / SWE / 8 days out" instead of generic exam Q&A.
+    // No-op for any other bot slot or for faculty mode.
+    if (botSlot === 2 && !isFacultyMode) {
+      const { data: intent } = await admin
+        .from('placement_intent')
+        .select('role_type, role_seniority, companies, expected_interview_date, context_summary')
+        .eq('user_id', userId)
+        .eq('vertical_id', verticalId)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (intent) {
+        const roleLabel =
+          intent.role_type === 'tech' ? 'tech'
+          : intent.role_type === 'non_tech' ? 'non-tech' : 'hybrid';
+        const seniorityLabel =
+          intent.role_seniority === 'fresher_campus' ? 'campus fresher'
+          : intent.role_seniority === 'fresher_offcampus' ? 'off-campus fresher' : 'lateral';
+
+        let dateLine = '';
+        let urgencyLine = '';
+        if (intent.expected_interview_date) {
+          const target = new Date(intent.expected_interview_date as string);
+          const days = Math.max(0, Math.ceil((target.getTime() - Date.now()) / 86_400_000));
+          dateLine = `\nInterview date: ${intent.expected_interview_date} (${days === 0 ? 'today' : `${days} day${days === 1 ? '' : 's'} away`})`;
+          if (days <= 7) {
+            urgencyLine = `\n- The interview is ${days <= 2 ? 'within 48 hours' : 'within a week'}. Prioritise high-yield topics. No rabbit holes. Prefer mock Q&A over deep theory.`;
+          }
+        }
+
+        const companies = Array.isArray(intent.companies) && intent.companies.length > 0
+          ? `\nCompanies on radar: ${(intent.companies as string[]).join(', ')}`
+          : '';
+
+        const placementBlock = `
+# PLACEMENT CONTEXT — this student has an upcoming interview
+Role type: ${roleLabel}
+Applying as: ${seniorityLabel}${companies}${dateLine}
+
+Tailor Exam Prep accordingly:
+- Tech roles: emphasise DSA, system design at scope, language fundamentals, project depth.
+- Non-tech: aptitude, GD topics, communication, HR-round behavioural patterns.
+- Hybrid: rotate between technical depth and soft-skill / situational answers.${urgencyLine}
+- Surface mock Q&A naturally — don't only lecture. Ask, evaluate, give feedback.
+- If the student strays into general study material, gently bring focus back to interview prep.`;
+
+        systemPrompt += '\n\n' + placementBlock.trim();
+      }
+    }
+
     // ── Append professional disclaimer for high-stakes Saathis ──────────────────
     if (CLAUDE_ALWAYS_SAATHIS.has(verticalSlug.toLowerCase())) {
       systemPrompt += '\n\nDISCLAIMER INSTRUCTION: At the end of every response, add exactly one line: "📌 Always verify legal/medical/financial information with the primary source or a qualified professional before relying on it in practice." Keep it brief. Never skip it.';
