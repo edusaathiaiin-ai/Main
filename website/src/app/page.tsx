@@ -40,7 +40,14 @@ export default async function RootPage() {
         .land-nav-links a:hover{color:#fff}
         .land-nav-cta{background:var(--gold);color:var(--navy-deep)!important;font-weight:600!important;padding:10px 24px;border-radius:8px;transition:background 0.2s,transform 0.2s!important}
         .land-nav-cta:hover{background:var(--gold-light)!important;transform:translateY(-1px)}
-        .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:112px 24px 64px;overflow:hidden}
+        /* flex-shrink:0 is load-bearing: <body> is a fixed-height
+           (height:100dvh) flex column, so without it the hero is
+           flex-compressed to exactly min-height:100vh and overflow:hidden
+           clips the row-2 role cards, the "Meet the 30 Saathis" CTA and
+           the stats. shrink:0 lets the hero grow to its true content
+           height; overflow:hidden then only clips the decorative blurred
+           orbs (position:absolute; inset:0), which is its actual purpose. */
+        .hero{position:relative;min-height:100vh;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:112px 24px 64px;overflow:hidden}
         .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(201,153,58,0.12) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 20% 80%,rgba(11,31,58,0.8) 0%,transparent 60%),linear-gradient(180deg,#060F1D 0%,#0B1F3A 40%,#060F1D 100%)}
         .orb{position:absolute;border-radius:50%;filter:blur(80px)}
         .orb-1{width:400px;height:400px;background:rgba(201,153,58,0.08);top:-100px;left:50%;animation:float1 8s ease-in-out infinite}
@@ -197,7 +204,7 @@ export default async function RootPage() {
             <br />
             For institutions that want to shape futures, not just transcripts.
           </p>
-          {/* ── 4 Role Cards ── */}
+          {/* ── 5 Role Cards (wraps 3 + 2; see .role-cards CSS) ── */}
           <div className="role-cards">
             <a
               href="/login?role=student"
