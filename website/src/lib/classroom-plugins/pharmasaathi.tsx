@@ -31,10 +31,6 @@ function DrugStructurePanel() {
   const viewerRef = useRef<HTMLDivElement>(null)
   const viewerInstanceRef = useRef<unknown>(null)
 
-  useAutoQueryHandler('pubchem', (params) => {
-    if (params.compound_name) { setQuery(String(params.compound_name)); doSearch(String(params.compound_name)) }
-  })
-
   async function doSearch(q: string) {
     if (!q.trim()) return
     setLoading(true); setError(''); setCompound(null)
@@ -46,6 +42,10 @@ function DrugStructurePanel() {
     } catch { setError('Search failed') }
     setLoading(false)
   }
+
+  useAutoQueryHandler('pubchem', (params) => {
+    if (params.compound_name) { setQuery(String(params.compound_name)); doSearch(String(params.compound_name)) }
+  })
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return

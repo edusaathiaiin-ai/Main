@@ -472,13 +472,17 @@ function RenderSegments({
             )
 
           case 'mermaid':
-            return <MermaidBlock key={i} chart={seg.content} />
+            return (
+              <MermaidBlock key={i} chart={seg.content} saathiColor={primaryColor} />
+            )
 
           case 'molecule':
             return <MoleculeViewer key={i} name={seg.name} />
 
           case 'mindmap':
-            return <MindMap key={i} markdown={seg.content} />
+            return (
+              <MindMap key={i} markdown={seg.content} saathiColor={primaryColor} />
+            )
 
           case 'molecule3d':
             return (

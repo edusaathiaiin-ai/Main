@@ -40,7 +40,7 @@ export function MindMap({ markdown, saathiColor = '#C9993A' }: MindMapProps) {
     <div
       style={{
         margin: '12px 0',
-        background: 'rgba(255,255,255,0.03)',
+        background: 'var(--bg-surface, #FFFFFF)',
         border: `0.5px solid ${saathiColor}25`,
         borderRadius: '12px',
         overflow: 'hidden',
@@ -75,9 +75,10 @@ export function MindMap({ markdown, saathiColor = '#C9993A' }: MindMapProps) {
           style={{
             background: 'none',
             border: 'none',
-            color: 'rgba(255,255,255,0.65)',
+            color: saathiColor,
             cursor: 'pointer',
             fontSize: '11px',
+            fontWeight: 600,
           }}
         >
           ⬇ Export
