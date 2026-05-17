@@ -61,7 +61,7 @@ async function sendPrincipalMagicLink(
       institution analytics, rosters, and billing in one place.
     </p>
     <p style="margin:24px 0;">
-      <a href="${actionLink}" style="display:inline-block;padding:12px 22px;background:#B8860B;color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;">Open my dashboard →</a>
+      <a href="${esc(actionLink)}" style="display:inline-block;padding:12px 22px;background:#B8860B;color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;">Open my dashboard →</a>
     </p>
     <p style="font-size:13px;color:#7A7570;line-height:1.6;">
       This link signs you in and is valid for 24 hours. It only works for
@@ -205,25 +205,33 @@ export async function activateTrial(
     )
     if (metaErr) throw new Error(`metadata update failed: ${metaErr.message}`)
 
-    // One branded magic link for everyone.
+    // One branded link for everyone. We email a link to OUR callback
+    // carrying token_hash — NOT Supabase's /auth/v1/verify action_link.
+    // A passive inbox/scanner prefetch can't consume a token_hash the way
+    // it consumes the one-time verify URL (verifyOtp only runs when the
+    // page's JS executes in a real browser), and the whole flow stays on
+    // our domain. The callback exchanges it via verifyOtp.
     const { data: linkData, error: genErr } =
       await admin.auth.admin.generateLink({
         type: 'magiclink',
         email: principalEmail,
         options: { redirectTo: SITE_CALLBACK },
       })
-    const actionLink = linkData?.properties?.action_link
-    if (genErr || !actionLink) {
+    const tokenHash = linkData?.properties?.hashed_token
+    if (genErr || !tokenHash) {
       throw new Error(
-        `link generation failed: ${genErr?.message ?? 'no link returned'}`,
+        `link generation failed: ${genErr?.message ?? 'no token returned'}`,
       )
     }
+    const loginUrl = `${SITE_CALLBACK}?token_hash=${encodeURIComponent(
+      tokenHash,
+    )}&type=magiclink`
 
     await sendPrincipalMagicLink(
       principalEmail,
       principalName,
       institutionName,
-      actionLink,
+      loginUrl,
     )
   } catch (e) {
     const reason = e instanceof Error ? e.message : 'unknown error'
