@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import {
   markDemoScheduled,
-  activateTrial,
   extendTrial,
   activateBilling,
   suspendEducationInstitution,
   markChurned,
   reactivateEducationInstitution,
 } from '../actions'
+import { ActivateTrialButton } from './ActivateTrialButton'
 
 type Status =
   | 'pending'
@@ -64,11 +64,7 @@ export function EducationInstitutionActions({ id, status }: Props) {
             Mark Demo Scheduled
           </ActionButton>
         )}
-        {canActivateTrial && (
-          <ActionButton action={activateTrial} id={id} tone="amber">
-            Activate Trial · 7 days
-          </ActionButton>
-        )}
+        {canActivateTrial && <ActivateTrialButton id={id} />}
         {canExtendTrial && (
           <ActionButton action={extendTrial} id={id} tone="amber-soft">
             Extend Trial · +7 days

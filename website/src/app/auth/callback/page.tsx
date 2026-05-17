@@ -204,6 +204,41 @@ function CallbackInner() {
           resolvedSession.access_token,
         )
 
+        // ── Institution principal invite (guarded; fail-open) ─────────────────
+        // Set by inviteUserByEmail(data:…) for new principals and by
+        // updateUserById(user_metadata) for existing ones, so this single
+        // branch handles both. This is the universal login funnel — ANY
+        // failure here must fall through to normal routing, never break the
+        // 99% case. role is intentionally NOT changed: institution access is
+        // additive, so a principal who also learns keeps full Saathi access.
+        try {
+          const meta = resolvedSession.user.user_metadata as {
+            institution_id?: string
+            institution_slug?: string
+            institution_role?: string
+          } | null
+          if (
+            meta?.institution_role === 'principal' &&
+            meta.institution_id &&
+            meta.institution_slug
+          ) {
+            await supabase
+              .from('profiles')
+              .update({
+                education_institution_id: meta.institution_id,
+                education_institution_role: 'principal',
+                education_institution_joined_at: new Date().toISOString(),
+              })
+              .eq('id', resolvedSession.user.id)
+            router.replace(
+              `/education-institutions/${meta.institution_slug}/admin`,
+            )
+            return
+          }
+        } catch {
+          // fail-open — a normal login must never break on this branch
+        }
+
         // ── Role-intent mismatch (returning user, asked to register as a
         // different role than their existing profile). The intent silently
         // dropped before this fix — RoleIntentBanner picks this up on the
