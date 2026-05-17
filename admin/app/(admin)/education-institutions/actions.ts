@@ -154,66 +154,77 @@ export async function activateTrial(
   }
 
   try {
+    // Resolve (or create) the principal's auth user. New accounts use
+    // createUser (NO email sent) — never inviteUserByEmail, whose plain
+    // default template is off-brand. Every principal, new or existing,
+    // gets the SAME branded Resend magic link below.
     const { data: existing } = await admin
       .from('profiles')
       .select('id')
       .eq('email', principalEmail)
       .maybeSingle()
 
+    let principalId: string
     if (existing?.id) {
-      // Existing account → link the profile NOW (role untouched: access is
-      // additive), stamp user_metadata so the callback handles new +
-      // existing principals through one branch, deliver link via Resend.
-      const principalId = existing.id as string
-
-      const { error: linkErr } = await admin
-        .from('profiles')
-        .update({
-          education_institution_id: inst.id,
-          education_institution_role: 'principal',
-          education_institution_joined_at: new Date().toISOString(),
-        })
-        .eq('id', principalId)
-      if (linkErr) throw new Error(`profile link failed: ${linkErr.message}`)
-
-      const { data: userRes } =
-        await admin.auth.admin.getUserById(principalId)
-      const priorMeta = userRes?.user?.user_metadata ?? {}
-      const { error: metaErr } = await admin.auth.admin.updateUserById(
-        principalId,
-        { user_metadata: { ...priorMeta, ...metadata } },
-      )
-      if (metaErr) throw new Error(`metadata update failed: ${metaErr.message}`)
-
-      const { data: linkData, error: genErr } =
-        await admin.auth.admin.generateLink({
-          type: 'magiclink',
+      principalId = existing.id as string
+    } else {
+      const { data: created, error: createErr } =
+        await admin.auth.admin.createUser({
           email: principalEmail,
-          options: { redirectTo: SITE_CALLBACK },
+          email_confirm: true,
+          user_metadata: metadata,
         })
-      const actionLink = linkData?.properties?.action_link
-      if (genErr || !actionLink) {
+      if (createErr || !created?.user) {
         throw new Error(
-          `link generation failed: ${genErr?.message ?? 'no link returned'}`,
+          `user creation failed: ${createErr?.message ?? 'no user returned'}`,
         )
       }
-
-      await sendPrincipalMagicLink(
-        principalEmail,
-        principalName,
-        institutionName,
-        actionLink,
-      )
-    } else {
-      // New account → Supabase sends the invite; metadata rides along and
-      // the callback links the profile when the principal accepts.
-      const { error: inviteErr } =
-        await admin.auth.admin.inviteUserByEmail(principalEmail, {
-          data: metadata,
-          redirectTo: SITE_CALLBACK,
-        })
-      if (inviteErr) throw new Error(`invite failed: ${inviteErr.message}`)
+      principalId = created.user.id
     }
+
+    // Link the profile now (role untouched — access is additive). The
+    // handle_new_user trigger creates the row on createUser; the callback
+    // also links idempotently as a safety net.
+    const { error: linkErr } = await admin
+      .from('profiles')
+      .update({
+        education_institution_id: inst.id,
+        education_institution_role: 'principal',
+        education_institution_joined_at: new Date().toISOString(),
+      })
+      .eq('id', principalId)
+    if (linkErr) throw new Error(`profile link failed: ${linkErr.message}`)
+
+    // Stamp user_metadata so the callback forwards to the dashboard via
+    // one uniform branch (merge — never clobber other metadata).
+    const { data: userRes } = await admin.auth.admin.getUserById(principalId)
+    const priorMeta = userRes?.user?.user_metadata ?? {}
+    const { error: metaErr } = await admin.auth.admin.updateUserById(
+      principalId,
+      { user_metadata: { ...priorMeta, ...metadata } },
+    )
+    if (metaErr) throw new Error(`metadata update failed: ${metaErr.message}`)
+
+    // One branded magic link for everyone.
+    const { data: linkData, error: genErr } =
+      await admin.auth.admin.generateLink({
+        type: 'magiclink',
+        email: principalEmail,
+        options: { redirectTo: SITE_CALLBACK },
+      })
+    const actionLink = linkData?.properties?.action_link
+    if (genErr || !actionLink) {
+      throw new Error(
+        `link generation failed: ${genErr?.message ?? 'no link returned'}`,
+      )
+    }
+
+    await sendPrincipalMagicLink(
+      principalEmail,
+      principalName,
+      institutionName,
+      actionLink,
+    )
   } catch (e) {
     const reason = e instanceof Error ? e.message : 'unknown error'
     const priorNotes = ((inst.admin_notes as string | null) ?? '').trim()
