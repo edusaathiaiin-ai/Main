@@ -167,6 +167,41 @@ export async function markChurned(formData: FormData) {
   revalidatePath('/education-institutions')
 }
 
+export async function reactivateEducationInstitution(formData: FormData) {
+  await requireAdmin()
+  const id = formData.get('id') as string
+  if (!id) return
+
+  const admin = getAdminClient()
+
+  // Capture the prior status for the audit note before we overwrite it —
+  // same append-never-overwrite pattern as suspend / churn.
+  const { data: row } = await admin
+    .from('education_institutions')
+    .select('status, admin_notes')
+    .eq('id', id)
+    .single()
+  const prior = ((row?.admin_notes as string | null) ?? '').trim()
+  const fromStatus = (row?.status as string | null) ?? 'unknown'
+  const stamp = new Date().toISOString().slice(0, 10)
+  const mergedNotes =
+    (prior ? prior + '\n\n' : '') +
+    `[${stamp}] Reactivated from ${fromStatus} → trial (${TRIAL_LENGTH_DAYS} days)`
+
+  await admin
+    .from('education_institutions')
+    .update({
+      status: 'trial',
+      trial_started_at: new Date().toISOString(),
+      trial_ends_at: daysFromNow(TRIAL_LENGTH_DAYS),
+      admin_notes: mergedNotes,
+    })
+    .eq('id', id)
+
+  revalidatePath(`/education-institutions/${id}`)
+  revalidatePath('/education-institutions')
+}
+
 /* ────────────────────────────────────────────────────────────────────────── */
 /* Editable fields                                                            */
 /* ────────────────────────────────────────────────────────────────────────── */
