@@ -227,7 +227,7 @@ export async function updateEducationInstitutionFields(formData: FormData) {
   patch.active_saathi_slugs = active_saathi_slugs
 
   const admin = getAdminClient()
-  await admin.from('institutions').update(patch).eq('id', id)
+  await admin.from('education_institutions').update(patch).eq('id', id)
 
   revalidatePath(`/education-institutions/${id}`)
   revalidatePath('/education-institutions')

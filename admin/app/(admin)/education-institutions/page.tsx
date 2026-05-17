@@ -108,7 +108,7 @@ export default async function InstitutionsListPage({
 
   // ── List query ─────────────────────────────────────────────────────────
   let query = admin
-    .from('institutions')
+    .from('education_institutions')
     .select('id, name, city, status, trial_ends_at, created_at')
     .order('created_at', { ascending: false })
     .limit(200)
@@ -125,7 +125,7 @@ export default async function InstitutionsListPage({
 
   // ── Per-status counts for filter pills ────────────────────────────────
   const { data: statusRows } = await admin
-    .from('institutions')
+    .from('education_institutions')
     .select('status')
 
   const countByStatus: Record<Status, number> = {
