@@ -74,19 +74,34 @@ async function sendPrincipalMagicLink(
   </div>
 </body></html>`.trim()
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-    },
-    body: JSON.stringify({
-      from: RESEND_FROM,
-      to: [toEmail],
-      subject: `Your EdUsaathiAI principal access — ${institutionName}`,
-      html,
-    }),
-  })
+  // Hard 10s ceiling: a stalled Resend call must become a clean caught
+  // failure (caller leaves the institution `pending` + writes an audit
+  // line) — never a server action that hangs to the function timeout.
+  let res: Response
+  try {
+    res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: RESEND_FROM,
+        to: [toEmail],
+        subject: `Your EdUsaathiAI principal access — ${institutionName}`,
+        html,
+      }),
+      signal: AbortSignal.timeout(10_000),
+    })
+  } catch (e) {
+    const why =
+      e instanceof Error && e.name === 'TimeoutError'
+        ? 'timed out after 10s'
+        : e instanceof Error
+          ? e.message
+          : 'network error'
+    throw new Error(`Resend request failed — ${why}`)
+  }
   if (!res.ok) {
     const detail = await res.text().catch(() => '')
     throw new Error(`Resend ${res.status}: ${detail.slice(0, 200)}`)
