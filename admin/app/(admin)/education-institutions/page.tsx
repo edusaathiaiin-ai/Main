@@ -103,12 +103,13 @@ export default async function InstitutionsListPage({
     admin
       .from('profiles')
       .select('id', { count: 'exact', head: true })
-      .not('education_institution_id', 'is', null),
+      .not('education_institution_id', 'is', null)
+      .eq('education_institution_role', 'student'),
   ])
 
   // ── List query ─────────────────────────────────────────────────────────
   let query = admin
-    .from('institutions')
+    .from('education_institutions')
     .select('id, name, city, status, trial_ends_at, created_at')
     .order('created_at', { ascending: false })
     .limit(200)
@@ -125,7 +126,7 @@ export default async function InstitutionsListPage({
 
   // ── Per-status counts for filter pills ────────────────────────────────
   const { data: statusRows } = await admin
-    .from('institutions')
+    .from('education_institutions')
     .select('status')
 
   const countByStatus: Record<Status, number> = {
@@ -140,16 +141,31 @@ export default async function InstitutionsListPage({
     if (row.status in countByStatus) countByStatus[row.status]++
   }
 
-  // ── Student counts per institution (for table column) ─────────────────
+  // ── Student + faculty counts per institution (for table columns) ──────
+  // Role buckets mirror the detail page exactly: student = 'student',
+  // faculty column counts 'faculty' + 'principal'. A null/other role does
+  // not inflate either count.
   const { data: roster } = await admin
     .from('profiles')
-    .select('education_institution_id')
+    .select('education_institution_id, education_institution_role')
     .not('education_institution_id', 'is', null)
 
   const studentsByInst: Record<string, number> = {}
-  for (const r of (roster as { education_institution_id: string }[] | null) ?? []) {
-    studentsByInst[r.education_institution_id] =
-      (studentsByInst[r.education_institution_id] ?? 0) + 1
+  const facultyByInst: Record<string, number> = {}
+  for (const r of (roster as
+    | {
+        education_institution_id: string
+        education_institution_role: string | null
+      }[]
+    | null) ?? []) {
+    const role = r.education_institution_role
+    if (role === 'faculty' || role === 'principal') {
+      facultyByInst[r.education_institution_id] =
+        (facultyByInst[r.education_institution_id] ?? 0) + 1
+    } else if (role === 'student') {
+      studentsByInst[r.education_institution_id] =
+        (studentsByInst[r.education_institution_id] ?? 0) + 1
+    }
   }
 
   return (
@@ -247,6 +263,7 @@ export default async function InstitutionsListPage({
               <th className="text-left px-4 py-3.5">City</th>
               <th className="text-left px-4 py-3.5">Status</th>
               <th className="text-left px-4 py-3.5">Students</th>
+              <th className="text-left px-4 py-3.5">Faculty</th>
               <th className="text-left px-4 py-3.5">Trial ends</th>
               <th className="text-left px-4 py-3.5">Created</th>
               <th className="px-4 py-3.5"></th>
@@ -278,6 +295,9 @@ export default async function InstitutionsListPage({
                   </td>
                   <td className="px-4 py-3.5 text-slate-300">
                     {studentsByInst[i.id] ?? 0}
+                  </td>
+                  <td className="px-4 py-3.5 text-slate-300">
+                    {facultyByInst[i.id] ?? 0}
                   </td>
                   <td className="px-4 py-3.5 text-slate-400 text-xs">
                     {i.status === 'trial' && i.trial_ends_at ? (
@@ -316,7 +336,7 @@ export default async function InstitutionsListPage({
             {rows.length === 0 && (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="px-5 py-10 text-center text-slate-500 text-sm"
                 >
                   No education institutions found

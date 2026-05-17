@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { Session } from '@supabase/supabase-js'
+import type { Session, EmailOtpType } from '@supabase/supabase-js'
 import { trackSignupCompleted } from '@/lib/analytics'
 
 // ── Welcome email with retry ─────────────────────────────────────────────────
@@ -134,6 +134,42 @@ function CallbackInner() {
 
     async function handleCallback() {
       try {
+        // ── Custom magic link (token_hash) — exchange BEFORE refreshSession.
+        // Principal login emails point here with ?token_hash=…&type=… (a
+        // passive inbox prefetch can't consume this — verifyOtp only runs
+        // when this JS executes in a real browser). On success the session
+        // is established and the normal flow below continues: refreshSession
+        // → ensureProfile → the institution-principal branch → dashboard.
+        const tokenHashParam = searchParams.get('token_hash')
+        const otpTypeParam = searchParams.get('type')
+        if (tokenHashParam && otpTypeParam) {
+          const { error: verifyErr } = await supabase.auth.verifyOtp({
+            token_hash: tokenHashParam,
+            type: otpTypeParam as EmailOtpType,
+          })
+          if (verifyErr) {
+            const expired =
+              verifyErr.message?.toLowerCase().includes('expired') ?? false
+            setStatus('error')
+            setErrorMsg(
+              expired
+                ? 'This login link has expired. Links are valid for 24 hours — request a fresh one.'
+                : 'This login link is invalid or has already been used.'
+            )
+            setTimeout(
+              () =>
+                router.replace(
+                  expired
+                    ? '/login?error=link_expired'
+                    : '/login?error=unauthorized'
+                ),
+              2000
+            )
+            return
+          }
+          // Session established — fall through to the normal flow.
+        }
+
         // Give Supabase a moment to exchange the PKCE code.
         // We use refreshSession() NOT getSession() — getSession() can return
         // a session whose access_token is malformed/undefined when the
@@ -203,6 +239,41 @@ function CallbackInner() {
           roleParam,
           resolvedSession.access_token,
         )
+
+        // ── Institution principal invite (guarded; fail-open) ─────────────────
+        // Set by inviteUserByEmail(data:…) for new principals and by
+        // updateUserById(user_metadata) for existing ones, so this single
+        // branch handles both. This is the universal login funnel — ANY
+        // failure here must fall through to normal routing, never break the
+        // 99% case. role is intentionally NOT changed: institution access is
+        // additive, so a principal who also learns keeps full Saathi access.
+        try {
+          const meta = resolvedSession.user.user_metadata as {
+            institution_id?: string
+            institution_slug?: string
+            institution_role?: string
+          } | null
+          if (
+            meta?.institution_role === 'principal' &&
+            meta.institution_id &&
+            meta.institution_slug
+          ) {
+            await supabase
+              .from('profiles')
+              .update({
+                education_institution_id: meta.institution_id,
+                education_institution_role: 'principal',
+                education_institution_joined_at: new Date().toISOString(),
+              })
+              .eq('id', resolvedSession.user.id)
+            router.replace(
+              `/education-institutions/${meta.institution_slug}/admin`,
+            )
+            return
+          }
+        } catch {
+          // fail-open — a normal login must never break on this branch
+        }
 
         // ── Role-intent mismatch (returning user, asked to register as a
         // different role than their existing profile). The intent silently

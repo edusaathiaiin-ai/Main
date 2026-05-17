@@ -88,7 +88,7 @@ export default function LoginPage() {
     const sb = getBrowserClient()
     const { error: err } = await sb.auth.resetPasswordForEmail(
       email.trim().toLowerCase(),
-      { redirectTo: 'https://admin.edusaathiai.in/auth/callback?type=recovery' }
+      { redirectTo: `${window.location.origin}/auth/callback?type=recovery` }
     )
     setLoading(false)
     if (err) {

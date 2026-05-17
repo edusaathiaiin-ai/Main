@@ -605,7 +605,6 @@ export default async function FacultyPage({
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2 text-sm text-white">
                           {(profile?.full_name as string) ?? '—'}
-                          <CompletenessChip pct={getFacultyCompleteness(f as Record<string, unknown>)} />
                         </div>
                         <div className="text-xs text-slate-500">
                           {profile?.email as string}

@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import {
   markDemoScheduled,
-  activateTrial,
   extendTrial,
   activateBilling,
   suspendEducationInstitution,
   markChurned,
+  reactivateEducationInstitution,
 } from '../actions'
+import { ActivateTrialButton } from './ActivateTrialButton'
 
 type Status =
   | 'pending'
@@ -48,6 +49,8 @@ export function EducationInstitutionActions({ id, status }: Props) {
     status === 'suspended' ||
     status === 'demo' ||
     status === 'pending'
+  // suspended → resume; churned was previously a dead-end with no exit.
+  const canReactivate = status === 'suspended' || status === 'churned'
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
@@ -61,11 +64,7 @@ export function EducationInstitutionActions({ id, status }: Props) {
             Mark Demo Scheduled
           </ActionButton>
         )}
-        {canActivateTrial && (
-          <ActionButton action={activateTrial} id={id} tone="amber">
-            Activate Trial · 7 days
-          </ActionButton>
-        )}
+        {canActivateTrial && <ActivateTrialButton id={id} />}
         {canExtendTrial && (
           <ActionButton action={extendTrial} id={id} tone="amber-soft">
             Extend Trial · +7 days
@@ -74,6 +73,15 @@ export function EducationInstitutionActions({ id, status }: Props) {
         {canActivateBilling && (
           <ActionButton action={activateBilling} id={id} tone="emerald">
             Activate Billing
+          </ActionButton>
+        )}
+        {canReactivate && (
+          <ActionButton
+            action={reactivateEducationInstitution}
+            id={id}
+            tone="amber-soft"
+          >
+            Reactivate · Trial
           </ActionButton>
         )}
         {canSuspend && (
