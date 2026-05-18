@@ -74,6 +74,24 @@ async function sendPrincipalMagicLink(
   </div>
 </body></html>`.trim()
 
+  // Plain-text alternative. HTML-only mail is a strong spam signal; a
+  // matching text/plain part materially improves inbox placement. Raw
+  // values (no HTML escaping) — this part is not HTML.
+  const text = [
+    principalName ? `Dear ${principalName},` : 'Hello,',
+    '',
+    `${institutionName} is now on an active EdUsaathiAI trial. Open your principal dashboard — institution analytics, rosters, and billing in one place:`,
+    '',
+    actionLink,
+    '',
+    `This link signs you in and is valid for 24 hours. It only works for ${toEmail}. If you didn't expect this, you can ignore it.`,
+    '',
+    'Warmly,',
+    'Jaydeep Buch',
+    'Founder, EdUsaathiAI',
+    'admin@edusaathiai.in',
+  ].join('\n')
+
   // Hard 10s ceiling: a stalled Resend call must become a clean caught
   // failure (caller leaves the institution `pending` + writes an audit
   // line) — never a server action that hangs to the function timeout.
@@ -88,8 +106,10 @@ async function sendPrincipalMagicLink(
       body: JSON.stringify({
         from: RESEND_FROM,
         to: [toEmail],
+        reply_to: 'admin@edusaathiai.in',
         subject: `Your EdUsaathiAI principal access — ${institutionName}`,
         html,
+        text,
       }),
       signal: AbortSignal.timeout(10_000),
     })
