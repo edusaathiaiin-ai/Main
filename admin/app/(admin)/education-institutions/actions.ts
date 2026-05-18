@@ -238,9 +238,12 @@ export async function activateTrial(
         `link generation failed: ${genErr?.message ?? 'no token returned'}`,
       )
     }
+    // Single param only — no `&`, so there is nothing for an email client
+    // to HTML-escape ambiguously or for Gmail/Spam link-wrapping to drop.
+    // The callback infers type=magiclink when only token_hash is present.
     const loginUrl = `${SITE_CALLBACK}?token_hash=${encodeURIComponent(
       tokenHash,
-    )}&type=magiclink`
+    )}`
 
     await sendPrincipalMagicLink(
       principalEmail,
