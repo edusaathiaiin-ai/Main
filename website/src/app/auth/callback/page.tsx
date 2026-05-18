@@ -135,17 +135,20 @@ function CallbackInner() {
     async function handleCallback() {
       try {
         // ── Custom magic link (token_hash) — exchange BEFORE refreshSession.
-        // Principal login emails point here with ?token_hash=…&type=… (a
-        // passive inbox prefetch can't consume this — verifyOtp only runs
-        // when this JS executes in a real browser). On success the session
-        // is established and the normal flow below continues: refreshSession
-        // → ensureProfile → the institution-principal branch → dashboard.
+        // Principal login emails point here with ONLY ?token_hash=… . We
+        // trigger on token_hash alone and infer type=magiclink so a
+        // stripped/missing param can never skip the exchange (the bug that
+        // sent principals to /chat). An explicit ?type= still wins if
+        // present (future recovery/invite links). A passive inbox prefetch
+        // can't consume this — verifyOtp only runs when this JS executes in
+        // a real browser. On success the normal flow below continues:
+        // refreshSession → ensureProfile → institution-principal → dashboard.
         const tokenHashParam = searchParams.get('token_hash')
         const otpTypeParam = searchParams.get('type')
-        if (tokenHashParam && otpTypeParam) {
+        if (tokenHashParam) {
           const { error: verifyErr } = await supabase.auth.verifyOtp({
             token_hash: tokenHashParam,
-            type: otpTypeParam as EmailOtpType,
+            type: (otpTypeParam ?? 'magiclink') as EmailOtpType,
           })
           if (verifyErr) {
             const expired =
