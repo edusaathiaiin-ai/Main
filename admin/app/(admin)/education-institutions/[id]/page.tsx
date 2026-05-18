@@ -6,7 +6,6 @@ import {
   updateAdminNotes,
   updateEducationInstitutionFields,
   openWhatsApp,
-  openEmail,
 } from '../actions'
 import { EducationInstitutionActions } from './EducationInstitutionActions'
 
@@ -101,6 +100,18 @@ export default async function InstitutionDetailPage({
 
   const activeSaathis = (inst.active_saathi_slugs as string[] | null) ?? []
 
+  // Native mailto for the "Send Email" quick action. A real <a href="mailto:">
+  // prefills To/subject/body reliably across mail clients — unlike a
+  // server-action redirect to a mailto: scheme, which opens the client but
+  // drops the params inconsistently.
+  const principalMailto = `mailto:${
+    (inst.principal_email as string | null) ?? ''
+  }?subject=${encodeURIComponent(
+    `EdUsaathiAI — ${(inst.name as string | null) ?? 'your institution'}`
+  )}&body=${encodeURIComponent(
+    `Hello ${(inst.principal_name as string | null) ?? 'there'},\n\nThis is Jaydeep Buch from EdUsaathiAI, following up on your institution's registration.\n\n`
+  )}`
+
   return (
     <div className="p-6 max-w-5xl">
       <Link
@@ -153,15 +164,12 @@ export default async function InstitutionDetailPage({
             📱 Send WhatsApp
           </button>
         </form>
-        <form action={openEmail}>
-          <input type="hidden" name="id" value={id} />
-          <button
-            type="submit"
-            className="bg-blue-500/15 border border-blue-500/30 text-blue-300 hover:bg-blue-500/25 rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
-          >
-            ✉️ Send Email
-          </button>
-        </form>
+        <a
+          href={principalMailto}
+          className="bg-blue-500/15 border border-blue-500/30 text-blue-300 hover:bg-blue-500/25 rounded-xl px-4 py-2 text-sm font-semibold transition-colors inline-flex items-center"
+        >
+          ✉️ Send Email
+        </a>
       </div>
 
       {/* ── Editable core fields ────────────────────────────────────── */}
