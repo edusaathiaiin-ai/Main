@@ -55,6 +55,18 @@ function LoginForm() {
         )
       } else if (err === 'unauthorized') {
         setError('Authentication failed. Please try again.')
+      } else if (err === 'invite_invalid') {
+        setError(
+          'This invite link is not valid. Please ask your institution admin to send a new invitation.'
+        )
+      } else if (err === 'invite_expired') {
+        setError(
+          'This invite link has expired. Invite links are valid for 7 days. Please ask your institution admin to send a new invitation.'
+        )
+      } else if (err === 'invite_institution_inactive') {
+        setError(
+          'This institution is not currently active on EdUsaathiAI. Please contact admin@edusaathiai.in'
+        )
       }
     }
     run()

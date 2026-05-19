@@ -243,19 +243,31 @@ function CallbackInner() {
           resolvedSession.access_token,
         )
 
-        // ── Institution principal invite (guarded; fail-open) ─────────────────
-        // Set by inviteUserByEmail(data:…) for new principals and by
-        // updateUserById(user_metadata) for existing ones, so this single
-        // branch handles both. This is the universal login funnel — ANY
-        // failure here must fall through to normal routing, never break the
-        // 99% case. role is intentionally NOT changed: institution access is
-        // additive, so a principal who also learns keeps full Saathi access.
+        // ── Institution invite (principal OR faculty; guarded; fail-open) ────
+        // user_metadata is set by the admin Activate-Trial flow (principal)
+        // and the accept-invite route (faculty). One guarded block handles
+        // both. This is the universal login funnel — ANY failure here must
+        // fall through to normal routing, never break the 99% case. role is
+        // intentionally NOT changed: institution access is additive, so a
+        // principal/faculty who also learns keeps full Saathi access.
         try {
           const meta = resolvedSession.user.user_metadata as {
             institution_id?: string
             institution_slug?: string
             institution_role?: string
           } | null
+          if (meta?.institution_role === 'faculty' && meta.institution_id) {
+            await supabase
+              .from('profiles')
+              .update({
+                education_institution_id: meta.institution_id,
+                education_institution_role: 'faculty',
+                education_institution_joined_at: new Date().toISOString(),
+              })
+              .eq('id', resolvedSession.user.id)
+            router.replace('/faculty')
+            return
+          }
           if (
             meta?.institution_role === 'principal' &&
             meta.institution_id &&

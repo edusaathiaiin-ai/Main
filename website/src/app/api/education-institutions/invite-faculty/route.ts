@@ -5,8 +5,8 @@
 // individual faculty by email. Three response shapes, one per branch:
 //
 //   { status: 'invited' }        — email had no auth.users row; signed
-//                                   invite URL emailed; faculty signs up
-//                                   via /onboard?... in Step 3b
+//                                   invite URL emailed; faculty clicks it
+//                                   → /api/education-institutions/accept-invite
 //   { status: 'linked' }         — email had a profile that wasn't yet
 //                                   bound to any institution; linked here
 //                                   as faculty + welcome email sent
@@ -278,12 +278,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     expires:     String(expiresUnixSec),
     token,
   })
-  const inviteUrl = `${SITE_URL}/onboard?${params.toString()}`
-
-  // TODO Phase I-2 Step 3b: /onboard route does not yet parse
-  // institution/role/email/token/expires query params.
-  // Faculty click-through wiring comes in a subsequent step.
-  // This route generates and emails the signed URL only.
+  // Points at the accept-invite route (Fix 3) on the www host — same host
+  // as the principal flow + the Supabase Auth redirect allowlist. That
+  // route verifies the HMAC server-side and runs the proven token_hash
+  // pipeline. params already carries institution/role/email/expires/token.
+  const inviteUrl = `https://www.edusaathiai.in/api/education-institutions/accept-invite?${params.toString()}`
 
   void sendInviteEmail({
     kind:        'invite',

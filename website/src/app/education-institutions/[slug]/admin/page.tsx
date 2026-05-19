@@ -785,6 +785,11 @@ function Forbidden() {
           You don&apos;t have access to this dashboard
         </h1>
         <p className="mt-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          If you just received an activation email, click the link in it to
+          finish setting up your access — that signs you in and links your
+          account to this institution.
+        </p>
+        <p className="mt-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
           The principal dashboard is restricted to the verified principal of
           this institution. If you believe this is a mistake, contact{' '}
           <a
