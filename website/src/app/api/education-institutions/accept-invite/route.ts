@@ -142,20 +142,32 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return fail('invite_invalid')
   }
 
-  // ── Verified. Provision exactly like the principal flow ───────────────────
+  // ── Verified. Carry the principal-entered name (Phase 1.2) so the new
+  //    faculty fills in NOTHING — frictionless onboarding. ───────────────────
+  const { data: memberRow } = await admin
+    .from('education_institution_members')
+    .select('full_name')
+    .eq('education_institution_id', inst.id)
+    .eq('email', email)
+    .maybeSingle<{ full_name: string | null }>()
+
   // role on profiles is NEVER set here — institution access is additive.
   // education_institution_role='faculty' is set by the callback after the
   // magic link establishes the session (mirrors principal).
-  const metadata = {
+  const metadata: Record<string, unknown> = {
     institution_id:   inst.id,
     institution_slug: inst.slug,
     institution_role: 'faculty',
   }
+  if (memberRow?.full_name) metadata.full_name = memberRow.full_name
+
+  let memberUserId: string | null = null
 
   try {
     const existing = await findAuthUserByEmail(email)
 
     if (existing) {
+      memberUserId = existing.id
       const { data: userRes } = await admin.auth.admin.getUserById(existing.id)
       const priorMeta = userRes?.user?.user_metadata ?? {}
       const { error: metaErr } = await admin.auth.admin.updateUserById(
@@ -175,6 +187,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           `user creation failed: ${createErr?.message ?? 'no user returned'}`,
         )
       }
+      memberUserId = created.user.id
     }
 
     const { data: linkData, error: genErr } =
@@ -186,6 +199,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const tokenHash = linkData?.properties?.hashed_token
     if (genErr || !tokenHash) {
       throw new Error(`link generation failed: ${genErr?.message ?? 'no token'}`)
+    }
+
+    // Membership now active + bound to the auth user. Best-effort — a
+    // bookkeeping failure must NOT abort a successful login.
+    try {
+      await admin
+        .from('education_institution_members')
+        .update({ status: 'active', user_id: memberUserId })
+        .eq('education_institution_id', inst.id)
+        .eq('email', email)
+    } catch (e) {
+      console.error(
+        '[accept-invite] member activate failed (non-fatal)',
+        e instanceof Error ? e.message : 'unknown',
+      )
     }
 
     // Single-param token_hash — the prefetch-proof pattern proven on the

@@ -33,7 +33,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createHmac } from 'node:crypto'
 
@@ -120,6 +120,52 @@ type Institution = {
 }
 
 // ── Handler ─────────────────────────────────────────────────────────────────
+
+// Phase 1.2 — record/refresh the institution membership row (the lifecycle
+// source of truth + the carried name for frictionless onboarding).
+// Best-effort: a members-table hiccup must never break the invite itself
+// (profiles dual-write + email remain the critical path).
+async function recordFacultyMember(
+  admin: SupabaseClient,
+  institutionId: string,
+  email: string,
+  fullName: string,
+  status: 'invited' | 'active',
+  invitedBy: string | null,
+  userId: string | null,
+): Promise<void> {
+  try {
+    const payload = {
+      education_institution_id: institutionId,
+      email,
+      full_name: fullName || null,
+      member_role: 'faculty',
+      status,
+      set_by: 'principal',
+      invited_by: invitedBy,
+      user_id: userId,
+    }
+    const { data: existing } = await admin
+      .from('education_institution_members')
+      .select('id')
+      .eq('education_institution_id', institutionId)
+      .eq('email', email)
+      .maybeSingle()
+    if (existing?.id) {
+      await admin
+        .from('education_institution_members')
+        .update(payload)
+        .eq('id', existing.id as string)
+    } else {
+      await admin.from('education_institution_members').insert(payload)
+    }
+  } catch (e) {
+    console.error(
+      '[invite-faculty] recordFacultyMember failed (non-fatal)',
+      e instanceof Error ? e.message : 'unknown',
+    )
+  }
+}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!INVITE_TOKEN_SECRET) {
@@ -256,6 +302,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'link_failed', detail: updErr.message }, { status: 500 })
     }
 
+    // Existing account linked now → membership is active.
+    await recordFacultyMember(
+      admin, institution.id, email, name, 'active', user.id, existingUser.id,
+    )
+
     void sendInviteEmail({
       kind:        'welcome_link',
       to:          email,
@@ -283,6 +334,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // route verifies the HMAC server-side and runs the proven token_hash
   // pipeline. params already carries institution/role/email/expires/token.
   const inviteUrl = `https://www.edusaathiai.in/api/education-institutions/accept-invite?${params.toString()}`
+
+  // Pending invite → membership row carries the principal-entered name so
+  // accept-invite can set it on the new account (zero-friction onboarding).
+  await recordFacultyMember(
+    admin, institution.id, email, name, 'invited', user.id, null,
+  )
 
   void sendInviteEmail({
     kind:        'invite',

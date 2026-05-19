@@ -255,6 +255,7 @@ function CallbackInner() {
             institution_id?: string
             institution_slug?: string
             institution_role?: string
+            full_name?: string
           } | null
           if (meta?.institution_role === 'faculty' && meta.institution_id) {
             await supabase
@@ -263,6 +264,11 @@ function CallbackInner() {
                 education_institution_id: meta.institution_id,
                 education_institution_role: 'faculty',
                 education_institution_joined_at: new Date().toISOString(),
+                // Phase 1.2 name-carry. Only freshly-created institution
+                // faculty reach this path (existing accounts link via
+                // invite-faculty's branch), so this never clobbers a real
+                // user's name.
+                ...(meta.full_name ? { full_name: meta.full_name } : {}),
               })
               .eq('id', resolvedSession.user.id)
             router.replace('/faculty')
