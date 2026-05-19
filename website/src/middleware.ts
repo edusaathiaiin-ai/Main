@@ -28,6 +28,7 @@ const PUBLIC_PATHS = [
   '/api/pubmed',      // direct biomedical search proxy
   '/api/education-institutions/search',    // public "Find My Institution" — rate-limited
   '/api/education-institutions/register',  // public Education Institution registration — insert is server-gated
+  '/api/education-institutions/accept-invite', // public faculty invite click-through — anon by design (faculty aren't logged in yet); auth IS the signed HMAC token, verified server-side in the route
   '/education-institutions',               // public landing + register form + thank-you for schools/colleges. Distinct from the authenticated /institution dashboard (internship-posting role).
 ]
 
