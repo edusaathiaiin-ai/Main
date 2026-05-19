@@ -32,6 +32,8 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
 import { SAATHIS } from '@/constants/saathis'
 import Link from 'next/link'
+import { FacultyInvitePanel } from './FacultyInvitePanel'
+import { OnboardingChecklist } from './OnboardingChecklist'
 
 export const metadata = {
   title: 'Principal Dashboard — EdUsaathiAI',
@@ -350,6 +352,12 @@ export default async function PrincipalDashboard({
           </div>
         )}
 
+        {/* First-run welcome checklist — auto-hides once faculty exist */}
+        <OnboardingChecklist
+          facultyCount={faculty.length}
+          institutionName={institution.name}
+        />
+
         {/* Headline cards — yesterday's snapshot */}
         <section className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           <Card label="Sessions yesterday"     value={sessionsYesterday} />
@@ -442,10 +450,11 @@ export default async function PrincipalDashboard({
 
           <Panel title={`Faculty (${faculty.length})`}>
             {faculty.length === 0 ? (
-              <EmptyState text="No faculty onboarded yet. CSV bulk-onboard wires up in Step 3." />
+              <EmptyState text="No faculty yet — invite your first one below." />
             ) : (
               <Roster members={faculty} activeIds={null} maxRows={12} />
             )}
+            <FacultyInvitePanel />
           </Panel>
         </section>
 
