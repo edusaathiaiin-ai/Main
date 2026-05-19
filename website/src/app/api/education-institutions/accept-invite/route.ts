@@ -31,6 +31,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHmac, timingSafeEqual } from 'node:crypto'
+import { checkRateLimit, clientIp } from '@/lib/ratelimit'
 
 const SUPABASE_URL        = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_ROLE_KEY    = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -79,6 +80,15 @@ async function findAuthUserByEmail(email: string): Promise<{ id: string } | null
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
+  // Defense-in-depth: 30/hr per IP. The HMAC is the real auth (a token
+  // can't be forged without the secret) — this just caps abuse/replay of
+  // the createUser+generateLink work. Fails open if Upstash env absent.
+  // On limit we REDIRECT (consistent UX for an email-clicked link) rather
+  // than return the lib's raw 429 JSON.
+  if (!(await checkRateLimit('edu-inst-accept-invite', clientIp(req), 30, 3600))) {
+    return fail('invite_invalid')
+  }
+
   if (!INVITE_TOKEN_SECRET) {
     console.error('[accept-invite] INVITE_TOKEN_SECRET not set')
     return fail('invite_invalid')
