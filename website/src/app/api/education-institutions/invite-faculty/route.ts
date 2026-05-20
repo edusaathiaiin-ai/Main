@@ -1,17 +1,28 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/education-institutions/invite-faculty
 //
-// Phase I-2 Step 3 — Faculty invite system. Authenticated principals invite
-// individual faculty by email. Three response shapes, one per branch:
+// Phase I-2 Step 3 — Faculty / co-principal invite system. Authenticated
+// principals invite by email. Body accepts `role: 'faculty' | 'principal'`
+// (default 'faculty' for backward compat with the pre-1.4b callers).
+//
+// Three response shapes, one per branch:
 //
 //   { status: 'invited' }        — email had no auth.users row; signed
-//                                   invite URL emailed; faculty clicks it
+//                                   invite URL emailed; invitee clicks it
 //                                   → /api/education-institutions/accept-invite
 //   { status: 'linked' }         — email had a profile that wasn't yet
 //                                   bound to any institution; linked here
-//                                   as faculty + welcome email sent
-//   { status: 'already_linked' } — email is already faculty/principal of
-//                                   THIS institution (idempotent no-op)
+//                                   in the requested role + welcome email sent
+//                                   (also covers faculty→principal upgrade
+//                                   of someone already in THIS institution)
+//   { status: 'already_linked' } — email is already in THIS institution at
+//                                   the requested role (idempotent no-op)
+//
+// Co-principal design (Phase 1.4b): multi-principal coexistence — principals
+// run alongside, not in handoff. Cap at PRINCIPAL_LIMIT (3) per institution
+// to enforce the "chief + 1–2 deputies" continuity model without unbounded
+// elevation. Demotion (principal → faculty via this route) is REJECTED;
+// principal removal goes through the lifecycle actions, not this endpoint.
 //
 // Auth — JWT required. Caller must:
 //   • be logged in (server-side getUser)
@@ -46,6 +57,19 @@ const SITE_URL            = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://edusaat
 
 const INVITE_EXPIRY_SECONDS = 7 * 24 * 60 * 60  // 7 days
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Multi-principal cap (Phase 1.4b) — chief + 1–2 deputies for continuity.
+// Faculty cap stays dynamic via declared_capacity; principals are a fixed
+// small seat count because the role is institutional authority, not headcount.
+const PRINCIPAL_LIMIT = 3
+
+type MemberRole = 'faculty' | 'principal'
+
+function limitForRole(role: MemberRole, declaredCapacity: number | null): number {
+  if (role === 'principal') return PRINCIPAL_LIMIT
+  const capacity = declaredCapacity ?? 200
+  return Math.max(10, Math.floor(capacity / 10))
+}
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -108,7 +132,7 @@ async function findAuthUserByEmail(email: string): Promise<{ id: string; email: 
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-type Body = { email?: string; name?: string }
+type Body = { email?: string; name?: string; role?: string }
 
 type Institution = {
   id:                  string
@@ -123,13 +147,16 @@ type Institution = {
 
 // Phase 1.2 — record/refresh the institution membership row (the lifecycle
 // source of truth + the carried name for frictionless onboarding).
-// Best-effort: a members-table hiccup must never break the invite itself
-// (profiles dual-write + email remain the critical path).
-async function recordFacultyMember(
+// Generalised in 1.4b to take memberRole so the same path handles both
+// faculty and co-principal invites. Best-effort: a members-table hiccup
+// must never break the invite itself (profiles dual-write + email remain
+// the critical path).
+async function recordMember(
   admin: SupabaseClient,
   institutionId: string,
   email: string,
   fullName: string,
+  memberRole: MemberRole,
   status: 'invited' | 'active',
   invitedBy: string | null,
   userId: string | null,
@@ -139,7 +166,7 @@ async function recordFacultyMember(
       education_institution_id: institutionId,
       email,
       full_name: fullName || null,
-      member_role: 'faculty',
+      member_role: memberRole,
       status,
       set_by: 'principal',
       invited_by: invitedBy,
@@ -161,7 +188,7 @@ async function recordFacultyMember(
     }
   } catch (e) {
     console.error(
-      '[invite-faculty] recordFacultyMember failed (non-fatal)',
+      '[invite-faculty] recordMember failed (non-fatal)',
       e instanceof Error ? e.message : 'unknown',
     )
   }
@@ -183,12 +210,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const email = (body.email ?? '').trim().toLowerCase()
   const name  = (body.name  ?? '').trim().slice(0, 100)
+  const roleRaw = (body.role ?? 'faculty').trim().toLowerCase()
   if (!EMAIL_RE.test(email)) {
     return NextResponse.json({ error: 'invalid_email' }, { status: 400 })
   }
   if (name.length < 2) {
     return NextResponse.json({ error: 'name_required' }, { status: 400 })
   }
+  if (roleRaw !== 'faculty' && roleRaw !== 'principal') {
+    return NextResponse.json({ error: 'invalid_role' }, { status: 400 })
+  }
+  const memberRole = roleRaw as MemberRole
 
   // ── 1. Caller must be a logged-in principal ──────────────────────────────
   const userClient = await createServerClient()
@@ -236,25 +268,30 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  // ── 2. Faculty cap ────────────────────────────────────────────────────────
-  const { count: facultyCount, error: countErr } = await admin
+  // ── 2. Cap check (per role) ───────────────────────────────────────────────
+  // Faculty: dynamic from declared_capacity. Principal: hard-coded
+  // PRINCIPAL_LIMIT (3). Count counts seats actually filled, i.e. profiles
+  // with that role for this institution. Pending invites don't burn a seat
+  // — only the role flip on accept does.
+  const { count: filledCount, error: countErr } = await admin
     .from('profiles')
     .select('*', { count: 'exact', head: true })
     .eq('education_institution_id', institution.id)
-    .eq('education_institution_role', 'faculty')
+    .eq('education_institution_role', memberRole)
 
   if (countErr) {
     return NextResponse.json({ error: 'count_failed', detail: countErr.message }, { status: 500 })
   }
 
-  const capacity     = institution.declared_capacity ?? 200
-  const facultyLimit = Math.max(10, Math.floor(capacity / 10))
-
-  if ((facultyCount ?? 0) >= facultyLimit) {
+  const seatLimit = limitForRole(memberRole, institution.declared_capacity)
+  if ((filledCount ?? 0) >= seatLimit) {
+    // Keep the 'faculty_limit_reached' error code for faculty (existing
+    // client copy keys off it); new error code for principal so the
+    // CoPrincipalInvitePanel can render its own message.
     return NextResponse.json({
-      error:   'faculty_limit_reached',
-      current: facultyCount ?? 0,
-      limit:   facultyLimit,
+      error:   memberRole === 'principal' ? 'principal_limit_reached' : 'faculty_limit_reached',
+      current: filledCount ?? 0,
+      limit:   seatLimit,
     }, { status: 400 })
   }
 
@@ -277,23 +314,40 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     if (otherInstId && otherInstId !== institution.id) {
       // Linked elsewhere — never silently re-bind. Principal must coordinate
-      // with the other institution to release this faculty member first.
+      // with the other institution to release this member first.
       return NextResponse.json({
         error: 'already_linked_elsewhere',
       }, { status: 400 })
     }
 
+    const currentRole = existingProfile?.education_institution_role ?? null
+
     if (otherInstId === institution.id) {
-      // Idempotent no-op — they're already part of this institution.
-      return NextResponse.json({ status: 'already_linked' }, { status: 200 })
+      // Already in THIS institution — branch by role transition.
+      if (currentRole === memberRole) {
+        // Idempotent no-op.
+        return NextResponse.json({ status: 'already_linked' }, { status: 200 })
+      }
+      if (currentRole === 'principal' && memberRole === 'faculty') {
+        // Demotion via this endpoint is REJECTED. Principal removal /
+        // restructure goes through the lifecycle actions, not invite.
+        return NextResponse.json({
+          error: 'cannot_demote_principal',
+        }, { status: 400 })
+      }
+      // Remaining cases reach the role flip below:
+      //   - faculty → principal (upgrade to co-principal): allowed
+      //   - student → faculty/principal: this shouldn't happen for an
+      //     "already in institution" user (institution-axis only sets
+      //     faculty/principal), but if it did, treat as a normal bind.
     }
 
-    // Unlinked existing user → bind as faculty
+    // Bind (or upgrade) in this institution at the requested role.
     const { error: updErr } = await admin
       .from('profiles')
       .update({
         education_institution_id:        institution.id,
-        education_institution_role:      'faculty',
+        education_institution_role:      memberRole,
         education_institution_joined_at: new Date().toISOString(),
       })
       .eq('id', existingUser.id)
@@ -302,15 +356,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'link_failed', detail: updErr.message }, { status: 500 })
     }
 
-    // Existing account linked now → membership is active.
-    await recordFacultyMember(
-      admin, institution.id, email, name, 'active', user.id, existingUser.id,
+    // Existing account linked now → membership is active at this role.
+    await recordMember(
+      admin, institution.id, email, name, memberRole, 'active', user.id, existingUser.id,
     )
 
     // Phase 1.3 — also stamp user_metadata so the callback (on next login)
-    // routes them to the branded /education-institutions/[slug]/faculty page
-    // instead of the standalone /faculty. Existing active sessions only see
-    // this on their next token refresh — acceptable for v1.
+    // routes them to the right branded landing: /admin for principal,
+    // /faculty for faculty. Existing active sessions only see this on their
+    // next token refresh — acceptable for v1.
     try {
       const { data: ur } = await admin.auth.admin.getUserById(existingUser.id)
       const priorMeta = ur?.user?.user_metadata ?? {}
@@ -319,7 +373,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           ...priorMeta,
           institution_id:   institution.id,
           institution_slug: institution.slug,
-          institution_role: 'faculty',
+          institution_role: memberRole,
           // full_name intentionally omitted — never clobber a real user's name.
         },
       })
@@ -334,6 +388,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       kind:        'welcome_link',
       to:          email,
       facultyName: name,
+      memberRole,
       institution,
       principalDisplayName: profile.full_name ?? institution.principal_name ?? null,
     })
@@ -347,7 +402,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const params = new URLSearchParams({
     institution: institution.slug,
-    role:        'faculty',
+    role:        memberRole,
     email,
     expires:     String(expiresUnixSec),
     token,
@@ -356,18 +411,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // as the principal flow + the Supabase Auth redirect allowlist. That
   // route verifies the HMAC server-side and runs the proven token_hash
   // pipeline. params already carries institution/role/email/expires/token.
+  //
+  // Security note: the HMAC payload intentionally does NOT include role —
+  // accept-invite cross-checks the URL role against members.member_role
+  // (which we record here with the correct role server-side, below). That
+  // server-side row is the authority; the URL role is informational.
   const inviteUrl = `https://www.edusaathiai.in/api/education-institutions/accept-invite?${params.toString()}`
 
-  // Pending invite → membership row carries the principal-entered name so
-  // accept-invite can set it on the new account (zero-friction onboarding).
-  await recordFacultyMember(
-    admin, institution.id, email, name, 'invited', user.id, null,
+  // Pending invite → membership row carries the principal-entered name +
+  // the role so accept-invite can authoritatively flip status='active' and
+  // refuse any URL-tampered role. Frictionless onboarding stays intact.
+  await recordMember(
+    admin, institution.id, email, name, memberRole, 'invited', user.id, null,
   )
 
   void sendInviteEmail({
     kind:        'invite',
     to:          email,
     facultyName: name,
+    memberRole,
     institution,
     inviteUrl,
     principalDisplayName: profile.full_name ?? institution.principal_name ?? null,
@@ -389,6 +451,7 @@ type SendArgs =
       kind:                 'invite'
       to:                   string
       facultyName:          string
+      memberRole:           MemberRole
       institution:          Institution
       inviteUrl:            string
       principalDisplayName: string | null
@@ -397,6 +460,7 @@ type SendArgs =
       kind:                 'welcome_link'
       to:                   string
       facultyName:          string
+      memberRole:           MemberRole
       institution:          Institution
       principalDisplayName: string | null
     }
@@ -407,33 +471,64 @@ async function sendInviteEmail(args: SendArgs): Promise<void> {
     return
   }
 
+  const isPrincipal = args.memberRole === 'principal'
+
   const greeting = `Dr. ${esc(args.facultyName)}`
   const principalCredit = args.principalDisplayName
     ? `<strong>${esc(args.principalDisplayName)}</strong> has invited you`
-    : 'Your principal has invited you'
+    : (isPrincipal
+        ? 'The principal of your institution has invited you'
+        : 'Your principal has invited you')
 
+  // Co-principal subject/copy is distinct from faculty — the role is
+  // institutional authority (run the account, view all rosters), not
+  // teaching. The CTA destination after callback is /admin, not /faculty.
   const subject = args.kind === 'invite'
-    ? `${args.institution.name} has invited you to teach with EdUsaathiAI`
-    : `You're now part of ${args.institution.name} on EdUsaathiAI`
+    ? (isPrincipal
+        ? `${args.institution.name} has invited you to co-lead on EdUsaathiAI`
+        : `${args.institution.name} has invited you to teach with EdUsaathiAI`)
+    : (isPrincipal
+        ? `You're now a principal at ${args.institution.name} on EdUsaathiAI`
+        : `You're now part of ${args.institution.name} on EdUsaathiAI`)
 
   const ctaUrl  = args.kind === 'invite' ? args.inviteUrl : `${SITE_URL}/login`
-  const ctaText = args.kind === 'invite' ? 'Set up your faculty account →' : 'Log in to your dashboard →'
+  const ctaText = args.kind === 'invite'
+    ? (isPrincipal ? 'Set up your principal account →' : 'Set up your faculty account →')
+    : (isPrincipal ? 'Open your principal dashboard →' : 'Log in to your dashboard →')
 
   const headline = args.kind === 'invite'
-    ? `You&apos;re invited to teach at ${esc(args.institution.name)}`
-    : `Welcome to ${esc(args.institution.name)} on EdUsaathiAI`
+    ? (isPrincipal
+        ? `You&apos;re invited to co-lead ${esc(args.institution.name)}`
+        : `You&apos;re invited to teach at ${esc(args.institution.name)}`)
+    : (isPrincipal
+        ? `Welcome — you&apos;re now a principal at ${esc(args.institution.name)}`
+        : `Welcome to ${esc(args.institution.name)} on EdUsaathiAI`)
 
   const bodyCopy = args.kind === 'invite'
-    ? `
-        ${principalCredit} to teach at <strong>${esc(args.institution.name)}</strong>
-        through EdUsaathiAI. The setup takes about two minutes — no separate
-        billing for you, the institution handles everything.
-      `
-    : `
-        ${principalCredit} to join <strong>${esc(args.institution.name)}</strong>
-        on EdUsaathiAI as faculty. Your existing account is now connected to
-        the institution — log in and your faculty tools are ready to go.
-      `
+    ? (isPrincipal
+        ? `
+            ${principalCredit} to co-lead <strong>${esc(args.institution.name)}</strong>
+            on EdUsaathiAI as a principal. You'll have the same dashboard the
+            chief principal uses — institution health, faculty roster, student
+            activity, NAAC reports, and billing — so the account is never
+            single-pointed on one person.
+          `
+        : `
+            ${principalCredit} to teach at <strong>${esc(args.institution.name)}</strong>
+            through EdUsaathiAI. The setup takes about two minutes — no separate
+            billing for you, the institution handles everything.
+          `)
+    : (isPrincipal
+        ? `
+            ${principalCredit} to co-lead <strong>${esc(args.institution.name)}</strong>
+            on EdUsaathiAI. Your existing account is now connected as a
+            principal — log in and the institution dashboard opens for you.
+          `
+        : `
+            ${principalCredit} to join <strong>${esc(args.institution.name)}</strong>
+            on EdUsaathiAI as faculty. Your existing account is now connected to
+            the institution — log in and your faculty tools are ready to go.
+          `)
 
   const expiryNote = args.kind === 'invite'
     ? `<p style="color:#A8A49E;font-size:12px;margin:14px 0 0;">This invite link expires in 7 days.</p>`

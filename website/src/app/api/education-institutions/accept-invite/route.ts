@@ -3,24 +3,31 @@
 //
 // Faculty invite click-through (Fix 3 — closes the Step-3b gap).
 //
-// invite-faculty emails a NO-account faculty member a signed link to this
-// route. We verify the HMAC server-side (the secret can never reach the
-// client; the old plan of "make /onboard parse params" was impossible —
-// /onboard is a client component that bounces unauthenticated users to
-// /login, dropping every param).
+// invite-faculty emails a NO-account faculty / co-principal a signed link
+// to this route. We verify the HMAC server-side (the secret can never
+// reach the client; the old plan of "make /onboard parse params" was
+// impossible — /onboard is a client component that bounces unauthenticated
+// users to /login, dropping every param).
 //
 // On success we reuse the EXACT pipeline already proven end-to-end on a
 // real principal: ensure the auth user exists (createUser if new) with
 // institution metadata, generateLink → single-param token_hash, 302 to
-// /auth/callback. The callback's institution branch (generalised to
-// 'faculty') then links the profile and routes to /faculty. One
-// continuous click-through, no second email, email-bound (the magic link
-// authenticates exactly the invited address — no cross-account claim).
+// /auth/callback. The callback routes by metadata.institution_role —
+// 'faculty' → /education-institutions/[slug]/faculty, 'principal' →
+// /education-institutions/[slug]/admin. One continuous click-through,
+// no second email, email-bound (the magic link authenticates exactly the
+// invited address — no cross-account claim).
 //
 // Token contract (must mirror invite-faculty's signInviteToken EXACTLY):
 //   HMAC-SHA256(`${email}|${institution_id}|${expiresUnixSec}`, INVITE_TOKEN_SECRET)
 // URL carries institution=<slug> (not id) — we resolve slug→id before
 // recomputing. email is canonicalised (trim+lowercase) on both sides.
+//
+// Role authority (Phase 1.4b): role is NOT signed by the HMAC. The URL
+// role is informational; the AUTHORITY is members.member_role recorded
+// server-side when the principal sent the invite. If the URL role doesn't
+// match the members row, we reject as invite_invalid — defends against an
+// attacker tampering with the role param to escalate faculty → principal.
 //
 // Failure → friendly redirects (login page renders the copy):
 //   invalid token      → /login?error=invite_invalid
@@ -104,7 +111,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   // ── Shape validation ──────────────────────────────────────────────────────
   const expires = Number(expiresQ)
   if (
-    role !== 'faculty' ||
+    (role !== 'faculty' && role !== 'principal') ||
     !slug ||
     !token ||
     !EMAIL_RE.test(email) ||
@@ -142,24 +149,33 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return fail('invite_invalid')
   }
 
-  // ── Verified. Carry the principal-entered name (Phase 1.2) so the new
-  //    faculty fills in NOTHING — frictionless onboarding. ───────────────────
+  // ── Verified. Read the members row for (a) the principal-entered name
+  //    (Phase 1.2 frictionless onboarding) and (b) the authoritative role
+  //    (Phase 1.4b — defends vs URL role tampering). ─────────────────────────
   const { data: memberRow } = await admin
     .from('education_institution_members')
-    .select('full_name')
+    .select('full_name, member_role')
     .eq('education_institution_id', inst.id)
     .eq('email', email)
-    .maybeSingle<{ full_name: string | null }>()
+    .maybeSingle<{ full_name: string | null; member_role: 'faculty' | 'principal' | null }>()
 
-  // role on profiles is NEVER set here — institution access is additive.
-  // education_institution_role='faculty' is set by the callback after the
-  // magic link establishes the session (mirrors principal).
+  // Role-tampering guard: if no members row exists (e.g. invite was
+  // revoked/removed), or the URL role doesn't match the recorded role,
+  // refuse. We use the members.member_role as the authority — it was
+  // recorded server-side at invite time.
+  if (!memberRow?.member_role || memberRow.member_role !== role) {
+    return fail('invite_invalid')
+  }
+  const authoritativeRole: 'faculty' | 'principal' = memberRow.member_role
+
+  // education_institution_role on profiles is set by the callback after
+  // the magic link establishes the session (mirrors principal flow).
   const metadata: Record<string, unknown> = {
     institution_id:   inst.id,
     institution_slug: inst.slug,
-    institution_role: 'faculty',
+    institution_role: authoritativeRole,
   }
-  if (memberRow?.full_name) metadata.full_name = memberRow.full_name
+  if (memberRow.full_name) metadata.full_name = memberRow.full_name
 
   let memberUserId: string | null = null
 
