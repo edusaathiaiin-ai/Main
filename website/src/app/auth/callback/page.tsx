@@ -257,7 +257,11 @@ function CallbackInner() {
             institution_role?: string
             full_name?: string
           } | null
-          if (meta?.institution_role === 'faculty' && meta.institution_id) {
+          if (
+            meta?.institution_role === 'faculty' &&
+            meta.institution_id &&
+            meta.institution_slug
+          ) {
             await supabase
               .from('profiles')
               .update({
@@ -271,7 +275,12 @@ function CallbackInner() {
                 ...(meta.full_name ? { full_name: meta.full_name } : {}),
               })
               .eq('id', resolvedSession.user.id)
-            router.replace('/faculty')
+            // Phase 1.3 — branded institution-faculty page, NOT the platform
+            // /faculty (which is for standalone platform faculty only and
+            // would role-guard them out). Distinct identity, distinct home.
+            router.replace(
+              `/education-institutions/${meta.institution_slug}/faculty`,
+            )
             return
           }
           if (

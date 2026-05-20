@@ -307,6 +307,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       admin, institution.id, email, name, 'active', user.id, existingUser.id,
     )
 
+    // Phase 1.3 — also stamp user_metadata so the callback (on next login)
+    // routes them to the branded /education-institutions/[slug]/faculty page
+    // instead of the standalone /faculty. Existing active sessions only see
+    // this on their next token refresh — acceptable for v1.
+    try {
+      const { data: ur } = await admin.auth.admin.getUserById(existingUser.id)
+      const priorMeta = ur?.user?.user_metadata ?? {}
+      await admin.auth.admin.updateUserById(existingUser.id, {
+        user_metadata: {
+          ...priorMeta,
+          institution_id:   institution.id,
+          institution_slug: institution.slug,
+          institution_role: 'faculty',
+          // full_name intentionally omitted — never clobber a real user's name.
+        },
+      })
+    } catch (e) {
+      console.error(
+        '[invite-faculty] linked-branch metadata stamp failed (non-fatal)',
+        e instanceof Error ? e.message : 'unknown',
+      )
+    }
+
     void sendInviteEmail({
       kind:        'welcome_link',
       to:          email,
