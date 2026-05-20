@@ -34,6 +34,7 @@ import { SAATHIS } from '@/constants/saathis'
 import Link from 'next/link'
 import { FacultyInvitePanel } from './FacultyInvitePanel'
 import { OnboardingChecklist } from './OnboardingChecklist'
+import { MemberRosterRow, type MemberRow } from './MemberRosterRow'
 
 export const metadata = {
   title: 'Principal Dashboard — EdUsaathiAI',
@@ -231,6 +232,20 @@ export default async function PrincipalDashboard({
   const students: Member[]   = (studentsRes.data ?? []) as unknown as Member[]
   const faculty:  Member[]   = (facultyRes.data  ?? []) as unknown as Member[]
 
+  // Phase 1.4a — keystone roster: education_institution_members is the
+  // source of truth for faculty membership lifecycle. The `faculty` array
+  // above (profiles join) is what backs the "student-like" listing for
+  // active members; the members table tracks invited / paused / removed
+  // states too, which the principal needs to see + act on.
+  const { data: membersRes } = await admin
+    .from('education_institution_members')
+    .select('id, full_name, email, status, member_role, set_by, created_at')
+    .eq('education_institution_id', institution.id)
+    .order('created_at', { ascending: false })
+  const members: MemberRow[] = (membersRes ?? []) as unknown as MemberRow[]
+  const facultyMembers = members.filter(m => m.member_role === 'faculty')
+  const activeFacultyCount = facultyMembers.filter(m => m.status === 'active').length
+
   // Active-this-week + flame distribution — only when there are students to query
   const studentIds = students.map(s => s.id)
 
@@ -352,9 +367,12 @@ export default async function PrincipalDashboard({
           </div>
         )}
 
-        {/* First-run welcome checklist — auto-hides once faculty exist */}
+        {/* First-run welcome checklist — auto-hides once faculty exist.
+            facultyCount uses members.active so the checklist tracks the
+            *member* lifecycle (invited→active), not the profile row that
+            already existed for pre-1.1 grandfathered faculty. */}
         <OnboardingChecklist
-          facultyCount={faculty.length}
+          facultyCount={activeFacultyCount}
           institutionName={institution.name}
         />
 
@@ -448,11 +466,15 @@ export default async function PrincipalDashboard({
             )}
           </Panel>
 
-          <Panel title={`Faculty (${faculty.length})`}>
-            {faculty.length === 0 ? (
+          <Panel title={`Faculty (${facultyMembers.length})`}>
+            {facultyMembers.length === 0 ? (
               <EmptyState text="No faculty yet — invite your first one below." />
             ) : (
-              <Roster members={faculty} activeIds={null} maxRows={12} />
+              <ul>
+                {facultyMembers.map(m => (
+                  <MemberRosterRow key={m.id} member={m} />
+                ))}
+              </ul>
             )}
             <FacultyInvitePanel />
           </Panel>
