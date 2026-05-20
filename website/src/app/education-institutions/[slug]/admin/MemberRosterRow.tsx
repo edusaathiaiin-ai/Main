@@ -27,6 +27,7 @@ export type MemberRow = {
   status: 'invited' | 'active' | 'paused' | 'removed'
   member_role: 'principal' | 'faculty'
   set_by: 'principal' | 'admin' | 'system'
+  user_id: string | null
   created_at: string
 }
 
@@ -51,13 +52,23 @@ function confirmRemove(e: React.FormEvent<HTMLFormElement>) {
   }
 }
 
-export function MemberRosterRow({ member }: { member: MemberRow }) {
+export function MemberRosterRow({
+  member,
+  isSelf = false,
+}: {
+  member: MemberRow
+  isSelf?: boolean
+}) {
   const style = STATUS_STYLE[member.status]
   const adminLocked = member.set_by === 'admin'
 
-  const canPause       = member.status === 'active'
-  const canReactivate  = (member.status === 'paused' || member.status === 'removed') && !adminLocked
-  const canRemove      = member.status !== 'removed'
+  // Self-target guard mirrors the server action — principals cannot
+  // pause / reactivate / remove themselves. UI hides every button on
+  // their own row and shows a "(you)" badge; server-side
+  // verifyPrincipalForMember enforces the same rule.
+  const canPause       = !isSelf && member.status === 'active'
+  const canReactivate  = !isSelf && (member.status === 'paused' || member.status === 'removed') && !adminLocked
+  const canRemove      = !isSelf && member.status !== 'removed'
 
   // Show a disabled-with-tooltip Reactivate when admin-locked so the
   // principal isn't left wondering why no button appeared.
@@ -75,6 +86,14 @@ export function MemberRosterRow({ member }: { member: MemberRow }) {
           style={{ color: 'var(--text-primary)' }}
         >
           {member.full_name?.trim() || '(name not set)'}
+          {isSelf && (
+            <span
+              className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+              style={{ background: 'var(--gold-light, #F5E6C8)', color: '#78350F' }}
+            >
+              you
+            </span>
+          )}
         </p>
         <p className="truncate text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
           {member.email} · Joined {formatJoined(member.created_at)}

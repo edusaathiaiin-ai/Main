@@ -44,6 +44,13 @@ async function verifyPrincipalForMember(
     .maybeSingle()
   if (!member) return { ok: false, reason: 'member_not_found' }
 
+  // Self-target guard (Phase 1.4c): a principal cannot pause / remove
+  // themselves through this dashboard. Prevents lockout when the chief
+  // is the only principal. To leave, contact admin@edusaathiai.in.
+  if (member.user_id && member.user_id === user.id) {
+    return { ok: false, reason: 'cannot_target_self' }
+  }
+
   // Caller must be a principal of THAT institution.
   const { data: callerProfile } = await admin
     .from('profiles')

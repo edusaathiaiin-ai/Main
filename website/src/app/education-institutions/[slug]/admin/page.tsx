@@ -33,6 +33,7 @@ import { createClient } from '@supabase/supabase-js'
 import { SAATHIS } from '@/constants/saathis'
 import Link from 'next/link'
 import { FacultyInvitePanel } from './FacultyInvitePanel'
+import { CoPrincipalInvitePanel } from './CoPrincipalInvitePanel'
 import { OnboardingChecklist } from './OnboardingChecklist'
 import { MemberRosterRow, type MemberRow } from './MemberRosterRow'
 
@@ -239,11 +240,12 @@ export default async function PrincipalDashboard({
   // states too, which the principal needs to see + act on.
   const { data: membersRes } = await admin
     .from('education_institution_members')
-    .select('id, full_name, email, status, member_role, set_by, created_at')
+    .select('id, full_name, email, status, member_role, set_by, user_id, created_at')
     .eq('education_institution_id', institution.id)
     .order('created_at', { ascending: false })
   const members: MemberRow[] = (membersRes ?? []) as unknown as MemberRow[]
-  const facultyMembers = members.filter(m => m.member_role === 'faculty')
+  const facultyMembers   = members.filter(m => m.member_role === 'faculty')
+  const principalMembers = members.filter(m => m.member_role === 'principal')
   const activeFacultyCount = facultyMembers.filter(m => m.status === 'active').length
 
   // Active-this-week + flame distribution — only when there are students to query
@@ -453,6 +455,26 @@ export default async function PrincipalDashboard({
 
           <Panel title="Flame stage distribution">
             <FlameBars dist={flameDistribution} total={students.length} />
+          </Panel>
+        </section>
+
+        {/* Principals (co-principal continuity) — own row, full width. */}
+        <section className="mb-4">
+          <Panel title={`Principals (${principalMembers.length})`}>
+            {principalMembers.length === 0 ? (
+              <EmptyState text="No principal members recorded yet. As you add co-principals below, they'll appear here." />
+            ) : (
+              <ul>
+                {principalMembers.map(m => (
+                  <MemberRosterRow
+                    key={m.id}
+                    member={m}
+                    isSelf={m.user_id === user.id}
+                  />
+                ))}
+              </ul>
+            )}
+            <CoPrincipalInvitePanel />
           </Panel>
         </section>
 
