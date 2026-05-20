@@ -555,6 +555,31 @@ function LoginForm() {
         </Link>
       </p>
 
+      {/* Institution Portal signpost — Phase 1.4d. Discoverability for
+          principals + co-principals + invited faculty who would otherwise
+          have no idea this page is the right one for them. */}
+      <p
+        style={{
+          fontSize: '13px',
+          color: 'rgba(255,255,255,0.35)',
+          textAlign: 'center',
+          marginTop: '8px',
+        }}
+      >
+        Principal, co-principal, or institution faculty?{' '}
+        <Link
+          href="/education-institutions/login"
+          style={{
+            color: '#C9993A',
+            textDecoration: 'underline',
+            textUnderlineOffset: '3px',
+            fontWeight: 600,
+          }}
+        >
+          Use the Institution Portal →
+        </Link>
+      </p>
+
       {/* Footer */}
       <p
         style={{

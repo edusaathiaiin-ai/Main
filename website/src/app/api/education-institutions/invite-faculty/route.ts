@@ -491,7 +491,14 @@ async function sendInviteEmail(args: SendArgs): Promise<void> {
         ? `You're now a principal at ${args.institution.name} on EdUsaathiAI`
         : `You're now part of ${args.institution.name} on EdUsaathiAI`)
 
-  const ctaUrl  = args.kind === 'invite' ? args.inviteUrl : `${SITE_URL}/login`
+  // Phase 1.4d — welcome_link CTA points at the Institution Portal
+  // (/education-institutions/login), not the generic /login. Returning
+  // members get the decorated door + the right discoverability cue.
+  // Invite-link CTAs continue to point at accept-invite directly
+  // (no change — that route runs the proven HMAC + token_hash pipeline).
+  const ctaUrl  = args.kind === 'invite'
+    ? args.inviteUrl
+    : `${SITE_URL}/education-institutions/login`
   const ctaText = args.kind === 'invite'
     ? (isPrincipal ? 'Set up your principal account →' : 'Set up your faculty account →')
     : (isPrincipal ? 'Open your principal dashboard →' : 'Log in to your dashboard →')
