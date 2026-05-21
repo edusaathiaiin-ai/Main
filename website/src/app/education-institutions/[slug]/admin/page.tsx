@@ -150,7 +150,9 @@ export default async function PrincipalDashboard({
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    redirect(`/login?next=/education-institutions/${encodeURIComponent(slug)}/admin`)
+    // Bounce to the Institution Portal door (not the generic student
+    // /login) — the callback routes principals back here by user_metadata.
+    redirect(`/education-institutions/login?next=/education-institutions/${encodeURIComponent(slug)}/admin`)
   }
 
   // 2. Fetch institution row via user-context client. RLS will surface only

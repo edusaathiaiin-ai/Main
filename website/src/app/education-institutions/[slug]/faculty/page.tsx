@@ -65,8 +65,11 @@ export default async function InstitutionFaculty({
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
+    // Bounce to the Institution Portal door (not the generic student
+    // /login) — faculty + principals authenticate there, and the callback
+    // routes them back to this branded page by user_metadata.
     redirect(
-      `/login?next=/education-institutions/${encodeURIComponent(slug)}/faculty`,
+      `/education-institutions/login?next=/education-institutions/${encodeURIComponent(slug)}/faculty`,
     )
   }
 
