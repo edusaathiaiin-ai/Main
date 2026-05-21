@@ -53,6 +53,10 @@ export function FacultyInvitePanel() {
         setResult({ kind: 'err', msg: `You have reached your faculty limit of ${data.limit ?? ''}. Contact admin@edusaathiai.in to increase your limit.` })
       } else if (data.error === 'already_linked_elsewhere') {
         setResult({ kind: 'err', msg: 'This email is already linked to another institution.' })
+      } else if (data.error === 'email_in_use') {
+        setResult({ kind: 'err', msg: 'This email already has a personal EdUsaathiAI account. For faculty access, invite a dedicated institutional email (e.g. name@yourcollege.edu) — it keeps their teaching role separate from their personal account.' })
+      } else if (data.error === 'collision_check_failed') {
+        setResult({ kind: 'err', msg: 'We couldn’t verify this email just now. Please try again in a moment.' })
       } else if (data.error === 'invalid_email') {
         setResult({ kind: 'err', msg: 'Please enter a valid email address.' })
       } else if (data.error === 'name_required') {

@@ -24,6 +24,15 @@
 // elevation. Demotion (principal → faculty via this route) is REJECTED;
 // principal removal goes through the lifecycle actions, not this endpoint.
 //
+// Strict collision guard (Phase 1.5): if the invited email already has a
+// REAL personal EdUsaathiAI account — signalled by a chat session, a
+// learning soul, or a subscription — the invite is REJECTED with
+// 'email_in_use'. Institutional roles use a dedicated institutional email;
+// a person's personal learning identity is never silently merged into a
+// faculty / principal identity. Empty-shell accounts (an auth row with no
+// activity — e.g. from a prior accept-invite or an abandoned signup) still
+// bind, so re-invites stay idempotent.
+//
 // Auth — JWT required. Caller must:
 //   • be logged in (server-side getUser)
 //   • have profile.education_institution_role = 'principal'
@@ -128,6 +137,37 @@ async function findAuthUserByEmail(email: string): Promise<{ id: string; email: 
   } catch {
     return null
   }
+}
+
+/**
+ * Phase 1.5 — does this account look like a REAL personal EdUsaathiAI
+ * account, vs. an empty shell (an auth row from a prior accept-invite or an
+ * abandoned signup)? Three decisive signals, any one is enough:
+ *   • a chat_sessions row   — they have actually used a Saathi
+ *   • a student_soul row    — they have a learning soul
+ *   • a subscriptions row   — they have a plan relationship
+ *
+ * plan_id is deliberately NOT a signal: founding-access sets a paid tier
+ * without an actual payment, so it would false-positive on new users. The
+ * subscriptions table is the honest "has a plan relationship" signal.
+ *
+ * Throws if a count query errors — the caller turns that into a
+ * collision_check_failed response rather than silently skipping the guard
+ * (a safety check must never fail open).
+ */
+async function accountHasPersonalActivity(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<boolean> {
+  const [chats, souls, subs] = await Promise.all([
+    admin.from('chat_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    admin.from('student_soul').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    admin.from('subscriptions').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+  ])
+  for (const r of [chats, souls, subs]) {
+    if (r.error) throw new Error(r.error.message)
+  }
+  return (chats.count ?? 0) > 0 || (souls.count ?? 0) > 0 || (subs.count ?? 0) > 0
 }
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -340,6 +380,32 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       //   - student → faculty/principal: this shouldn't happen for an
       //     "already in institution" user (institution-axis only sets
       //     faculty/principal), but if it did, treat as a normal bind.
+    }
+
+    // ── STRICT collision guard (Phase 1.5) ───────────────────────────────
+    // We only reach here with otherInstId === null (account exists but
+    // belongs to NO institution — the classic `linked`-bind case) OR
+    // otherInstId === institution.id falling through as a faculty→principal
+    // upgrade. The upgrade case is an EXISTING member of this institution —
+    // never a collision — so the guard runs ONLY for the unaffiliated case.
+    //
+    // If the unaffiliated account is a real personal account, refuse: the
+    // institution must invite a dedicated institutional email instead of
+    // claiming someone's personal learning identity.
+    if (otherInstId === null) {
+      let active: boolean
+      try {
+        active = await accountHasPersonalActivity(admin, existingUser.id)
+      } catch (e) {
+        console.error(
+          '[invite-faculty] collision activity check failed',
+          e instanceof Error ? e.message : 'unknown',
+        )
+        return NextResponse.json({ error: 'collision_check_failed' }, { status: 503 })
+      }
+      if (active) {
+        return NextResponse.json({ error: 'email_in_use' }, { status: 400 })
+      }
     }
 
     // Bind (or upgrade) in this institution at the requested role.
