@@ -201,7 +201,37 @@ export async function activateTrial(
 
     let principalId: string
     if (existing?.id) {
-      principalId = existing.id as string
+      // ── STRICT collision guard (Phase 1.5b) ───────────────────────────
+      // principal_email already has an EdUsaathiAI account. If it's a REAL
+      // personal account — signalled by a chat session, a learning soul,
+      // or a subscription — we must NOT claim it for the principal role.
+      // The admin sets a dedicated institutional principal email on the
+      // institution first. Mirrors the website invite-faculty guard
+      // (Phase 1.5a). A throw lands in the catch below, which stamps
+      // admin_notes and leaves the institution `pending`.
+      //
+      // plan_id is deliberately NOT a signal — founding-access sets a paid
+      // tier without a payment, so it false-positives. subscriptions is the
+      // honest "has a plan relationship" signal.
+      const existingId = existing.id as string
+      const [chats, souls, subs] = await Promise.all([
+        admin.from('chat_sessions').select('id', { count: 'exact', head: true }).eq('user_id', existingId),
+        admin.from('student_soul').select('id', { count: 'exact', head: true }).eq('user_id', existingId),
+        admin.from('subscriptions').select('id', { count: 'exact', head: true }).eq('user_id', existingId),
+      ])
+      if (chats.error || souls.error || subs.error) {
+        throw new Error(
+          'could not verify the principal email against existing accounts — please retry',
+        )
+      }
+      if ((chats.count ?? 0) > 0 || (souls.count ?? 0) > 0 || (subs.count ?? 0) > 0) {
+        throw new Error(
+          `${principalEmail} already has a personal EdUsaathiAI account — ` +
+            'set a dedicated institutional principal email on this institution ' +
+            'before activating its trial',
+        )
+      }
+      principalId = existingId
     } else {
       const { data: created, error: createErr } =
         await admin.auth.admin.createUser({
