@@ -8,6 +8,11 @@
 // Authority: reactivate is allowed only when set_by !== 'admin'
 // (admin-set states can only be reversed by admin — preserves the
 // admin-vs-principal authority axis we locked in design).
+//
+// Phase 1.6 — institution-level pause/reactivate (pauseInstitution /
+// reactivateInstitution) sits at the bottom of this file. It flips
+// education_institutions.principal_lifecycle and stamps lifecycle_set_by
+// on the SAME authority axis: a principal cannot lift an admin-set pause.
 
 import { revalidatePath } from 'next/cache'
 import { createClient as createServerClient } from '@/lib/supabase/server'
@@ -137,5 +142,92 @@ export async function removeFacultyMember(formData: FormData): Promise<void> {
       )
     }
   }
+  revalidateDashboard(v.institutionSlug)
+}
+
+// ── Phase 1.6 — institution-level lifecycle (pause / reactivate) ─────────────
+
+type VerifiedInstitution = {
+  ok: true
+  admin: SupabaseClient
+  institutionSlug: string
+  lifecycleSetBy: 'principal' | 'admin' | 'system' | null
+}
+
+// Verify the caller is a principal (or co-principal) of EXACTLY this
+// institution. institutionId arrives from a hidden form field, so the
+// check is the security boundary: the caller's own profile must name
+// this institution AND carry the principal role. A principal of another
+// institution passing a foreign id fails the equality check.
+async function verifyPrincipalForInstitution(
+  institutionId: string,
+): Promise<VerifiedInstitution | Failed> {
+  if (!institutionId) return { ok: false, reason: 'missing_id' }
+
+  const sb = await createServerClient()
+  const { data: { user } } = await sb.auth.getUser()
+  if (!user) return { ok: false, reason: 'unauthorized' }
+
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+
+  const { data: callerProfile } = await admin
+    .from('profiles')
+    .select('education_institution_id, education_institution_role')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (
+    callerProfile?.education_institution_role !== 'principal' ||
+    callerProfile?.education_institution_id !== institutionId
+  ) {
+    return { ok: false, reason: 'forbidden_not_principal_of_institution' }
+  }
+
+  const { data: inst } = await admin
+    .from('education_institutions')
+    .select('slug, lifecycle_set_by')
+    .eq('id', institutionId)
+    .maybeSingle()
+  if (!inst) return { ok: false, reason: 'institution_not_found' }
+
+  return {
+    ok: true,
+    admin,
+    institutionSlug: (inst.slug as string) ?? '',
+    lifecycleSetBy:
+      (inst.lifecycle_set_by as 'principal' | 'admin' | 'system' | null) ?? null,
+  }
+}
+
+export async function pauseInstitution(formData: FormData): Promise<void> {
+  const institutionId = formData.get('institutionId') as string
+  const v = await verifyPrincipalForInstitution(institutionId)
+  if (!v.ok) return
+  await v.admin
+    .from('education_institutions')
+    .update({
+      principal_lifecycle: 'paused',
+      lifecycle_set_by: 'principal',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', institutionId)
+  revalidateDashboard(v.institutionSlug)
+}
+
+export async function reactivateInstitution(formData: FormData): Promise<void> {
+  const institutionId = formData.get('institutionId') as string
+  const v = await verifyPrincipalForInstitution(institutionId)
+  if (!v.ok) return
+  // Authority rule (same axis as members.set_by): a principal cannot lift
+  // an admin-set pause. The UI also disables the button — this is the
+  // server-side enforcement of that rule.
+  if (v.lifecycleSetBy === 'admin') return
+  await v.admin
+    .from('education_institutions')
+    .update({
+      principal_lifecycle: 'active',
+      lifecycle_set_by: 'principal',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', institutionId)
   revalidateDashboard(v.institutionSlug)
 }

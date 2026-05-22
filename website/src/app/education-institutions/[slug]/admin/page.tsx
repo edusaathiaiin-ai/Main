@@ -36,6 +36,7 @@ import { FacultyInvitePanel } from './FacultyInvitePanel'
 import { CoPrincipalInvitePanel } from './CoPrincipalInvitePanel'
 import { OnboardingChecklist } from './OnboardingChecklist'
 import { MemberRosterRow, type MemberRow } from './MemberRosterRow'
+import { InstitutionAccessPanel } from './InstitutionAccessPanel'
 
 export const metadata = {
   title: 'Principal Dashboard — EdUsaathiAI',
@@ -62,6 +63,8 @@ type InstitutionRow = {
   principal_email: string
   contact_phone: string | null
   website: string | null
+  principal_lifecycle: 'active' | 'paused'
+  lifecycle_set_by: 'principal' | 'admin' | 'system' | null
 }
 
 type StatsRow = {
@@ -164,7 +167,8 @@ export default async function PrincipalDashboard({
       'id, slug, name, city, state, affiliation, status, ' +
       'trial_started_at, trial_ends_at, activated_at, ' +
       'declared_capacity, daily_minutes_budget, approximate_strength, ' +
-      'principal_name, principal_email, contact_phone, website'
+      'principal_name, principal_email, contact_phone, website, ' +
+      'principal_lifecycle, lifecycle_set_by'
     )
     .eq('slug', slug)
     .maybeSingle<InstitutionRow>()
@@ -300,6 +304,14 @@ export default async function PrincipalDashboard({
   const isTrial = institution.status === 'trial'
   const isPending = institution.status === 'pending' || institution.status === 'demo'
 
+  // Phase 1.6 — principal_lifecycle is the principal's own pause switch.
+  // The access panel only matters once the institution is live (trial /
+  // active); for pending/demo the pending banner already explains why
+  // faculty cannot log in, and suspended/churned is an admin concern.
+  const isPaused = institution.principal_lifecycle === 'paused'
+  const showAccessPanel =
+    institution.status === 'trial' || institution.status === 'active'
+
   const status = STATUS_COPY[institution.status]
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -367,6 +379,28 @@ export default async function PrincipalDashboard({
               >
                 admin@edusaathiai.in
               </a>
+            </p>
+          </div>
+        )}
+
+        {/* Paused banner — principal-set pause is in effect. Distinct copy
+            for an admin-set pause (the principal cannot lift that one). */}
+        {showAccessPanel && isPaused && (
+          <div
+            className="mb-6 rounded-2xl p-5"
+            style={{
+              background: '#FEF3C7',
+              border: '1px solid #FDE68A',
+              color: '#78350F',
+            }}
+          >
+            <p className="text-sm font-semibold">
+              Institution-faculty access is paused
+            </p>
+            <p className="mt-1 text-sm" style={{ color: '#92400E' }}>
+              {institution.lifecycle_set_by === 'admin'
+                ? 'This pause was set by the EdUsaathiAI admin team. Faculty cannot reach their branded pages until it is lifted. Contact admin@edusaathiai.in to discuss reactivation.'
+                : 'Your faculty cannot reach their branded EdUsaathiAI pages right now. Students’ personal learning is unaffected. Reactivate from the Institution access panel below whenever you’re ready.'}
             </p>
           </div>
         )}
@@ -479,6 +513,21 @@ export default async function PrincipalDashboard({
             <CoPrincipalInvitePanel />
           </Panel>
         </section>
+
+        {/* Institution access — principal-controlled pause / reactivate.
+            Only shown once the institution is live; gating downstream is in
+            the branded faculty page (status ∈ trial/active AND lifecycle). */}
+        {showAccessPanel && (
+          <section className="mb-8">
+            <Panel title="Institution access">
+              <InstitutionAccessPanel
+                institutionId={institution.id}
+                principalLifecycle={institution.principal_lifecycle}
+                lifecycleSetBy={institution.lifecycle_set_by}
+              />
+            </Panel>
+          </section>
+        )}
 
         {/* Roster + Faculty */}
         <section className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
