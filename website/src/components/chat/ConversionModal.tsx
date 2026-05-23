@@ -21,15 +21,20 @@ function randomNudge(): string {
 export function ConversionModal({ open, trigger, botName, onClose }: Props) {
   const nudge = randomNudge()
 
+  // `plus_bot_tap` only ever fires for a free user PAST their 7-day founding
+  // week (during the week every mode is unlocked). So the copy frames it as
+  // "your founding week is complete" — warm, not an upgrade nag.
   const title =
     trigger === 'quota_hit'
       ? "You've reached your daily limit"
-      : `${botName ?? 'This bot'} needs Plus`
+      : 'Your founding week is complete'
 
   const subtitle =
     trigger === 'quota_hit'
       ? nudge
-      : `${botName} is available on the Plus plan and above.`
+      : `${botName ?? 'That mode'} was part of your first 7 days of full access. ` +
+        'Your free plan keeps Study Notes and Citizen Guide — always. ' +
+        'Want all five modes back? Plus opens every one.'
 
   return (
     <AnimatePresence>
@@ -83,7 +88,7 @@ export function ConversionModal({ open, trigger, botName, onClose }: Props) {
                   color: '#C9993A',
                 }}
               >
-                {trigger === 'quota_hit' ? '🔒 Daily Limit' : '⭐ Plus Feature'}
+                {trigger === 'quota_hit' ? '🔒 Daily Limit' : '🌱 Founding week complete'}
               </span>
             </div>
 

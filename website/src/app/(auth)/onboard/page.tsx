@@ -1169,6 +1169,29 @@ export function ProfileStep({
           </InputField>
         )}
 
+        {/* Founding-week expectation — sets the day-1 promise here so the
+            day-8 step-down to the free plan is never a surprise. */}
+        <div
+          className="rounded-xl px-4 py-3"
+          style={{
+            background: 'rgba(201,153,58,0.08)',
+            border: '0.5px solid rgba(201,153,58,0.3)',
+          }}
+        >
+          <p className="text-xs font-semibold" style={{ color: '#E5B86A' }}>
+            ✨ Your founding week
+          </p>
+          <p
+            className="mt-1 text-xs leading-relaxed"
+            style={{ color: 'rgba(255,255,255,0.55)' }}
+          >
+            Your first 7 days are wide open — all 5 Saathi modes, 10 chats
+            each. We want you to meet every side of your Saathi. After that,
+            your free plan keeps Study Notes &amp; Citizen Guide — and the
+            door to all five stays open whenever you&apos;re ready.
+          </p>
+        </div>
+
         {/* Submit */}
         <motion.button
           animate={{ opacity: canSubmit ? 1 : 0.45 }}

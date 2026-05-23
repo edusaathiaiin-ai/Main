@@ -1,29 +1,39 @@
 'use client'
 
 import type { QuotaState } from '@/types'
+import { FREE_TRIAL_DAYS } from '@/constants/plans'
 
 type Props = {
   quota:   QuotaState
   planId:  string
-  /** true when the user is still inside the 60-day founding free trial */
+  /** true while the user is inside the 7-day founding-week window */
   isFreeTrial: boolean
+  /** profiles.created_at — used to count down the founding week */
+  createdAt?: string | null
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
 /**
- * Ambient quota indicator for free-plan users.
+ * Ambient quota / founding-week indicator for free-plan users.
  *
- * Lifecycle:
- *   – Shows at all times for free (non-trial) users when NOT cooling
- *   – Disappears the moment cooling starts (CoolingBanner takes over)
- *   – Reappears automatically when quota resets (ChatWindow calls refreshQuota
- *     on timer, which sets isCooling=false and restores remaining)
+ * Two states:
+ *   – Founding week (days 1–7): gold bar counting down the days of full
+ *     access, so day 8 is expected — never a surprise drop.
+ *   – Free, post-trial: pip-dot quota bar (X of Y chats left today).
+ *
+ * Hidden for paid plans, and while cooling (CoolingBanner owns that space).
  */
-export function FreePlanBar({ quota, planId, isFreeTrial }: Props) {
-  // Plus / Pro / Unlimited / free-trial users don't need this
-  if (planId !== 'free' || isFreeTrial) return null
-  // CoolingBanner owns this space when cooling
+export function FreePlanBar({ quota, planId, isFreeTrial, createdAt }: Props) {
+  // Paid plans don't need this bar at all.
+  if (planId !== 'free') return null
+  // CoolingBanner owns this space when cooling.
   if (quota.isCooling) return null
 
+  // Founding week — count down the full-access window.
+  if (isFreeTrial) return <FoundingWeekBar createdAt={createdAt} />
+
+  // Free, post-trial — ambient quota bar.
   const { used, limit, remaining } = quota
   const allUsed = remaining === 0
 
@@ -79,6 +89,48 @@ export function FreePlanBar({ quota, planId, isFreeTrial }: Props) {
         {allUsed
           ? 'Chats used up — cooling starts now'
           : `${remaining} of ${limit} free chat${limit === 1 ? '' : 's'} left today`}
+      </span>
+    </div>
+  )
+}
+
+/**
+ * Founding-week banner (days 1–7). Gentle gold bar that counts down the
+ * full-access window so the day-8 transition to the free plan is expected,
+ * never a surprise. Deliberately calm — informative, not a nag.
+ */
+function FoundingWeekBar({ createdAt }: { createdAt?: string | null }) {
+  if (!createdAt) return null
+
+  const msLeft   = new Date(createdAt).getTime() + FREE_TRIAL_DAYS * DAY_MS - Date.now()
+  const daysLeft = Math.max(1, Math.ceil(msLeft / DAY_MS))
+  const lastDay  = daysLeft <= 1
+
+  return (
+    <div
+      style={{
+        display:      'flex',
+        alignItems:   'center',
+        gap:          '8px',
+        padding:      '6px 16px',
+        borderBottom: '0.5px solid rgba(184,134,11,0.22)',
+        background:   'rgba(184,134,11,0.07)',
+        flexShrink:   0,
+      }}
+    >
+      <span style={{ fontSize: '12px', flexShrink: 0 }} aria-hidden="true">✨</span>
+      <span
+        style={{
+          fontSize:   '11px',
+          fontFamily: 'var(--font-body)',
+          color:      'var(--gold, #B8860B)',
+          fontWeight: 500,
+          lineHeight: 1.4,
+        }}
+      >
+        {lastDay
+          ? 'Last day of full access — tomorrow your free plan keeps Study Notes + Citizen Guide'
+          : `Founding week · ${daysLeft} days of full access — all 5 modes, 10 chats each`}
       </span>
     </div>
   )

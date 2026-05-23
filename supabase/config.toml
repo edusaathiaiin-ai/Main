@@ -471,6 +471,11 @@ verify_jwt = false
 [functions.refresh-saathi-stats]
 verify_jwt = false
 
+# Cron: daily founding-week heads-up email (~day 5). Auth via x-cron-secret
+# header — no user JWT.
+[functions.send-founding-reminder]
+verify_jwt = false
+
 # Cron: weekly faculty payout release (Sunday 9 AM IST).
 # Auth via x-cron-secret header — no user JWT.
 [functions.auto-release-payments]

@@ -1094,6 +1094,7 @@ export function ChatWindow() {
           quota={quota}
           planId={profile.plan_id ?? 'free'}
           isFreeTrial={isInFreeTrial(profile.created_at)}
+          createdAt={profile.created_at}
         />
 
         {/* Quota banner */}
