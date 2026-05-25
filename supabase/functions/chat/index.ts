@@ -247,49 +247,67 @@ async function getOrCreateQuotaRow(
   if (error) throw new Error(`quota read: ${error.message}`);
   if (data) return data as QuotaRow;
 
-  const { error: insertError } = await admin.from('chat_sessions').insert({
-    user_id: userId,
-    vertical_id: saathiId,
-    bot_slot: botSlot,
-    quota_date_ist: dateIst,
-    message_count: 0,
-    cooling_until: null,
-    personality_id: null,
-  });
+  // Race-safe insert: on conflict (chat_sessions_quota_key in migration 154),
+  // do nothing — a concurrent first-chat request created the row a beat
+  // earlier. Either way the row now exists for the caller's later updates.
+  // We return {count: 0} in memory; the atomic RPC handles the real count.
+  const { error: insertError } = await admin
+    .from('chat_sessions')
+    .upsert(
+      {
+        user_id: userId,
+        vertical_id: saathiId,
+        bot_slot: botSlot,
+        quota_date_ist: dateIst,
+        message_count: 0,
+        cooling_until: null,
+        personality_id: null,
+      },
+      {
+        onConflict: 'user_id,vertical_id,bot_slot,quota_date_ist',
+        ignoreDuplicates: true,
+      },
+    );
   if (insertError) throw new Error(`quota create: ${insertError.message}`);
   return { message_count: 0, cooling_until: null, personality_id: null };
 }
 
+// Atomic quota increment via the increment_chat_quota RPC (migration 154).
+//
+// Replaces the previous PostgREST .update().eq() pattern, which silently
+// returned error: null while updating 0 rows — leaving message_count stuck
+// at 0 across every chat in 90 days of history. Daily caps and 48h cooling
+// were never enforced on the web chat path until this fix.
+//
+// The RPC does INSERT...ON CONFLICT DO UPDATE atomically, sets cooling_until
+// when the daily cap is first crossed, and returns the new count. The
+// SECURITY DEFINER function is the source of truth; this wrapper just calls
+// it. currentCount is no longer needed (kept in the signature for the
+// existing call site).
 async function incrementQuota(
   admin: SupabaseClientType,
   userId: string,
   saathiId: string,
   botSlot: number,
   dateIst: string,
-  currentCount: number,
+  _currentCount: number,
   dailyQuota: number,
-  coolingHours: number
+  coolingHours: number,
 ): Promise<void> {
-  const newCount = currentCount + 1;
-  let coolingUntil: string | null = null;
+  // Unlimited plan: cap-cooling logic is not desired; the cron-quota-reset
+  // wipes message_count at midnight IST anyway. Pass a sentinel daily_quota
+  // high enough that the cap branch never trips inside the RPC.
+  const effectiveDailyQuota   = coolingHours > 0 ? dailyQuota : 1_000_000;
+  const effectiveCoolingHours = coolingHours > 0 ? coolingHours : 0;
 
-  if (newCount >= dailyQuota) {
-    if (coolingHours > 0) {
-      coolingUntil = new Date(Date.now() + coolingHours * 60 * 60 * 1000).toISOString();
-    } else {
-      // Unlimited plan: no cooling period, just reset at midnight IST
-      coolingUntil = new Date(Date.now() + msUntilMidnightIST()).toISOString();
-    }
-  }
-
-  const { error } = await admin
-    .from('chat_sessions')
-    .update({ message_count: newCount, cooling_until: coolingUntil })
-    .eq('user_id', userId)
-    .eq('vertical_id', saathiId)
-    .eq('bot_slot', botSlot)
-    .eq('quota_date_ist', dateIst);
-
+  const { error } = await admin.rpc('increment_chat_quota', {
+    p_user_id:       userId,
+    p_vertical_id:   saathiId,
+    p_bot_slot:      botSlot,
+    p_date_ist:      dateIst,
+    p_daily_quota:   effectiveDailyQuota,
+    p_cooling_hours: effectiveCoolingHours,
+  });
   if (error) throw new Error(`quota update: ${error.message}`);
 }
 
