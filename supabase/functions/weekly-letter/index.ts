@@ -18,6 +18,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '
 const GROQ_API_KEY              = Deno.env.get('GROQ_API_KEY') ?? '';
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY') ?? '';
 const RESEND_FROM               = Deno.env.get('RESEND_FROM_EMAIL') ?? 'noreply@edusaathiai.in';
+const CRON_SECRET               = Deno.env.get('CRON_SECRET') ?? '';
 
 const GROQ_MODEL  = 'llama-3.3-70b-versatile';
 const BATCH_SIZE  = 5;       // parallel Groq calls per batch
@@ -274,9 +275,16 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: CORS_HEADERS });
   }
 
-  // Accept service role key as auth (cron trigger passes it as Bearer)
-  const authHeader = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
-  if (authHeader !== SUPABASE_SERVICE_ROLE_KEY) {
+  // Accept either x-cron-secret (matches cron-weekly-letter, set up via the
+  // Supabase dashboard) or service-role Bearer (manual admin trigger).
+  // Previously only checked Bearer; the cron only sends x-cron-secret, so
+  // post-gateway the function self-401'd silently. Same pattern as
+  // weekly-eval and send-welcome-email.
+  const cronSecret = req.headers.get('x-cron-secret');
+  const authBearer = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
+  const isAuthed   = (CRON_SECRET && cronSecret === CRON_SECRET)
+                  || (authBearer === SUPABASE_SERVICE_ROLE_KEY);
+  if (!isAuthed) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
