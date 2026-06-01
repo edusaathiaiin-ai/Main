@@ -468,6 +468,12 @@ verify_jwt = false
 [functions.eval-flagged]
 verify_jwt = false
 
+# Weekly product-eval report to jaydeep@edusaathiai.in (Sun 9am IST cron).
+# Self-auths via x-cron-secret — gateway verify_jwt must be false or the
+# cron POST 401s before the function runs (3-week silent outage 2026-05).
+[functions.weekly-eval]
+verify_jwt = false
+
 [functions.refresh-saathi-stats]
 verify_jwt = false
 
