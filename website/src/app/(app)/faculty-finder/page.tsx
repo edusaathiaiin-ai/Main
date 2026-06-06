@@ -278,10 +278,11 @@ export default function FacultyFinderPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, subject, institution..."
-              className="w-full rounded-[14px] py-3.5 pr-4 pl-12 text-sm text-[var(--text-primary)] outline-none"
+              className="w-full rounded-[14px] py-3.5 pr-4 text-sm text-[var(--text-primary)] outline-none"
               style={{
                 background: 'var(--bg-elevated)',
                 border: '0.5px solid var(--border-medium)',
+                paddingLeft: '44px',
               }}
               onFocus={(e) =>
                 (e.currentTarget.style.borderColor = 'rgba(201,153,58,0.5)')
@@ -833,7 +834,7 @@ export default function FacultyFinderPage() {
                           className="rounded-xl px-5 py-2.5 text-xs font-bold"
                           style={{
                             background: color,
-                            color: '#0B1F3A',
+                            color: '#FFFFFF',
                             textDecoration: 'none',
                           }}
                         >

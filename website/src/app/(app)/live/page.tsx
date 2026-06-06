@@ -187,6 +187,24 @@ export default function LivePage() {
         }}
       >
         <div className="mx-auto max-w-[1100px]">
+          {/* Navigation Bar */}
+          <div className="mb-6 flex justify-between items-center text-xs">
+            <Link
+              href="/chat"
+              className="flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity"
+              style={{ color: '#FFFFFF', textDecoration: 'none', fontWeight: 500 }}
+            >
+              &larr; Back to Chat
+            </Link>
+            <Link
+              href="/my-sessions"
+              className="flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity font-semibold"
+              style={{ color: '#C9993A', textDecoration: 'none' }}
+            >
+              My Sessions &rarr;
+            </Link>
+          </div>
+
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="mb-2 flex items-center gap-2">
@@ -247,22 +265,17 @@ export default function LivePage() {
             <span className="absolute top-1/2 left-4 -translate-y-1/2 text-lg opacity-40">
               {'\u{1F50D}'}
             </span>
-            {/* Input floats on the dark hero gradient but its own background
-                is the light `--bg-elevated` cream. Text + placeholder must
-                be dark on dark-ish-bg; white text here was a dark-theme
-                carry-over that turned invisible after the platform-wide
-                light-first fix (commit 4797c19). The placeholder uses an
-                arbitrary Tailwind token to route through the ghost color. */}
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search sessions, topics, faculty..."
-              className="w-full rounded-[14px] py-3 pr-4 pl-12 text-sm outline-none placeholder:text-[var(--text-ghost)]"
+              className="w-full rounded-[14px] py-3 pr-4 text-sm outline-none placeholder:text-[var(--text-ghost)]"
               style={{
                 background: 'var(--bg-elevated)',
                 border: '0.5px solid var(--border-medium)',
                 color: 'var(--text-primary)',
+                paddingLeft: '44px',
               }}
             />
           </div>
@@ -572,7 +585,7 @@ function SessionCard({
           className="rounded-xl px-5 py-2.5 text-xs font-bold"
           style={{
             background: isFull ? 'var(--border-medium)' : color,
-            color: isFull ? 'var(--text-secondary)' : '#0B1F3A',
+            color: isFull ? 'var(--text-secondary)' : '#FFFFFF',
             textDecoration: 'none',
           }}
         >

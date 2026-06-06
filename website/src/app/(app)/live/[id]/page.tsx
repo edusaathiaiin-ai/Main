@@ -1148,7 +1148,7 @@ export default function LiveSessionDetailPage() {
                     className="w-full rounded-xl py-3.5 text-sm font-bold transition-all disabled:opacity-40"
                     style={{
                       background: isFull ? 'var(--border-medium)' : color,
-                      color: isFull ? 'var(--text-secondary)' : '#0B1F3A',
+                      color: isFull ? 'var(--text-secondary)' : '#FFFFFF',
                     }}
                   >
                     {(() => {

@@ -122,7 +122,7 @@ export function SaathiUnlockModal({
             </div>
             <button onClick={() => setStep('pick')}
               className="w-full rounded-xl py-3 text-sm font-bold transition-all hover:brightness-110"
-              style={{ background: primaryColor, color: '#060F1D' }}>
+              style={{ background: primaryColor, color: '#FFFFFF' }}>
               Choose my new Saathi →
             </button>
             <p className="mt-3 text-[11px]" style={{ color: 'var(--text-ghost)' }}>
@@ -229,7 +229,7 @@ export function SaathiUnlockModal({
               </button>
               <button onClick={() => void handleUnlock()} disabled={unlocking}
                 className="flex-1 rounded-xl py-2.5 text-sm font-bold transition-all hover:brightness-110 disabled:opacity-70"
-                style={{ background: primaryColor, color: '#060F1D' }}>
+                style={{ background: primaryColor, color: '#FFFFFF' }}>
                 {unlocking ? 'Unlocking…' : `Unlock ${selected.name} ✦`}
               </button>
             </div>

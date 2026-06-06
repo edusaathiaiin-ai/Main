@@ -313,7 +313,7 @@ function DemandCard({
             style={{
               fontSize: '13px',
               fontWeight: '700',
-              color: '#0B1F3A',
+              color: '#FFFFFF',
               background: color,
               padding: '9px 16px',
               borderRadius: '10px',

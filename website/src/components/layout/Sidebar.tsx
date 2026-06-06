@@ -292,7 +292,13 @@ export function Sidebar({
           icon={<FiPlus size={16} />}
           label="New Board"
           href="/chat"
-          onClick={() => window.dispatchEvent(new CustomEvent('board:new'))}
+          onClick={() => {
+            if (pathname !== '/chat') {
+              setTimeout(() => window.dispatchEvent(new CustomEvent('board:new')), 600)
+            } else {
+              window.dispatchEvent(new CustomEvent('board:new'))
+            }
+          }}
           accentColor="var(--saathi-primary)"
           description="Create a focused study space — separate boards for each topic keep your learning organised."
         />
@@ -366,7 +372,15 @@ export function Sidebar({
           id="your-horizon"
           icon={<FiCompass className="horizon-breathe" size={16} />}
           label="Your Horizon"
-          onClick={() => window.dispatchEvent(new CustomEvent('horizon:open'))}
+          href="/chat"
+          onClick={() => {
+            // Delay the event so ChatWindow has time to mount if navigating from another page
+            if (pathname !== '/chat') {
+              setTimeout(() => window.dispatchEvent(new CustomEvent('horizon:open')), 600)
+            } else {
+              window.dispatchEvent(new CustomEvent('horizon:open'))
+            }
+          }}
           accentColor="var(--saathi-primary)"
         />
         <ExpandableSidebarItem

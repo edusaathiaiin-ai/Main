@@ -911,7 +911,7 @@ function SaveFlashcardMini({
               borderRadius: '8px',
               background: primaryColor,
               border: 'none',
-              color: '#060F1D',
+              color: '#FFFFFF',
               fontSize: '12px',
               fontWeight: 700,
               cursor: saving ? 'wait' : 'pointer',

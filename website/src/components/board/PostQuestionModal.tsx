@@ -300,7 +300,7 @@ export function PostQuestionModal({
                       display: 'block',
                       padding: '13px',
                       background: primaryColor,
-                      color: '#0B1F3A',
+                      color: '#FFFFFF',
                       borderRadius: '12px',
                       fontSize: '13px',
                       fontWeight: '700',
@@ -347,8 +347,8 @@ export function PostQuestionModal({
                   onClick={handleClose}
                   className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full text-sm"
                   style={{
-                    background: 'var(--bg-elevated)',
-                    color: 'var(--text-tertiary)',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    color: 'rgba(255, 255, 255, 0.5)',
                   }}
                 >
                   ✕
@@ -359,7 +359,7 @@ export function PostQuestionModal({
                 </h2>
                 <p
                   className="mb-6 text-sm"
-                  style={{ color: 'var(--text-tertiary)' }}
+                  style={{ color: 'rgba(255, 255, 255, 0.5)' }}
                 >
                   Your question will get an AI answer immediately, and community
                   members can reply.
@@ -370,7 +370,7 @@ export function PostQuestionModal({
                   <div className="mb-1.5 flex justify-between">
                     <label
                       className="text-xs font-medium"
-                      style={{ color: 'var(--text-secondary)' }}
+                      style={{ color: 'rgba(255, 255, 255, 0.7)' }}
                     >
                       Your question{' '}
                       <span style={{ color: primaryColor }}>*</span>
@@ -381,7 +381,7 @@ export function PostQuestionModal({
                         color:
                           title.length > MAX_TITLE - 30
                             ? '#FCA5A5'
-                            : 'var(--text-ghost)',
+                            : 'rgba(255, 255, 255, 0.35)',
                       }}
                     >
                       {title.length} / {MAX_TITLE}
@@ -396,8 +396,8 @@ export function PostQuestionModal({
                     rows={3}
                     className="w-full resize-none rounded-xl px-4 py-3 text-sm text-white transition-all outline-none"
                     style={{
-                      background: 'var(--bg-elevated)',
-                      border: '0.5px solid var(--border-medium)',
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      border: '0.5px solid rgba(255, 255, 255, 0.15)',
                       fontFamily: 'var(--font-body)',
                     }}
                     onFocus={(e) =>
@@ -405,7 +405,7 @@ export function PostQuestionModal({
                     }
                     onBlur={(e) =>
                       (e.currentTarget.style.borderColor =
-                        'var(--border-medium)')
+                        'rgba(255, 255, 255, 0.15)')
                     }
                   />
                 </div>
@@ -414,7 +414,7 @@ export function PostQuestionModal({
                 <div className="mb-5">
                   <p
                     className="mb-2 text-xs font-medium"
-                    style={{ color: 'var(--text-secondary)' }}
+                    style={{ color: 'rgba(255, 255, 255, 0.7)' }}
                   >
                     Topic tag
                   </p>
@@ -429,11 +429,11 @@ export function PostQuestionModal({
                           style={{
                             background: active
                               ? primaryColor
-                              : 'var(--bg-elevated)',
-                            border: `0.5px solid ${active ? primaryColor : 'var(--border-medium)'}`,
+                              : 'rgba(255, 255, 255, 0.06)',
+                            border: `0.5px solid ${active ? primaryColor : 'rgba(255, 255, 255, 0.15)'}`,
                             color: active
-                              ? '#060F1D'
-                              : 'var(--text-secondary)',
+                              ? '#FFFFFF'
+                              : 'rgba(255, 255, 255, 0.7)',
                           }}
                         >
                           {t}
@@ -447,8 +447,8 @@ export function PostQuestionModal({
                 <div
                   className="mb-6 flex items-center justify-between rounded-xl px-4 py-3"
                   style={{
-                    background: 'var(--bg-elevated)',
-                    border: '0.5px solid var(--bg-elevated)',
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '0.5px solid rgba(255, 255, 255, 0.08)',
                   }}
                 >
                   <div>
@@ -457,7 +457,7 @@ export function PostQuestionModal({
                     </p>
                     <p
                       className="text-[11px]"
-                      style={{ color: 'var(--text-ghost)' }}
+                      style={{ color: 'rgba(255, 255, 255, 0.4)' }}
                     >
                       Shows as &quot;Anonymous Student&quot;
                     </p>
@@ -504,7 +504,7 @@ export function PostQuestionModal({
                     <p
                       style={{
                         fontSize: '12px',
-                        color: 'var(--text-tertiary)',
+                        color: 'rgba(255, 255, 255, 0.5)',
                         margin: '0 0 16px',
                         lineHeight: 1.5,
                       }}
@@ -527,7 +527,7 @@ export function PostQuestionModal({
                           display: 'block',
                           padding: '12px',
                           background: '#C9993A',
-                          color: '#0B1F3A',
+                          color: '#FFFFFF',
                           borderRadius: '10px',
                           fontSize: '13px',
                           fontWeight: '700',
@@ -568,11 +568,11 @@ export function PostQuestionModal({
                       onClick={handleSubmit}
                       disabled={!title.trim() || submitting}
                       className="w-full rounded-xl py-3.5 text-base font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
-                      style={{ background: primaryColor, color: '#060F1D' }}
+                      style={{ background: primaryColor, color: '#FFFFFF' }}
                     >
                       {submitting ? (
                         <span className="flex items-center justify-center gap-2">
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#060F1D]/30 border-t-[#060F1D]" />
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                           Posting...
                         </span>
                       ) : (
