@@ -17,6 +17,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { FiFileText, FiMail, FiX, FiStar } from 'react-icons/fi'
+import { FaWhatsapp } from 'react-icons/fa6'
 import {
   exportChatToPdf,
   pdfToBase64,
@@ -246,7 +248,7 @@ export function ExportModal({
               padding: 0,
             }}
           >
-            ×
+            <FiX size={18} />
           </button>
         </div>
 
@@ -256,7 +258,7 @@ export function ExportModal({
           disabled={loading}
           style={actionStyle(saathiColor)}
         >
-          <span style={{ fontSize: 18 }}>📄</span>
+          <FiFileText size={18} style={{ color: saathiColor, marginTop: 2 }} />
           <span style={{ flex: 1, textAlign: 'left' }}>
             <span style={{ display: 'block', fontWeight: 600, color: 'var(--text-primary)' }}>
               Download as PDF
@@ -274,7 +276,7 @@ export function ExportModal({
             disabled={loading}
             style={actionStyle(saathiColor)}
           >
-            <span style={{ fontSize: 18 }}>📧</span>
+            <FiMail size={18} style={{ color: saathiColor, marginTop: 2 }} />
             <span style={{ flex: 1, textAlign: 'left' }}>
               <span style={{ display: 'block', fontWeight: 600, color: 'var(--text-primary)' }}>
                 Email me the PDF
@@ -310,7 +312,7 @@ export function ExportModal({
           disabled={loading}
           style={{ ...actionStyle(saathiColor), marginTop: 8 }}
         >
-          <span style={{ fontSize: 18 }}>💬</span>
+          <FaWhatsapp size={18} style={{ color: saathiColor, marginTop: 2 }} />
           <span style={{ flex: 1, textAlign: 'left' }}>
             <span style={{ display: 'block', fontWeight: 600, color: 'var(--text-primary)' }}>
               Share to WhatsApp
@@ -341,7 +343,7 @@ export function ExportModal({
           color: 'var(--text-ghost)',
           lineHeight: 1.6,
         }}>
-          ✦ This export contains your private learning conversation. We log
+          <FiStar size={11} className="inline mr-1" style={{ color: 'var(--gold)', verticalAlign: 'middle' }} /> This export contains your private learning conversation. We log
           the export action to honour your DPDP &quot;right to know what
           data left the system.&quot;
         </p>

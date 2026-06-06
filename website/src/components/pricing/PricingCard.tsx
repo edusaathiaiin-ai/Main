@@ -21,8 +21,8 @@ const PLAN_DEFS = {
     emoji: '✦',
     badge: null,
     badgeColor: null,
-    bg: 'rgba(255,255,255,0.03)',
-    border: 'rgba(255,255,255,0.08)',
+    bg: '#131F32',
+    border: 'rgba(255,255,255,0.15)',
     glow: null,
     priceMonthly: 0,
     priceAnnual: 0,
@@ -52,7 +52,7 @@ const PLAN_DEFS = {
     emoji: '⚡',
     badge: 'Most Popular',
     badgeColor: '#C9993A',
-    bg: 'rgba(11,31,58,0.9)',
+    bg: '#1A2F4C',
     border: '#C9993A',
     glow: '0 0 40px rgba(201,153,58,0.2)',
     priceMonthly: 199,
@@ -87,8 +87,8 @@ const PLAN_DEFS = {
     emoji: '🚀',
     badge: 'Power User',
     badgeColor: '#7C3AED',
-    bg: 'rgba(91,33,182,0.08)',
-    border: 'rgba(139,92,246,0.3)',
+    bg: '#1F223F',
+    border: 'rgba(139,92,246,0.5)',
     glow: null,
     priceMonthly: 499,
     priceAnnual: 333,
@@ -115,7 +115,7 @@ const PLAN_DEFS = {
     emoji: '🔥',
     badge: '🔥 Zero Cooling',
     badgeColor: '#EF4444',
-    bg: '#0B1F3A',
+    bg: '#221C2B',
     border: '#EF4444',
     glow: null,
     priceMonthly: 4999,
@@ -207,7 +207,7 @@ export default function PricingCard({
             {plan.name}
           </h3>
         </div>
-        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
           {plan.tagline}
         </p>
       </div>
@@ -235,7 +235,7 @@ export default function PricingCard({
           {id !== 'free' && (
             <span
               className="mb-1 text-sm"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'rgba(255,255,255,0.7)' }}
             >
               {displaySuffix}
             </span>
@@ -257,16 +257,16 @@ export default function PricingCard({
         {plan.annualNote && (
           <motion.p
             key={billing + id}
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             className="mt-1 text-xs"
-            style={{ color: showAnnual ? '#4ADE80' : 'rgba(255,255,255,0.3)' }}
+            style={{ color: showAnnual ? '#4ADE80' : 'rgba(255,255,255,0.6)' }}
           >
             {showAnnual ? plan.annualNote : ''}
           </motion.p>
         )}
         {id === 'unlimited' && (
-          <p className="mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <p className="mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.65)' }}>
             Monthly only — no annual plan
           </p>
         )}
@@ -279,7 +279,7 @@ export default function PricingCard({
             <span
               className="mt-0.5 shrink-0 font-bold"
               style={{
-                color: f.included ? '#4ADE80' : 'rgba(255,255,255,0.2)',
+                color: f.included ? '#4ADE80' : 'rgba(255,255,255,0.4)',
               }}
             >
               {f.included ? '✓' : '✗'}
@@ -287,8 +287,8 @@ export default function PricingCard({
             <span
               style={{
                 color: f.included
-                  ? 'rgba(255,255,255,0.8)'
-                  : 'rgba(255,255,255,0.3)',
+                  ? 'rgba(255,255,255,0.95)'
+                  : 'rgba(255,255,255,0.5)',
               }}
             >
               {f.text}
@@ -322,7 +322,7 @@ export default function PricingCard({
         {plan.subText && (
           <p
             className="mt-2 text-center text-[11px]"
-            style={{ color: 'rgba(255,255,255,0.3)' }}
+            style={{ color: 'rgba(255,255,255,0.6)' }}
           >
             {plan.subText}
           </p>

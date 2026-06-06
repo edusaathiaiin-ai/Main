@@ -6,6 +6,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import type { Saathi } from '@/types'
+import { FiMessageSquare, FiCalendar, FiVideo, FiMail, FiHelpCircle, FiBarChart2, FiFileText, FiBookOpen, FiDollarSign, FiTrendingUp, FiUser, FiTarget, FiCreditCard } from 'react-icons/fi'
+import { FaChalkboardUser, FaMicroscope } from 'react-icons/fa6'
 
 type Props = {
   saathi: Saathi | null
@@ -18,7 +20,7 @@ type Props = {
 
 type NavItem = {
   id: string
-  icon: string
+  icon: React.ReactNode
   label: string
   href: string
   badge?: number
@@ -49,29 +51,29 @@ export function FacultySidebar({
   const color = saathi?.primary ?? 'var(--gold)'
 
   const HQ_ITEMS: NavItem[] = [
-    { id: 'chat', icon: '🎓', label: 'My Saathi Chat', href: '/chat' },
-    { id: 'sessions', icon: '📋', label: 'My Sessions', href: '/faculty/sessions' },
-    { id: 'live', icon: '🎙️', label: 'Live Lectures', href: '/faculty/live' },
-    { id: 'requests', icon: '📨', label: 'Session Requests', href: '/faculty/requests', badge: pendingRequestCount },
+    { id: 'chat', icon: <FiMessageSquare size={14} />, label: 'My Saathi Chat', href: '/chat' },
+    { id: 'sessions', icon: <FiCalendar size={14} />, label: 'My Sessions', href: '/faculty/sessions' },
+    { id: 'live', icon: <FiVideo size={14} />, label: 'Live Lectures', href: '/faculty/live' },
+    { id: 'requests', icon: <FiMail size={14} />, label: 'Session Requests', href: '/faculty/requests', badge: pendingRequestCount },
   ]
 
   const TEACH_ITEMS: NavItem[] = [
-    { id: 'questions', icon: '❓', label: 'Student Questions', href: '/faculty', badge: unreadQuestionCount },
-    { id: 'demand', icon: '📊', label: 'Student Demand', href: '/faculty/demand' },
-    { id: 'qp', icon: '📝', label: 'Question Papers', href: '/faculty/question-paper' },
-    { id: 'material', icon: '📚', label: 'Study Material', href: '/faculty/create-material' },
-    { id: 'research', icon: '🔬', label: 'Research Interns', href: '/faculty/research' },
+    { id: 'questions', icon: <FiHelpCircle size={14} />, label: 'Student Questions', href: '/faculty', badge: unreadQuestionCount },
+    { id: 'demand', icon: <FiBarChart2 size={14} />, label: 'Student Demand', href: '/faculty/demand' },
+    { id: 'qp', icon: <FiFileText size={14} />, label: 'Question Papers', href: '/faculty/question-paper' },
+    { id: 'material', icon: <FiBookOpen size={14} />, label: 'Study Material', href: '/faculty/create-material' },
+    { id: 'research', icon: <FaMicroscope size={14} />, label: 'Research Interns', href: '/faculty/research' },
   ]
 
   const EARNINGS_ITEMS: NavItem[] = [
-    { id: 'payouts', icon: '💰', label: 'Payouts', href: '/faculty/sessions#payouts' },
-    { id: 'analytics', icon: '📈', label: 'Analytics', href: '/faculty/analytics' },
+    { id: 'payouts', icon: <FiDollarSign size={14} />, label: 'Payouts', href: '/faculty/sessions#payouts' },
+    { id: 'analytics', icon: <FiTrendingUp size={14} />, label: 'Analytics', href: '/faculty/analytics' },
   ]
 
   const PROFILE_ITEMS: NavItem[] = [
-    { id: 'profile', icon: '👤', label: 'Profile', href: '/profile' },
-    { id: 'mentor-settings', icon: '🎯', label: 'Mentor Settings', href: '/faculty/mentor-settings' },
-    { id: 'nominate', icon: '👨‍🏫', label: 'Suggest a Colleague', href: '/faculty/nominations' },
+    { id: 'profile', icon: <FiUser size={14} />, label: 'Profile', href: '/profile' },
+    { id: 'mentor-settings', icon: <FiTarget size={14} />, label: 'Mentor Settings', href: '/faculty/mentor-settings' },
+    { id: 'nominate', icon: <FaChalkboardUser size={14} />, label: 'Suggest a Colleague', href: '/faculty/nominations' },
   ]
 
   function NavLink({ item }: { item: NavItem }) {
@@ -174,7 +176,7 @@ export function FacultySidebar({
       <div style={{ borderTop: '1px solid var(--border-subtle)', padding: '10px 16px 6px' }}>
         {/* UPI ID */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-          <span style={{ fontSize: 'var(--text-xs)' }}>💳</span>
+          <FiCreditCard size={12} style={{ color: upiId ? 'var(--text-secondary)' : 'var(--warning)' }} />
           <span style={{
             fontSize: 'var(--text-xs)', fontWeight: 600,
             color: upiId ? 'var(--text-secondary)' : 'var(--warning)',

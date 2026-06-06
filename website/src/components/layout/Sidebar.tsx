@@ -9,6 +9,8 @@ import { createClient } from '@/lib/supabase/client'
 import { ExploreBeyond } from '@/components/chat/ExploreBeyond'
 import { PlacementIntentModal } from '@/components/placement/PlacementIntentModal'
 import type { Saathi, Profile, QuotaState } from '@/types'
+import { FiMessageSquare, FiPlus, FiGlobe, FiVideo, FiBookOpen, FiBarChart2, FiCompass, FiTarget, FiUser, FiCoffee } from 'react-icons/fi'
+import { FaFire, FaRegNewspaper } from 'react-icons/fa6'
 
 type Props = {
   profile: Profile
@@ -277,7 +279,7 @@ export function Sidebar({
         <SectionLabel>Your Boards</SectionLabel>
         <ExpandableSidebarItem
           id="chat"
-          icon="💬"
+          icon={<FiMessageSquare size={16} />}
           label="General"
           href="/chat"
           isActive={pathname === '/chat'}
@@ -287,7 +289,7 @@ export function Sidebar({
         />
         <ExpandableSidebarItem
           id="new-board"
-          icon="+"
+          icon={<FiPlus size={16} />}
           label="New Board"
           href="/chat"
           onClick={() => window.dispatchEvent(new CustomEvent('board:new'))}
@@ -301,7 +303,7 @@ export function Sidebar({
         <SectionLabel>Explore</SectionLabel>
         <ExpandableSidebarItem
           id="board"
-          icon="🌐"
+          icon={<FiGlobe size={16} />}
           label="Community Board"
           href="/board"
           isActive={pathname === '/board'}
@@ -310,7 +312,7 @@ export function Sidebar({
         />
         <ExpandableSidebarItem
           id="live-sessions"
-          icon="🎙️"
+          icon={<FiVideo size={16} />}
           label="Live Sessions"
           href="/live"
           isActive={pathname === '/live' || pathname.startsWith('/live/')}
@@ -318,7 +320,7 @@ export function Sidebar({
         />
         <ExpandableSidebarItem
           id="news"
-          icon="📰"
+          icon={<FaRegNewspaper size={16} />}
           label="News"
           href="/news"
           isActive={pathname === '/news'}
@@ -327,7 +329,7 @@ export function Sidebar({
         <div>
           <ExpandableSidebarItem
             id="explore-beyond"
-            icon="📚"
+            icon={<FiBookOpen size={16} />}
             label="Explore Beyond"
             onClick={() => setExploreOpen(p => !p)}
             isActive={exploreOpen}
@@ -349,7 +351,7 @@ export function Sidebar({
         <SectionLabel>Your Growth</SectionLabel>
         <ExpandableSidebarItem
           id="my-progress"
-          icon="📊"
+          icon={<FiBarChart2 size={16} />}
           label="My Progress"
           href="/progress"
           isActive={pathname === '/progress'}
@@ -362,21 +364,21 @@ export function Sidebar({
             defined in globals.css for this exact CTA. */}
         <ExpandableSidebarItem
           id="your-horizon"
-          icon={<span className="horizon-breathe">✦</span>}
+          icon={<FiCompass className="horizon-breathe" size={16} />}
           label="Your Horizon"
           onClick={() => window.dispatchEvent(new CustomEvent('horizon:open'))}
           accentColor="var(--saathi-primary)"
         />
         <ExpandableSidebarItem
           id="placement-prep"
-          icon="🎯"
+          icon={<FiTarget size={16} />}
           label="Are you preparing for an interview?"
           onClick={() => setPlacementOpen(true)}
           accentColor="#DC2626"
         />
         <ExpandableSidebarItem
           id="profile"
-          icon="👤"
+          icon={<FiUser size={16} />}
           label="Profile"
           href="/profile"
           isActive={pathname === '/profile'}
@@ -394,12 +396,16 @@ export function Sidebar({
       {/* ── Footer: quota + streak + sign out ── */}
       <div style={{ borderTop: '1px solid var(--border-subtle)', padding: '10px 16px 6px' }}>
         {quota.isCooling ? (
-          <p style={{ fontSize: 'var(--text-xs)', fontWeight: 500, color: 'var(--warning)', margin: '0 0 6px' }}>
-            ☕ Cooling — chats resume soon
+          <p style={{ fontSize: 'var(--text-xs)', fontWeight: 500, color: 'var(--warning)', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <FiCoffee size={12} /> Cooling — chats resume soon
           </p>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-            <span style={{ fontSize: 'var(--text-xs)' }}>💬</span>
+            <FiMessageSquare size={12} style={{
+              color: quota.remaining === 0 ? 'var(--error)'
+                   : quota.remaining <= 3  ? 'var(--warning)'
+                   : 'var(--text-secondary)'
+            }} />
             <span style={{
               fontSize: 'var(--text-xs)', fontWeight: 600,
               color: quota.remaining === 0 ? 'var(--error)'
@@ -412,9 +418,7 @@ export function Sidebar({
         )}
         {sessionCount > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-            <span style={{ fontSize: 'var(--text-xs)' }}>
-              {sessionCount >= 25 ? '🦋' : sessionCount >= 15 ? '💥' : sessionCount >= 8 ? '🔥' : '✨'}
-            </span>
+            <FaFire size={12} style={{ color: '#EF4444' }} />
             <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)' }}>
               Streak: {sessionCount} sessions
             </span>

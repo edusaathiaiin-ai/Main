@@ -26,7 +26,7 @@ export default function BillingToggle({ value, onChange }: BillingToggleProps) {
               key={cycle}
               onClick={() => onChange(cycle)}
               className="relative z-10 rounded-full px-5 py-2 text-sm font-semibold capitalize transition-colors duration-200"
-              style={{ color: active ? '#060F1D' : 'rgba(255,255,255,0.45)' }}
+              style={{ color: active ? '#060F1D' : 'rgba(255,255,255,0.75)' }}
             >
               {active && (
                 <motion.div

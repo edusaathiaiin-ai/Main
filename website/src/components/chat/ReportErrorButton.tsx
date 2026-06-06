@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { FiAlertTriangle, FiX, FiCheck, FiStar } from 'react-icons/fi'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 import { trackErrorReported } from '@/lib/analytics'
@@ -144,7 +145,7 @@ export function ReportErrorButton({
             e.currentTarget.style.color       = '#DC2626'
           }}
         >
-          <span style={{ fontSize: '14px' }}>⚠️</span>
+          <FiAlertTriangle size={14} />
           Found an error? Report it
         </button>
       )}
@@ -161,7 +162,7 @@ export function ReportErrorButton({
             fontWeight: 500,
           }}
         >
-          ✓ Reported. Our team will review and update {verticalName}.
+          <FiCheck size={14} className="inline mr-1.5" /> Reported. Our team will review and update {verticalName}.
           If verified, you earn 50 Saathi Points.
         </motion.div>
       )}
@@ -224,7 +225,7 @@ export function ReportErrorButton({
                     color: 'var(--text-ghost)',
                     fontSize: '18px', cursor: 'pointer', padding: '4px',
                   }}>
-                  ✕
+                  <FiX size={18} />
                 </button>
               </div>
 
@@ -332,7 +333,7 @@ export function ReportErrorButton({
                     fontSize: 'var(--text-xs)', margin: 0, lineHeight: 1.5,
                     color: 'var(--text-secondary)',
                   }}>
-                    ✦ If your correction is verified — you earn{' '}
+                    <FiStar size={12} className="inline mr-1" style={{ color: primaryColor, verticalAlign: 'middle' }} /> If your correction is verified — you earn{' '}
                     <strong style={{ color: primaryColor }}>50 Saathi Points</strong> and
                     help every student who asks the same question after you.
                     You will receive an email confirmation.
@@ -346,7 +347,7 @@ export function ReportErrorButton({
                     marginBottom: '12px',
                     background: 'rgba(239,68,68,0.08)',
                   }}>
-                    ⚠️ {errorMsg}
+                    <FiAlertTriangle size={14} className="inline mr-1" /> {errorMsg}
                   </p>
                 )}
 

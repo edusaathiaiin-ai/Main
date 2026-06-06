@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
+import { FiLoader, FiCheck, FiLink, FiSlash, FiAlertTriangle, FiSmartphone } from 'react-icons/fi'
+import { FaWhatsapp } from 'react-icons/fa6'
 
 type Props = {
   messageContent: string
@@ -120,13 +122,13 @@ export function SendToPhone({
   }
 
   const label =
-    state === 'sending'        ? '⏳' :
-    state === 'sent'           ? '✓' :
-    state === 'no-phone'       ? '🔗' :
-    state === 'outside-window' ? '💬' :
-    state === 'rate-limit'     ? '🚫' :
-    state === 'error'          ? '⚠️' :
-    '📱'
+    state === 'sending'        ? <FiLoader className="animate-spin" size={12} /> :
+    state === 'sent'           ? <FiCheck className="text-green-600" size={12} /> :
+    state === 'no-phone'       ? <FiLink className="text-amber-600" size={12} /> :
+    state === 'outside-window' ? <FaWhatsapp className="text-green-500" size={12} /> :
+    state === 'rate-limit'     ? <FiSlash className="text-red-500" size={12} /> :
+    state === 'error'          ? <FiAlertTriangle className="text-red-500" size={12} /> :
+    <FiSmartphone size={12} />
 
   const title =
     state === 'no-phone'

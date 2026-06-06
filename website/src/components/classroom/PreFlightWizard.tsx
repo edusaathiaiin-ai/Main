@@ -21,6 +21,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from 'react'
+import { FiVideo, FiCopy, FiCheckCircle, FiCircle } from 'react-icons/fi'
+import { FaGraduationCap, FaWhatsapp } from 'react-icons/fa6'
 
 interface Props {
   /** Called when faculty finishes Step 4 OR skips out of Step 1 with no
@@ -301,7 +303,7 @@ function Step2({
 
       <div className="mt-5 space-y-3">
         <ModeCard
-          icon="📹"
+          icon={<FiVideo size={20} />}
           label="Video only"
           description="Simple. Just you, your voice, your students. Like a regular video call."
           bestFor="Best for: lectures, Q&A, discussions"
@@ -309,7 +311,7 @@ function Step2({
           onSelect={() => setClassroomMode('standard')}
         />
         <ModeCard
-          icon="🎓"
+          icon={<FaGraduationCap size={20} />}
           label="Video + Interactive Tools"
           description="Show 3D molecules, draw on a shared board, search research papers — all while talking."
           bestFor="Best for: science, law, engineering, medicine"
@@ -338,7 +340,7 @@ function Step2({
 function ModeCard({
   icon, label, description, bestFor, recommended, selected, onSelect,
 }: {
-  icon:         string
+  icon:         React.ReactNode
   label:        string
   description:  string
   bestFor:      string
@@ -440,7 +442,7 @@ function Step3({
         <button
           type="button"
           onClick={onCopy}
-          className="flex-1 rounded-md px-3 py-2 text-xs font-semibold transition-colors"
+          className="flex-1 rounded-md px-3 py-2 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
           style={{
             background:     shareCopied ? 'var(--gold-light)' : 'transparent',
             color:          'var(--gold)',
@@ -448,12 +450,12 @@ function Step3({
             cursor:         'pointer',
           }}
         >
-          {shareCopied ? '✓ Copied' : '📋 Copy link'}
+          {shareCopied ? '✓ Copied' : <><FiCopy size={13} /> Copy link</>}
         </button>
         <button
           type="button"
           onClick={onWhatsApp}
-          className="flex-1 rounded-md px-3 py-2 text-xs font-semibold transition-colors"
+          className="flex-1 rounded-md px-3 py-2 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
           style={{
             background:     'transparent',
             color:          'var(--gold)',
@@ -461,7 +463,7 @@ function Step3({
             cursor:         'pointer',
           }}
         >
-          💬 Share on WhatsApp
+          <FaWhatsapp size={13} /> Share on WhatsApp
         </button>
       </div>
 
@@ -578,14 +580,10 @@ function ChecklistRow({
   return (
     <li className="flex items-start gap-2.5">
       <span
-        className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-        style={{
-          background: done ? '#16A34A' : 'var(--bg-elevated)',
-          color:      done ? 'var(--bg-surface)' : 'var(--text-ghost)',
-          border:     done ? 'none' : '1px solid var(--border-subtle)',
-        }}
+        className="mt-0.5 shrink-0"
+        style={{ color: done ? '#16A34A' : 'var(--text-ghost)' }}
       >
-        {done ? '✓' : '○'}
+        {done ? <FiCheckCircle size={18} /> : <FiCircle size={18} />}
       </span>
       <span
         className="text-sm leading-snug"

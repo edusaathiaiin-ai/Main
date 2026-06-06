@@ -73,8 +73,8 @@ const COLS = ['Feature', 'Free', 'Plus', 'Pro', 'Unlimited']
 
 function cellColor(value: string): string {
   if (value === '✓' || value === 'None ✓') return '#4ADE80'
-  if (value === '✗') return 'rgba(255,255,255,0.2)'
-  return 'rgba(255,255,255,0.7)'
+  if (value === '✗') return '#64748B'
+  return '#FFFFFF'
 }
 
 export default function ComparisonTable() {
@@ -101,15 +101,17 @@ export default function ComparisonTable() {
       {/* Table wrapper — horizontally scrollable on mobile */}
       <div
         className="overflow-x-auto rounded-2xl"
-        style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+        style={{
+          border: '1px solid rgba(255,255,255,0.08)',
+          background: '#060F1D',
+        }}
       >
         <table className="w-full min-w-[600px] border-collapse">
           {/* Sticky header */}
           <thead>
             <tr
               style={{
-                background: 'rgba(11,31,58,0.95)',
-                backdropFilter: 'blur(12px)',
+                background: '#0B1F3A',
               }}
             >
               {COLS.map((col, i) => (
@@ -117,9 +119,8 @@ export default function ComparisonTable() {
                   key={col}
                   className="sticky top-0 px-5 py-4 text-left text-xs font-bold tracking-wide"
                   style={{
-                    color: i === 2 ? '#C9993A' : 'rgba(255,255,255,0.5)',
-                    background:
-                      i === 2 ? 'rgba(201,153,58,0.08)' : 'rgba(11,31,58,0.95)',
+                    color: i === 2 ? '#C9993A' : '#FFFFFF',
+                    background: i === 2 ? '#112540' : '#0B1F3A',
                     borderBottom: '1px solid rgba(255,255,255,0.08)',
                     minWidth: i === 0 ? 160 : 100,
                   }}
@@ -146,15 +147,14 @@ export default function ComparisonTable() {
               <tr
                 key={ri}
                 style={{
-                  background:
-                    ri % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent',
+                  background: ri % 2 === 0 ? '#0B1F3A' : '#060F1D',
                   borderBottom: '1px solid rgba(255,255,255,0.05)',
                 }}
               >
                 {/* Feature label */}
                 <td
                   className="px-5 py-3.5 text-sm font-medium"
-                  style={{ color: 'rgba(255,255,255,0.6)' }}
+                  style={{ color: '#FFFFFF' }}
                 >
                   {row.label}
                 </td>
@@ -170,9 +170,9 @@ export default function ComparisonTable() {
                   className="px-5 py-3.5 text-center text-sm font-semibold"
                   style={{
                     color: cellColor(row.plus),
-                    background: 'rgba(201,153,58,0.05)',
-                    borderLeft: '1px solid rgba(201,153,58,0.15)',
-                    borderRight: '1px solid rgba(201,153,58,0.15)',
+                    background: ri % 2 === 0 ? '#132847' : '#0D1D33',
+                    borderLeft: '1px solid rgba(201,153,58,0.25)',
+                    borderRight: '1px solid rgba(201,153,58,0.25)',
                   }}
                 >
                   {row.plus}

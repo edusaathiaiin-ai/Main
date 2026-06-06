@@ -65,9 +65,7 @@ export default function PricingFAQ() {
               transition={{ delay: i * 0.06, duration: 0.4 }}
               className="overflow-hidden rounded-xl"
               style={{
-                background: isOpen
-                  ? 'rgba(201,153,58,0.06)'
-                  : 'rgba(255,255,255,0.03)',
+                background: isOpen ? '#132640' : '#0B1F3A',
                 border: `1px solid ${isOpen ? 'rgba(201,153,58,0.3)' : 'rgba(255,255,255,0.08)'}`,
                 transition: 'background 0.2s, border-color 0.2s',
               }}
@@ -99,7 +97,7 @@ export default function PricingFAQ() {
                   >
                     <p
                       className="px-5 pb-4 text-sm leading-relaxed"
-                      style={{ color: 'rgba(255,255,255,0.55)' }}
+                      style={{ color: 'rgba(255,255,255,0.85)' }}
                     >
                       {faq.a}
                     </p>

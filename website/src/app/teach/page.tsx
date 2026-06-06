@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ApplyForm } from '@/components/teach/ApplyForm'
 import { HeroApplyButton } from '@/components/teach/HeroApplyButton'
+import { FaIndianRupeeSign, FaGraduationCap, FaWandSparkles } from 'react-icons/fa6'
 
 export const metadata: Metadata = {
   title:       'Teach on EdUsaathiAI — Faculty Partner Programme',
@@ -218,14 +219,14 @@ function Hero() {
 // ──────────────────────────────────────────────────────────────────────
 
 type Pillar = {
-  icon:  string
+  icon:  React.ReactNode
   title: string
   lines: string[]
 }
 
 const PILLARS: Pillar[] = [
   {
-    icon:  '✦',
+    icon:  <FaWandSparkles size={28} style={{ color: GOLD }} />,
     title: 'Teach on your terms',
     lines: [
       'Set your subject, fee, and availability.',
@@ -234,7 +235,7 @@ const PILLARS: Pillar[] = [
     ],
   },
   {
-    icon:  '₹',
+    icon:  <FaIndianRupeeSign size={28} style={{ color: GOLD }} />,
     title: 'Earn from every session',
     lines: [
       '80% of every session fee goes directly to you.',
@@ -242,7 +243,7 @@ const PILLARS: Pillar[] = [
     ],
   },
   {
-    icon:  '🎓',
+    icon:  <FaGraduationCap size={28} style={{ color: GOLD }} />,
     title: 'Shape the next generation',
     lines: [
       'Your expertise — live, personal, remembered.',

@@ -5,6 +5,8 @@ import { SaathiExplorer } from '@/components/saathi/SaathiExplorer'
 import { RichFeaturesSection } from '@/components/chat/RichFeaturesSection'
 import { FourJourneysSection } from '@/components/landing/FourJourneysSection'
 import { ContactLink } from '@/components/contact/ContactLink'
+import { FiGlobe, FiTarget, FiX, FiCheck } from 'react-icons/fi'
+import { FaGraduationCap, FaChalkboardUser, FaBuilding, FaSchool, FaBrain, FaRocket } from 'react-icons/fa6'
 
 /**
  * Root page — authenticated users go to /chat.
@@ -210,7 +212,7 @@ export default async function RootPage() {
               href="/login?role=student"
               className="role-card role-card-student"
             >
-              <span style={{ fontSize: '32px' }}>🎓</span>
+              <FaGraduationCap size={32} style={{ color: '#C9993A' }} />
               <span
                 style={{
                   fontFamily: 'Playfair Display',
@@ -247,7 +249,7 @@ export default async function RootPage() {
               href="/login?role=faculty"
               className="role-card role-card-faculty"
             >
-              <span style={{ fontSize: '32px' }}>👨‍🏫</span>
+              <FaChalkboardUser size={32} style={{ color: '#4ADE80' }} />
               <span
                 style={{
                   fontFamily: 'Playfair Display',
@@ -280,7 +282,7 @@ export default async function RootPage() {
               </span>
             </a>
             <a href="/login?role=public" className="role-card role-card-public">
-              <span style={{ fontSize: '32px' }}>🌐</span>
+              <FiGlobe size={32} style={{ color: '#FB923C' }} />
               <span
                 style={{
                   fontFamily: 'Playfair Display',
@@ -316,7 +318,7 @@ export default async function RootPage() {
               href="/login?role=institution"
               className="role-card role-card-institution"
             >
-              <span style={{ fontSize: '32px' }}>🏢</span>
+              <FaBuilding size={32} style={{ color: '#A78BFA' }} />
               <span
                 style={{
                   fontFamily: 'Playfair Display',
@@ -352,7 +354,7 @@ export default async function RootPage() {
               href="/education-institutions"
               className="role-card role-card-edu"
             >
-              <span style={{ fontSize: '32px' }}>🏫</span>
+              <FaSchool size={32} style={{ color: '#38BDF8' }} />
               <span
                 style={{
                   fontFamily: 'Playfair Display',
@@ -473,7 +475,7 @@ export default async function RootPage() {
         <div className="steps-grid" style={{ marginTop: '48px' }}>
           <div className="step">
             <div className="step-num">01 — CHOOSE</div>
-            <span className="step-icon">🎯</span>
+            <FiTarget size={40} style={{ color: 'var(--gold)', marginBottom: 20, display: 'block' }} />
             <h3 className="step-title">Pick your Saathi</h3>
             <p className="step-body">
               Choose from 30 subject companions — Law, Biology, Medicine, CS,
@@ -483,7 +485,7 @@ export default async function RootPage() {
           </div>
           <div className="step">
             <div className="step-num">02 — CONNECT</div>
-            <span className="step-icon">🧠</span>
+            <FaBrain size={40} style={{ color: 'var(--gold)', marginBottom: 20, display: 'block' }} />
             <h3 className="step-title">Your soul is matched</h3>
             <p className="step-body">
               Tell your Saathi your name, your exam target, your research dream.
@@ -493,7 +495,7 @@ export default async function RootPage() {
           </div>
           <div className="step">
             <div className="step-num">03 — GROW</div>
-            <span className="step-icon">🚀</span>
+            <FaRocket size={40} style={{ color: 'var(--gold)', marginBottom: 20, display: 'block' }} />
             <h3 className="step-title">Learn. Check in. Rise.</h3>
             <p className="step-body">
               Study with your bot. Take Saathi Check-ins to see how far
@@ -559,7 +561,7 @@ export default async function RootPage() {
               '₹1,650/month. 8× more expensive.',
             ].map((t, i) => (
               <div key={i} className="comparison-item">
-                <div className="comparison-icon icon-no">✗</div>
+                <div className="comparison-icon icon-no"><FiX size={12} /></div>
                 <div className="comparison-text">{t}</div>
               </div>
             ))}
@@ -589,7 +591,7 @@ export default async function RootPage() {
               '₹99/month. Less than your weekly pizza. More than a semester of guidance.',
             ].map((t, i) => (
               <div key={i} className="comparison-item">
-                <div className="comparison-icon icon-yes">✓</div>
+                <div className="comparison-icon icon-yes"><FiCheck size={12} /></div>
                 <div className="comparison-text">{t}</div>
               </div>
             ))}
