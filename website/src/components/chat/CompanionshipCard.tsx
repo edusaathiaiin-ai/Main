@@ -311,7 +311,7 @@ function AddSaathiModal({
 
                 <button onClick={() => void handlePaid()} disabled={paying}
                   className="w-full rounded-xl py-3 mb-2 text-sm font-bold transition-all hover:brightness-110 disabled:opacity-60"
-                  style={{ background: primaryColor, color: '#060F1D' }}>
+                  style={{ background: primaryColor, color: '#FFFFFF' }}>
                   {paying ? 'Opening payment…' : 'Add for ₹99/month →'}
                 </button>
 
@@ -488,7 +488,7 @@ export function CompanionshipCard({
 
               <button onClick={() => setShowModal(true)}
                 className="w-full rounded-xl py-2.5 text-xs font-bold transition-all hover:brightness-110"
-                style={{ background: primaryColor, color: '#060F1D' }}>
+                style={{ background: primaryColor, color: '#FFFFFF' }}>
                 Add another Saathi →
               </button>
 

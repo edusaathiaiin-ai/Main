@@ -389,7 +389,7 @@ export default function SavedFacultyPage() {
                         className="rounded-xl px-4 py-2 text-xs font-bold"
                         style={{
                           background: color,
-                          color: '#0B1F3A',
+                          color: '#FFFFFF',
                           textDecoration: 'none',
                         }}
                       >

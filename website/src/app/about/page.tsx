@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { FiMessageSquare, FiStar } from 'react-icons/fi'
+import { FaRobot, FaBrain, FaChalkboardUser } from 'react-icons/fa6'
 
 export const metadata: Metadata = {
   title: 'About Us | EdUsaathiAI',
@@ -50,27 +52,27 @@ const TEAM = [
 
 const FEATURES = [
   {
-    icon: '🤖',
+    icon: <FaRobot size={28} style={{ color: GOLD }} />,
     title: '30 specialist Saathis',
     body: 'Each one a subject expert with a distinct personality, built for Indian students, aligned to Indian curricula, aware of Indian exams, and capable of holding a conversation that builds over time.',
   },
   {
-    icon: '🧠',
+    icon: <FaBrain size={28} style={{ color: GOLD }} />,
     title: 'Soul memory',
     body: 'Your Saathi remembers you. Not just your name. Your subjects, your struggles, your ambitions, your flame. Every session builds on the last. You are never starting over.',
   },
   {
-    icon: '✦',
+    icon: <FiStar size={28} style={{ color: GOLD }} />,
     title: 'Saathi Horizon',
     body: "Because a student who can see where their subject can take them — the UN, Lincoln's Inn, ISRO, a forensic lab, a green hydrogen plant — is a student who studies with purpose, not just pressure.",
   },
   {
-    icon: '👨\u200D🏫',
+    icon: <FaChalkboardUser size={28} style={{ color: GOLD }} />,
     title: 'Faculty partnership',
     body: "AI alone is not enough. We are bridging the gap between India's extraordinary educators and the students who need them most. Through verified, accessible, fairly-compensated live sessions.",
   },
   {
-    icon: '💬',
+    icon: <FiMessageSquare size={28} style={{ color: GOLD }} />,
     title: 'WhatsApp Saathi',
     body: "Because not every student has a laptop. Many of India's most motivated learners study on a phone with limited data. Your Saathi should be where you are.",
   },

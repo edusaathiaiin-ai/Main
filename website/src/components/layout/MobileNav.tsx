@@ -4,26 +4,28 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { FiMessageSquare, FiMap, FiGrid, FiUser, FiBookmark, FiTarget, FiLayers, FiBarChart2 } from 'react-icons/fi'
+import { FaBuildingColumns, FaGraduationCap, FaBullhorn, FaRegNewspaper } from 'react-icons/fa6'
 
 const NAV_ITEMS = [
-  { href: '/chat', icon: '💬', label: 'Chat' },
-  { href: '/board', icon: '🏛️', label: 'Board' },
-  { href: '/explore', icon: '🗺️', label: 'Explore' },
-  { href: null, icon: '⊞', label: 'More', isMore: true },
-  { href: '/profile', icon: '👤', label: 'Profile' },
-] as const
+  { href: '/chat', icon: <FiMessageSquare size={20} />, label: 'Chat' },
+  { href: '/board', icon: <FaBuildingColumns size={20} />, label: 'Board' },
+  { href: '/explore', icon: <FiMap size={20} />, label: 'Explore' },
+  { href: null, icon: <FiGrid size={20} />, label: 'More', isMore: true },
+  { href: '/profile', icon: <FiUser size={20} />, label: 'Profile' },
+]
 
 const DISCOVER_ITEMS = [
-  { icon: '🎓', label: 'Faculty Finder', href: '/faculty-finder' },
-  { icon: '🔖', label: 'Saved Faculty', href: '/saved-faculty' },
-  { icon: '🎯', label: 'Internships', href: '/internships' },
-  { icon: '📢', label: 'I Want to Learn', href: '/learn' },
+  { icon: <FaGraduationCap size={18} />, label: 'Faculty Finder', href: '/faculty-finder' },
+  { icon: <FiBookmark size={18} />, label: 'Saved Faculty', href: '/saved-faculty' },
+  { icon: <FiTarget size={18} />, label: 'Internships', href: '/internships' },
+  { icon: <FaBullhorn size={18} />, label: 'I Want to Learn', href: '/learn' },
 ]
 
 const TOOL_ITEMS = [
-  { icon: '🃏', label: 'Flash Cards', href: '/flashcards' },
-  { icon: '📊', label: 'My Progress', href: '/progress' },
-  { icon: '📰', label: 'News', href: '/news' },
+  { icon: <FiLayers size={16} />, label: 'Flash Cards', href: '/flashcards' },
+  { icon: <FiBarChart2 size={16} />, label: 'My Progress', href: '/progress' },
+  { icon: <FaRegNewspaper size={16} />, label: 'News', href: '/news' },
 ]
 
 export function MobileNav() {

@@ -934,7 +934,7 @@ export default function FacultyProfilePage() {
                     onClick={handleBooking}
                     disabled={submitting || !topic.trim() || !myProfile}
                     className="w-full rounded-xl py-3.5 text-sm font-bold transition-all disabled:opacity-40"
-                    style={{ background: color, color: '#0B1F3A' }}
+                    style={{ background: color, color: '#FFFFFF' }}
                   >
                     {submitting
                       ? 'Sending request...'

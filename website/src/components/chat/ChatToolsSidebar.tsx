@@ -24,6 +24,7 @@
 
 import { useEffect, useState } from 'react'
 import { getToolTabsFor } from '@/lib/classroom-plugins/useToolChipTabs'
+import { FiCpu, FiX } from 'react-icons/fi'
 
 type Props = {
   saathiSlug: string
@@ -64,7 +65,7 @@ export function ChatToolsSidebar({ saathiSlug, saathiName, saathiColor, onClose 
           className="flex h-full flex-col items-center justify-center px-6 text-center"
           style={{ color: 'var(--text-tertiary)' }}
         >
-          <span style={{ fontSize: 32, opacity: 0.5 }}>🛠️</span>
+          <FiCpu size={32} style={{ opacity: 0.5 }} />
           <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)', margin: '12px 0 4px' }}>
             No tools curated yet for {saathiName}
           </p>
@@ -146,7 +147,7 @@ function SidebarShell({
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <span style={{ fontSize: 14 }}>🛠️</span>
+        <FiCpu size={14} />
         <span
           style={{
             fontSize: 11,
@@ -187,7 +188,7 @@ function SidebarShell({
             padding: 0,
           }}
         >
-          ×
+          <FiX size={16} />
         </button>
       </div>
 

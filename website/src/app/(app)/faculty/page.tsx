@@ -12,6 +12,8 @@ import { VerificationBanner } from '@/components/faculty/VerificationBanner'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { getFacultyBasket } from '@/lib/faculty-solo/pluginRegistry'
 import { listTodaysArtifacts } from '@/lib/faculty-solo/artifactClient'
+import { FiMail, FiCalendar, FiHelpCircle, FiDollarSign, FiAlertTriangle, FiVideo, FiFileText, FiBookOpen } from 'react-icons/fi'
+import { FaMicroscope } from 'react-icons/fa6'
 
 type FacultyProfile = {
   id: string
@@ -30,7 +32,7 @@ type FacultyProfile = {
 
 type MissionItem = {
   type: 'requests' | 'sessions' | 'questions' | 'payout' | 'profile'
-  icon: string
+  icon: React.ReactNode
   title: string
   subtitle: string
   count?: number
@@ -121,7 +123,7 @@ export default function FacultyPage() {
         .eq('status', 'pending')
       if (pendingReqs && pendingReqs > 0) {
         items.push({
-          type: 'requests', icon: '📨',
+          type: 'requests', icon: <FiMail size={20} />,
           title: `${pendingReqs} pending request${pendingReqs > 1 ? 's' : ''}`,
           subtitle: 'Students are waiting for your response',
           count: pendingReqs, href: '/faculty/requests', accent: '#EF4444',
@@ -141,7 +143,7 @@ export default function FacultyPage() {
         .limit(3)
       if (todaySessions?.length) {
         items.push({
-          type: 'sessions', icon: '📅',
+          type: 'sessions', icon: <FiCalendar size={20} />,
           title: `${todaySessions.length} session${todaySessions.length > 1 ? 's' : ''} today`,
           subtitle: todaySessions[0].topic ?? 'Upcoming session',
           href: '/faculty/sessions',
@@ -156,7 +158,7 @@ export default function FacultyPage() {
         .eq('status', 'open')
       if (unansweredQ && unansweredQ > 5) {
         items.push({
-          type: 'questions', icon: '❓',
+          type: 'questions', icon: <FiHelpCircle size={20} />,
           title: `${unansweredQ} unanswered questions`,
           subtitle: 'Students need your expertise',
           count: unansweredQ, href: '/faculty',
@@ -171,7 +173,7 @@ export default function FacultyPage() {
         .eq('status', 'pending')
       if (pendingPayouts && pendingPayouts > 0) {
         items.push({
-          type: 'payout', icon: '💰',
+          type: 'payout', icon: <FiDollarSign size={20} />,
           title: `${pendingPayouts} payout${pendingPayouts > 1 ? 's' : ''} pending`,
           subtitle: 'Check your earnings section',
           href: '/faculty/sessions#payouts', accent: '#16A34A',
@@ -181,7 +183,7 @@ export default function FacultyPage() {
       // 5. Profile completeness
       if (fp && !fp.payout_upi_id) {
         items.push({
-          type: 'profile', icon: '⚠️',
+          type: 'profile', icon: <FiAlertTriangle size={20} />,
           title: 'Set up your UPI ID',
           subtitle: 'Required to receive payouts',
           href: '/profile', accent: '#F59E0B',
@@ -492,10 +494,10 @@ export default function FacultyPage() {
               gridAutoRows:        '1fr',
             }}>
               {[
-                { icon: '🎙️', label: 'Create Live Session',      href: '/faculty/live/create' },
-                { icon: '📝', label: 'Create Question Paper',    href: '/faculty/question-paper' },
-                { icon: '📚', label: 'Upload Study Material',    href: '/faculty/create-material' },
-                { icon: '🔬', label: 'Post Research Opportunity', href: '/faculty/research' },
+                { icon: <FiVideo size={24} />, label: 'Create Live Session',      href: '/faculty/live/create' },
+                { icon: <FiFileText size={24} />, label: 'Create Question Paper',    href: '/faculty/question-paper' },
+                { icon: <FiBookOpen size={24} />, label: 'Upload Study Material',    href: '/faculty/create-material' },
+                { icon: <FaMicroscope size={24} />, label: 'Post Research Opportunity', href: '/faculty/research' },
               ].map(action => (
                 <Link key={action.href} href={action.href} className="quick-action">
                   <span className="quick-action-icon">{action.icon}</span>

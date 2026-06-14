@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { QuotaState } from '@/types'
 import { VoiceInput } from './VoiceInput'
+import { FiCpu, FiDownload } from 'react-icons/fi'
 
 type Props = {
   quota: QuotaState
@@ -13,6 +14,10 @@ type Props = {
   inputValue: string
   setInputValue: (val: string) => void
   isLegalTheme?: boolean
+  toolsOpen?: boolean
+  onOpenTools?: () => void
+  onOpenExport?: () => void
+  hasMessages?: boolean
 }
 
 const MAX_CHARS = 2000
@@ -26,6 +31,10 @@ export function InputArea({
   inputValue,
   setInputValue,
   isLegalTheme = false,
+  toolsOpen,
+  onOpenTools,
+  onOpenExport,
+  hasMessages = false,
 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -299,12 +308,63 @@ export function InputArea({
 
       {/* Status row */}
       <div className="flex items-center justify-between gap-4 px-5 pb-3">
-        <p
-          className="text-[10px]"
-          style={{ color: 'var(--text-ghost)' }}
-        >
-          Enter to send · Shift+Enter for new line
-        </p>
+        <div className="flex items-center gap-3">
+          <p
+            className="text-[10px]"
+            style={{ color: 'var(--text-ghost)', margin: 0 }}
+          >
+            Enter to send · Shift+Enter for new line
+          </p>
+
+          {/* Inline Tools and Export buttons */}
+          {!toolsOpen && onOpenTools && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onOpenTools() }}
+              style={{
+                cursor: 'pointer',
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                fontSize: '11px', fontWeight: 600, padding: '2px 8px',
+                borderRadius: '6px', color: primaryColor,
+                background: `${primaryColor}12`, border: `1px solid ${primaryColor}25`,
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `${primaryColor}20`
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = `${primaryColor}12`
+              }}
+              title="Open tools sidebar"
+            >
+              <FiCpu size={12} />
+              <span>Tools</span>
+            </button>
+          )}
+
+          {!toolsOpen && hasMessages && onOpenExport && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onOpenExport() }}
+              style={{
+                cursor: 'pointer',
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                fontSize: '11px', fontWeight: 600, padding: '2px 8px',
+                borderRadius: '6px', color: 'var(--text-secondary)',
+                background: 'rgba(0,0,0,0.03)', border: '1px solid var(--border-subtle)',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(0,0,0,0.06)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(0,0,0,0.03)'
+              }}
+              title="Export this chat"
+            >
+              <FiDownload size={12} />
+              <span>Export</span>
+            </button>
+          )}
+        </div>
         <div className="flex items-center gap-3">
           {inputValue.length > SHOW_COUNT_THRESHOLD && (
             <span

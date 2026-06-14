@@ -7,6 +7,9 @@ import { MessageBubble } from './MessageBubble'
 import { SUBJECT_CHIPS } from '@/constants/subjectChips'
 import type { BoardInfo } from './BoardNavigator'
 import type { ChatMessage, Saathi } from '@/types'
+import { FiMail, FiX, FiMic, FiLoader, FiCheck, FiAlertTriangle, FiCpu, FiDownload } from 'react-icons/fi'
+import { FaWhatsapp } from 'react-icons/fa6'
+import { VoiceInput } from './VoiceInput'
 
 type Props = {
   board: BoardInfo
@@ -22,6 +25,9 @@ type Props = {
   onClose: () => void
   onEmailDigest: (boardId: string | null, boardName: string) => void
   viewAs?: 'faculty' | 'student'
+  toolsOpen?: boolean
+  onOpenTools?: () => void
+  onOpenExport?: () => void
 }
 
 function getStarters(
@@ -103,6 +109,9 @@ export function ChatColumn({
   onClose,
   onEmailDigest,
   viewAs,
+  toolsOpen,
+  onOpenTools,
+  onOpenExport,
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
@@ -301,18 +310,18 @@ export function ChatColumn({
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onEmailDigest(board.id, board.name) }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--text-ghost)', padding: '4px' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: 'var(--text-ghost)', padding: '4px' }}
           title={`Email ${board.name} chat`}
         >
-          📧
+          <FiMail size={15} />
         </button>
         {canClose && (
           <button
             onClick={(e) => { e.stopPropagation(); onClose() }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: 'var(--text-ghost)', padding: '4px' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'var(--text-ghost)', padding: '4px' }}
             title="Close column"
           >
-            ✕
+            <FiX size={16} />
           </button>
         )}
       </div>
@@ -444,32 +453,13 @@ export function ChatColumn({
         )}
         {/* Action icons — 🎤 Mic · 📱 Send to Phone · ⚠️ Report Error */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', paddingLeft: '2px' }}>
-          <button
-            onClick={() => {
-              if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return
-              const SR = (window as unknown as Record<string, unknown>).SpeechRecognition ?? (window as unknown as Record<string, unknown>).webkitSpeechRecognition
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const recognition = new (SR as any)()
-              recognition.lang = 'en-IN'
-              recognition.interimResults = false
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              recognition.onresult = (e: any) => {
-                const transcript = e.results?.[0]?.[0]?.transcript
-                if (transcript) setInput((prev) => prev ? `${prev} ${transcript}` : transcript)
-              }
-              recognition.start()
-            }}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: '16px', padding: '2px', color: 'var(--text-ghost)',
-              transition: 'color 0.15s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = saathi.primary)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-ghost)')}
-            title="Voice input"
-          >
-            🎤
-          </button>
+          <VoiceInput
+            onTranscript={(text) =>
+              setInput((prev) => prev ? `${prev} ${text}` : text)
+            }
+            disabled={isStreaming}
+            saathiColor={saathi.primary}
+          />
           <button
             onClick={handleSendToPhone}
             disabled={phoneState === 'sending' || messages.filter(m => m.role === 'assistant').length === 0}
@@ -492,7 +482,7 @@ export function ChatColumn({
               'Send last response to WhatsApp'
             }
           >
-            {phoneState === 'sending' ? '⏳' : phoneState === 'sent' ? '✓' : '📱'}
+            {phoneState === 'sending' ? <FiLoader className="animate-spin" size={14} /> : phoneState === 'sent' ? <FiCheck className="text-green-600" size={14} /> : <FaWhatsapp size={14} />}
           </button>
           <button
             onClick={() => {
@@ -508,8 +498,58 @@ export function ChatColumn({
             onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-ghost)')}
             title="Report an error"
           >
-            ⚠️
+            <FiAlertTriangle size={14} />
           </button>
+
+          {/* Inline Tools and Export buttons */}
+          {!toolsOpen && onOpenTools && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onOpenTools() }}
+              style={{
+                cursor: 'pointer',
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                fontSize: '11px', fontWeight: 600, padding: '2px 8px',
+                borderRadius: '6px', color: saathi.primary,
+                background: `${saathi.primary}12`, border: `1px solid ${saathi.primary}25`,
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `${saathi.primary}20`
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = `${saathi.primary}12`
+              }}
+              title="Open tools sidebar"
+            >
+              <FiCpu size={12} />
+              <span>Tools</span>
+            </button>
+          )}
+
+          {!toolsOpen && messages.length > 0 && onOpenExport && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onOpenExport() }}
+              style={{
+                cursor: 'pointer',
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                fontSize: '11px', fontWeight: 600, padding: '2px 8px',
+                borderRadius: '6px', color: 'var(--text-secondary)',
+                background: 'rgba(0,0,0,0.03)', border: '1px solid var(--border-subtle)',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(0,0,0,0.06)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(0,0,0,0.03)'
+              }}
+              title="Export this chat"
+            >
+              <FiDownload size={12} />
+              <span>Export</span>
+            </button>
+          )}
+
           <span style={{ flex: 1 }} />
           <span style={{ fontSize: '10px', color: 'var(--text-ghost)' }}>
             Enter to send

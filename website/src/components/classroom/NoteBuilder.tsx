@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { SAATHIS } from '@/constants/saathis'
+import { FiMail, FiSend, FiCheck, FiLoader, FiX, FiFileText } from 'react-icons/fi'
+import { FaWhatsapp, FaFilePdf } from 'react-icons/fa6'
 
 type Props = {
   sessionId: string
@@ -260,12 +262,12 @@ function ShareFooter({
           </p>
 
           {/* Save as PDF */}
-          <ShareBtn icon="📄" label="Save as PDF" onClick={onPrint} state="idle" />
+          <ShareBtn icon={<FaFilePdf size={14} />} label="Save as PDF" onClick={onPrint} state="idle" />
 
           {/* Send via WhatsApp — faculty only */}
           {isFaculty && (
             <ShareBtn
-              icon="💬"
+              icon={<FaWhatsapp size={14} />}
               label="Send via WhatsApp"
               onClick={() => handleSend('whatsapp')}
               state={sendState.whatsapp}
@@ -276,7 +278,7 @@ function ShareFooter({
           {/* Email to students — faculty only */}
           {isFaculty && (
             <ShareBtn
-              icon="📧"
+              icon={<FiMail size={14} />}
               label="Email to students"
               onClick={() => handleSend('email')}
               state={sendState.email}
@@ -289,7 +291,7 @@ function ShareFooter({
             <>
               <div style={{ height: '1px', background: 'var(--border-subtle)', margin: '6px 0' }} />
               <ShareBtn
-                icon="🚀"
+                icon={<FiSend size={14} />}
                 label="Send both (WhatsApp + Email)"
                 onClick={() => handleSend('both')}
                 state={sendState.whatsapp === 'sent' && sendState.email === 'sent' ? 'sent' : sendState.whatsapp === 'sending' || sendState.email === 'sending' ? 'sending' : 'idle'}
@@ -313,7 +315,7 @@ function ShareFooter({
 function ShareBtn({
   icon, label, onClick, state, sentLabel,
 }: {
-  icon: string; label: string; onClick: () => void
+  icon: React.ReactNode; label: string; onClick: () => void
   state: 'idle' | 'sending' | 'sent' | 'error'
   sentLabel?: string
 }) {
@@ -331,7 +333,9 @@ function ShareBtn({
         textAlign: 'left',
       }}
     >
-      <span>{state === 'sent' ? '✓' : state === 'sending' ? '⏳' : state === 'error' ? '✗' : icon}</span>
+      <span style={{ display: 'flex', alignItems: 'center' }}>
+        {state === 'sent' ? <FiCheck size={14} /> : state === 'sending' ? <FiLoader size={14} className="animate-spin" /> : state === 'error' ? <FiX size={14} /> : icon}
+      </span>
       <span>{state === 'sent' ? (sentLabel ?? 'Sent') : state === 'sending' ? 'Sending...' : state === 'error' ? 'Failed — try again' : label}</span>
     </button>
   )

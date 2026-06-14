@@ -13,6 +13,15 @@ import {
   EXPLORE_CATEGORIES,
   type ExploreItem,
 } from '@/constants/exploreBeyond'
+import { FiBookOpen, FiMic, FiYoutube, FiGlobe, FiCpu } from 'react-icons/fi'
+
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  books: <FiBookOpen size={12} />,
+  podcasts: <FiMic size={12} />,
+  channels: <FiYoutube size={12} />,
+  journals: <FiGlobe size={12} />,
+  tools: <FiCpu size={12} />,
+}
 
 export function ExploreBeyond({ saathiSlug }: { saathiSlug: string }) {
   const [activeCategory, setActiveCategory] = useState<string>('books')
@@ -67,7 +76,9 @@ export function ExploreBeyond({ saathiSlug }: { saathiSlug: string }) {
                 : '1px solid var(--border-subtle)',
             }}
           >
-            <span style={{ fontSize: '12px' }}>{cat.emoji}</span>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
+              {CATEGORY_ICONS[cat.key] ?? cat.emoji}
+            </span>
             <span>{cat.label}</span>
           </button>
         ))}

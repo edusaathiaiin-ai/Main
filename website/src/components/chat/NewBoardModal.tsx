@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { SUBJECT_CHIPS } from '@/constants/subjectChips'
@@ -28,12 +28,27 @@ export function NewBoardModal({
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('📒')
   const [creating, setCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState(false)
 
   // Drag state
   const [pos, setPos] = useState({ x: 290, y: 120 })
   const dragging = useRef(false)
   const dragOffset = useRef({ x: 0, y: 0 })
+
+  useEffect(() => {
+    if (open && typeof window !== 'undefined') {
+      const isMobile = window.innerWidth < 768
+      if (isMobile) {
+        const modalWidth = 340
+        const xVal = Math.max(10, (window.innerWidth - modalWidth) / 2)
+        const yVal = Math.max(50, (window.innerHeight - 380) / 2)
+        setPos({ x: xVal, y: yVal })
+      } else {
+        setPos({ x: 290, y: 120 })
+      }
+    }
+  }, [open])
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     dragging.current = true
@@ -58,32 +73,47 @@ export function NewBoardModal({
   async function createBoard(boardName: string, boardEmoji: string) {
     if (creating) return
     setCreating(true)
-    const supabase = createClient()
-    const { count } = await supabase
-      .from('chatboards')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('saathi_slug', saathiSlug)
-      .eq('is_archived', false)
-    const { data, error } = await supabase
-      .from('chatboards')
-      .insert({
-        user_id: userId,
-        saathi_slug: saathiSlug,
-        name: boardName.trim().slice(0, 40),
-        emoji: boardEmoji,
-        board_type: 'subject',
-        position: count ?? 0,
-      })
-      .select('id')
-      .single()
-    setCreating(false)
-    if (!error && data) {
+    setError(null)
+    try {
+      const supabase = createClient()
+      const { count } = await supabase
+        .from('chatboards')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('saathi_slug', saathiSlug)
+        .eq('is_archived', false)
+      const { data, error: insertError } = await supabase
+        .from('chatboards')
+        .insert({
+          user_id: userId,
+          saathi_slug: saathiSlug,
+          name: boardName.trim().slice(0, 40),
+          emoji: boardEmoji,
+          board_type: 'subject',
+          position: count ?? 0,
+        })
+        .select('id')
+        .single()
+      setCreating(false)
+      if (insertError) {
+        console.error('[NewBoardModal] insert failed:', insertError.message)
+        setError('Couldn\u2019t create board \u2014 please try again.')
+        return
+      }
+      if (!data) {
+        setError('Something went wrong \u2014 no board was created.')
+        return
+      }
       trackChatboardCreated('subject', saathiSlug, false)
       setName('')
       setEmoji('📒')
+      setError(null)
       onCreated(data.id, boardName.trim())
       onClose()
+    } catch (err) {
+      setCreating(false)
+      console.error('[NewBoardModal] unexpected error:', err)
+      setError('Network error \u2014 check your connection and try again.')
     }
   }
 
@@ -270,6 +300,21 @@ export function NewBoardModal({
               >
                 {creating ? 'Creating…' : `Create ${emoji} ${name.trim() || 'Board'}`}
               </button>
+
+              {/* Error message */}
+              {error && (
+                <p style={{
+                  fontSize: '12px',
+                  color: '#EF4444',
+                  margin: '8px 0 0',
+                  padding: '6px 10px',
+                  background: 'rgba(239, 68, 68, 0.08)',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                }}>
+                  ⚠ {error}
+                </p>
+              )}
             </div>
           )}
         </motion.div>

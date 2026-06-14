@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
+import { FiBell, FiBellOff, FiStar, FiCalendar, FiCreditCard, FiTarget, FiFileText } from 'react-icons/fi'
+import { FaGraduationCap } from 'react-icons/fa6'
 
 type Notification = {
   id: string
@@ -26,16 +28,16 @@ function timeAgo(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
-function typeIcon(type: string): string {
-  const icons: Record<string, string> = {
-    board_answered: '✦',
-    session_accepted: '📅',
-    session_paid: '💳',
-    lecture_booked: '🎓',
-    intent_fulfilled: '🎯',
-    application_update: '📋',
+function typeIcon(type: string): React.ReactNode {
+  const icons: Record<string, React.ReactNode> = {
+    board_answered: <FiStar size={16} />,
+    session_accepted: <FiCalendar size={16} />,
+    session_paid: <FiCreditCard size={16} />,
+    lecture_booked: <FaGraduationCap size={16} />,
+    intent_fulfilled: <FiTarget size={16} />,
+    application_update: <FiFileText size={16} />,
   }
-  return icons[type] ?? '🔔'
+  return icons[type] ?? <FiBell size={16} />
 }
 
 export function NotificationBell() {
@@ -144,19 +146,7 @@ export function NotificationBell() {
           transition: 'all 0.2s',
         }}
       >
-        <svg
-          width="17"
-          height="17"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="var(--text-secondary)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-        </svg>
+        <FiBell size={17} style={{ color: 'var(--text-secondary)' }} />
         {unread > 0 && (
           <span
             style={{
@@ -234,8 +224,8 @@ export function NotificationBell() {
 
             {/* List */}
             {notifications.length === 0 ? (
-              <div style={{ padding: '32px 16px', textAlign: 'center' }}>
-                <p style={{ fontSize: '24px', margin: '0 0 8px' }}>🔔</p>
+              <div style={{ padding: '32px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <FiBellOff size={24} style={{ color: 'var(--text-ghost)', marginBottom: '8px' }} />
                 <p
                   style={{
                     fontSize: '13px',

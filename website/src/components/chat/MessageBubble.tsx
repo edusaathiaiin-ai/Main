@@ -393,6 +393,101 @@ function Scene360ViewerWrapper({ scene, saathiColor }: { scene: string; saathiCo
   return <Scene360Viewer scene={scene} saathiId={saathiId} saathiColor={saathiColor} />
 }
 
+function renderMarkdownInline(text: string): React.ReactNode {
+  const tokens: React.ReactNode[] = []
+  let remaining = text
+  let keyIdx = 0
+
+  while (remaining.length > 0) {
+    const boldRegex = /(\*\*|__)(.*?)\1/
+    const italicRegex = /(\*|_)(.*?)\1/
+    const codeRegex = /`([^`]+)`/
+
+    let earliestMatch: {
+      index: number
+      length: number
+      type: 'bold' | 'italic' | 'code'
+      content: string
+    } | null = null
+
+    const updateEarliest = (
+      index: number,
+      length: number,
+      type: 'bold' | 'italic' | 'code',
+      content: string
+    ) => {
+      if (!earliestMatch || index < earliestMatch.index) {
+        earliestMatch = { index, length, type, content }
+      }
+    }
+
+    const bm = boldRegex.exec(remaining)
+    if (bm) {
+      updateEarliest(bm.index, bm[0].length, 'bold', bm[2])
+    }
+
+    const im = italicRegex.exec(remaining)
+    if (im) {
+      updateEarliest(im.index, im[0].length, 'italic', im[2])
+    }
+
+    const cm = codeRegex.exec(remaining)
+    if (cm) {
+      updateEarliest(cm.index, cm[0].length, 'code', cm[1])
+    }
+
+    if (!earliestMatch) {
+      tokens.push(<span key={keyIdx++}>{remaining}</span>)
+      break
+    }
+
+    const match = earliestMatch as {
+      index: number
+      length: number
+      type: 'bold' | 'italic' | 'code'
+      content: string
+    }
+
+    if (match.index > 0) {
+      tokens.push(<span key={keyIdx++}>{remaining.slice(0, match.index)}</span>)
+    }
+
+    if (match.type === 'bold') {
+      tokens.push(
+        <strong key={keyIdx++} style={{ fontWeight: 700 }}>
+          {renderMarkdownInline(match.content)}
+        </strong>
+      )
+    } else if (match.type === 'italic') {
+      tokens.push(
+        <em key={keyIdx++} style={{ fontStyle: 'italic' }}>
+          {renderMarkdownInline(match.content)}
+        </em>
+      )
+    } else if (match.type === 'code') {
+      tokens.push(
+        <code
+          key={keyIdx++}
+          style={{
+            background: 'var(--bg-elevated)',
+            border: '0.5px solid var(--border-subtle)',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            fontFamily: 'monospace',
+            fontSize: '90%',
+          }}
+        >
+          {match.content}
+        </code>
+      )
+    }
+
+    remaining = remaining.slice(match.index + match.length)
+  }
+
+  return tokens
+}
+
 function RenderSegments({
   segments,
   primaryColor,
@@ -407,7 +502,7 @@ function RenderSegments({
           case 'text':
             return (
               <span key={i} style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
-                {seg.content}
+                {renderMarkdownInline(seg.content)}
               </span>
             )
 
@@ -816,7 +911,7 @@ function SaveFlashcardMini({
               borderRadius: '8px',
               background: primaryColor,
               border: 'none',
-              color: '#060F1D',
+              color: '#FFFFFF',
               fontSize: '12px',
               fontWeight: 700,
               cursor: saving ? 'wait' : 'pointer',
@@ -960,11 +1055,13 @@ export function MessageBubble({
                   fontFamily: 'var(--font-body)',
                   fontWeight: 500,
                   maxWidth: '70%',
+                  minWidth: '50px',
                   fontSize: '15px',
                 }
               : {
                   background: 'var(--bg-surface)',
                   maxWidth: '75%',
+                  minWidth: '50px',
                   borderRadius: '4px 18px 18px 18px',
                   border: '1px solid var(--border-subtle)',
                   boxShadow: 'var(--shadow-xs)',
@@ -981,7 +1078,9 @@ export function MessageBubble({
           ) : (
             // Streaming or user messages — plain text
             <>
-              <span className="whitespace-pre-wrap">{displayText}</span>
+              <span className="whitespace-pre-wrap">
+                {renderMarkdownInline(displayText)}
+              </span>
               {isStreaming && !isUser && <TypingCursor />}
             </>
           )}

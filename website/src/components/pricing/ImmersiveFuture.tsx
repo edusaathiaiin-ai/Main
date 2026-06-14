@@ -141,7 +141,7 @@ export function ImmersiveFuture() {
         </h2>
         <p
           className="mx-auto max-w-2xl text-base leading-relaxed"
-          style={{ color: 'rgba(255,255,255,0.5)' }}
+          style={{ color: 'rgba(255,255,255,0.85)' }}
         >
           A pilot who learned to fly only from instruction manuals and a pilot
           who trained in a simulator are not the same pilot. EdUsaathiAI is
@@ -167,7 +167,7 @@ export function ImmersiveFuture() {
                   : '1px solid rgba(255,255,255,0.08)',
                 color: activeContrast === i
                   ? c.color
-                  : 'rgba(255,255,255,0.4)',
+                  : 'rgba(255,255,255,0.7)',
               }}
             >
               {c.emoji} {c.saathi}
@@ -189,22 +189,22 @@ export function ImmersiveFuture() {
             <div
               className="rounded-2xl p-6"
               style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.07)',
+                background: '#131F32',
+                border: '1px solid rgba(255,255,255,0.08)',
               }}
             >
               <div className="mb-4 flex items-center gap-2">
                 <span className="text-xl">📖</span>
                 <span
                   className="text-xs font-bold tracking-wider uppercase"
-                  style={{ color: 'rgba(255,255,255,0.3)' }}
+                  style={{ color: 'rgba(255,255,255,0.6)' }}
                 >
                   The old way
                 </span>
               </div>
               <p
                 className="text-lg font-medium leading-relaxed"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
+                style={{ color: '#FFFFFF' }}
               >
                 {CONTRAST[activeContrast].old}
               </p>
@@ -214,8 +214,8 @@ export function ImmersiveFuture() {
             <div
               className="relative overflow-hidden rounded-2xl p-6"
               style={{
-                background: `${CONTRAST[activeContrast].color}08`,
-                border: `1.5px solid ${CONTRAST[activeContrast].color}35`,
+                background: '#1A2F4C',
+                border: `1.5px solid ${CONTRAST[activeContrast].color}45`,
               }}
             >
               <div
@@ -252,8 +252,8 @@ export function ImmersiveFuture() {
       <div
         className="relative rounded-3xl p-8 md:p-12"
         style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: '#0B1F3A',
+          border: '1px solid rgba(255,255,255,0.08)',
         }}
       >
         <div className="mb-8 text-center">
@@ -323,19 +323,19 @@ export function ImmersiveFuture() {
 
                 <p
                   className="mb-1 text-[10px] font-bold tracking-wider uppercase"
-                  style={{ color: stage.active ? '#C9993A' : 'rgba(255,255,255,0.25)' }}
+                  style={{ color: stage.active ? '#C9993A' : 'rgba(255,255,255,0.5)' }}
                 >
                   {stage.year}
                 </p>
                 <p
                   className="mb-2 text-sm font-bold"
-                  style={{ color: stage.active ? '#FFFFFF' : 'rgba(255,255,255,0.35)' }}
+                  style={{ color: stage.active ? '#FFFFFF' : 'rgba(255,255,255,0.6)' }}
                 >
                   {stage.label}
                 </p>
                 <p
                   className="text-[11px] leading-relaxed"
-                  style={{ color: stage.active ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)' }}
+                  style={{ color: stage.active ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.4)' }}
                 >
                   {stage.description}
                 </p>
@@ -351,10 +351,10 @@ export function ImmersiveFuture() {
         >
           <p
             className="mx-auto max-w-2xl text-sm leading-relaxed"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            style={{ color: 'rgba(255,255,255,0.75)' }}
           >
             We are building the world&apos;s first{' '}
-            <span style={{ color: 'rgba(255,255,255,0.7)' }}>
+            <span style={{ color: 'rgba(255,255,255,0.95)' }}>
               soul-matched immersive learning platform.
             </span>{' '}
             No other platform in India — or the world — is walking this path

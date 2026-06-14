@@ -13,6 +13,7 @@ import ComparisonTable from '@/components/pricing/ComparisonTable'
 import PricingFAQ from '@/components/pricing/PricingFAQ'
 import { ImmersiveFuture } from '@/components/pricing/ImmersiveFuture'
 import { trackPricingViewed, trackUpgradeClicked } from '@/lib/analytics'
+import { FiArrowLeft } from 'react-icons/fi'
 
 // ── Env flag — set NEXT_PUBLIC_PAYMENTS_ACTIVE=true when Razorpay is live ─────
 const PAYMENTS_ACTIVE = process.env.NEXT_PUBLIC_PAYMENTS_ACTIVE === 'true'
@@ -315,6 +316,25 @@ export default function PricingPage() {
         ? 'direct'
         : 'upgrade_modal'
     trackPricingViewed(source)
+
+    // Clear Saathi theme and set body background/text styles for pricing page
+    const prevSaathi = document.body.getAttribute('data-saathi')
+    const prevBg = document.body.style.background
+    const prevColor = document.body.style.color
+
+    document.body.removeAttribute('data-saathi')
+    document.body.style.background = '#060F1D'
+    document.body.style.color = '#FFFFFF'
+
+    return () => {
+      if (prevSaathi) {
+        document.body.setAttribute('data-saathi', prevSaathi)
+      } else {
+        document.body.removeAttribute('data-saathi')
+      }
+      document.body.style.background = prevBg
+      document.body.style.color = prevColor
+    }
   }, [])
 
   function ensureRazorpayLoaded(): Promise<void> {
@@ -485,6 +505,20 @@ export default function PricingPage() {
         />
 
         <div className="relative z-10 mx-auto max-w-6xl px-4 py-16">
+          {/* ── Back Navigation ────────────────────────────────────── */}
+          <div className="mb-8 flex justify-start">
+            <button
+              onClick={() => {
+                const returnUrl = sessionStorage.getItem('upgrade_return_url') ?? (isLoggedIn ? '/chat' : '/')
+                router.push(returnUrl)
+              }}
+              className="group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white/70 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white"
+            >
+              <FiArrowLeft className="transition-transform group-hover:-translate-x-0.5" />
+              {isLoggedIn ? 'Back to chat' : 'Back to home'}
+            </button>
+          </div>
+
           {/* ── Header ──────────────────────────────────────────────── */}
           <div className="mb-10 text-center">
             <motion.p
@@ -508,10 +542,10 @@ export default function PricingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="mx-auto max-w-lg text-base"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
+              style={{ color: 'rgba(255,255,255,0.85)' }}
             >
               Start free. Upgrade when you&apos;re ready.{' '}
-              <span style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <span style={{ color: 'rgba(255,255,255,0.65)' }}>
                 Cancel anytime — except Unlimited which you pause.
               </span>
             </motion.p>
@@ -610,7 +644,7 @@ export default function PricingPage() {
                     <p className="text-sm font-bold text-white">ChatGPT Plus</p>
                     <p
                       className="text-xs"
-                      style={{ color: 'rgba(255,255,255,0.4)' }}
+                      style={{ color: 'rgba(255,255,255,0.7)' }}
                     >
                       ₹1,650 / month
                     </p>
@@ -625,7 +659,7 @@ export default function PricingPage() {
                       >
                         ✗
                       </span>
-                      <span style={{ color: 'rgba(255,255,255,0.45)' }}>
+                      <span style={{ color: 'rgba(255,255,255,0.65)' }}>
                         {item}
                       </span>
                     </li>
@@ -656,7 +690,7 @@ export default function PricingPage() {
                     >
                       EdUsaathiAI Plus
                     </p>
-                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
                       <span className="line-through opacity-50">₹199</span> ₹99 / month
                     </p>
                   </div>
@@ -685,7 +719,7 @@ export default function PricingPage() {
                   <div className="flex items-center justify-between">
                     <span
                       className="text-xs"
-                      style={{ color: 'rgba(255,255,255,0.4)' }}
+                      style={{ color: 'rgba(255,255,255,0.7)' }}
                     >
                       vs ChatGPT Plus at ₹1,650/mo
                     </span>
@@ -734,7 +768,7 @@ export default function PricingPage() {
             </h2>
             <p
               className="mx-auto mb-8 max-w-md text-base"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
+              style={{ color: 'rgba(255,255,255,0.85)' }}
             >
               Join 312 founding students getting full access free. No card. No
               catch.

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { FiMic, FiSquare } from 'react-icons/fi'
 
 // Web Speech API types come from @types/dom-speech-recognition (global).
 
@@ -152,10 +153,6 @@ export function VoiceInput({
 
       {/* Mic button */}
       <motion.button
-        onMouseDown={startListening}
-        onMouseUp={stopListening}
-        onTouchStart={startListening}
-        onTouchEnd={stopListening}
         onClick={isListening ? stopListening : startListening}
         disabled={disabled}
         animate={{
@@ -183,9 +180,9 @@ export function VoiceInput({
           position: 'relative',
           boxShadow: isListening ? `0 0 20px ${saathiColor}40` : 'none',
         }}
-        title={isListening ? 'Click to stop' : 'Hold to speak'}
+        title={isListening ? 'Click to stop' : 'Click to speak'}
       >
-        {isListening ? '⏹' : '🎤'}
+        {isListening ? <FiSquare size={16} /> : <FiMic size={18} />}
         {isListening && (
           <motion.div
             animate={{ scale: [1, 2], opacity: [0.4, 0] }}
@@ -201,44 +198,89 @@ export function VoiceInput({
         )}
       </motion.button>
 
-      {/* Live transcript popup */}
+      {/* Live transcript & Voice animation popup */}
       <AnimatePresence>
-        {transcript && (
+        {(isListening || transcript) && (
           <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.95 }}
+            initial={{ opacity: 0, y: 12, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8 }}
+            exit={{ opacity: 0, y: 8, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
             style={{
               position: 'absolute',
               bottom: '52px',
               right: 0,
               background: popupBg,
               border: popupBorder,
-              borderRadius: '12px',
-              padding: '10px 14px',
-              fontSize: '13px',
-              color: popupColor,
-              maxWidth: '280px',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              borderRadius: '16px',
+              padding: '12px 16px',
               boxShadow: popupShadow,
-              zIndex: 10,
+              zIndex: 50,
+              width: '260px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
             }}
           >
-            <span
+            {/* Header with status and 5 bouncing balls */}
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: saathiColor, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#EF4444' }} />
+                {isListening ? 'Listening' : 'Speech'}
+              </span>
+
+              {/* 5 Google Voice style bouncy dots */}
+              {isListening && (
+                <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto', alignItems: 'center' }}>
+                  {[
+                    { color: '#4285F4', delay: 0 },
+                    { color: '#EA4335', delay: 0.1 },
+                    { color: '#FBBC05', delay: 0.2 },
+                    { color: '#34A853', delay: 0.3 },
+                    { color: saathiColor || '#C9993A', delay: 0.4 },
+                  ].map((dot, idx) => (
+                    <motion.div
+                      key={idx}
+                      style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        backgroundColor: dot.color,
+                        boxShadow: `0 0 4px ${dot.color}aa`,
+                      }}
+                      animate={{
+                        y: [-3, 3, -3],
+                      }}
+                      transition={{
+                        duration: 0.6,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                        delay: dot.delay,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Transcript text content */}
+            <div
               style={{
-                color: saathiColor,
-                marginRight: '6px',
-                fontSize: '10px',
+                fontSize: '13px',
+                lineHeight: '1.5',
+                color: transcript ? popupColor : 'var(--text-tertiary)',
+                wordBreak: 'break-word',
+                maxHeight: '100px',
+                overflowY: 'auto',
+                fontStyle: transcript ? 'normal' : 'italic',
               }}
             >
-              ● LIVE
-            </span>
-            {transcript}
+              {transcript || 'Say something...'}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   )
 }
+

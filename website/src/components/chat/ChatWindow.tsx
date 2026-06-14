@@ -18,6 +18,7 @@ import { useThemeStore } from '@/stores/themeStore'
 import { useFontStore, getChatFontStyle } from '@/stores/fontStore'
 import { useViewAsStore } from '@/stores/viewAsStore'
 import { trackChatSent, trackMultipaneActivated, trackColumnAdded, trackColumnRemoved, trackColumnResized, trackUpgradeNudgeShown } from '@/lib/analytics'
+import { FiX, FiAlertTriangle, FiCpu, FiDownload } from 'react-icons/fi'
 // ── Always-visible — eager ────────────────────────────────────────────────────
 import { ChatWatermark } from './ChatWatermark'
 import { SaathiHeader } from './SaathiHeader'
@@ -252,7 +253,7 @@ function RichFeatureBanner({
         }}
         aria-label="Dismiss"
       >
-        ✕
+        <FiX size={16} />
       </button>
     </motion.div>
   )
@@ -1124,7 +1125,7 @@ export function ChatWindow() {
                 className="ml-4 shrink-0 text-xs"
                 style={{ color: 'var(--text-ghost)' }}
               >
-                ✕
+                <FiX size={14} />
               </button>
             </motion.div>
           )}
@@ -1152,13 +1153,13 @@ export function ChatWindow() {
                 borderBottom: '0.5px solid rgba(239,68,68,0.2)',
               }}
             >
-              <span style={{ color: '#FCA5A5' }}>⚠️ {errorBanner}</span>
+              <span style={{ color: '#FCA5A5', display: 'flex', alignItems: 'center', gap: '4px' }}><FiAlertTriangle size={14} /> {errorBanner}</span>
               <button
                 onClick={() => setErrorBanner(null)}
                 className="text-xs"
                 style={{ color: 'var(--text-ghost)' }}
               >
-                ✕
+                <FiX size={14} />
               </button>
             </motion.div>
           )}
@@ -1194,6 +1195,9 @@ export function ChatWindow() {
                     onClose={() => removeColumn(col.id)}
                     onEmailDigest={handleEmailDigest}
                     viewAs={profile.role === 'faculty' ? viewAs : undefined}
+                    toolsOpen={toolsOpen}
+                    onOpenTools={() => setToolsOpen(true)}
+                    onOpenExport={() => setExportOpen(true)}
                   />
                 </div>
                 {idx < openColumns.length - 1 && (
@@ -1358,6 +1362,10 @@ export function ChatWindow() {
             inputValue={inputValue}
             setInputValue={setInputValue}
             isLegalTheme={isLegalTheme}
+            toolsOpen={toolsOpen}
+            onOpenTools={() => setToolsOpen(true)}
+            onOpenExport={() => setExportOpen(true)}
+            hasMessages={messages.length > 0}
           />
         )}
 
@@ -1376,13 +1384,11 @@ export function ChatWindow() {
         )}
       </main>
 
-      {/* ── Tools sidebar (desktop ≥ md): right pane at ~50% width when
-          open. flex-1 on this element + flex-1 on <main> gives the 50/50
-          split. Hidden on mobile — mobile uses the overlay below. */}
+      {/* ── Tools sidebar (desktop ≥ md): right pane. Sized to match width of the tool (~380px). */}
       {toolsOpen && (
         <div
           className="hidden md:flex"
-          style={{ flex: '1 1 50%', minWidth: 0, height: '100%' }}
+          style={{ flex: '0 0 380px', width: '380px', minWidth: 0, height: '100%' }}
         >
           <ChatToolsSidebar
             saathiSlug={saathiId}
@@ -1414,87 +1420,7 @@ export function ChatWindow() {
         </div>
       )}
 
-      {/* ── Tools toggle (only when sidebar is closed). Fixed bottom-right
-          on desktop + mobile, sized to be discoverable. The "✨ Tools"
-          label is the affordance the user explicitly asked for so students
-          notice the feature exists. */}
-      {!toolsOpen && (
-        <button
-          onClick={() => setToolsOpen(true)}
-          aria-label="Open tools"
-          style={{
-            position:    'fixed',
-            bottom:      96,
-            right:       16,
-            zIndex:      40,
-            display:     'flex',
-            alignItems:  'center',
-            gap:         8,
-            padding:     '10px 16px',
-            borderRadius: 999,
-            background:  activeSaathi.primary,
-            color:       '#ffffff',
-            border:      'none',
-            cursor:      'pointer',
-            fontSize:    13,
-            fontWeight:  600,
-            boxShadow:   `0 8px 24px ${activeSaathi.primary}44`,
-            transition:  'transform 0.15s ease, box-shadow 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)'
-            e.currentTarget.style.boxShadow = `0 12px 32px ${activeSaathi.primary}55`
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)'
-            e.currentTarget.style.boxShadow = `0 8px 24px ${activeSaathi.primary}44`
-          }}
-        >
-          <span style={{ fontSize: 16 }}>🛠️</span>
-          <span>Tools</span>
-        </button>
-      )}
-
-      {/* ── Export trigger — small icon button above the Tools pill.
-          Hidden if there are no real messages to export. Renders to the
-          right of the Tools button so the pair reads as student-action
-          affordances together. */}
-      {!toolsOpen && messages.length > 0 && (
-        <button
-          onClick={() => setExportOpen(true)}
-          aria-label="Export this chat"
-          title="Export this chat"
-          style={{
-            position:    'fixed',
-            bottom:      152,
-            right:       16,
-            zIndex:      40,
-            display:     'flex',
-            alignItems:  'center',
-            justifyContent: 'center',
-            width:       40,
-            height:      40,
-            borderRadius: 999,
-            background:  'var(--bg-surface)',
-            color:       'var(--text-secondary)',
-            border:      `1px solid ${activeSaathi.primary}40`,
-            cursor:      'pointer',
-            fontSize:    16,
-            boxShadow:   '0 4px 12px rgba(0,0,0,0.15)',
-            transition:  'transform 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)'
-            e.currentTarget.style.borderColor = activeSaathi.primary
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)'
-            e.currentTarget.style.borderColor = `${activeSaathi.primary}40`
-          }}
-        >
-          ⤓
-        </button>
-      )}
+      {/* Floating action buttons removed. Now rendered inline inside the chat column input/status areas. */}
 
       {/* Export modal */}
       <ExportModal

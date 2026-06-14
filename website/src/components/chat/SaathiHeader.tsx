@@ -11,6 +11,10 @@ import { useViewAsStore } from '@/stores/viewAsStore'
 import { ViewAsToggle } from './ViewAsToggle'
 import { FacultyToolsButton } from '@/components/faculty/FacultyToolsButton'
 import type { UserRole } from '@/types'
+import { motion } from 'framer-motion'
+import { FiMail, FiCheck, FiX, FiLoader, FiCompass, FiSun, FiMoon, FiLock } from 'react-icons/fi'
+import { FaChalkboardUser } from 'react-icons/fa6'
+
 
 type Props = {
   saathi:        Saathi
@@ -124,7 +128,21 @@ export function SaathiHeader({
                 cursor: digestState === 'sending' ? 'not-allowed' : 'pointer',
               }}
             >
-              {digestState === 'sending' ? '⏳' : digestState === 'sent' ? '✓' : digestState === 'error' ? '✗' : '📧'}
+              {digestState === 'sending' ? (
+                <motion.span
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
+                  style={{ display: 'inline-flex' }}
+                >
+                  <FiLoader size={12} />
+                </motion.span>
+              ) : digestState === 'sent' ? (
+                <FiCheck size={12} />
+              ) : digestState === 'error' ? (
+                <FiX size={12} />
+              ) : (
+                <FiMail size={12} />
+              )}
               {digestState === 'sent' ? 'Sent to your email!' : digestState === 'error' ? 'No chat today' : digestState === 'sending' ? 'Sending...' : "Email today's chat"}
             </button>
           )}
@@ -142,7 +160,8 @@ export function SaathiHeader({
                 cursor: 'pointer',
               }}
             >
-              🎓 Guided tour
+              <FiCompass size={12} />
+              <span>Guided tour</span>
             </button>
           )}
 
@@ -215,7 +234,7 @@ export function SaathiHeader({
               e.currentTarget.style.color        = 'var(--text-secondary)'
             }}
           >
-            <span>{mode === 'dark' ? '☀️' : '🌙'}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}>{mode === 'dark' ? <FiSun size={13} /> : <FiMoon size={13} />}</span>
             <span>{mode === 'dark' ? 'Day' : 'Night'}</span>
           </button>
 
@@ -285,8 +304,8 @@ export function SaathiHeader({
                 fontFamily:   'var(--font-body)',
               }}
             >
-              <span style={{ fontSize: '13px', opacity: unlocked ? 1 : 0.4 }}>
-                {unlocked ? bot.emoji : '🔒'}
+              <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: '13px', opacity: unlocked ? 1 : 0.4 }}>
+                {unlocked ? bot.emoji : <FiLock size={12} />}
               </span>
               {bot.name}
               {active && (
@@ -332,7 +351,7 @@ export function SaathiHeader({
                 e.currentTarget.style.background  = 'transparent'
               }}
             >
-              <span style={{ fontSize: '13px' }}>👨‍🏫</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: '13px' }}><FaChalkboardUser size={13} /></span>
               Suggest a Faculty
             </button>
             {/* Hover tooltip */}

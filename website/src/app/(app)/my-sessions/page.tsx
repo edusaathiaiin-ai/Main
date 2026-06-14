@@ -21,9 +21,28 @@ type SessionRow = {
 
 type FacultyInfo = { full_name: string; city: string | null }
 
+type LiveBookingRow = {
+  id: string
+  session_id: string
+  booking_type: string
+  amount_paid_paise: number
+  payment_status: string
+  created_at: string
+  live_sessions: {
+    id: string
+    title: string
+    description: string
+    faculty_id: string
+    meeting_link: string | null
+    status: string
+  } | null
+}
+
 export default function MySessionsPage() {
   const { profile } = useAuthStore()
   const [sessions, setSessions] = useState<SessionRow[]>([])
+  const [liveBookings, setLiveBookings] = useState<LiveBookingRow[]>([])
+  const [liveLecturesMap, setLiveLecturesMap] = useState<Record<string, string>>({})
   const [facultyMap, setFacultyMap] = useState<Record<string, FacultyInfo>>({})
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'upcoming' | 'pending' | 'past'>('upcoming')
@@ -35,16 +54,65 @@ export default function MySessionsPage() {
     const supabase = createClient()
 
     async function load() {
-      const { data } = await supabase
+      // 1. Fetch 1:1 sessions
+      const { data: sessData } = await supabase
         .from('faculty_sessions')
         .select('*')
         .eq('student_id', profile!.id)
         .order('created_at', { ascending: false })
-      const rows = (data ?? []) as SessionRow[]
+      const rows = (sessData ?? []) as SessionRow[]
       setSessions(rows)
 
-      // Fetch faculty names
-      const ids = [...new Set(rows.map((s) => s.faculty_id))]
+      // 2. Fetch live bookings
+      const { data: bookData } = await supabase
+        .from('live_bookings')
+        .select(`
+          id,
+          session_id,
+          booking_type,
+          amount_paid_paise,
+          payment_status,
+          created_at,
+          live_sessions (
+            id,
+            title,
+            description,
+            faculty_id,
+            meeting_link,
+            status
+          )
+        `)
+        .eq('student_id', profile!.id)
+        .order('created_at', { ascending: false })
+      const bookings = (bookData ?? []) as unknown as LiveBookingRow[]
+      setLiveBookings(bookings)
+
+      // 3. Fetch scheduled lecture times for bookings
+      const bookedSessionIds = bookings.map((b) => b.session_id).filter(Boolean)
+      if (bookedSessionIds.length > 0) {
+        const { data: lecData } = await supabase
+          .from('live_lectures')
+          .select('session_id, scheduled_at')
+          .in('session_id', bookedSessionIds)
+          .eq('status', 'scheduled')
+          .order('scheduled_at')
+        
+        const lecMap: Record<string, string> = {}
+        ;(lecData ?? []).forEach((l) => {
+          if (!lecMap[l.session_id]) {
+            lecMap[l.session_id] = l.scheduled_at
+          }
+        })
+        setLiveLecturesMap(lecMap)
+      }
+
+      // 4. Fetch faculty names
+      const ids = [
+        ...new Set([
+          ...rows.map((s) => s.faculty_id),
+          ...bookings.map((b) => b.live_sessions?.faculty_id).filter(Boolean) as string[]
+        ])
+      ]
       if (ids.length > 0) {
         const { data: fData } = await supabase
           .from('profiles')
@@ -63,15 +131,69 @@ export default function MySessionsPage() {
     load()
   }, [profile])
 
-  const upcoming = sessions.filter((s) =>
+  const upcoming1to1 = sessions.filter((s) =>
     ['accepted', 'paid', 'confirmed'].includes(s.status)
   )
-  const pending = sessions.filter((s) => s.status === 'requested')
-  const past = sessions.filter((s) =>
+  const pending1to1 = sessions.filter((s) => s.status === 'requested')
+  const past1to1 = sessions.filter((s) =>
     ['completed', 'reviewed', 'declined', 'cancelled', 'disputed'].includes(
       s.status
     )
   )
+
+  const upcomingLive = liveBookings.filter((b) =>
+    b.payment_status === 'paid' &&
+    b.live_sessions &&
+    !['completed', 'cancelled'].includes(b.live_sessions.status)
+  )
+  const pendingLive = liveBookings.filter((b) => b.payment_status === 'pending')
+  const pastLive = liveBookings.filter((b) =>
+    ['refunded', 'failed'].includes(b.payment_status) ||
+    (b.live_sessions && ['completed', 'cancelled'].includes(b.live_sessions.status))
+  )
+
+  // Map 1:1 sessions to unified view
+  const unified1to1 = (rowsList: SessionRow[]) => rowsList.map((s) => ({
+    id: s.id,
+    isGroupLive: false,
+    title: s.topic,
+    facultyId: s.faculty_id,
+    confirmedSlot: s.confirmed_slot,
+    status: s.status,
+    feePaise: s.fee_paise,
+    meetingLink: s.meeting_link,
+    createdAt: s.created_at,
+    raw1to1: s,
+  }))
+
+  // Map live bookings to unified view
+  const unifiedLive = (rowsList: LiveBookingRow[]) => rowsList.map((b) => ({
+    id: b.id,
+    isGroupLive: true,
+    title: b.live_sessions?.title ?? 'Live Group Lecture',
+    facultyId: b.live_sessions?.faculty_id ?? '',
+    confirmedSlot: b.session_id ? liveLecturesMap[b.session_id] ?? null : null,
+    status: b.payment_status,
+    feePaise: b.amount_paid_paise,
+    meetingLink: b.live_sessions?.meeting_link ?? null,
+    createdAt: b.created_at,
+    rawGroup: b,
+  }))
+
+  const upcomingMerged = [
+    ...unified1to1(upcoming1to1),
+    ...unifiedLive(upcomingLive),
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+  const pendingMerged = [
+    ...unified1to1(pending1to1),
+    ...unifiedLive(pendingLive),
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+  const pastMerged = [
+    ...unified1to1(past1to1),
+    ...unifiedLive(pastLive),
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   async function payForSession(session: SessionRow) {
     setPaying(session.id)
@@ -211,7 +333,7 @@ export default function MySessionsPage() {
   if (!profile) return null
 
   const tabSessions =
-    tab === 'upcoming' ? upcoming : tab === 'pending' ? pending : past
+    tab === 'upcoming' ? upcomingMerged : tab === 'pending' ? pendingMerged : pastMerged
 
   return (
     <main
@@ -223,7 +345,7 @@ export default function MySessionsPage() {
     >
       <nav
         className="flex items-center justify-between border-b px-6 py-4"
-        style={{ borderColor: 'var(--bg-elevated)' }}
+        style={{ borderColor: 'rgba(255,255,255,0.08)' }}
       >
         <Link
           href="/chat"
@@ -235,36 +357,36 @@ export default function MySessionsPage() {
         <Link
           href="/chat"
           className="text-sm"
-          style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
+          style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }}
         >
           &larr; Back to Chat
         </Link>
       </nav>
 
       <div className="mx-auto max-w-3xl px-6 py-8">
-        <h1 className="font-playfair mb-2 text-3xl font-bold text-[var(--text-primary)]">
+        <h1 className="font-playfair mb-2 text-3xl font-bold" style={{ color: '#FFFFFF' }}>
           My Sessions
         </h1>
-        <p className="mb-6 text-sm" style={{ color: 'var(--text-tertiary)' }}>
-          Your 1:1 faculty sessions
+        <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          Your 1:1 and group live session bookings
         </p>
 
         {/* Tabs */}
         <div
           className="mb-6 flex w-fit gap-1 rounded-xl p-1"
           style={{
-            background: 'var(--bg-elevated)',
-            border: '0.5px solid var(--bg-elevated)',
+            background: 'rgba(255,255,255,0.08)',
+            border: '0.5px solid rgba(255,255,255,0.08)',
           }}
         >
           {[
             {
               id: 'upcoming' as const,
               label: 'Upcoming',
-              count: upcoming.length,
+              count: upcomingMerged.length,
             },
-            { id: 'pending' as const, label: 'Pending', count: pending.length },
-            { id: 'past' as const, label: 'Past', count: past.length },
+            { id: 'pending' as const, label: 'Pending', count: pendingMerged.length },
+            { id: 'past' as const, label: 'Past', count: pastMerged.length },
           ].map((t) => (
             <button
               key={t.id}
@@ -272,7 +394,7 @@ export default function MySessionsPage() {
               className="rounded-lg px-4 py-2 text-xs font-medium transition-all"
               style={{
                 background: tab === t.id ? '#C9993A' : 'transparent',
-                color: tab === t.id ? '#060F1D' : 'var(--text-tertiary)',
+                color: tab === t.id ? '#FFFFFF' : 'rgba(255,255,255,0.5)',
               }}
             >
               {t.label} {t.count > 0 && `(${t.count})`}
@@ -291,7 +413,7 @@ export default function MySessionsPage() {
           <div className="py-20 text-center">
             <p
               className="mb-4 text-sm"
-              style={{ color: 'var(--text-ghost)' }}
+              style={{ color: 'rgba(255,255,255,0.35)' }}
             >
               No {tab} sessions
             </p>
@@ -300,7 +422,7 @@ export default function MySessionsPage() {
               className="rounded-lg px-4 py-2 text-xs font-semibold"
               style={{
                 background: '#C9993A',
-                color: '#060F1D',
+                color: '#FFFFFF',
                 textDecoration: 'none',
               }}
             >
@@ -310,7 +432,7 @@ export default function MySessionsPage() {
         ) : (
           <div className="space-y-4">
             {tabSessions.map((s) => {
-              const fac = facultyMap[s.faculty_id]
+              const fac = facultyMap[s.facultyId]
               return (
                 <motion.div
                   key={s.id}
@@ -318,18 +440,31 @@ export default function MySessionsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="rounded-2xl p-5"
                   style={{
-                    background: 'var(--bg-elevated)',
-                    border: '0.5px solid var(--bg-elevated)',
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '0.5px solid rgba(255,255,255,0.08)',
                   }}
                 >
                   <div className="mb-2 flex items-start justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-[var(--text-primary)]">
-                        {fac?.full_name ?? 'Faculty'}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold" style={{ color: '#FFFFFF' }}>
+                          {fac?.full_name ?? 'Faculty'}
+                        </span>
+                        <span
+                          className="rounded px-1.5 py-0.5 text-[9px] font-bold"
+                          style={{
+                            background: s.isGroupLive
+                              ? 'rgba(59,130,246,0.15)'
+                              : 'rgba(192,132,252,0.15)',
+                            color: s.isGroupLive ? '#60A5FA' : '#C084FC',
+                          }}
+                        >
+                          {s.isGroupLive ? 'Group Live' : '1:1 Session'}
+                        </span>
+                      </div>
                       <p
                         className="text-[10px]"
-                        style={{ color: 'var(--text-ghost)' }}
+                        style={{ color: 'rgba(255,255,255,0.4)' }}
                       >
                         {fac?.city}
                       </p>
@@ -338,15 +473,15 @@ export default function MySessionsPage() {
                       className="rounded-full px-2 py-0.5 text-[10px] font-bold"
                       style={{
                         background:
-                          s.status === 'requested'
+                          s.status === 'requested' || s.status === 'pending'
                             ? 'rgba(234,179,8,0.12)'
-                            : s.status === 'declined'
+                            : s.status === 'declined' || s.status === 'failed' || s.status === 'refunded'
                               ? 'rgba(239,68,68,0.12)'
                               : 'rgba(74,222,128,0.12)',
                         color:
-                          s.status === 'requested'
+                          s.status === 'requested' || s.status === 'pending'
                             ? '#FACC15'
-                            : s.status === 'declined'
+                            : s.status === 'declined' || s.status === 'failed' || s.status === 'refunded'
                               ? '#F87171'
                               : '#4ADE80',
                       }}
@@ -355,19 +490,20 @@ export default function MySessionsPage() {
                     </span>
                   </div>
 
-                  <p className="mb-2 text-xs text-[var(--text-secondary)]">{s.topic}</p>
+                  <p className="mb-2 text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>{s.title}</p>
 
-                  {s.confirmed_slot && (
-                    <p className="mb-2 text-xs" style={{ color: '#4ADE80' }}>
-                      {new Date(s.confirmed_slot).toLocaleString('en-IN', {
+                  {s.confirmedSlot && (
+                    <p className="mb-2 text-xs font-semibold" style={{ color: '#4ADE80' }}>
+                      {s.isGroupLive ? 'Next Lecture: ' : 'Scheduled slot: '}
+                      {new Date(s.confirmedSlot).toLocaleString('en-IN', {
                         dateStyle: 'medium',
                         timeStyle: 'short',
                       })}
                     </p>
                   )}
 
-                  {/* Pay to confirm slot — shown when faculty has accepted but student hasn't paid */}
-                  {s.status === 'accepted' && (
+                  {/* Pay to confirm slot — only for 1:1 sessions */}
+                  {!s.isGroupLive && s.raw1to1 && s.status === 'accepted' && (
                     <div
                       className="mt-3 rounded-xl p-4"
                       style={{
@@ -379,26 +515,26 @@ export default function MySessionsPage() {
                         className="mb-3 text-xs"
                         style={{ color: '#E5B86A', lineHeight: 1.6 }}
                       >
-                        ✓ {facultyMap[s.faculty_id]?.full_name ?? 'Faculty'}{' '}
+                        ✓ {fac?.full_name ?? 'Faculty'}{' '}
                         accepted your request. Pay now to confirm your slot.
                       </p>
                       <button
-                        onClick={() => payForSession(s)}
+                        onClick={() => payForSession(s.raw1to1!)}
                         disabled={paying === s.id}
                         className="w-full rounded-xl py-3 text-sm font-bold transition-all disabled:opacity-50"
-                        style={{ background: '#C9993A', color: '#060F1D' }}
+                        style={{ background: '#C9993A', color: '#FFFFFF' }}
                       >
                         {paying === s.id
                           ? 'Opening payment…'
-                          : `Pay ₹${(s.fee_paise / 100).toLocaleString('en-IN')} to confirm slot →`}
+                          : `Pay ₹${(s.feePaise / 100).toLocaleString('en-IN')} to confirm slot →`}
                       </button>
                     </div>
                   )}
 
-                  {s.meeting_link &&
+                  {s.meetingLink &&
                     ['paid', 'confirmed'].includes(s.status) && (
                       <a
-                        href={s.meeting_link}
+                        href={s.meetingLink}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="mb-2 inline-block rounded-lg px-3 py-1.5 text-xs font-semibold"
@@ -412,13 +548,13 @@ export default function MySessionsPage() {
                       </a>
                     )}
 
-                  {/* Confirm session happened — calls edge function, sets payout_status=pending for admin review */}
-                  {s.status === 'completed' && !s.student_confirmed_at && (
+                  {/* Confirm session happened — only for 1:1 sessions */}
+                  {!s.isGroupLive && s.status === 'completed' && s.raw1to1 && !s.raw1to1.student_confirmed_at && (
                     <button
                       onClick={() => confirmSession(s.id)}
                       disabled={confirming === s.id}
                       className="mt-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all disabled:opacity-50"
-                      style={{ background: '#C9993A', color: '#060F1D' }}
+                      style={{ background: '#C9993A', color: '#FFFFFF' }}
                     >
                       {confirming === s.id
                         ? 'Confirming...'
@@ -428,17 +564,17 @@ export default function MySessionsPage() {
 
                   <div
                     className="mt-3 flex items-center justify-between pt-3"
-                    style={{ borderTop: '0.5px solid var(--bg-elevated)' }}
+                    style={{ borderTop: '0.5px solid rgba(255,255,255,0.08)' }}
                   >
                     <span
                       className="text-xs"
-                      style={{ color: 'var(--text-ghost)' }}
+                      style={{ color: 'rgba(255,255,255,0.4)' }}
                     >
-                      {new Date(s.created_at).toLocaleDateString('en-IN')}
+                      Booked on {new Date(s.createdAt).toLocaleDateString('en-IN')}
                     </span>
-                    <span className="text-sm font-bold text-[var(--text-primary)]">
+                    <span className="text-sm font-bold" style={{ color: '#FFFFFF' }}>
                       {'\u20B9'}
-                      {(s.fee_paise / 100).toLocaleString('en-IN')}
+                      {(s.feePaise / 100).toLocaleString('en-IN')}
                     </span>
                   </div>
                 </motion.div>
