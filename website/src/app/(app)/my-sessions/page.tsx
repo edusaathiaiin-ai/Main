@@ -164,6 +164,7 @@ export default function MySessionsPage() {
     meetingLink: s.meeting_link,
     createdAt: s.created_at,
     raw1to1: s,
+    rawGroup: undefined as LiveBookingRow | undefined,
   }))
 
   // Map live bookings to unified view
@@ -178,6 +179,7 @@ export default function MySessionsPage() {
     meetingLink: b.live_sessions?.meeting_link ?? null,
     createdAt: b.created_at,
     rawGroup: b,
+    raw1to1: undefined as SessionRow | undefined,
   }))
 
   const upcomingMerged = [
